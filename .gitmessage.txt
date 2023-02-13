@@ -1,0 +1,23 @@
+Type :
+Branch :
+Auther :
+Date :
+Desc :
+
+## Type :
+## fix - 버그 수정
+## dosc - 문서 수정
+## test - 테스트 코드
+## feature - 기능 추가
+## refac - 리팩토링
+
+## Branch :
+## Update - 업데이트
+## Repair - 버그 수정
+## master - 가장 안전한 Branch
+
+## Auther : 작성자
+
+## Date : 날짜
+
+## Desc : 상세내역 표기
