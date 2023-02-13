@@ -94,7 +94,7 @@ void DXENGINE::InitFileDIR()
 	m_PixelShaderDir = ".\\..\\..\\shader\\PS_Basic.hlsl";
 	m_ShaderDir = ".\\..\\..\\shader\\Basic.hlsl";
 	m_ImageFileDir1 = ".\\..\\..\\textures\\braynzar.jpg";
-	m_ImageFileDir2 = ".\\..\\..\\textures\\clock.png";
+	m_ImageFileDir2 = ".\\..\\..\\textures\\bluelight.png";
 }
 
 

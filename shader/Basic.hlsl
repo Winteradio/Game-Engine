@@ -60,8 +60,7 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 {
 	float4 TextureColor0 =  ObjTexture[0].Sample( ObjSamplerState, Input.TEXCOORD);
 	float4 TextureColor1 =  ObjTexture[1].Sample( ObjSamplerState, Input.TEXCOORD);
-	float4 TextureColor = TextureColor0 * TextureColor1 * 2;
-	TextureColor = saturate( TextureColor );
+	float4 TextureColor = TextureColor0 * TextureColor1;
 	float3 LightDir = - LightDirection;
 	float LightIntensity = saturate( dot( Input.NORMAL, LightDir ) );
 	float4 Color = AmbientColor;
