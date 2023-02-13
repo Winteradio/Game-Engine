@@ -12,6 +12,9 @@ cbuffer MATRIXBUFFER
     matrix World;
     matrix View;
     matrix Projection;
+   	float3 LightPosition1;
+   	float3 LightPosition2;
+   	float2 Padding;
 };
 
 cbuffer CAMERABUFFER
@@ -31,6 +34,8 @@ struct PS_INPUT
 	float2 TEXCOORD : TEXCOORD0;
 	float3 NORMAL : NORMAL;
 	float3 ViewDirection : TEXCOORD1;
+	float3 LightPos1 : TEXCOORD2;
+	float3 LightPos2 : TEXCOORD3;
 };
 
 PS_INPUT VS( float4 inPos : POSITION, float2 inTexCoord : TEXCOORD, float3 innormal : NORMAL )
@@ -53,6 +58,13 @@ PS_INPUT VS( float4 inPos : POSITION, float2 inTexCoord : TEXCOORD, float3 innor
 	Result.ViewDirection = CameraPosition.xyz - WorldPosition.xyz;
 	Result.ViewDirection = normalize( Result.ViewDirection );
 
+	Result.LightPos1 = LightPosition1.xyz - WorldPosition.xyz;
+	Result.LightPos1 = normalize( Result.LightPos1 );
+
+	float3 LIGHTPPS = float3( 0.0f, 0.0f, 0.0f );
+	Result.LightPos2 = LIGHTPPS.xyz - WorldPosition.xyz;
+	Result.LightPos2 = normalize( Result.LightPos2 );
+
     return Result;
 }
 
@@ -60,7 +72,8 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 {
 	float4 TextureColor0 =  ObjTexture[0].Sample( ObjSamplerState, Input.TEXCOORD);
 	float4 TextureColor1 =  ObjTexture[1].Sample( ObjSamplerState, Input.TEXCOORD);
-	float4 TextureColor = TextureColor0 * TextureColor1;
+	float4 TextureColor = TextureColor0 * TextureColor1 * 2;
+	TextureColor = saturate( TextureColor );
 	float3 LightDir = - LightDirection;
 	float LightIntensity = saturate( dot( Input.NORMAL, LightDir ) );
 	float4 Color = AmbientColor;
@@ -77,7 +90,13 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 
 	Color = Color * TextureColor;
 
-	Color = saturate( Color + Specular );
+	float4 DiffuseColor1 = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+	float4 Color1 = DiffuseColor1 * saturate( dot( Input.NORMAL, Input.LightPos1 ) );
+
+	float4 DiffuseColor2 = float4( 1.0f, 1.0f, 1.0f, 1.0f );
+	float4 Color2 = DiffuseColor2 * saturate( dot( Input.NORMAL, Input.LightPos2 ) );
+
+	Color = saturate( Color1 + Color2 );
 
 	return Color;
 }

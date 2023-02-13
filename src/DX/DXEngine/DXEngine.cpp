@@ -94,7 +94,7 @@ void DXENGINE::InitFileDIR()
 	m_PixelShaderDir = ".\\..\\..\\shader\\PS_Basic.hlsl";
 	m_ShaderDir = ".\\..\\..\\shader\\Basic.hlsl";
 	m_ImageFileDir1 = ".\\..\\..\\textures\\braynzar.jpg";
-	m_ImageFileDir2 = ".\\..\\..\\textures\\bluelight.png";
+	m_ImageFileDir2 = ".\\..\\..\\textures\\RedSquare.png";
 }
 
 
@@ -169,7 +169,7 @@ void DXENGINE::InitRenderState()
 {
 	m_RenderState = new RENDERSTATE;
 	m_RenderState->DepthStencilState = DEPTHACTIVE;
-	m_RenderState->RasterizerState = CWCUL;
+	m_RenderState->RasterizerState = NOCUL;
 	m_RenderState->BlendState = ACTIVEALPHA;
 }
 

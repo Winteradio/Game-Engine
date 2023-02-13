@@ -8,6 +8,9 @@ typedef struct MATRIXBUFFER
 	XMMATRIX World;
 	XMMATRIX View;
 	XMMATRIX Projection;
+	XMFLOAT3 LightPosition1;
+	XMFLOAT3 LightPosition2;
+	XMFLOAT2 Padding;
 }MATRIXBUFFER;
 
 typedef struct CAMERABUFFER

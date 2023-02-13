@@ -11,7 +11,7 @@ DXCAMERA::~DXCAMERA(){}
 
 void DXCAMERA::Init()
 {
-	m_Info.Position = XMFLOAT3( 0.0f, 3.0f, 10.0f );
+	m_Info.Position = XMFLOAT3( 0.0f, 5.0f, 10.0f );
 	m_Info.Target = XMFLOAT3( 0.0f, 0.0f, 0.0f );
 	m_Info.Up = XMFLOAT3( 0.0f, 1.0f, 0.0f );
 }

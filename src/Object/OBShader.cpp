@@ -271,6 +271,8 @@ void OBSHADER::Frame( XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projec
 	m_ShaderMatrix.World = XMMatrixTranspose( worldMatrix ) ;
 	m_ShaderMatrix.View = XMMatrixTranspose( viewMatrix );
 	m_ShaderMatrix.Projection = XMMatrixTranspose( projectionMatrix );
+	m_ShaderMatrix.LightPosition1 = XMFLOAT3( 0.0f, 0.0f, 10.0f );
+	m_ShaderMatrix.LightPosition2 = XMFLOAT3( 0.0f, 0.0f, 0.0f );
 
 	m_ShaderCamera.Position = Camera.Position;
 }
@@ -278,9 +280,9 @@ void OBSHADER::Frame( XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projec
 void OBSHADER::Frame()
 {
 	m_ShaderLight.DiffuseColor = XMFLOAT4( 0.5f, 0.5f, 5.0f, 1.0f );
-	m_ShaderLight.LightDirection = XMFLOAT3( -1.0f, 1.0f, 1.0f );
+	m_ShaderLight.LightDirection = XMFLOAT3( 1.0f, 1.0f, -5.0f );
 	m_ShaderLight.AmbientColor = XMFLOAT4( 0.5f, 0.5f, 0.5f, 1.0f );
-	m_ShaderLight.SpecularPower = 32.0f;
+	m_ShaderLight.SpecularPower = 5.0f;
 }
 
 void OBSHADER::Render( ID3D11DeviceContext* DeviceContext )
