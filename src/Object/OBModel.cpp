@@ -25,13 +25,11 @@ OBMODEL::OBMODEL( DXTEXTURE* Texture )
 
 OBMODEL::~OBMODEL() {}
 
-bool OBMODEL::Init( ID3D11Device* Device, const char* FileDir )
+bool OBMODEL::Init( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 )
 {
-	m_TextureFileDir = FileDir;
-
 	if ( !InitVertexBuffer( Device ) ) { return false; }
 	if ( !InitIndexBuffer( Device ) ) { return false; }
-	if ( !InitTexture( Device ) ) { return false; }
+	if ( !InitTexture( Device, FileDir1, FileDir2 ) ) { return false; }
 
 	return true;
 }
@@ -174,7 +172,7 @@ bool OBMODEL::InitIndexBuffer( ID3D11Device* Device )
 	return true;
 }
 
-bool OBMODEL::InitTexture( ID3D11Device* Device )
+bool OBMODEL::InitTexture( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 )
 {
 	m_Texture = new DXTEXTURE;
 
@@ -188,7 +186,7 @@ bool OBMODEL::InitTexture( ID3D11Device* Device )
 		LOG_INFO(" Successed - Create DXTEXTURE ");
 	}
 
-	if ( !m_Texture->Init( Device, m_TextureFileDir ) )
+	if ( !m_Texture->Init( Device, FileDir1, FileDir2 ) )
 	{
 		LOG_ERROR(" Failed - Init DXTEXTURE ");
 		return false;
@@ -214,7 +212,6 @@ void OBMODEL::Release()
 void OBMODEL::InitPointer()
 {
 	m_Name = nullptr;
-	m_TextureFileDir = nullptr;
 
 	m_Texture = nullptr;
 	m_VertexBuffer = nullptr;
@@ -235,13 +232,11 @@ void OBMODEL::Render( ID3D11DeviceContext* DeviceContext )
 	DeviceContext->DrawIndexed( m_NumIndex, 0, 0 );
 }
 
-bool OBMODEL::SetTexture( ID3D11Device* Device, const char* FileDir )
+bool OBMODEL::SetTexture( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 )
 {
-	m_TextureFileDir = FileDir;
-
 	m_Texture->Release();
 
-	if ( !InitTexture( Device ) )
+	if ( !InitTexture( Device, FileDir1, FileDir2 ) )
 	{
 		LOG_ERROR(" Failed - Init Texture ");
 		return false;

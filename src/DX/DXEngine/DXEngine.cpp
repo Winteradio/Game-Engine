@@ -45,7 +45,7 @@ bool DXENGINE::Render()
 	m_Model->SetPosition( XMFLOAT3( 2.0f, 2.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
 	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
-	m_PixelShader->Frame( m_Model->Frame() );
+	m_PixelShader->Frame();
 
 	m_DXD3D->Render( m_RenderState );
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
@@ -56,7 +56,7 @@ bool DXENGINE::Render()
 	m_Model->SetPosition( XMFLOAT3( 5.0f, 0.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
 	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
-	m_PixelShader->Frame( m_Model->Frame() );
+	m_PixelShader->Frame();
 
 	m_DXD3D->Render( m_RenderState );
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
@@ -93,7 +93,8 @@ void DXENGINE::InitFileDIR()
 	m_VertexShaderDir = ".\\..\\..\\shader\\VS_Basic.hlsl";
 	m_PixelShaderDir = ".\\..\\..\\shader\\PS_Basic.hlsl";
 	m_ShaderDir = ".\\..\\..\\shader\\Basic.hlsl";
-	m_ImageFileDir = ".\\..\\..\\textures\\braynzar.jpg";
+	m_ImageFileDir1 = ".\\..\\..\\textures\\braynzar.jpg";
+	m_ImageFileDir2 = ".\\..\\..\\textures\\clock.png";
 }
 
 
@@ -110,7 +111,8 @@ void DXENGINE::InitPointer()
 	m_VertexShaderDir = nullptr;
 	m_PixelShaderDir = nullptr;
 	m_ShaderDir = nullptr;
-	m_ImageFileDir = nullptr;
+	m_ImageFileDir1 = nullptr;
+	m_ImageFileDir2 = nullptr;
 }
 
 
@@ -212,7 +214,7 @@ bool DXENGINE::InitModel()
 		LOG_INFO(" Successed - Create Model Object ");
 	}
 
-	if ( !m_Model->Init( m_DXD3D->GetDevice(), m_ImageFileDir ) )
+	if ( !m_Model->Init( m_DXD3D->GetDevice(), m_ImageFileDir1, m_ImageFileDir2 ) )
 	{
 		LOG_ERROR(" Failed - Init Model Object ");
 		return false;

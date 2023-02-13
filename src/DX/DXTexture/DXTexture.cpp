@@ -7,16 +7,13 @@ DXTEXTURE::DXTEXTURE( const DXTEXTURE* Other )
 	*this = *Other;
 }
 
-DXTEXTURE::DXTEXTURE( const char* FileDir )
-{
-	m_FileDir = FileDir;
-}
-
 DXTEXTURE::~DXTEXTURE() {}
 
-bool DXTEXTURE::Init( ID3D11Device* Device, const char* FileDir )
+bool DXTEXTURE::Init( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 )
 {
-	m_FileDir = FileDir;
+	m_ShaderResourceView = new ID3D11ShaderResourceView*[2];
+	m_FileDir1 = FileDir1;
+	m_FileDir2 = FileDir2;
 	if ( !InitTextureFile( Device ) ) { return false; }
 	if ( !InitSamplerState( Device ) ) { return false; }
 
@@ -27,15 +24,26 @@ bool DXTEXTURE::InitTextureFile( ID3D11Device* Device )
 {
 	HRESULT hr;
 
-	hr = D3DX11CreateShaderResourceViewFromFile( Device, m_FileDir, NULL, NULL, &m_ShaderResourceView, NULL );
+	hr = D3DX11CreateShaderResourceViewFromFile( Device, m_FileDir1, NULL, NULL, &m_ShaderResourceView[0], NULL );
 	if ( FAILED( hr ) )
 	{
-		LOG_ERROR(" Failed - Compile DDS Texture File %s ", m_FileDir );
+		LOG_ERROR(" Failed - Compile DDS Texture File %s ", m_FileDir1 );
 		return false;
 	}
 	else
 	{
-		LOG_INFO(" Successed - Compile DDS Texture File %s ", m_FileDir );
+		LOG_INFO(" Successed - Compile DDS Texture File %s ", m_FileDir1 );
+	}
+
+	hr = D3DX11CreateShaderResourceViewFromFile( Device, m_FileDir2, NULL, NULL, &m_ShaderResourceView[1], NULL );
+	if ( FAILED( hr ) )
+	{
+		LOG_ERROR(" Failed - Compile DDS Texture File %s ", m_FileDir2 );
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Compile DDS Texture File %s ", m_FileDir2 );
 	}
 
 	return true;
@@ -73,7 +81,8 @@ bool DXTEXTURE::InitSamplerState( ID3D11Device* Device )
 
 void DXTEXTURE::Release()
 {
-	m_ShaderResourceView->Release();
+	m_ShaderResourceView[0]->Release();
+	m_ShaderResourceView[1]->Release();
 	m_SamplerState->Release();
 
 	InitPointer();
@@ -83,12 +92,10 @@ void DXTEXTURE::InitPointer()
 {
 	m_ShaderResourceView = nullptr;
 	m_SamplerState = nullptr;
-
-	m_FileDir = nullptr;
 }
 
 void DXTEXTURE::Render( ID3D11DeviceContext* DeviceContext )
 {
-	DeviceContext->PSSetShaderResources( 0, 1, &m_ShaderResourceView );
+	DeviceContext->PSSetShaderResources( 0, 2, m_ShaderResourceView );
 	DeviceContext->PSSetSamplers( 0, 1, &m_SamplerState );
 }

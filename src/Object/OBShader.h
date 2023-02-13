@@ -29,7 +29,7 @@ class OBSHADER
 		void Release();
 
 		void Frame( XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, CAMERABUFFER Camera );
-		void Frame( XMMATRIX worldMatrix );
+		void Frame();
 		void Render( ID3D11DeviceContext* DeviceCOntext );
 		void ShaderErrorMessage( ID3D10Blob* ErrorMessage );
 

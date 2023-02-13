@@ -275,11 +275,11 @@ void OBSHADER::Frame( XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projec
 	m_ShaderCamera.Position = Camera.Position;
 }
 
-void OBSHADER::Frame( XMMATRIX worldMatrix )
+void OBSHADER::Frame()
 {
-	m_ShaderLight.DiffuseColor = XMFLOAT4( 0.5f, 0.5f, 0.0f, 1.0f );
-	m_ShaderLight.LightDirection = XMFLOAT3( 1.0f, 1.0f, 1.0f );
-	m_ShaderLight.AmbientColor = XMFLOAT4( 0.2f, 0.2f, 0.2f, 1.0f );
+	m_ShaderLight.DiffuseColor = XMFLOAT4( 0.5f, 0.5f, 5.0f, 1.0f );
+	m_ShaderLight.LightDirection = XMFLOAT3( -1.0f, 1.0f, 1.0f );
+	m_ShaderLight.AmbientColor = XMFLOAT4( 0.5f, 0.5f, 0.5f, 1.0f );
 	m_ShaderLight.SpecularPower = 32.0f;
 }
 

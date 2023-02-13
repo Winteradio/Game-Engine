@@ -22,7 +22,7 @@ cbuffer CAMERABUFFER
 	float3 CameraPadding;
 };
 
-Texture2D ObjTexture;
+Texture2D ObjTexture[2];
 SamplerState ObjSamplerState;
 
 struct PS_INPUT
@@ -58,11 +58,14 @@ PS_INPUT VS( float4 inPos : POSITION, float2 inTexCoord : TEXCOORD, float3 innor
 
 float4 PS(PS_INPUT Input) : SV_TARGET
 {
-	float4 TextureColor =  ObjTexture.Sample( ObjSamplerState, Input.TEXCOORD);
+	float4 TextureColor0 =  ObjTexture[0].Sample( ObjSamplerState, Input.TEXCOORD);
+	float4 TextureColor1 =  ObjTexture[1].Sample( ObjSamplerState, Input.TEXCOORD);
+	float4 TextureColor = TextureColor0 * TextureColor1 * 2;
+	TextureColor = saturate( TextureColor );
 	float3 LightDir = - LightDirection;
 	float LightIntensity = saturate( dot( Input.NORMAL, LightDir ) );
 	float4 Color = AmbientColor;
-	float4 Specular = float4( 0.2f, 0.2f, 0.2f, 1.0f );
+	float4 Specular = float4( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	if ( LightIntensity > 0.0f )
 	{

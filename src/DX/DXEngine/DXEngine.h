@@ -62,7 +62,8 @@ class DXENGINE
 		const char* m_VertexShaderDir;
 		const char* m_PixelShaderDir;
 		const char* m_ShaderDir;
-		const char* m_ImageFileDir;
+		const char* m_ImageFileDir1;
+		const char* m_ImageFileDir2;
 };
 
 #endif __DXENGINE_H__

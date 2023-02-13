@@ -125,7 +125,7 @@ void DXD3D::Render( RENDERSTATE* RenderState )
 	m_DeviceContext->RSSetState( m_FrameRasterizerState );
 	m_DeviceContext->RSSetViewports( 1, m_Viewport );
 
-	float blendFactor[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	float blendFactor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	m_DeviceContext->OMSetDepthStencilState( m_FrameDepthStencilState, 1 );
 	m_DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
 	m_DeviceContext->OMSetBlendState( m_FrameBlendState, blendFactor, 0xffffffff );
@@ -439,6 +439,13 @@ bool DXD3D::InitBlendState()
 
 	// Create Blend State that is disable to blend
 	renderTargetBlendDesc.BlendEnable = false;
+	renderTargetBlendDesc.SrcBlend = D3D11_BLEND_ONE;
+	renderTargetBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	renderTargetBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	renderTargetBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderTargetBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	renderTargetBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderTargetBlendDesc.RenderTargetWriteMask = 0x0f;
 
 	blendStateDesc.RenderTarget[0] = renderTargetBlendDesc;
 	hr = m_Device->CreateBlendState( &blendStateDesc, &m_BlendDisable );

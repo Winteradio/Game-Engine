@@ -20,10 +20,10 @@ class OBMODEL
 		~OBMODEL();
 
 	public :
-		bool Init( ID3D11Device* Device, const char* FileDir );
+		bool Init( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 );
 		bool InitVertexBuffer( ID3D11Device* Device );
 		bool InitIndexBuffer( ID3D11Device* Device );
-		bool InitTexture( ID3D11Device* Device );
+		bool InitTexture( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 );
 
 		void Release();
 		void InitPointer();
@@ -35,14 +35,13 @@ class OBMODEL
 		void SetScale( XMFLOAT3 Scale );
 		XMMATRIX Frame();
 
-		bool SetTexture( ID3D11Device* Device, const char* FileDir );
+		bool SetTexture( ID3D11Device* Device, const char* FileDir1, const char* FileDir2 );
 
 	public :
 
 		MODELTYPE m_Type;
 
 		const char* m_Name;
-		const char* m_TextureFileDir;
 
 		DXTEXTURE* m_Texture;
 
