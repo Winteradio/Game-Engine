@@ -271,8 +271,8 @@ void OBSHADER::Frame( XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projec
 	m_ShaderMatrix.World = XMMatrixTranspose( worldMatrix ) ;
 	m_ShaderMatrix.View = XMMatrixTranspose( viewMatrix );
 	m_ShaderMatrix.Projection = XMMatrixTranspose( projectionMatrix );
-	m_ShaderMatrix.LightPosition1 = XMFLOAT3( 0.0f, 0.0f, 10.0f );
-	m_ShaderMatrix.LightPosition2 = XMFLOAT3( 0.0f, 0.0f, 0.0f );
+	m_ShaderMatrix.LightPosition1 = XMFLOAT4( 0.0f, 0.0f, 10.0f, 0.0f );
+	m_ShaderMatrix.LightPosition2 = XMFLOAT4( 10.0f, 0.0f, 0.0f, 0.0f );
 
 	m_ShaderCamera.Position = Camera.Position;
 }

@@ -12,9 +12,8 @@ cbuffer MATRIXBUFFER
     matrix World;
     matrix View;
     matrix Projection;
-   	float3 LightPosition1;
-   	float3 LightPosition2;
-   	float2 Padding;
+   	float4 LightPosition1;
+   	float4 LightPosition2;
 };
 
 cbuffer CAMERABUFFER
@@ -61,8 +60,7 @@ PS_INPUT VS( float4 inPos : POSITION, float2 inTexCoord : TEXCOORD, float3 innor
 	Result.LightPos1 = LightPosition1.xyz - WorldPosition.xyz;
 	Result.LightPos1 = normalize( Result.LightPos1 );
 
-	float3 LIGHTPPS = float3( 0.0f, 0.0f, 0.0f );
-	Result.LightPos2 = LIGHTPPS.xyz - WorldPosition.xyz;
+	Result.LightPos2 = LightPosition2.xyz - WorldPosition.xyz;
 	Result.LightPos2 = normalize( Result.LightPos2 );
 
     return Result;
@@ -88,7 +86,7 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 		Specular = pow( saturate( dot( Reflection, Input.ViewDirection ) ), SpecularPower );
 	}
 
-	Color = Color * TextureColor;
+	//Color = Color * TextureColor;
 
 	float4 DiffuseColor1 = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 	float4 Color1 = DiffuseColor1 * saturate( dot( Input.NORMAL, Input.LightPos1 ) );
