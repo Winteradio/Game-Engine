@@ -45,12 +45,14 @@ SET( SRC_DIR ${CMAKE_SOURCE_DIR}/src )
 ### Just SET Directory for New files       ########
 ###################################################
 
+## SRS Directories
 SET( DX_DIR ${SRC_DIR}/DX )
 SET( DXCAMERA_DIR ${DX_DIR}/DXCamera )
 SET( DXD3D_DIR ${DX_DIR}/DXD3D )
 SET( DXENGINE_DIR ${DX_DIR}/DXEngine )
 SET( DXTEXTURE_DIR ${DX_DIR}/DXTexture )
 SET( DXTYPE_DIR ${DX_DIR}/DXType )
+SET( DXIMGUI_DIR ${DX_DIR}/DXIMGUI )
 
 SET( OBJECT_DIR ${SRC_DIR}/Object )
 
@@ -63,6 +65,24 @@ SET( SUBLOG_DIR ${SUB_DIR}/SUBLog )
 SET( SUBTIMER_DIR ${SUB_DIR}/SUBTimer)
 
 SET( WIN_DIR ${SRC_DIR}/WIN )
+
+## ImGUI Directories
+SET( IMGUI_DIR ${CMAKE_SOURCE_DIR}/imgui )
+
+SET( IMGUIS
+		${IMGUI_DIR}/imconfig.h
+		${IMGUI_DIR}/imgui.h ${IMGUI_DIR}/imgui.cpp
+		${IMGUI_DIR}/imgui_demo.cpp
+		${IMGUI_DIR}/imgui_draw.cpp
+		${IMGUI_DIR}/imgui_impl_dx11.h ${IMGUI_DIR}/imgui_impl_dx11.cpp
+		${IMGUI_DIR}/imgui_impl_win32.h ${IMGUI_DIR}/imgui_impl_win32.cpp
+		${IMGUI_DIR}/imgui_internal.h
+		${IMGUI_DIR}/imgui_tables.cpp
+		${IMGUI_DIR}/imgui_widgets.cpp
+		${IMGUI_DIR}/imstb_rectpack.h
+		${IMGUI_DIR}/imstb_textedit.h
+		${IMGUI_DIR}/imstb_truetype.h
+	)
 
 ## Source Files
 SET( SRCS
@@ -82,6 +102,9 @@ SET( SRCS
 		${DXENGINE_DIR}/DXEngine.h ${DXENGINE_DIR}/DXEngine.cpp
 		${DXTEXTURE_DIR}/DXTexture.h ${DXTEXTURE_DIR}/DXTexture.cpp
 		${DXTYPE_DIR}/DXBuffer.h
+
+	${DX_DIR}/DXImGUICommon.h
+		${DXIMGUI_DIR}/DXImGUI.h ${DXIMGUI_DIR}/DXImGUI.cpp
 
 	${OBJECT_DIR}/OBShader.h ${OBJECT_DIR}/OBShader.cpp
 	${OBJECT_DIR}/OBModel.h ${OBJECT_DIR}/OBModel.cpp
@@ -105,16 +128,19 @@ SET( INCS
 		${DXENGINE_DIR}
 		${DXTEXTURE_DIR}
 		${DXTYPE_DIR}
+		${DXIMGUI_DIR}
 
 	${OBJECT_DIR}
 
 	${WIN_DIR}
+
+	${IMGUI_DIR}
 	)
 
 ###################################################
 ###################################################
 
-ADD_EXECUTABLE( ${PROJECT_NAME} WIN32 ${SRCS} )
+ADD_EXECUTABLE( ${PROJECT_NAME} WIN32 ${SRCS} ${IMGUIS} )
 
 MESSAGE( STATUS "Setting Done ")
 # ----------------------------------------------- #

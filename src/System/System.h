@@ -48,6 +48,7 @@ class SYSTEM
 
 static SUBINPUT* g_SUBINPUT = 0;
 
+extern LRESULT ImGui_ImplWin32_WndProcHandler( HWND hWnd, UINT message, WPARAM, LPARAM lParma );
 LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam );
 
 #endif __SYSTEM_H__

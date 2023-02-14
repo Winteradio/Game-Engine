@@ -21,6 +21,7 @@ bool DXENGINE::Init( int Width, int Height, HWND hWnd )
 {
 	if ( !InitDXD3D( Width, Height, hWnd, SCREEN_DEPTH, SCREEN_NEAR ) ) { return false; }
 	if ( !InitDXCAMERA() ) { return false; }
+	if ( !InitDXIMGUI( hWnd ) ) { return false; }
 	if ( !InitShader( m_VertexShader, Vertex, m_ShaderDir ) ) { return false; }
 	if ( !InitShader( m_PixelShader, Pixel, m_ShaderDir ) ) { return false; }
 	if ( !InitModel() ) { return false; }
@@ -31,6 +32,7 @@ bool DXENGINE::Init( int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
+	m_DXIMGUI->Frame();
 	return Render();
 }
 
@@ -63,6 +65,9 @@ bool DXENGINE::Render()
 	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
 
+	// ImGUI Render
+	m_DXIMGUI->Render();
+
 	// Print Buffor on Monitor
 	m_DXD3D->EndScene();
 
@@ -74,6 +79,7 @@ void DXENGINE::Release()
 	LOG_INFO(" Release - DXENGINE ");
 
 	m_DXD3D->Release();
+	m_DXIMGUI->Release();
 	m_VertexShader->Release();
 	m_PixelShader->Release();
 	m_Model->Release();
@@ -83,6 +89,7 @@ void DXENGINE::Release()
 	delete m_Model;
 	delete m_RenderState;
 	delete m_DXD3D;
+	delete m_DXIMGUI;
 	delete m_DXCAMERA;
 
 	InitPointer();
@@ -102,6 +109,7 @@ void DXENGINE::InitPointer()
 {
 	m_DXD3D = nullptr;
 	m_DXCAMERA = nullptr;
+	m_DXIMGUI = nullptr;
 
 	m_VertexShader = nullptr;
 	m_PixelShader = nullptr;
@@ -162,6 +170,35 @@ bool DXENGINE::InitDXCAMERA()
 	}
 
 	m_DXCAMERA->Init();
+	return true;
+}
+
+
+bool DXENGINE::InitDXIMGUI( HWND hWnd )
+{
+	// Create DXIMGUI Object
+	m_DXIMGUI = new DXIMGUI;
+
+	if ( !m_DXIMGUI )
+	{
+		LOG_ERROR(" Failed - Create DXIMGUI ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Create DXIMGUI ");
+	}
+
+	if ( !m_DXIMGUI->Init( hWnd, m_DXD3D->GetDevice(), m_DXD3D->GetDeviceContext() ) )
+	{
+		LOG_ERROR(" Failed - Init DXIMGUI ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Init DXIMGUI ");
+	}
+
 	return true;
 }
 

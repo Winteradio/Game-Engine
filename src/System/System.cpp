@@ -274,6 +274,11 @@ void SYSTEM::InitPointer()
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+	if ( ImGui_ImplWin32_WndProcHandler( hWnd, message, wParam, lParam ) )
+	{
+		return true;
+	}
+
 	if ( g_SUBINPUT != 0 )
 	{
 		return g_SUBINPUT->MessageHandler( hWnd, message, wParam, lParam );

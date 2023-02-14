@@ -86,7 +86,7 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 		Specular = pow( saturate( dot( Reflection, Input.ViewDirection ) ), SpecularPower );
 	}
 
-	//Color = Color * TextureColor;
+	Color = Color * TextureColor;
 
 	float4 DiffuseColor1 = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 	float4 Color1 = DiffuseColor1 * saturate( dot( Input.NORMAL, Input.LightPos1 ) );
@@ -94,7 +94,7 @@ float4 PS(PS_INPUT Input) : SV_TARGET
 	float4 DiffuseColor2 = float4( 1.0f, 1.0f, 1.0f, 1.0f );
 	float4 Color2 = DiffuseColor2 * saturate( dot( Input.NORMAL, Input.LightPos2 ) );
 
-	Color = saturate( Color1 + Color2 );
+	Color = saturate( Color + Color1 + Color2 );
 
 	return Color;
 }
