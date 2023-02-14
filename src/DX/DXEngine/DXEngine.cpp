@@ -41,8 +41,10 @@ bool DXENGINE::Render()
 	// Erase Buffer for Drawing Scene
 	m_DXD3D->BeginScene( 0.2f, 0.2f, 0.2f, 1.0f );
 
-	// Cube1
+	// ImGui Render
+	m_DXIMGUI->Render( m_RenderState );
 
+	// Cube1
 	m_DXCAMERA->Frame();
 	m_Model->SetPosition( XMFLOAT3( 2.0f, 2.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
@@ -64,9 +66,6 @@ bool DXENGINE::Render()
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
 	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
-
-	// ImGUI Render
-	m_DXIMGUI->Render();
 
 	// Print Buffor on Monitor
 	m_DXD3D->EndScene();
