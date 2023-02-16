@@ -3,6 +3,7 @@
 #ifndef __DXCOMMON_H__
 #define __DXCOMMON_H__
 
+#include <dinput.h>
 #include <dxgi.h>
 #include <d3dcommon.h>
 #include <d3dcompiler.h>

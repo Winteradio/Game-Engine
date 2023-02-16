@@ -5,5 +5,6 @@
 #include "SUBInput.h"
 #include "SUBLog.h"
 #include "SUBTimer.h"
+#include "Readtext.h"
 
 #endif

@@ -17,11 +17,12 @@ DXENGINE::~DXENGINE()
 {}
 
 
-bool DXENGINE::Init( int Width, int Height, HWND hWnd )
+bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 {
 	if ( !InitDXD3D( Width, Height, hWnd, SCREEN_DEPTH, SCREEN_NEAR ) ) { return false; }
 	if ( !InitDXCAMERA() ) { return false; }
 	if ( !InitDXIMGUI( hWnd ) ) { return false; }
+	if ( !InitDXINPUT( hWnd, PosX, PosY, Width, Height ) ) { return false; }
 	if ( !InitShader( m_VertexShader, Vertex, m_ShaderDir ) ) { return false; }
 	if ( !InitShader( m_PixelShader, Pixel, m_ShaderDir ) ) { return false; }
 	if ( !InitModel() ) { return false; }
@@ -32,6 +33,7 @@ bool DXENGINE::Init( int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
+	m_DXINPUT->Frame();
 	m_DXIMGUI->Frame();
 	return Render();
 }
@@ -40,9 +42,6 @@ bool DXENGINE::Render()
 {
 	// Erase Buffer for Drawing Scene
 	m_DXD3D->BeginScene( 0.2f, 0.2f, 0.2f, 1.0f );
-
-	// ImGui Render
-	m_DXIMGUI->Render( m_RenderState );
 
 	// Cube1
 	m_DXCAMERA->Frame();
@@ -66,6 +65,9 @@ bool DXENGINE::Render()
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
 	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
+
+	// ImGui Render
+	m_DXIMGUI->Render( m_RenderState, m_DXINPUT->m_MouseX, m_DXINPUT->m_MouseY );
 
 	// Print Buffor on Monitor
 	m_DXD3D->EndScene();
@@ -99,8 +101,8 @@ void DXENGINE::InitFileDIR()
 	m_VertexShaderDir = ".\\..\\..\\shader\\VS_Basic.hlsl";
 	m_PixelShaderDir = ".\\..\\..\\shader\\PS_Basic.hlsl";
 	m_ShaderDir = ".\\..\\..\\shader\\Basic.hlsl";
-	m_ImageFileDir1 = ".\\..\\..\\textures\\braynzar.jpg";
-	m_ImageFileDir2 = ".\\..\\..\\textures\\RedSquare.png";
+	m_ImageFileDir1 = ".\\..\\..\\textures\\bluelight.png";
+	m_ImageFileDir2 = ".\\..\\..\\textures\\grass.jpg";
 }
 
 
@@ -196,6 +198,34 @@ bool DXENGINE::InitDXIMGUI( HWND hWnd )
 	else
 	{
 		LOG_INFO(" Successed - Init DXIMGUI ");
+	}
+
+	return true;
+}
+
+bool DXENGINE::InitDXINPUT( HWND hWnd, int PosX, int PosY, int Width, int Height )
+{
+	// Create DXINPUT Object
+	m_DXINPUT = new DXINPUT;
+
+	if ( !m_DXINPUT )
+	{
+		LOG_ERROR(" Failed - Create DXINPUT ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Create DXINPUT ");
+	}
+
+	if ( !m_DXINPUT->Init( hWnd, PosX, PosY, Width, Height ) )
+	{
+		LOG_ERROR(" Failed - Init DXINPUT ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Init DXINPUT ");
 	}
 
 	return true;

@@ -48,7 +48,7 @@ bool DXIMGUI::Frame()
 	return true;
 }
 
-bool DXIMGUI::Render( RENDERSTATE* RenderState )
+bool DXIMGUI::Render( RENDERSTATE* RenderState, int MouseX, int MouseY )
 {
 	static int Counter = 0;
 
@@ -110,6 +110,12 @@ bool DXIMGUI::Render( RENDERSTATE* RenderState )
 		{
 			RenderState->DepthStencilState = DEPTHDEACTIVE;
 		}
+	}
+
+	if ( ImGui::CollapsingHeader("Mouse Position") )
+	{
+		ImGui::Spacing();
+		ImGui::Text("Mouse X %d Y %d", MouseX, MouseY );
 	}
 	ImGui::End();
 	ImGui::Render();

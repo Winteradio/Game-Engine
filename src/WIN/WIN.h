@@ -31,6 +31,8 @@ class WIN
 		void SetWindowHandle( HWND hWnd );
 		void SetWindowHandleInstance( HINSTANCE hInstance );
 
+		int GetWindowPosX();
+		int GetWindowPosY();
 		int GetWindowWidth();
 		int GetWindowHeight();
 
@@ -46,6 +48,7 @@ class WIN
 		int m_PosY = 200;
 		int m_Width = 1080;
 		int m_Height = 640;
+		RECT m_ClientSize;
 		bool m_FullScreen = false;
 		char* m_Name = "Default Name";
 		char* m_Title = "Default Title";

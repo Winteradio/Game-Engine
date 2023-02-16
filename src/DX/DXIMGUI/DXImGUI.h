@@ -15,7 +15,7 @@ class DXIMGUI
 	public :
 		bool Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext );
 		bool Frame();
-		bool Render( RENDERSTATE* RenderState );
+		bool Render( RENDERSTATE* RenderState, int MouseX, int MouseY );
 
 		void Release();
 		void InitPointer();

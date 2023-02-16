@@ -31,10 +31,10 @@ class SUBINPUT
 
 	private :
 
-		void SetMousePosition( int, int );
-		void SetMouseLeftState( bool );
-		void SetMouseRightState( bool );
-		void SetMouseWheelState( bool );
+		void SetMousePosition( int ScreenWidth, int ScreenHeight );
+		void SetMouseLeftState( bool ButtonState );
+		void SetMouseRightState( bool ButtonState );
+		void SetMouseWheelState( bool ButtonState );
 
 	private :
 

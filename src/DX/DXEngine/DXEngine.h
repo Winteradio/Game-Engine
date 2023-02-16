@@ -6,6 +6,7 @@
 #include "DXD3D.h"
 #include "DXCamera.h"
 #include "DXIMGUI.h"
+#include "DXInput.h"
 #include "DXTexture.h"
 #include "OBShader.h"
 #include "OBModel.h"
@@ -26,7 +27,7 @@ class DXENGINE
 	// Functions - Basic Initialization and Run Frame & End
 	public :
 
-		bool Init( int Width, int Height, HWND hWnd );
+		bool Init( int PosX, int PosY, int Width, int Height, HWND hWnd );
 
 		bool Frame( int FPS, int CPU, float Time, int mouseX, int mouseY );
 		void Release();
@@ -37,6 +38,7 @@ class DXENGINE
 		bool InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR );
 		bool InitDXCAMERA();
 		bool InitDXIMGUI( HWND hWnd );
+		bool InitDXINPUT( HWND hWnd, int PosX, int PosY, int Width, int Height );
 		bool InitShader( OBSHADER*& Shader, SHADERTYPE Type, const char* FileDir );
 		bool InitModel();
 		void InitRenderState();
@@ -55,6 +57,7 @@ class DXENGINE
 		DXD3D* m_DXD3D;
 		DXCAMERA* m_DXCAMERA;
 		DXIMGUI* m_DXIMGUI;
+		DXINPUT* m_DXINPUT;
 
 		OBSHADER* m_VertexShader;
 		OBSHADER* m_PixelShader;

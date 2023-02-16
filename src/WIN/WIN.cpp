@@ -44,16 +44,16 @@ bool WIN::Init()
 	}
 
 	// Make Rectangle for Window
-	RECT clientSize = { 0, 0, m_Width, m_Height };
-	AdjustWindowRect( &clientSize, WS_OVERLAPPEDWINDOW, FALSE );
+	m_ClientSize = { m_PosX, m_PosY, m_Width + m_PosX, m_Height + m_PosY };
+	AdjustWindowRect( &m_ClientSize, WS_OVERLAPPEDWINDOW, FALSE );
 
 	// Create Window
 	m_hWnd = CreateWindowEx( NULL,
 		m_Name, m_Title,
 		WS_OVERLAPPEDWINDOW,
-		m_PosX, m_PosY,
-		clientSize.right - clientSize.left,
-		clientSize.bottom - clientSize.top,
+		m_ClientSize.left, m_ClientSize.top,
+		m_ClientSize.right - m_ClientSize.left,
+		m_ClientSize.bottom - m_ClientSize.top,
 		nullptr, nullptr, m_hInstance, nullptr
 		);
 
@@ -127,8 +127,10 @@ void WIN::SetWindowNameNTitle( const char* Name, const char* Title )
 void WIN::SetWindowHandle( HWND hWnd ){ m_hWnd = hWnd; }
 void WIN::SetWindowHandleInstance( HINSTANCE hInstance ){ m_hInstance = hInstance; }
 
-int WIN::GetWindowWidth(){ return m_Width; }
-int WIN::GetWindowHeight(){ return m_Height; }
+int WIN::GetWindowPosX() { return m_PosX; }
+int WIN::GetWindowPosY() { return m_PosY; }
+int WIN::GetWindowWidth() { return m_Width; }
+int WIN::GetWindowHeight() { return m_Height; }
 
 HWND WIN::GetWindowHandle(){ return m_hWnd; }
 HINSTANCE WIN::GetWindowHandleInstance(){ return m_hInstance; }

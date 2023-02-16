@@ -137,7 +137,6 @@ bool SYSTEM::InitWindows()
 	{
 		LOG_INFO(" Successed - Init WIN Object ");
 	}
-
 	return true;
 }
 
@@ -246,10 +245,8 @@ bool SYSTEM::InitDXENGINE()
 	}
 
 	// Init DXENGINE Objects
-	if ( !m_DXENGINE->Init(
-		m_WIN->GetWindowWidth(),
-		m_WIN->GetWindowHeight(),
-		m_WIN->GetWindowHandle() ) )
+	if ( !m_DXENGINE->Init( m_WIN->GetWindowPosX(), m_WIN->GetWindowPosY(),
+		m_WIN->GetWindowWidth(), m_WIN->GetWindowHeight(), m_WIN->GetWindowHandle() ) )
 	{
 		LOG_ERROR(" Failed - Init DXENGINE ");
 		return false;

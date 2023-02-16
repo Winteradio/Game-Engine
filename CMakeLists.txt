@@ -4,11 +4,11 @@ MESSAGE( STATUS "Setting Variables")
 ## Make Project Name
 SET( PROJECT_NAME "Example" )
 ## Set Compiler
-SET( CMAKE_CXX_COMPILER g++ )
-SET( CMAKE_C_COMPILER gcc )
+SET( CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++.exe" )
+SET( CMAKE_C_COMPILER "C:/msys64/mingw64/bin/gcc.exe" )
 SET( CMAKE_BUILD_TYPE Debug )
 ## Set CXX Compiler Version
-SET( CMAKE_SET_STANDARD 17 )
+SET( CMAKE_CXX_STANDARD 17 )
 ## Set Window Options
 SET( WINDOW_NAME "Hello ~" )
 SET( WINDOW_WIDTH 640 )
@@ -53,6 +53,7 @@ SET( DXENGINE_DIR ${DX_DIR}/DXEngine )
 SET( DXTEXTURE_DIR ${DX_DIR}/DXTexture )
 SET( DXTYPE_DIR ${DX_DIR}/DXType )
 SET( DXIMGUI_DIR ${DX_DIR}/DXIMGUI )
+SET( DXINPUT_DIR ${DX_DIR}/DXInput )
 
 SET( OBJECT_DIR ${SRC_DIR}/Object )
 
@@ -63,6 +64,7 @@ SET( SUBFPS_DIR ${SUB_DIR}/SUBFPS )
 SET( SUBINPUT_DIR ${SUB_DIR}/SUBInput )
 SET( SUBLOG_DIR ${SUB_DIR}/SUBLog )
 SET( SUBTIMER_DIR ${SUB_DIR}/SUBTimer)
+SET( SUBBROWSER_DIR ${SUB_DIR}/SUBBrowser )
 
 SET( WIN_DIR ${SRC_DIR}/WIN )
 
@@ -95,6 +97,7 @@ SET( SRCS
 		${SUBINPUT_DIR}/SUBInput.h ${SUBINPUT_DIR}/SUBInput.cpp
 		${SUBLOG_DIR}/SUBLog.h ${SUBLOG_DIR}/SUBLog.cpp
 		${SUBTIMER_DIR}/SUBTimer.h ${SUBTIMER_DIR}/SUBTimer.cpp
+		${SUBBROWSER_DIR}/Readtext.h ${SUBBROWSER_DIR}/Readtext.cpp
 
 	${DX_DIR}/DXCommon.h
 		${DXCAMERA_DIR}/DXCamera.h ${DXCAMERA_DIR}/DXCamera.cpp
@@ -102,6 +105,7 @@ SET( SRCS
 		${DXENGINE_DIR}/DXEngine.h ${DXENGINE_DIR}/DXEngine.cpp
 		${DXTEXTURE_DIR}/DXTexture.h ${DXTEXTURE_DIR}/DXTexture.cpp
 		${DXTYPE_DIR}/DXBuffer.h
+		${DXINPUT_DIR}/DXInput.h ${DXINPUT_DIR}/DXInput.cpp
 
 	${DX_DIR}/DXImGUICommon.h
 		${DXIMGUI_DIR}/DXImGUI.h ${DXIMGUI_DIR}/DXImGUI.cpp
@@ -121,6 +125,7 @@ SET( INCS
 		${SUBINPUT_DIR}
 		${SUBLOG_DIR}
 		${SUBTIMER_DIR}
+		${SUBBROWSER_DIR}
 
 	${DX_DIR}
 		${DXCAMERA_DIR}
@@ -129,6 +134,7 @@ SET( INCS
 		${DXTEXTURE_DIR}
 		${DXTYPE_DIR}
 		${DXIMGUI_DIR}
+		${DXINPUT_DIR}
 
 	${OBJECT_DIR}
 

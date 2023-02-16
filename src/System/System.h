@@ -44,6 +44,11 @@ class SYSTEM
 		SUBFPS* m_SUBFPS;
 		SUBINPUT* m_SUBINPUT;
 		SUBTIMER* m_SUBTIMER;
+
+		int m_PosX;
+		int m_PosY;
+		int m_Width;
+		int m_Height;
 };
 
 static SUBINPUT* g_SUBINPUT = 0;
