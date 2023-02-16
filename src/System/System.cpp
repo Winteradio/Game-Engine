@@ -274,35 +274,21 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 	if ( ImGui_ImplWin32_WndProcHandler( hWnd, message, wParam, lParam ) )
 	{
 		return true;
-	}
+ 	}
 
-	if ( g_SUBINPUT != 0 )
+	switch( message )
 	{
-		return g_SUBINPUT->MessageHandler( hWnd, message, wParam, lParam );
-	}
-	else
-	{
-		switch ( message )
-		{
-			case WM_KEYDOWN :
-			{
-				if ( wParam == VK_ESCAPE )
-				{
-					LOG_INFO(" Pushed Exit Key ");
-					DestroyWindow( hWnd );
-					return 0;
-				}
-			}
-
-			case WM_DESTROY :
-			{
-				PostQuitMessage( 0 );
-				return 0;
-			}
+	case WM_KEYDOWN:
+		if( wParam == VK_ESCAPE ){
+			DestroyWindow(hWnd);
 		}
+		return 0;
 
-		return DefWindowProc( hWnd, message, wParam, lParam );
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
 	}
+	return DefWindowProc( hWnd, message, wParam, lParam );
 }
 
 

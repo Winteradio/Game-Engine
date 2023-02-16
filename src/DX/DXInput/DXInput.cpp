@@ -129,7 +129,7 @@ void DXINPUT::Release()
 	InitPointer();
 }
 
-void DXINPUT::Frame()
+void DXINPUT::Frame( float& moveLeftRight, float& moveBackForward, float& Yaw, float& Pitch)
 {
 	HRESULT hr;
 	DIMOUSESTATE mouseCurrState;
@@ -164,7 +164,34 @@ void DXINPUT::Frame()
 	if ( m_MouseX > m_ScreenWidth ) { m_MouseX = m_ScreenWidth; }
 	if ( m_MouseY > m_ScreenHeight ) { m_MouseY = m_ScreenHeight; }
 
-	m_MouseLastState = mouseCurrState;
+    if( m_KeyboardState[DIK_A] & 0x80)
+    {
+    	moveLeftRight -= 0.003f;
+    }
+    if( m_KeyboardState[DIK_D] & 0x80)
+    {
+    	moveLeftRight += 0.003f;
+    }
+    if( m_KeyboardState[DIK_W] & 0x80)
+    {
+        moveBackForward += 0.003f;
+    }
+    if( m_KeyboardState[DIK_S] & 0x80)
+    {
+        moveBackForward -= 0.003f;
+    }
 
-	delete Mouse;
+    if ( mouseCurrState.rgbButtons[0] & 0x80 )
+    {
+    	if( (mouseCurrState.lX != m_MouseLastState.lX) || (mouseCurrState.lY != m_MouseLastState.lY) )
+	    {
+	        Yaw += mouseCurrState.lX * 0.003f;
+
+	        Pitch += mouseCurrState.lY * 0.003f;
+
+	        m_MouseLastState = mouseCurrState;
+	    }
+    }
+
+    delete Mouse;
 }

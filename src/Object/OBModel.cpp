@@ -277,7 +277,7 @@ XMMATRIX OBMODEL::Frame()
 
 	Scaling = XMMatrixScaling( m_Scale.x, m_Scale.y, m_Scale.z );
 
-	World = Translation * Rotation * Scaling;
+	World = Rotation * Translation * Scaling;
 
 	return World;
 }

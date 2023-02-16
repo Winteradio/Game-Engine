@@ -13,7 +13,7 @@ class DXINPUT
 
 	public :
 		bool Init( HWND hWnd, int PosX, int PosY, int screenWidth, int screenHeight );
-		void Frame();
+		void Frame( float& moveLeftRight, float& moveBackForward, float& Yaw, float& Picth);
 
 	private :
 		void InitPointer();

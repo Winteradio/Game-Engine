@@ -33,7 +33,8 @@ bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
-	m_DXINPUT->Frame();
+	m_DXINPUT->Frame( m_DXCAMERA->m_MoveLeftRight, m_DXCAMERA->m_MoveBackForward,
+		m_DXCAMERA->m_Yaw, m_DXCAMERA->m_Pitch );
 	m_DXIMGUI->Frame();
 	return Render();
 }
@@ -45,7 +46,7 @@ bool DXENGINE::Render()
 
 	// Cube1
 	m_DXCAMERA->Frame();
-	m_Model->SetPosition( XMFLOAT3( 2.0f, 2.0f, 0.0f ) );
+	m_Model->SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
 	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
 	m_PixelShader->Frame();
@@ -56,7 +57,7 @@ bool DXENGINE::Render()
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
 
 	// Cube2
-	m_Model->SetPosition( XMFLOAT3( 5.0f, 0.0f, 0.0f ) );
+	m_Model->SetPosition( XMFLOAT3( 5.0f, 1.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
 	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
 	m_PixelShader->Frame();
