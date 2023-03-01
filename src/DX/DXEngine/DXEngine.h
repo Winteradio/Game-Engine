@@ -15,6 +15,14 @@
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 1.0f;
 
+struct DXENGINERECT
+{
+	XMFLOAT2 SettingRect;
+	XMFLOAT2 GameEngineRect;
+	XMFLOAT2 InGameRect;
+	XMFLOAT2 LogRect;
+};
+
 class DXENGINE
 {
 	// Functions - Constructor and Destructor
@@ -35,6 +43,7 @@ class DXENGINE
 	// Functions - Divide Init Functions
 	private :
 
+		bool InitDXENGINERECT( int Width, int Height );
 		bool InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR );
 		bool InitDXCAMERA();
 		bool InitDXIMGUI( HWND hWnd );
@@ -55,13 +64,16 @@ class DXENGINE
 	private :
 
 		DXD3D* m_DXD3D;
-		DXCAMERA* m_DXCAMERA;
+		DXCAMERA* m_DXENGINECAMERA;
+		DXCAMERA* m_DXINGAMECAMERA;
 		DXIMGUI* m_DXIMGUI;
 		DXINPUT* m_DXINPUT;
 
 		OBSHADER* m_VertexShader;
 		OBSHADER* m_PixelShader;
 		OBMODEL* m_Model;
+
+		DXENGINERECT* m_DXENGINERECT;
 
 		RENDERSTATE* m_RenderState;
 

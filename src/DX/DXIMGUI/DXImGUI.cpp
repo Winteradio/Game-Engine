@@ -116,7 +116,40 @@ bool DXIMGUI::Render( RENDERSTATE* RenderState, int MouseX, int MouseY )
 	{
 		ImGui::Spacing();
 		ImGui::Text("Mouse X %d Y %d", MouseX, MouseY );
+				for ( int I = 0; I < 1000; I++ )
+				{
+					ImGui::Text("Count %d", I );
+				}
 	}
+	ImGui::End();
+
+	ImGui::SetNextWindowPos( ImVec2( 200, 840 - 400 ) );
+	ImGui::SetNextWindowSize( ImVec2( 1440 - 200, 400 ) );
+
+	ImGui::Begin(" Info ");
+	ImGui::SameLine();
+	if ( ImGui::BeginTabBar(" Information ") )
+	{
+		if ( ImGui::BeginTabItem(" ALL Log " ) )
+		{
+			ImGui::Text(" ALL Log...");
+			ImGui::EndTabItem();
+		}
+
+		if ( ImGui::BeginTabItem(" Physics ") )
+		{
+			ImGui::Text(" Physics... ");
+			ImGui::EndTabItem();
+		}
+
+		if ( ImGui::BeginTabItem(" Object ") )
+		{
+			ImGui::Text(" Object... ");
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
+	}
+
 	ImGui::End();
 	ImGui::Render();
 

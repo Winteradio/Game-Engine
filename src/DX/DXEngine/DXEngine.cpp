@@ -33,8 +33,8 @@ bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
-	m_DXINPUT->Frame( m_DXCAMERA->m_MoveLeftRight, m_DXCAMERA->m_MoveBackForward,
-		m_DXCAMERA->m_Yaw, m_DXCAMERA->m_Pitch );
+	m_DXINPUT->Frame( m_DXENGINECAMERA->m_MoveLeftRight, m_DXENGINECAMERA->m_MoveBackForward,
+		m_DXENGINECAMERA->m_Yaw, m_DXENGINECAMERA->m_Pitch );
 	m_DXIMGUI->Frame();
 	return Render();
 }
@@ -44,14 +44,16 @@ bool DXENGINE::Render()
 	// Erase Buffer for Drawing Scene
 	m_DXD3D->BeginScene( 0.2f, 0.2f, 0.2f, 1.0f );
 
+// Game Engine Rendering
+
 	// Cube1
-	m_DXCAMERA->Frame();
+	m_DXENGINECAMERA->Frame();
 	m_Model->SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXENGINECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXENGINECAMERA->GetCameraInfo() );
 	m_PixelShader->Frame();
 
-	m_DXD3D->Render( m_RenderState );
+	m_DXD3D->RenderEngine( m_RenderState );
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
 	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
@@ -59,10 +61,34 @@ bool DXENGINE::Render()
 	// Cube2
 	m_Model->SetPosition( XMFLOAT3( 5.0f, 1.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXCAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXCAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXENGINECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXENGINECAMERA->GetCameraInfo() );
 	m_PixelShader->Frame();
 
-	m_DXD3D->Render( m_RenderState );
+	m_DXD3D->RenderEngine( m_RenderState );
+	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
+	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
+	m_Model->Render( m_DXD3D->GetDeviceContext() );
+
+// In Game Rendering
+	// Cube1
+	m_DXINGAMECAMERA->Frame();
+	m_Model->SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
+	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXINGAMECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXINGAMECAMERA->GetCameraInfo() );
+	m_PixelShader->Frame();
+
+	m_DXD3D->RenderInGame( m_RenderState );
+	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
+	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
+	m_Model->Render( m_DXD3D->GetDeviceContext() );
+
+	// Cube2
+	m_Model->SetPosition( XMFLOAT3( 5.0f, 1.0f, 0.0f ) );
+	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXINGAMECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXINGAMECAMERA->GetCameraInfo() );
+	m_PixelShader->Frame();
+
+	m_DXD3D->RenderInGame( m_RenderState );
 	m_VertexShader->Render( m_DXD3D->GetDeviceContext() );
 	m_PixelShader->Render( m_DXD3D->GetDeviceContext() );
 	m_Model->Render( m_DXD3D->GetDeviceContext() );
@@ -92,7 +118,8 @@ void DXENGINE::Release()
 	delete m_RenderState;
 	delete m_DXD3D;
 	delete m_DXIMGUI;
-	delete m_DXCAMERA;
+	delete m_DXENGINECAMERA;
+	delete m_DXINGAMECAMERA;
 
 	InitPointer();
 }
@@ -110,7 +137,8 @@ void DXENGINE::InitFileDIR()
 void DXENGINE::InitPointer()
 {
 	m_DXD3D = nullptr;
-	m_DXCAMERA = nullptr;
+	m_DXENGINECAMERA = nullptr;
+	m_DXINGAMECAMERA = nullptr;
 	m_DXIMGUI = nullptr;
 
 	m_VertexShader = nullptr;
@@ -125,6 +153,25 @@ void DXENGINE::InitPointer()
 	m_ImageFileDir2 = nullptr;
 }
 
+bool DXENGINE::InitDXENGINERECT( int Width, int Height )
+{
+	m_DXENGINERECT = new DXENGINERECT;
+
+	if ( !m_DXENGINERECT )
+	{
+		LOG_ERROR(" Failed - Create DXENGINERECT ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Create DXENGINERECT ");
+	}
+
+	m_DXENGINERECT->SettingRect = XMFLOAT2( 200, Height );
+	m_DXENGINERECT->GameEngineRect = XMFLOAT2( ( Width - 200 ) / 2, Height - 400 );
+	m_DXENGINERECT->InGameRect = XMFLOAT2( ( Width - 200 ) / 2, Height - 400 );
+	m_DXENGINERECT->LogRect = XMFLOAT2( Width - 200, 400 );
+}
 
 bool DXENGINE::InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR )
 {
@@ -159,9 +206,9 @@ bool DXENGINE::InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, 
 bool DXENGINE::InitDXCAMERA()
 {
 	// Create DXCAMERA Object
-	m_DXCAMERA = new DXCAMERA;
+	m_DXENGINECAMERA = new DXCAMERA;
 
-	if ( !m_DXCAMERA )
+	if ( !m_DXENGINECAMERA )
 	{
 		LOG_ERROR(" Failed - Create DXCAMERA ");
 		return false;
@@ -171,7 +218,21 @@ bool DXENGINE::InitDXCAMERA()
 		LOG_INFO(" Successed - Create DXCAMERA ");
 	}
 
-	m_DXCAMERA->Init();
+	m_DXENGINECAMERA->Init();
+
+	m_DXINGAMECAMERA = new DXCAMERA;
+
+	if ( !m_DXINGAMECAMERA )
+	{
+		LOG_ERROR(" Failed - Create DXCAMERA ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Create DXCAMERA ");
+	}
+
+	m_DXINGAMECAMERA->Init();
 	return true;
 }
 

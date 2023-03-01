@@ -21,7 +21,8 @@ class DXD3D
 		void InitPointer();
 
 		void BeginScene( float Red, float Blue, float Green, float Alpha );
-		void Render( RENDERSTATE* RenderState );
+		void RenderEngine( RENDERSTATE* RenderState );
+		void RenderInGame( RENDERSTATE* RenderState );
 		void EndScene();
 
 
@@ -59,7 +60,8 @@ class DXD3D
 		IDXGISwapChain* m_SwapChain;
 
 		ID3D11RenderTargetView* m_RenderTargetView;
-		D3D11_VIEWPORT* m_Viewport;
+		D3D11_VIEWPORT m_ViewportEngine;
+		D3D11_VIEWPORT m_ViewportInGame;
 
 		ID3D11Texture2D* m_DepthStencilBuffer;
 		ID3D11DepthStencilView* m_DepthStencilView;

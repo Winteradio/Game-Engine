@@ -74,7 +74,6 @@ void DXD3D::InitPointer()
 	m_SwapChain = nullptr;
 
 	m_RenderTargetView = nullptr;
-	m_Viewport = nullptr;
 
 	m_DepthStencilBuffer = nullptr;
 	m_DepthEnable = nullptr;
@@ -116,14 +115,29 @@ void DXD3D::BeginScene( float Red, float Blue, float Green, float Alpha )
 	m_DeviceContext->ClearDepthStencilView( m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0 );
 }
 
-void DXD3D::Render( RENDERSTATE* RenderState )
+void DXD3D::RenderEngine( RENDERSTATE* RenderState )
 {
 	ChangeDepthStencilState( RenderState->DepthStencilState );
 	ChangeBlendState( RenderState->BlendState );
 	ChangeRasterizerState( RenderState->RasterizerState );
 
 	m_DeviceContext->RSSetState( m_FrameRasterizerState );
-	m_DeviceContext->RSSetViewports( 1, m_Viewport );
+	m_DeviceContext->RSSetViewports( 1, &m_ViewportEngine );
+
+	float blendFactor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	m_DeviceContext->OMSetDepthStencilState( m_FrameDepthStencilState, 1 );
+	m_DeviceContext->OMSetRenderTargets( 1, &m_RenderTargetView, m_DepthStencilView );
+	m_DeviceContext->OMSetBlendState( m_FrameBlendState, blendFactor, 0xffffffff );
+}
+
+void DXD3D::RenderInGame( RENDERSTATE* RenderState )
+{
+	ChangeDepthStencilState( RenderState->DepthStencilState );
+	ChangeBlendState( RenderState->BlendState );
+	ChangeRasterizerState( RenderState->RasterizerState );
+
+	m_DeviceContext->RSSetState( m_FrameRasterizerState );
+	m_DeviceContext->RSSetViewports( 1, &m_ViewportInGame );
 
 	float blendFactor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	m_DeviceContext->OMSetDepthStencilState( m_FrameDepthStencilState, 1 );
@@ -410,21 +424,23 @@ bool DXD3D::InitRasterizerState()
 
 void DXD3D::InitViewport( int Width, int Height )
 {
-	// Describe the viewport
-	m_Viewport = new D3D11_VIEWPORT;
-	ZeroMemory( m_Viewport, sizeof( D3D11_VIEWPORT ) );
+	m_ViewportEngine.TopLeftX = 200;
+	m_ViewportEngine.TopLeftY = 0;
+	m_ViewportEngine.Width = (float)Width/2.0f;
+	m_ViewportEngine.Height = (float)Height - 200;
 
-	m_Viewport->TopLeftX = 0;
-	m_Viewport->TopLeftY = 0;
-	m_Viewport->Width = (float)Width;
-	m_Viewport->Height = (float)Height;
+	m_ViewportEngine.MinDepth = 0.0f;
+	m_ViewportEngine.MaxDepth = 1.0f;
 
-	m_Viewport->MinDepth = 0.0f;
-	m_Viewport->MaxDepth = 1.0f;
+	m_ViewportInGame.TopLeftX = (float)Width/2.0f;
+	m_ViewportInGame.TopLeftY = 0;
+	m_ViewportInGame.Width = (float)Width/2.0f;
+	m_ViewportInGame.Height = (float)Height - 200;
+
+	m_ViewportInGame.MinDepth = 0.0f;
+	m_ViewportInGame.MaxDepth = 1.0f;
 
 	LOG_INFO(" Successed - Init Viewport ");
-	// Set viewports
-	//m_DeviceContext->RSSetViewports( 1, &viewport );
 }
 
 bool DXD3D::InitBlendState()
@@ -510,6 +526,19 @@ void DXD3D::InitMatrix( int Width, int Height, float SCREEN_DEPTH, float SCREEN_
     // Set for 3D Rendering
     m_ProjectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenASpect, SCREEN_NEAR, SCREEN_DEPTH);
 
+    /*
+    float Aspect = screenASpect;
+    float FOVy = fieldOfView;
+
+    float mPI = 3.141592654f;
+    float radian = mPI / 180.0f;
+    float degree = 180.0f / mPI;
+    float X;
+    float Y;
+    float N = SCREEN_NEAR;
+    float F = SCREEN_DEPTH;
+    float Array[16] = { };
+    */
     // Init World View Matrix
     m_WorldMatrix = XMMatrixIdentity();
 

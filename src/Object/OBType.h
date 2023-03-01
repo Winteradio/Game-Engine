@@ -1,0 +1,20 @@
+#ifndef __OBMODELTYPE_H__
+#define __OBMODELTYPE_H__
+
+enum class MODELTYPE
+{
+	SKYBOX,
+	PLANE,
+	SOLID,
+	PARTICLE
+};
+
+enum class SHADERTYPE
+{
+	ONLYONE,
+	MULTIIMAGE,
+	SKYBOX,
+	NORMALIMAGE
+};
+
+#endif // __OBMODELTYPE_H__

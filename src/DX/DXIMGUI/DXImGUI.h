@@ -4,6 +4,7 @@
 #include "DXImGUICommon.h"
 #include "DXCommon.h"
 #include <string>
+#include "Readtext.h"
 
 class DXIMGUI
 {

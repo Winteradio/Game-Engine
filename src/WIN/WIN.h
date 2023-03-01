@@ -44,10 +44,10 @@ class WIN
 		HWND m_hWnd;
 		HINSTANCE m_hInstance;
 
-		int m_PosX = 200;
-		int m_PosY = 200;
-		int m_Width = 1080;
-		int m_Height = 640;
+		int m_PosX = 100;
+		int m_PosY = 100;
+		int m_Width = 1440;
+		int m_Height = 840;
 		RECT m_ClientSize;
 		bool m_FullScreen = false;
 		char* m_Name = "Default Name";
