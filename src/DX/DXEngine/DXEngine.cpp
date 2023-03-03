@@ -179,7 +179,7 @@ bool DXENGINE::InitDXWINDOW( int Width, int Height )
 	m_DXEngineWindow->Rendering = true;
 
 	m_DXInGameWindow->Name = "In Game";
-	m_DXInGameWindow->PosX = Width - ( 300 + m_DXEngineWindow->Width );
+	m_DXInGameWindow->PosX = 300 + m_DXEngineWindow->Width;
 	m_DXInGameWindow->PosY = 0;
 	m_DXInGameWindow->Width = m_DXEngineWindow->Width;
 	m_DXInGameWindow->Height = m_DXEngineWindow->Height;

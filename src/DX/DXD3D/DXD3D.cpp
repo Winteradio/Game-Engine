@@ -36,10 +36,8 @@ bool DXD3D::Init( int Width, int Height, DXRECTWINDOW* EngineWindow, DXRECTWINDO
 	if ( !InitDepthStencilStateAndView( Width, Height ) ) { return false; }
 	if ( !InitRasterizerState() ) { return false; }
 	if ( !InitBlendState() ) { return false; }
-	m_ViewportEngine = InitViewport( EngineWindow );
-	m_ViewportInGame = InitViewport( InGameWindow );
-	InitMatrix( EngineWindow, m_ProjectionMatrixEngine, m_OrthoMatrixEngine, SCREEN_DEPTH, SCREEN_NEAR );
-	InitMatrix( InGameWindow, m_ProjectionMatrixInGame, m_OrthoMatrixInGame, SCREEN_DEPTH, SCREEN_NEAR );
+	InitViewport( EngineWindow, InGameWindow );
+	InitMatrix( EngineWindow, InGameWindow, SCREEN_DEPTH, SCREEN_NEAR );
 
 	return true;
 }
@@ -424,17 +422,24 @@ bool DXD3D::InitRasterizerState()
     return true;
 }
 
-D3D11_VIEWPORT DXD3D::InitViewport( DXRECTWINDOW* WindowInfo )
+void DXD3D::InitViewport( DXRECTWINDOW* EngineWindow, DXRECTWINDOW* InGameWindow )
 {
-	D3D11_VIEWPORT Viewport;
-	Viewport.TopLeftX = (float)( WindowInfo->PosX );
-	Viewport.TopLeftY = (float)( WindowInfo->PosY );
-	Viewport.Width = (float)( WindowInfo->Width );
-	Viewport.Height = (float)( WindowInfo->Height );
+	m_ViewportEngine.TopLeftX = EngineWindow->PosX;
+	m_ViewportEngine.TopLeftY = EngineWindow->PosY;
+	m_ViewportEngine.Width = EngineWindow->Width;
+	m_ViewportEngine.Height = EngineWindow->Height;
 
-	LOG_INFO(" Successed - Init Viewport %s", WindowInfo->Name );
+	m_ViewportEngine.MinDepth = 0.0f;
+	m_ViewportEngine.MaxDepth = 1.0f;
 
-	return Viewport;
+
+	m_ViewportInGame.TopLeftX = InGameWindow->PosX;
+	m_ViewportInGame.TopLeftY = InGameWindow->PosY;
+	m_ViewportInGame.Width = InGameWindow->Width;
+	m_ViewportInGame.Height = InGameWindow->Height;
+
+	m_ViewportInGame.MinDepth = 0.0f;
+	m_ViewportInGame.MaxDepth = 1.0f;
 }
 
 bool DXD3D::InitBlendState()
@@ -512,19 +517,24 @@ bool DXD3D::InitBlendState()
 	return true;
 }
 
-void DXD3D::InitMatrix( DXRECTWINDOW* WindowInfo, XMMATRIX& ProjectionMatrix, XMMATRIX& OrthoMatrix, float SCREEN_DEPTH, float SCREEN_NEAR )
+void DXD3D::InitMatrix( DXRECTWINDOW* EngineWindow, DXRECTWINDOW* InGameWindow, float SCREEN_DEPTH, float SCREEN_NEAR )
 {
-	float Width = (float)WindowInfo->Width;
-	float Height = (float)WindowInfo->Height;
-
     float fieldOfView = 3.141592654f / 4.0f;
-    float screenASpect = Width / Height;
+    float screenASpect = EngineWindow->Width / EngineWindow->Height;
 
     // Set for 3D Rendering
-    ProjectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenASpect, SCREEN_NEAR, SCREEN_DEPTH);
+    m_ProjectionMatrixEngine = XMMatrixPerspectiveFovLH(fieldOfView, screenASpect, SCREEN_NEAR, SCREEN_DEPTH);
 
     // Set for 2D Rendering
-    OrthoMatrix = XMMatrixOrthographicLH( Width, Height, SCREEN_NEAR, SCREEN_DEPTH);
+    m_OrthoMatrixEngine = XMMatrixOrthographicLH( EngineWindow->Width, EngineWindow->Height, SCREEN_NEAR, SCREEN_DEPTH);
+
+    screenASpect = InGameWindow->Width / InGameWindow->Height;
+
+    // Set for 3D Rendering
+    m_ProjectionMatrixInGame = XMMatrixPerspectiveFovLH(fieldOfView, screenASpect, SCREEN_NEAR, SCREEN_DEPTH);
+
+    // Set for 2D Rendering
+    m_OrthoMatrixInGame = XMMatrixOrthographicLH( InGameWindow->Width, InGameWindow->Height, SCREEN_NEAR, SCREEN_DEPTH);
 }
 /////////////////////////////////////////////
 

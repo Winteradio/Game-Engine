@@ -34,9 +34,9 @@ class DXD3D
 		bool InitRenderTargetView();
 		bool InitDepthStencilStateAndView( int Width, int Height );
 		bool InitRasterizerState();
-		D3D11_VIEWPORT InitViewport( DXRECTWINDOW* WindowInfo );
+		void InitViewport( DXRECTWINDOW* EngineWindow, DXRECTWINDOW* InGameWindow );
 		bool InitBlendState();
-		void InitMatrix( DXRECTWINDOW* WindowInfo, XMMATRIX& ProjectionMatrix, XMMATRIX& OrthoMatrix, float ScreenDepth, float ScreenNear );
+		void InitMatrix( DXRECTWINDOW* EngineWindow, DXRECTWINDOW* InGameWindow, float ScreenDepth, float ScreenNear );
 
 
 	// Functions - Get private variables
