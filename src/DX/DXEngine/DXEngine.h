@@ -8,20 +8,13 @@
 #include "DXIMGUI.h"
 #include "DXInput.h"
 #include "DXTexture.h"
+#include "DXWindow.h"
 #include "OBShader.h"
 #include "OBModel.h"
 
 // Variables - Globals
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 1.0f;
-
-struct DXENGINERECT
-{
-	XMFLOAT2 SettingRect;
-	XMFLOAT2 GameEngineRect;
-	XMFLOAT2 InGameRect;
-	XMFLOAT2 LogRect;
-};
 
 class DXENGINE
 {
@@ -43,7 +36,7 @@ class DXENGINE
 	// Functions - Divide Init Functions
 	private :
 
-		bool InitDXENGINERECT( int Width, int Height );
+		bool InitDXWINDOW( int Width, int Height );
 		bool InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR );
 		bool InitDXCAMERA();
 		bool InitDXIMGUI( HWND hWnd );
@@ -59,13 +52,16 @@ class DXENGINE
 	private :
 
 		bool Render();
+		bool RenderEngine();
+		bool RenderInGame();
+		bool RenderGUI();
 
 	// Variables - DXD3D Object
 	private :
 
 		DXD3D* m_DXD3D;
-		DXCAMERA* m_DXENGINECAMERA;
-		DXCAMERA* m_DXINGAMECAMERA;
+		DXCAMERA* m_DXEngineCamera;
+		DXCAMERA* m_DXInGameCamera;
 		DXIMGUI* m_DXIMGUI;
 		DXINPUT* m_DXINPUT;
 
@@ -73,9 +69,14 @@ class DXENGINE
 		OBSHADER* m_PixelShader;
 		OBMODEL* m_Model;
 
-		DXENGINERECT* m_DXENGINERECT;
+		DXRECTWINDOW* m_DXEngineWindow;
+		DXRECTWINDOW* m_DXInGameWindow;
+		DXRECTWINDOW* m_DXUserWindow;
+		DXRECTWINDOW* m_DXInfoWindow;
 
 		RENDERSTATE* m_RenderState;
+		RENDERSTATE* m_RenderStateInGame;
+		RENDERSTATE* m_RenderStateEngine;
 
 		const char* m_VertexShaderDir;
 		const char* m_PixelShaderDir;

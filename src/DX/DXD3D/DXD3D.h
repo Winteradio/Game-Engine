@@ -2,6 +2,7 @@
 #define __DXD3D_H__
 
 #include "DXCommon.h"
+#include "DXWindow.h"
 
 class DXD3D
 {
@@ -16,7 +17,7 @@ class DXD3D
 	// Functions - Basic Initialization, End and Action related Scene
 	public :
 
-		bool Init( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR );
+		bool Init( int Width, int Height, DXRECTWINDOW* EngineWindow, DXRECTWINDOW* InGameWindow, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR );
 		void Release();
 		void InitPointer();
 
@@ -33,9 +34,9 @@ class DXD3D
 		bool InitRenderTargetView();
 		bool InitDepthStencilStateAndView( int Width, int Height );
 		bool InitRasterizerState();
-		void InitViewport( int Width, int Height );
+		D3D11_VIEWPORT InitViewport( DXRECTWINDOW* WindowInfo );
 		bool InitBlendState();
-		void InitMatrix( int Width, int Height, float ScreenDepth, float ScreenNear );
+		void InitMatrix( DXRECTWINDOW* WindowInfo, XMMATRIX& ProjectionMatrix, XMMATRIX& OrthoMatrix, float ScreenDepth, float ScreenNear );
 
 
 	// Functions - Get private variables
@@ -47,9 +48,11 @@ class DXD3D
 		ID3D11Device* GetDevice();
 		ID3D11DeviceContext* GetDeviceContext();
 
-		XMMATRIX GetProjectionMatrix( );
 		XMMATRIX GetWorldMatrix( );
-		XMMATRIX GetOrthoMatrix( );
+		XMMATRIX GetProjectionMatrixEngine( );
+		XMMATRIX GetOrthoMatrixEngine( );
+		XMMATRIX GetProjectionMatrixInGame( );
+		XMMATRIX GetOrthoMatrixInGame( );
 
 
 	// Variables - Direct3D Objects
@@ -77,9 +80,10 @@ class DXD3D
 		ID3D11BlendState* m_BlendAlphaEnable;
 		ID3D11BlendState* m_BlendAlphaDisable;
 
-		XMMATRIX m_ProjectionMatrix;
-		XMMATRIX m_WorldMatrix;
-		XMMATRIX m_OrthoMatrix;
+		XMMATRIX m_ProjectionMatrixEngine;
+		XMMATRIX m_OrthoMatrixEngine;
+		XMMATRIX m_ProjectionMatrixInGame;
+		XMMATRIX m_OrthoMatrixInGame;
 
 		ID3D11DepthStencilState* m_FrameDepthStencilState;
 		ID3D11RasterizerState* m_FrameRasterizerState;

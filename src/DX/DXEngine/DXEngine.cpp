@@ -19,6 +19,7 @@ DXENGINE::~DXENGINE()
 
 bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 {
+	if ( !InitDXWINDOW( Width, Height ) ) { return false; }
 	if ( !InitDXD3D( Width, Height, hWnd, SCREEN_DEPTH, SCREEN_NEAR ) ) { return false; }
 	if ( !InitDXCAMERA() ) { return false; }
 	if ( !InitDXIMGUI( hWnd ) ) { return false; }
@@ -33,8 +34,8 @@ bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
-	m_DXINPUT->Frame( m_DXENGINECAMERA->m_MoveLeftRight, m_DXENGINECAMERA->m_MoveBackForward,
-		m_DXENGINECAMERA->m_Yaw, m_DXENGINECAMERA->m_Pitch );
+	m_DXINPUT->Frame( m_DXEngineCamera->m_MoveLeftRight, m_DXEngineCamera->m_MoveBackForward,
+		m_DXEngineCamera->m_Yaw, m_DXEngineCamera->m_Pitch );
 	m_DXIMGUI->Frame();
 	return Render();
 }
@@ -47,10 +48,10 @@ bool DXENGINE::Render()
 // Game Engine Rendering
 
 	// Cube1
-	m_DXENGINECAMERA->Frame();
+	m_DXEngineCamera->Frame();
 	m_Model->SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXENGINECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXENGINECAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXEngineCamera->GetViewMatrix(), m_DXD3D->GetProjectionMatrixEngine(), m_DXEngineCamera->GetCameraInfo() );
 	m_PixelShader->Frame();
 
 	m_DXD3D->RenderEngine( m_RenderState );
@@ -61,7 +62,7 @@ bool DXENGINE::Render()
 	// Cube2
 	m_Model->SetPosition( XMFLOAT3( 5.0f, 1.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXENGINECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXENGINECAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXEngineCamera->GetViewMatrix(), m_DXD3D->GetProjectionMatrixEngine(), m_DXEngineCamera->GetCameraInfo() );
 	m_PixelShader->Frame();
 
 	m_DXD3D->RenderEngine( m_RenderState );
@@ -71,10 +72,10 @@ bool DXENGINE::Render()
 
 // In Game Rendering
 	// Cube1
-	m_DXINGAMECAMERA->Frame();
+	m_DXInGameCamera->Frame();
 	m_Model->SetPosition( XMFLOAT3( 0.0f, 0.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXINGAMECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXINGAMECAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXInGameCamera->GetViewMatrix(), m_DXD3D->GetProjectionMatrixInGame(), m_DXInGameCamera->GetCameraInfo() );
 	m_PixelShader->Frame();
 
 	m_DXD3D->RenderInGame( m_RenderState );
@@ -85,7 +86,7 @@ bool DXENGINE::Render()
 	// Cube2
 	m_Model->SetPosition( XMFLOAT3( 5.0f, 1.0f, 0.0f ) );
 	m_Model->SetScale( XMFLOAT3( 0.8f, 0.8f, 0.8f ) );
-	m_VertexShader->Frame( m_Model->Frame(), m_DXINGAMECAMERA->GetViewMatrix(), m_DXD3D->GetProjectionMatrix(), m_DXINGAMECAMERA->GetCameraInfo() );
+	m_VertexShader->Frame( m_Model->Frame(), m_DXInGameCamera->GetViewMatrix(), m_DXD3D->GetProjectionMatrixInGame(), m_DXInGameCamera->GetCameraInfo() );
 	m_PixelShader->Frame();
 
 	m_DXD3D->RenderInGame( m_RenderState );
@@ -118,8 +119,13 @@ void DXENGINE::Release()
 	delete m_RenderState;
 	delete m_DXD3D;
 	delete m_DXIMGUI;
-	delete m_DXENGINECAMERA;
-	delete m_DXINGAMECAMERA;
+	delete m_DXEngineCamera;
+	delete m_DXInGameCamera;
+
+	delete m_DXEngineWindow;
+	delete m_DXInGameWindow;
+	delete m_DXUserWindow;
+	delete m_DXInfoWindow;
 
 	InitPointer();
 }
@@ -137,9 +143,14 @@ void DXENGINE::InitFileDIR()
 void DXENGINE::InitPointer()
 {
 	m_DXD3D = nullptr;
-	m_DXENGINECAMERA = nullptr;
-	m_DXINGAMECAMERA = nullptr;
+	m_DXEngineCamera = nullptr;
+	m_DXInGameCamera = nullptr;
 	m_DXIMGUI = nullptr;
+
+	m_DXEngineWindow = nullptr;
+	m_DXInGameWindow = nullptr;
+	m_DXUserWindow = nullptr;
+	m_DXInfoWindow = nullptr;
 
 	m_VertexShader = nullptr;
 	m_PixelShader = nullptr;
@@ -153,24 +164,41 @@ void DXENGINE::InitPointer()
 	m_ImageFileDir2 = nullptr;
 }
 
-bool DXENGINE::InitDXENGINERECT( int Width, int Height )
+bool DXENGINE::InitDXWINDOW( int Width, int Height )
 {
-	m_DXENGINERECT = new DXENGINERECT;
+	m_DXEngineWindow = new DXRECTWINDOW;
+	m_DXInGameWindow = new DXRECTWINDOW;
+	m_DXUserWindow = new DXRECTWINDOW;
+	m_DXInfoWindow = new DXRECTWINDOW;
 
-	if ( !m_DXENGINERECT )
-	{
-		LOG_ERROR(" Failed - Create DXENGINERECT ");
-		return false;
-	}
-	else
-	{
-		LOG_INFO(" Successed - Create DXENGINERECT ");
-	}
+	m_DXEngineWindow->Name = "Engine";
+	m_DXEngineWindow->PosX = 400;
+	m_DXEngineWindow->PosY = 0;
+	m_DXEngineWindow->Width = (int)( ( Width - 400 ) / 2 );
+	m_DXEngineWindow->Height = Height - 400;
+	m_DXEngineWindow->Rendering = true;
 
-	m_DXENGINERECT->SettingRect = XMFLOAT2( 200, Height );
-	m_DXENGINERECT->GameEngineRect = XMFLOAT2( ( Width - 200 ) / 2, Height - 400 );
-	m_DXENGINERECT->InGameRect = XMFLOAT2( ( Width - 200 ) / 2, Height - 400 );
-	m_DXENGINERECT->LogRect = XMFLOAT2( Width - 200, 400 );
+	m_DXInGameWindow->Name = "In Game";
+	m_DXInGameWindow->PosX = Width - ( 400 + m_DXEngineWindow->Width );
+	m_DXInGameWindow->PosY = 0;
+	m_DXInGameWindow->Width = m_DXEngineWindow->Width;
+	m_DXInGameWindow->Height = m_DXEngineWindow->Height;
+	m_DXInGameWindow->Rendering = true;
+
+	m_DXUserWindow->Name = "User";
+	m_DXUserWindow->PosX = 0;
+	m_DXUserWindow->PosY = 0;
+	m_DXUserWindow->Width = 400;
+	m_DXUserWindow->Height = Height;
+	m_DXUserWindow->Rendering = true;
+
+	m_DXInfoWindow->Name = "Info";
+	m_DXInfoWindow->PosX = 400;
+	m_DXInfoWindow->PosY = Height - 400;
+	m_DXInfoWindow->Width = Width - 400;
+	m_DXInfoWindow->Height = 400;
+	m_DXInfoWindow->Rendering = true;
+	return true;
 }
 
 bool DXENGINE::InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, float SCREEN_NEAR )
@@ -189,7 +217,7 @@ bool DXENGINE::InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, 
 	}
 
 	// Init DXD3D Object
-	if ( !m_DXD3D->Init( Width, Height, hWnd, SCREEN_DEPTH, SCREEN_NEAR ) )
+	if ( !m_DXD3D->Init( Width, Height, m_DXEngineWindow, m_DXInGameWindow, hWnd, SCREEN_DEPTH, SCREEN_NEAR ) )
 	{
 		LOG_ERROR(" Failed - Init DXD3D ");
 		return false;
@@ -206,33 +234,22 @@ bool DXENGINE::InitDXD3D( int Width, int Height, HWND hWnd, float SCREEN_DEPTH, 
 bool DXENGINE::InitDXCAMERA()
 {
 	// Create DXCAMERA Object
-	m_DXENGINECAMERA = new DXCAMERA;
+	m_DXEngineCamera = new DXCAMERA;
+	m_DXInGameCamera = new DXCAMERA;
 
-	if ( !m_DXENGINECAMERA )
+	if ( m_DXEngineCamera != nullptr && m_DXInGameCamera != nullptr )
 	{
-		LOG_ERROR(" Failed - Create DXCAMERA ");
-		return false;
+		LOG_INFO(" Successed - Create Objects of Camera ");
 	}
 	else
 	{
-		LOG_INFO(" Successed - Create DXCAMERA ");
-	}
-
-	m_DXENGINECAMERA->Init();
-
-	m_DXINGAMECAMERA = new DXCAMERA;
-
-	if ( !m_DXINGAMECAMERA )
-	{
-		LOG_ERROR(" Failed - Create DXCAMERA ");
+		LOG_ERROR(" Failed - Create Objects of Camera ");
 		return false;
 	}
-	else
-	{
-		LOG_INFO(" Successed - Create DXCAMERA ");
-	}
 
-	m_DXINGAMECAMERA->Init();
+	m_DXEngineCamera->Init();
+	m_DXInGameCamera->Init();
+
 	return true;
 }
 

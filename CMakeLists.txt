@@ -106,7 +106,7 @@ SET( SRCS
 		${DXENGINE_DIR}/DXEngine.h ${DXENGINE_DIR}/DXEngine.cpp
 		${DXMESSAGE_DIR}/DXMessage.h ${DXMESSAGE_DIR}/DXMessage.cpp
 		${DXTEXTURE_DIR}/DXTexture.h ${DXTEXTURE_DIR}/DXTexture.cpp
-		${DXTYPE_DIR}/DXBuffer.h
+		${DXTYPE_DIR}/DXBuffer.h ${DXTYPE_DIR}/DXWindow.h
 		${DXINPUT_DIR}/DXInput.h ${DXINPUT_DIR}/DXInput.cpp
 
 	${DX_DIR}/DXImGUICommon.h
