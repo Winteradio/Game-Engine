@@ -172,14 +172,14 @@ bool DXENGINE::InitDXWINDOW( int Width, int Height )
 	m_DXInfoWindow = new DXRECTWINDOW;
 
 	m_DXEngineWindow->Name = "Engine";
-	m_DXEngineWindow->PosX = 400;
+	m_DXEngineWindow->PosX = 300;
 	m_DXEngineWindow->PosY = 0;
-	m_DXEngineWindow->Width = (int)( ( Width - 400 ) / 2 );
-	m_DXEngineWindow->Height = Height - 400;
+	m_DXEngineWindow->Width = (int)( ( Width - 300 ) / 2 );
+	m_DXEngineWindow->Height = Height - 300;
 	m_DXEngineWindow->Rendering = true;
 
 	m_DXInGameWindow->Name = "In Game";
-	m_DXInGameWindow->PosX = Width - ( 400 + m_DXEngineWindow->Width );
+	m_DXInGameWindow->PosX = Width - ( 300 + m_DXEngineWindow->Width );
 	m_DXInGameWindow->PosY = 0;
 	m_DXInGameWindow->Width = m_DXEngineWindow->Width;
 	m_DXInGameWindow->Height = m_DXEngineWindow->Height;
@@ -188,15 +188,15 @@ bool DXENGINE::InitDXWINDOW( int Width, int Height )
 	m_DXUserWindow->Name = "User";
 	m_DXUserWindow->PosX = 0;
 	m_DXUserWindow->PosY = 0;
-	m_DXUserWindow->Width = 400;
+	m_DXUserWindow->Width = 300;
 	m_DXUserWindow->Height = Height;
 	m_DXUserWindow->Rendering = true;
 
 	m_DXInfoWindow->Name = "Info";
-	m_DXInfoWindow->PosX = 400;
-	m_DXInfoWindow->PosY = Height - 400;
-	m_DXInfoWindow->Width = Width - 400;
-	m_DXInfoWindow->Height = 400;
+	m_DXInfoWindow->PosX = 300;
+	m_DXInfoWindow->PosY = Height - 300;
+	m_DXInfoWindow->Width = Width - 300;
+	m_DXInfoWindow->Height = 300;
 	m_DXInfoWindow->Rendering = true;
 	return true;
 }

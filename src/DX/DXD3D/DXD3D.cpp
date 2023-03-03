@@ -427,10 +427,10 @@ bool DXD3D::InitRasterizerState()
 D3D11_VIEWPORT DXD3D::InitViewport( DXRECTWINDOW* WindowInfo )
 {
 	D3D11_VIEWPORT Viewport;
-	Viewport.TopLeftX = (float)WindowInfo->PosX;
-	Viewport.TopLeftY = (float)WindowInfo->PosY;
-	Viewport.Width = (float)WindowInfo->Width;
-	Viewport.Height = (float)WindowInfo->Height;
+	Viewport.TopLeftX = (float)( WindowInfo->PosX );
+	Viewport.TopLeftY = (float)( WindowInfo->PosY );
+	Viewport.Width = (float)( WindowInfo->Width );
+	Viewport.Height = (float)( WindowInfo->Height );
 
 	LOG_INFO(" Successed - Init Viewport %s", WindowInfo->Name );
 
