@@ -12,11 +12,14 @@ DXIMGUI::DXIMGUI( const DXIMGUI& Other )
 
 DXIMGUI::~DXIMGUI(){}
 
-bool DXIMGUI::Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext )
+bool DXIMGUI::Init( DXRECTWINDOW* UserWindow, DXRECTWINDOW* InfoWindow, HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext )
 {
+	m_DXUserWindow = UserWindow;
+	m_DXInfoWindow = InfoWindow;
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& IO = ImGui::GetIO();
+	m_ImGuiIO = &ImGui::GetIO();
 	if ( !ImGui_ImplWin32_Init( hWnd ) )
 	{
 		LOG_ERROR(" Failed - Init Window Handle for IMGUI ");
@@ -37,6 +40,28 @@ bool DXIMGUI::Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* Device
 		LOG_INFO(" Successed - Init DirectX11 Device and Device Context for IMGUI ");
 	}
 	ImGui::StyleColorsDark();
+
+	if ( !InitFileBrowser() ) { return false; }
+
+	SetFonts();
+
+	return true;
+}
+
+bool DXIMGUI::InitFileBrowser()
+{
+	m_DIFileBrowser = new DIFILEBROWSER;
+
+	if ( !m_DIFileBrowser )
+	{
+		LOG_ERROR(" Failed - Create File Browser Object ");
+		return false;
+	}
+	else
+	{
+		LOG_INFO(" Successed - Create File Browser Object ");
+	}
+
 	return true;
 }
 
@@ -45,6 +70,7 @@ bool DXIMGUI::Frame()
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+
 	return true;
 }
 
@@ -52,9 +78,45 @@ bool DXIMGUI::Render( RENDERSTATE* RenderState, int MouseX, int MouseY )
 {
 	static int Counter = 0;
 
-	ImGui::SetNextWindowPos( ImVec2( 0, 0 ) );
+	ImGui::SetNextWindowPos( ImVec2( (float)m_DXUserWindow->PosX, (float)m_DXUserWindow->PosY ) );
+	ImGui::SetNextWindowSize( ImVec2( (float)m_DXUserWindow->Width, (float)m_DXUserWindow->Height ));
 
-	ImGui::Begin(" Rendering State ", NULL, ImGuiWindowFlags_AlwaysAutoResize );
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_MenuBar;
+
+	ImGui::Begin(" Rendering State ", NULL, flags );
+	if ( ImGui::BeginMenuBar() )
+	{
+		if ( ImGui::BeginMenu("File") )
+		{
+			if ( ImGui::MenuItem("Open") )
+			{
+				m_FileBrowser = true;
+				m_DIFileBrowser->Frame();
+			}
+			if ( ImGui::MenuItem("Load") )
+			{
+			}
+			if ( ImGui::MenuItem("Save") )
+			{
+			}
+			if ( ImGui::MenuItem("Save as") )
+			{
+			}
+			ImGui::EndMenu();
+		}
+
+		if ( ImGui::BeginMenu("Setting") )
+		{
+			if ( ImGui::MenuItem("Font") )
+			{
+				m_FileBrowser = true;
+				m_DIFileBrowser->Frame();
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+
 	if ( ImGui::CollapsingHeader("Rasterizer State") )
 	{
 		ImGui::Spacing();
@@ -121,12 +183,20 @@ bool DXIMGUI::Render( RENDERSTATE* RenderState, int MouseX, int MouseY )
 					ImGui::Text("Count %d", I );
 				}
 	}
+
 	ImGui::End();
 
-	ImGui::SetNextWindowPos( ImVec2( 200, 840 - 400 ) );
-	ImGui::SetNextWindowSize( ImVec2( 1440 - 200, 400 ) );
+	if ( m_FileBrowser )
+	{
+		m_DIFileBrowser->Render( m_FileBrowser );
+	}
 
-	ImGui::Begin(" Info ");
+	ImGui::SetNextWindowPos( ImVec2( (float)m_DXInfoWindow->PosX, (float)m_DXInfoWindow->PosY ) );
+	ImGui::SetNextWindowSize( ImVec2( (float)m_DXInfoWindow->Width, (float)m_DXInfoWindow->Height ) );
+
+ImGuiWindowFlags Infoflags = ImGuiWindowFlags_NoDecoration;
+
+	ImGui::Begin(" Info ", NULL, Infoflags );
 	ImGui::SameLine();
 	if ( ImGui::BeginTabBar(" Information ") )
 	{
@@ -167,5 +237,12 @@ void DXIMGUI::Release()
 
 void DXIMGUI::InitPointer()
 {
+	m_ImGuiIO = nullptr;
+}
 
+void DXIMGUI::SetFonts()
+{
+	m_FontAddr = ".\\..\\..\\fonts\\font.ttf";
+	m_FontSize = 12.0f;
+	m_ImGuiIO->Fonts->AddFontFromFileTTF( m_FontAddr, m_FontSize, NULL, m_ImGuiIO->Fonts->GetGlyphRangesKorean() );
 }

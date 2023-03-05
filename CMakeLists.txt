@@ -98,7 +98,6 @@ SET( SRCS
 		${SUBINPUT_DIR}/SUBInput.h ${SUBINPUT_DIR}/SUBInput.cpp
 		${SUBLOG_DIR}/SUBLog.h ${SUBLOG_DIR}/SUBLog.cpp
 		${SUBTIMER_DIR}/SUBTimer.h ${SUBTIMER_DIR}/SUBTimer.cpp
-		${SUBBROWSER_DIR}/Readtext.h ${SUBBROWSER_DIR}/Readtext.cpp
 
 	${DX_DIR}/DXCommon.h
 		${DXCAMERA_DIR}/DXCamera.h ${DXCAMERA_DIR}/DXCamera.cpp
@@ -111,6 +110,7 @@ SET( SRCS
 
 	${DX_DIR}/DXImGUICommon.h
 		${DXIMGUI_DIR}/DXImGUI.h ${DXIMGUI_DIR}/DXImGUI.cpp
+		${DXIMGUI_DIR}/DIFileBrowser.h ${DXIMGUI_DIR}/DIFileBrowser.cpp
 
 	${OBJECT_DIR}/OBShader.h ${OBJECT_DIR}/OBShader.cpp
 	${OBJECT_DIR}/OBModel.h ${OBJECT_DIR}/OBModel.cpp
@@ -128,7 +128,6 @@ SET( INCS
 		${SUBINPUT_DIR}
 		${SUBLOG_DIR}
 		${SUBTIMER_DIR}
-		${SUBBROWSER_DIR}
 
 	${DX_DIR}
 		${DXCAMERA_DIR}

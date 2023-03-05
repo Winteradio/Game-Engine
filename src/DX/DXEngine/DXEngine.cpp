@@ -34,8 +34,10 @@ bool DXENGINE::Init( int PosX, int PosY, int Width, int Height, HWND hWnd )
 
 bool DXENGINE::Frame( int FPS, int CPU, float Time, int mouseX, int mouseY )
 {
+	/*
 	m_DXINPUT->Frame( m_DXEngineCamera->m_MoveLeftRight, m_DXEngineCamera->m_MoveBackForward,
 		m_DXEngineCamera->m_Yaw, m_DXEngineCamera->m_Pitch );
+		*/
 	m_DXIMGUI->Frame();
 	return Render();
 }
@@ -269,7 +271,7 @@ bool DXENGINE::InitDXIMGUI( HWND hWnd )
 		LOG_INFO(" Successed - Create DXIMGUI ");
 	}
 
-	if ( !m_DXIMGUI->Init( hWnd, m_DXD3D->GetDevice(), m_DXD3D->GetDeviceContext() ) )
+	if ( !m_DXIMGUI->Init( m_DXUserWindow, m_DXInfoWindow, hWnd, m_DXD3D->GetDevice(), m_DXD3D->GetDeviceContext() ) )
 	{
 		LOG_ERROR(" Failed - Init DXIMGUI ");
 		return false;
