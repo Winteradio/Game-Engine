@@ -23,7 +23,7 @@ class DXIMGUI
 		void Release();
 		void InitPointer();
 
-		void SetFonts();
+		void SetFonts( char* Path );
 
 		DXRECTWINDOW* m_DXUserWindow;
 		DXRECTWINDOW* m_DXInfoWindow;
@@ -32,7 +32,8 @@ class DXIMGUI
 	private :
 
 		ImGuiIO* m_ImGuiIO;
-		const char* m_FontAddr;
+		char m_FontAddr[MAXLENGTH];
+		char* m_DefaultFont;
 		int m_FontSize;
 		bool m_FileBrowser = false;
 };

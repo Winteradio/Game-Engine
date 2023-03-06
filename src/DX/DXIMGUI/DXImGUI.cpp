@@ -43,7 +43,9 @@ bool DXIMGUI::Init( DXRECTWINDOW* UserWindow, DXRECTWINDOW* InfoWindow, HWND hWn
 
 	if ( !InitFileBrowser() ) { return false; }
 
-	SetFonts();
+	m_DefaultFont = "../../fonts/font.ttf";
+
+	SetFonts( m_DefaultFont );
 
 	return true;
 }
@@ -62,11 +64,15 @@ bool DXIMGUI::InitFileBrowser()
 		LOG_INFO(" Successed - Create File Browser Object ");
 	}
 
+	m_DIFileBrowser->Init();
+
 	return true;
 }
 
 bool DXIMGUI::Frame()
 {
+	SetFonts( m_DIFileBrowser->GetFilePath() );
+
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -224,6 +230,7 @@ ImGuiWindowFlags Infoflags = ImGuiWindowFlags_NoDecoration;
 	ImGui::Render();
 
 	ImGui_ImplDX11_RenderDrawData( ImGui::GetDrawData() );
+
 	return true;
 }
 
@@ -240,9 +247,19 @@ void DXIMGUI::InitPointer()
 	m_ImGuiIO = nullptr;
 }
 
-void DXIMGUI::SetFonts()
+void DXIMGUI::SetFonts( char* Path )
 {
-	m_FontAddr = ".\\..\\..\\fonts\\font.ttf";
-	m_FontSize = 12.0f;
-	m_ImGuiIO->Fonts->AddFontFromFileTTF( m_FontAddr, m_FontSize, NULL, m_ImGuiIO->Fonts->GetGlyphRangesKorean() );
+	if ( Path != nullptr && strcmp( Path, m_FontAddr ) != 0)
+	{
+		std::string TempString(Path);
+		if ( TempString.find(".ttf") != std::string::npos )
+		{
+			strcpy( m_FontAddr, Path );
+			m_FontSize = 12.0f;
+			m_ImGuiIO->Fonts->Clear();
+			m_ImGuiIO->Fonts->AddFontFromFileTTF( m_FontAddr, m_FontSize, NULL, m_ImGuiIO->Fonts->GetGlyphRangesKorean() );
+			ImGui_ImplDX11_InvalidateDeviceObjects();
+			m_ImGuiIO->Fonts->Build();
+		}
+	}
 }
