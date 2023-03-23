@@ -1,0 +1,150 @@
+
+[ 2023-03-18 ]
+
+template< class T >
+
+#include <iostream>
+
+class ResourceManager
+{
+
+	template< class T >
+	static void CreateMap()
+	{
+		m_ResourceData[ &typeid( T ) ] = std::map< std::string, IResource* >();
+	}
+
+	template< class T >
+	static void CreateResource( std::string Name )
+	{
+		UUID Id;
+		IResource* Temp = new T( Name, ID );
+		m_ResourceData[ typeid(T).name() ][ ID ] = Temp;
+	}
+
+	template< class T >
+	static T* GetResource( std::string ID )
+	{
+		return (T*)m_ResourceData[ typeid(T).name()][ ID ];
+	}
+	
+	template< class T >
+	static std::map< std::string, IResource* > > GetMap()
+	{
+		return m_ResourceData[ typeid(T).name() ];
+	}
+
+	std::map< std::string, std::map< std::string, IResource* > > m_ResourceData;	
+
+	std::map< const type_info&, std::map
+};
+
+class ResourceGuiLayer
+{
+	template< class T >
+	void RenderTree()
+	{
+		if ( ImGui::TreeNode( typeid(T).name().c_str() );
+		for ( auto itr = ResourceManager::GetMap<T>().begin(); itr != ResourceManager::GetMap<T>().end(); itr++ )
+		{
+			if ( ImGui::Selectable( itr->GetName().c_str() ) )
+			{
+				m_PropertyGuiLayer->Render<T>( (T*)itr );
+			}
+		}
+		ImGui::PopNode();
+	}
+}
+
+class PropertyGuiLayer
+{
+	void RenderCommon( IResource* Resource )
+	{
+		ImGui::Text( Resource->GetName().c_str() );
+		ImGui::Text( Resource->GetID().c_str() );
+		ImGui::Text( Resource->GetType().c_str() );
+	}
+
+	void RenderProperty( Scene* Resource )
+	{
+		...
+	}
+
+	void RenderProperty( Component* Resource )
+	{
+		...
+	}
+		...
+
+	template< class T >
+	void Render( T* Resource )
+	{
+		RenderCommon();
+		RenderProperty( Resource );
+	}
+
+	->> SettingGuiLayer, FileSystemGuiLayer처럼 Begin과 End로 구현하기
+}
+
+- >> Done
+
+
+class IResource
+{
+	std::string m_Name;
+	std::string m_UUID;
+};
+
+[ 2023-03-21 ]
+
+- Input New Object
+GuiLayer ->(Change) IGuiLayer
+
+IBrowserGuiLayer <-(Inheritance) IGuiLayer
+
+MenuBrowserGuiLayer <-(Inheritance) IBrowserGuiLayer
+	->> MainGuiLayer
+
+PropertyBrowserGuiLayer <-(Inheritance) IBrowserGuiLayer
+	->> PropertyGuiLayer
+
+FileBrowserGuiLayer <-(Inheritance) IBrowserGuiLayer
+	->> FileSystemGuiLayer
+
+ProjectManager
+	->> Manager Yaml File
+
+- File Browser system
+	-> IBrowserGuiLayer
+		->> Menu ... ( MenuBrowserGuiLayer )
+		->> Property ... ( PropertyBrowserGuiLayer )
+
+		Click selectable for button like "File Load",
+		then, Begin FileBrowserGuiLayer
+
+	-> FileBrowserGuiLayer
+		Render files and user select path ...
+		As result, user click "Done" button,
+		then call IBrowserGuiLayer end
+
+	-> MenuBrowserGuiLayer
+		if it is called by FileBrowserGuiLayer,
+		Call ProjectManager
+
+	-> PropertyBrowserGuiLayer
+		if it is called by FileBrowserGuiLayer,
+		Call Resource's Compile( FS::path Path ) function
+
+
+- Change Resource System
+	-> ResourceManager
+		- Resource must be accessed by ResourceManager,
+		because, the other method is existed that access to resource,
+		the other method must copy resource's pointer data and
+		the other method must overlap ResourceManager
+
+	-> Scene
+		- It has map data structure that has typeinfo and UUID vector
+
+	-> Component
+		- It has map data structure that has typeinfo and UUId vector

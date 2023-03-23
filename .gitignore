@@ -1,0 +1,5 @@
+## ignore all files in the build/ directory
+build/
+third-party/yaml-cpp/
+third-party/imgui/
+resource/
