@@ -1,0 +1,26 @@
+## Design Engine
+
+1. Resource
+
+- Interface of Resoure
+->> Inheritance 
+	-> Scene
+	-> Shader
+	-> Mesh( Body )
+	-> Texture
+	-> Script
+
+2. Behavior of Resource
+- Interface of Behavior
+->> Inheritance
+	-> Scene
+	-> Shader
+		-> Vertex Shader
+		-> Pixel Shader
+		-> Hull Shader
+		-> Domain Shader
+		-> Geometry Shader
+	-> Mesh ( Body )
+	-> Texture
+	-> Script
+
