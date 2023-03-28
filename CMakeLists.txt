@@ -64,7 +64,7 @@ LIST( APPEND SRCS
 		## Core Engine
 		${COREENGINE_DIR}/IWindow.h
 		${COREENGINE_DIR}/Log.h ${COREENGINE_DIR}/Log.cpp
-		${COREENGINE_DIR}/Timer.h
+		${COREENGINE_DIR}/Timer.h ${COREENGINE_DIR}/Timer.cpp
 		${COREENGINE_DIR}/CoreEngine.h ${COREENGINE_DIR}/CoreEngine.cpp
 
 		## Physics Engine
@@ -85,6 +85,8 @@ LIST( APPEND SRCS
 				${RESOURCE_DIR}/Component.h ${RESOURCE_DIR}/Component.cpp
 		${RESOURCE_DIR}/IFileResource.h
 			${RESOURCE_DIR}/Shader.h ${RESOURCE_DIR}/Shader.cpp
+				${RESOURCE_DIR}/VertexShader.h ${RESOURCE_DIR}/VertexShader.cpp
+				${RESOURCE_DIR}/PixelShader.h ${RESOURCE_DIR}/PixelShader.cpp
 			${RESOURCE_DIR}/Mesh.h ${RESOURCE_DIR}/Mesh.cpp
 			${RESOURCE_DIR}/Texture.h ${RESOURCE_DIR}/Texture.cpp
 			${RESOURCE_DIR}/Script.h ${RESOURCE_DIR}/Script.cpp

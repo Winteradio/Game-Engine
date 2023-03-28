@@ -3,3 +3,4 @@ build/
 third-party/yaml-cpp/
 third-party/imgui/
 resource/
+OldVersionEngine/

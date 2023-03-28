@@ -72,7 +72,7 @@ void WinAPI::Create()
 		);
 
 	if ( !m_hWnd ) { Log::Error(" Failed - Create Window "); }
-	else { Log::Info(" Succssed - Creat Window "); }
+	else { Log::Info(" Successed - Creat Window "); }
 
 	// Show and Update Window
 	ShowWindow( m_hWnd, SW_SHOW );

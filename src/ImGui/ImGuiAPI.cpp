@@ -20,7 +20,7 @@ void ImGuiAPI::Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* Devic
 	m_ImGuiIO = &ImGui::GetIO();
 
 	if ( !ImGui_ImplWin32_Init( hWnd ) ) { return Log::Error(" Failed - Init ImGui using Window Handle "); }
-	else { Log::Info(" Succseed - Init ImGui using Window Handle " );}
+	else { Log::Info(" Successed - Init ImGui using Window Handle " );}
 
 	if ( !ImGui_ImplDX11_Init( Device, DeviceContext ) ) { return Log::Error(" Failed - Init ImGui using DirectX Device and Context "); }
 	else { Log::Info(" Successed - Init ImGui using DirectX Device and Context "); }

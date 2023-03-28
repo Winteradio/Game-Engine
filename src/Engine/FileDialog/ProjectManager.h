@@ -1,6 +1,10 @@
 #ifndef __PROJECTMANAGER_H__
 #define __PROJECTMANAGER_H__
 
+#if WIN32
+    #define YAML_CPP_STATIC_DEFINE
+#endif
+
 #include "yaml-cpp/yaml.h"
 #include "yaml-cpp/Parser.h"
 
@@ -28,10 +32,9 @@ class ProjectManager
 		void LoadShader( YAML::Node& FileData );
 		void LoadTexture( YAML::Node& FileData );
 
-		float LoadFloat( YAML::Node& FileData ) {};
-		XMFLOAT2 LoadXMFLOAT2( YAML::Node& FileData ) {};
+		XMFLOAT2 LoadXMFLOAT2( YAML::Node& FileData );
 		XMFLOAT3 LoadXMFLOAT3( YAML::Node& FileData );
-		XMFLOAT4 LoadXMFLOAT4( YAML::Node& FileData ) {};
+		XMFLOAT4 LoadXMFLOAT4( YAML::Node& FileData );
 		std::string LoadString( YAML::Node& FileData );
 
 		template< class T >
@@ -72,10 +75,9 @@ class ProjectManager
 		void SaveShader( YAML::Emitter& Data, IResource* Resource );
 		void SaveTexture( YAML::Emitter& Data, IResource* Resource );
 
-		void SaveFloat( YAML::Emitter& Data, float Info, std::string DataName ) {};
-		void SaveXMFLOAT2( YAML::Emitter& Data, XMFLOAT2 Info, std::string DataName ) {};
+		void SaveXMFLOAT2( YAML::Emitter& Data, XMFLOAT2 Info, std::string DataName );
 		void SaveXMFLOAT3( YAML::Emitter& Data, XMFLOAT3 Info, std::string DataName );
-		void SaveXMFLOAT4( YAML::Emitter& Data, XMFLOAT4 Info, std::string DataName ) {};
+		void SaveXMFLOAT4( YAML::Emitter& Data, XMFLOAT4 Info, std::string DataName );
 		void SaveFilePath( YAML::Emitter& Data, FS::path Path );
 
 	private :

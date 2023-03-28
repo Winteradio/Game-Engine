@@ -3,6 +3,7 @@
 
 #include "IBrowserGuiLayer.h"
 
+#include "FileBrowserGuiLayer.h"
 #include "ResourceManager.h"
 
 class PropertyBrowserGuiLayer : public IBrowserGuiLayer
@@ -29,10 +30,11 @@ class PropertyBrowserGuiLayer : public IBrowserGuiLayer
 		void RenderShader();
 		void RenderTexture();
 
-		void RenderXMFLOAT2( XMFLOAT2& Info );
-		void RenderXMFLOAT3( XMFLOAT3& Info );
-		void RenderXMFLOAT4( XMFLOAT4& Info );
-		void RenderColor( XMFLOAT4& Info );
+		void RenderFloat( std::string Name, float& Info, float ResetValue = 0.0f );
+		void RenderXMFLOAT2( std::string Name, XMFLOAT2& Info, float ResetValue = 0.0f );
+		void RenderXMFLOAT3( std::string Name, XMFLOAT3& Info, float ResetValue = 0.0f );
+		void RenderXMFLOAT4( std::string Name, XMFLOAT4& Info, float ResetValue = 0.0f );
+		void RenderColor( std::string Name, XMFLOAT4& Info, float ResetValue = 0.0f );
 
 		void SetResource( IResource* Resource );
 		void Clear();
@@ -45,51 +47,45 @@ class PropertyBrowserGuiLayer : public IBrowserGuiLayer
 
 			if ( ImGui::TreeNode( Typename.c_str() ) )
 			{
-				if ( ImGui::TreeNode("Selected") )
+				ImGui::SeparatorText( "Selected" );
+				if ( !MapData->GetIDs<T>().empty() )
 				{
-					if ( !MapData->GetIDs<T>().empty() )
+					for ( auto ITRID : MapData->GetIDs<T>() )
 					{
-						for ( auto ITRID : MapData->GetIDs<T>() )
+						IResource* Resource = ResourceManager::GetResource<T>( ITRID );
+						ImGui::PushID( Resource->GetUUID().c_str() );
+						if ( ImGui::TreeNode( Resource->GetName().c_str() ) )
 						{
-							IResource* Resource = ResourceManager::GetResource<T>( ITRID );
-							ImGui::PushID( Resource->GetUUID().c_str() );
-							if ( ImGui::TreeNode( Resource->GetName().c_str() ) )
+							if ( ImGui::Selectable("Go") )
 							{
-								if ( ImGui::Selectable("Go") )
-								{
-									m_Resource = Resource;
-								}
-								ImGui::Spacing();
-								if ( ImGui::Selectable("Get Out") )
-								{
-									((MainT*)m_Resource)->GetoutResource<T>( Resource->GetUUID() );
-								}
-								ImGui::TreePop();
+								m_Resource = Resource;
 							}
-							ImGui::PopID();
+							ImGui::Spacing();
+							if ( ImGui::Selectable("Get Out") )
+							{
+								((MainT*)m_Resource)->GetoutResource<T>( Resource->GetUUID() );
+							}
+							ImGui::TreePop();
 						}
+						ImGui::PopID();
 					}
-					ImGui::TreePop();
 				}
 
 				ImGui::Spacing();
 
-				if ( ImGui::TreeNode("Non-Selected") )
+				ImGui::SeparatorText( ( Typename + " List" ).c_str() );
+				if ( !ResourceManager::GetMap<T>().empty() )
 				{
-					if ( !ResourceManager::GetMap<T>().empty() )
+					for ( auto itr : ResourceManager::GetMap<T>() )
 					{
-						for ( auto itr : ResourceManager::GetMap<T>() )
+						IResource* Resource = itr.second;
+						ImGui::PushID( Resource->GetUUID().c_str() );
+						if ( ImGui::Selectable( Resource->GetName().c_str() ) )
 						{
-							IResource* Resource = itr.second;
-							ImGui::PushID( Resource->GetUUID().c_str() );
-							if ( ImGui::Selectable( Resource->GetName().c_str() ) )
-							{
-								MapData->InputResource<T>( Resource->GetUUID() );
-							}
-							ImGui::PopID();
+							MapData->InputResource<T>( Resource->GetUUID() );
 						}
+						ImGui::PopID();
 					}
-					ImGui::TreePop();
 				}
 				ImGui::TreePop();
 			}
@@ -97,6 +93,7 @@ class PropertyBrowserGuiLayer : public IBrowserGuiLayer
 
 	private :
 		IResource* m_Resource;
+		char m_Temp[ MAX_LENGTH ];
 };
 
 #endif // __PROPERTYBROWSERGUILAYER_H__

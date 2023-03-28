@@ -6,7 +6,7 @@ ProjectManager::~ProjectManager() {}
 
 void ProjectManager::LoadFile( FS::path Path )
 {
-	Log::Info("Load File %s", Path.generic_string().c_str() );
+	Log::Info(" Load File %s", Path.generic_string().c_str() );
 
 	YAML::Node FileData = YAML::LoadFile(Path.generic_string());
 
@@ -140,9 +140,19 @@ void ProjectManager::LoadTexture( YAML::Node& FileData )
 	LoadFilePath<Texture>( FileData, ID );
 }
 
+XMFLOAT2 ProjectManager::LoadXMFLOAT2( YAML::Node& FileData )
+{
+	return XMFLOAT2( FileData[0].as<float>(), FileData[1].as<float>() );
+}
+
 XMFLOAT3 ProjectManager::LoadXMFLOAT3( YAML::Node& FileData )
 {
 	return XMFLOAT3( FileData[0].as<float>(), FileData[1].as<float>(), FileData[2].as<float>() );
+}
+
+XMFLOAT4 ProjectManager::LoadXMFLOAT4( YAML::Node& FileData )
+{
+	return XMFLOAT4( FileData[0].as<float>(), FileData[1].as<float>(), FileData[2].as<float>(), FileData[3].as<float>() );
 }
 
 std::string ProjectManager::LoadString( YAML::Node& FileData )
@@ -153,7 +163,7 @@ std::string ProjectManager::LoadString( YAML::Node& FileData )
 // SaveFile
 void ProjectManager::SaveFile( FS::path Path )
 {
-	Log::Info("Save File %s", Path.generic_string().c_str() );
+	Log::Info(" Save File %s", Path.generic_string().c_str() );
 	YAML::Emitter Data;
 	Data << YAML::BeginSeq;
 	for ( auto ITRResourceMap : ResourceManager::Get() )
@@ -172,12 +182,13 @@ void ProjectManager::SaveFile( FS::path Path )
 				else if ( Resource->GetType()->name() == typeid(Script).name() ) SaveScript( Data, Resource );
 				else if ( Resource->GetType()->name() == typeid(Shader).name() ) SaveShader( Data, Resource );
 				else if ( Resource->GetType()->name() == typeid(Texture).name() ) SaveTexture( Data, Resource );
+				Data << YAML::Newline;
 			}
 		}
 	}
 	Data << YAML::EndSeq;
 
-	std::ofstream fout( Path, std::ios_base::app );
+	std::ofstream fout( Path, std::ios_base::out );
 	fout << Data.c_str();
 }
 
@@ -313,12 +324,30 @@ void ProjectManager::SaveTexture( YAML::Emitter& Data, IResource* Resource )
 	Data << YAML::EndMap;
 }
 
+void ProjectManager::SaveXMFLOAT2( YAML::Emitter& Data, XMFLOAT2 Info, std::string DataName )
+{
+	Data << YAML::Key << DataName;
+	Data << YAML::Flow;
+	Data << YAML::BeginSeq;
+	Data << YAML::Value << Info.x << Info.y;
+	Data << YAML::EndSeq;
+}
+
 void ProjectManager::SaveXMFLOAT3( YAML::Emitter& Data, XMFLOAT3 Info, std::string DataName )
 {
 	Data << YAML::Key << DataName;
 	Data << YAML::Flow;
 	Data << YAML::BeginSeq;
 	Data << YAML::Value << Info.x << Info.y << Info.z;
+	Data << YAML::EndSeq;
+}
+
+void ProjectManager::SaveXMFLOAT4( YAML::Emitter& Data, XMFLOAT4 Info, std::string DataName )
+{
+	Data << YAML::Key << DataName;
+	Data << YAML::Flow;
+	Data << YAML::BeginSeq;
+	Data << YAML::Value << Info.x << Info.y << Info.z << Info.w;
 	Data << YAML::EndSeq;
 }
 

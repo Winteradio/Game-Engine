@@ -64,12 +64,12 @@ void RenderingStatus::CreateRenderTargetView()
 
 	hr = DirectXAPI::Get().GetSwapChain()->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&backBuffer );
 	if ( FAILED ( hr ) ) { Log::Error(" Failed - Create Back Buffer "); }
-	else { Log::Info(" Succseed - Create Back Buffer "); }
+	else { Log::Info(" Successed - Create Back Buffer "); }
 
 	// Create the Render Target View
 	hr = DirectXAPI::Get().GetDevice()->CreateRenderTargetView( backBuffer, NULL, &m_RenderTargetView);
 	if ( FAILED ( hr ) ) { Log::Error(" Failed - Create Render Target View "); }
-	else { Log::Info(" Succseed - Create Render Target View "); }
+	else { Log::Info(" Successed - Create Render Target View "); }
 
 	backBuffer->Release();
 }
@@ -98,7 +98,7 @@ void RenderingStatus::CreateDepthStencilState()
 
 	hr = DirectXAPI::Get().GetDevice()->CreateTexture2D( &depthBufferDesc, NULL, &depthStencilBuffer );
 	if ( FAILED ( hr ) ) { Log::Error(" Failed - Create Depth, Stencil Buffer "); }
-	else { Log::Info(" Succseed - Create Depth, Stencil Buffer "); }
+	else { Log::Info(" Successed - Create Depth, Stencil Buffer "); }
 
 	// Create Depth/Stencil State
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -125,13 +125,13 @@ void RenderingStatus::CreateDepthStencilState()
 	depthStencilDesc.DepthEnable = true;
 	hr = DirectXAPI::Get().GetDevice()->CreateDepthStencilState( &depthStencilDesc, &m_DepthEnable );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Depth Enable State "); }
-	else { Log::Info(" Succseed - Create Depth Enable State "); }
+	else { Log::Info(" Successed - Create Depth Enable State "); }
 
 	// Create Depth/Stencil State that is disable Depth
 	depthStencilDesc.DepthEnable = false;
 	hr = DirectXAPI::Get().GetDevice()->CreateDepthStencilState( &depthStencilDesc, &m_DepthDisable );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Depth Disable State "); }
-	else { Log::Info(" Succseed - Create Depth Disable State "); }
+	else { Log::Info(" Successed - Create Depth Disable State "); }
 
 	// Create Depth/Stencil View
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
@@ -143,7 +143,7 @@ void RenderingStatus::CreateDepthStencilState()
 
 	hr = DirectXAPI::Get().GetDevice()->CreateDepthStencilView( depthStencilBuffer, &depthStencilViewDesc, &m_DepthStencilView );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Depth Stencil view "); }
-	else { Log::Info(" Succseed - Create Depth Stencil view "); }
+	else { Log::Info(" Successed - Create Depth Stencil view "); }
 
 	depthStencilBuffer->Release();
 
@@ -164,7 +164,7 @@ void RenderingStatus::CreateRasterizerState()
 
     hr = DirectXAPI::Get().GetDevice()->CreateRasterizerState( &rasterDesc, &m_RasterWireFrame);
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Rasterizer Wire Frame "); }
-	else { Log::Info(" Succseed - Create Rasterizer Wire Frame "); }
+	else { Log::Info(" Successed - Create Rasterizer Wire Frame "); }
 
     // Create Counter Wise State ( CW Cull Mode )
     rasterDesc.FillMode = D3D11_FILL_SOLID;
@@ -173,7 +173,7 @@ void RenderingStatus::CreateRasterizerState()
 
     hr = DirectXAPI::Get().GetDevice()->CreateRasterizerState( &rasterDesc, &m_RasterCWCull );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Rasterizer CW Cull Mode "); }
-	else { Log::Info(" Succseed - Create Rasterizer CW Cull Mode "); }
+	else { Log::Info(" Successed - Create Rasterizer CW Cull Mode "); }
 
     // Create Counter Clock Wise State ( CCW Cull Mode )
     rasterDesc.FillMode = D3D11_FILL_SOLID;
@@ -182,7 +182,7 @@ void RenderingStatus::CreateRasterizerState()
 
     hr = DirectXAPI::Get().GetDevice()->CreateRasterizerState( &rasterDesc, &m_RasterCCWCull );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Rasterizer CCW Cull Mode "); }
-	else { Log::Info(" Succseed - Create Rasterizer CCW Cull Mode "); }
+	else { Log::Info(" Successed - Create Rasterizer CCW Cull Mode "); }
 
     // Create No Cull Mode
     rasterDesc.FillMode = D3D11_FILL_SOLID;
@@ -190,7 +190,7 @@ void RenderingStatus::CreateRasterizerState()
 
     hr = DirectXAPI::Get().GetDevice()->CreateRasterizerState( &rasterDesc, &m_RasterNoCull );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Rasterizer No Cull Mode "); }
-	else { Log::Info(" Succseed - Create Rasterizer No Cull Mode "); }
+	else { Log::Info(" Successed - Create Rasterizer No Cull Mode "); }
 
 	m_CurrentRasterizerState = m_RasterWireFrame;
 }
@@ -218,7 +218,7 @@ void RenderingStatus::CreateBlendState()
 	blendStateDesc.RenderTarget[0] = renderTargetBlendDesc;
 	hr = DirectXAPI::Get().GetDevice()->CreateBlendState( &blendStateDesc, &m_BlendDisable );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Blend Disable "); }
-	else { Log::Info(" Succseed - Create Blend Disable "); }
+	else { Log::Info(" Successed - Create Blend Disable "); }
 
 	// Create Blend State that is able to blend
 	renderTargetBlendDesc.BlendEnable = true;
@@ -236,7 +236,7 @@ void RenderingStatus::CreateBlendState()
 
 	hr = DirectXAPI::Get().GetDevice()->CreateBlendState( &blendStateDesc, &m_BlendAlphaEnable);
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Blend Alpha Enable "); }
-	else { Log::Info(" Succseed - Create Blend Alpha Enable "); }
+	else { Log::Info(" Successed - Create Blend Alpha Enable "); }
 
 	// Disable to cover using alpha
 	blendStateDesc.AlphaToCoverageEnable = false;
@@ -244,7 +244,7 @@ void RenderingStatus::CreateBlendState()
 
 	hr = DirectXAPI::Get().GetDevice()->CreateBlendState( &blendStateDesc, &m_BlendAlphaDisable );
 	if ( FAILED( hr ) ) { Log::Error( " Failed - Create Blend Alpha Diable "); }
-	else { Log::Info(" Succseed - Create Blend Alpha Diable "); }
+	else { Log::Info(" Successed - Create Blend Alpha Diable "); }
 
 	m_CurrentBlendState = m_BlendDisable;
 }
