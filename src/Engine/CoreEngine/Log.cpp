@@ -27,7 +27,7 @@ void Log::Error( const char* Str, ... )
 	vsprintf( Buff + strlen( Buff ), Str, pArg );
 	va_end( pArg );
 
-	std::string Temp = Timer::Get() + "| " + Buff;
+	std::string Temp = Timer::Get() + " | " + Buff;
 
 	m_Message.push_back( Temp );
 }

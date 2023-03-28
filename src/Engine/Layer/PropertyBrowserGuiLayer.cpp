@@ -149,7 +149,12 @@ void PropertyBrowserGuiLayer::RenderComponent()
 	{
 		RenderPart< Component, Mesh>( TempResource );
 		RenderPart< Component, Script>( TempResource );
-		RenderPart< Component, Shader>( TempResource );
+		if ( ImGui::TreeNode("Shader") )
+		{
+			RenderPart< Component, VertexShader >( TempResource );
+			RenderPart<	Component, PixelShader >( TempResource );
+			ImGui::TreePop();
+		}
 		RenderPart< Component, Texture>( TempResource );
 		ImGui::TreePop();
 	}
