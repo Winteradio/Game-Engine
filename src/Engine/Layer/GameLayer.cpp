@@ -34,6 +34,11 @@ void GameLayer::Init( int PosX, int PosY, int Width, int  Height )
 	CreateOrthoMatrix();
 }
 
+void GameLayer::Render( ID3D11DeviceContext* DeviceContext )
+{
+	DeviceContext->RSSetViewports( 1, &m_Viewport );
+}
+
 void GameLayer::CreateViewport()
 {
 	m_Viewport.TopLeftX = (float)m_PosX;
@@ -44,6 +49,7 @@ void GameLayer::CreateViewport()
 	m_Viewport.MinDepth = (float)SCREEN_NEAR;
 	m_Viewport.MaxDepth = (float)SCREEN_DEPTH;
 }
+
 void GameLayer::CreateProjectionMatrix()
 {
 	float FieldOfView = XM_PI / 4.0f;

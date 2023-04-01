@@ -1,0 +1,1339 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"m_Image",
+				"m_ImageFileDir2"
+			],
+			[
+				"WINDOW",
+				"WINDOWSDK_LIBS"
+			],
+			[
+				"WINDOWSDK",
+				"WINDOWSDK_INCLUDE_DIR"
+			],
+			[
+				"IRESOUR",
+				"IRESOURCEMANAGER"
+			],
+			[
+				"Monste",
+				"MonsterData"
+			],
+			[
+				"GetPo",
+				"GetPosition"
+			],
+			[
+				"Tep",
+				"TempMonster"
+			],
+			[
+				"Mon",
+				"MonstetDatas"
+			],
+			[
+				"m_File",
+				"m_FileFilter"
+			],
+			[
+				"ImGuiWindow",
+				"ImGuiWindowFlags_AlwaysAutoResize"
+			],
+			[
+				"PrintAllFilesinDire",
+				"PrintAllFilesInDirectory"
+			],
+			[
+				"DIFIleBo",
+				"DIFileBrowser.h"
+			],
+			[
+				"TopLeft",
+				"TopLeftY"
+			],
+			[
+				"SCREEN",
+				"SCREEN_DEPTH"
+			],
+			[
+				"m_ProjectionMat",
+				"m_ProjectionMatrixEngine"
+			],
+			[
+				"m_DxInGame",
+				"m_DXInGameCamera"
+			],
+			[
+				"m_DXEngine",
+				"m_DXEngineCamera"
+			],
+			[
+				"SetNextWindow",
+				"SetNextWindowSize"
+			],
+			[
+				"m_DXENGINE",
+				"m_DXENGINERECT"
+			],
+			[
+				"m_Move",
+				"m_MoveBackForward"
+			],
+			[
+				"m_Default",
+				"m_DefaultForward"
+			],
+			[
+				"XMVector",
+				"XMVector3TransformCoord"
+			],
+			[
+				"m_Rotat",
+				"m_RotationMatrix"
+			],
+			[
+				"m_Screen",
+				"m_ScreenHeight"
+			],
+			[
+				"m_SCreen",
+				"m_ScreenHeight"
+			],
+			[
+				"m_S",
+				"m_ScreenHeight"
+			],
+			[
+				"m_Direct",
+				"m_DirectInput"
+			],
+			[
+				"ImGui_ImplWin",
+				"ImGui_ImplWin32_WndProcHandler"
+			],
+			[
+				"Get",
+				"GetDeviceContext"
+			],
+			[
+				"Texture",
+				"TextureColor"
+			],
+			[
+				"TEX",
+				"TEXCOORD0"
+			],
+			[
+				"m_Shader",
+				"m_ShaderResourceView"
+			],
+			[
+				"CameraP",
+				"CameraPosition"
+			],
+			[
+				"LIGHT",
+				"LightDirection"
+			],
+			[
+				"Light",
+				"LightDir"
+			],
+			[
+				"OBj",
+				"ObjSamplerState"
+			],
+			[
+				"Cue",
+				"Cube2"
+			],
+			[
+				"Obj",
+				"ObjSamplerState"
+			],
+			[
+				"view",
+				"ViewDirection"
+			],
+			[
+				"XM",
+				"XMLoadFloat3"
+			],
+			[
+				"m_ShaderCa",
+				"m_ShaderCameraBuffer"
+			],
+			[
+				"Diffus",
+				"DiffuseColor"
+			],
+			[
+				"nr",
+				"normalize\tIntrinsics"
+			],
+			[
+				"m_PixelShad",
+				"m_PixelShaderDir"
+			],
+			[
+				"m_Vertexs",
+				"m_VertexShaderDir"
+			],
+			[
+				"RASER",
+				"RASTERZIER"
+			],
+			[
+				"Chang",
+				"ChangeDepthStencilState"
+			],
+			[
+				"m_Rast",
+				"m_RasterCWCullMode"
+			],
+			[
+				"m_BlendAl",
+				"m_BlendAlphaDisable"
+			],
+			[
+				"m_Frame",
+				"m_FrameBlendState"
+			],
+			[
+				"m_BlendAph",
+				"m_BlendAlphaDisable"
+			],
+			[
+				"InitRsa",
+				"InitRasterizerState"
+			],
+			[
+				"m_Ligh",
+				"m_LightBuffer"
+			],
+			[
+				"m_Scree",
+				"m_ScreenHeight"
+			],
+			[
+				"m_Scre",
+				"m_ScreenHeight"
+			],
+			[
+				"InitSub",
+				"InitSUBINPUT"
+			],
+			[
+				"GetWin",
+				"GetWindowHeight"
+			],
+			[
+				"GetWindow",
+				"GetWindowHandle"
+			],
+			[
+				"GetWind",
+				"GetWindowHeight"
+			],
+			[
+				"SetWI",
+				"SetWindowNameNTitle"
+			],
+			[
+				"m_In",
+				"m_INFO"
+			],
+			[
+				"Screen",
+				"ScreenHeight"
+			],
+			[
+				"GetContext",
+				"GetContextOGLWindow"
+			],
+			[
+				"m_Num",
+				"m_NumOGLWINDOW"
+			],
+			[
+				"m_",
+				"m_NumGUI"
+			],
+			[
+				"F",
+				"FileName"
+			],
+			[
+				"In",
+				"BST::InorderTraversal"
+			],
+			[
+				"Compare",
+				"ComparePredecessor"
+			],
+			[
+				"Succe",
+				"SuccessorNode"
+			],
+			[
+				"Post",
+				"PostorderTraversal"
+			],
+			[
+				"Pre",
+				"PreorderTraversal"
+			],
+			[
+				"m_ImGUI",
+				"m_ImguiIO"
+			],
+			[
+				"Load",
+				"LoadGLLoader"
+			],
+			[
+				"m_OGL",
+				"m_OGLWINDOWs"
+			],
+			[
+				"m_Font",
+				"m_FontAddr"
+			],
+			[
+				"m_IMgui",
+				"m_ImguiContext"
+			],
+			[
+				"m_Window_",
+				"m_Window_Width"
+			],
+			[
+				"m_Wi",
+				"m_Window_Height"
+			],
+			[
+				"On",
+				"OnKeyEvent"
+			],
+			[
+				"ImGuiKey_",
+				"ImGuiKey_Delete"
+			],
+			[
+				"ImGuiBack",
+				"ImGuiBackendFlags_HasSetMousePos"
+			],
+			[
+				"ImGui",
+				"ImGuiBackendFlags_HasMouseCursors"
+			],
+			[
+				"MyI",
+				"MyImGui_Style"
+			],
+			[
+				"SetNewW",
+				"SetNextWindowPos"
+			],
+			[
+				"ImGui_ImplOpenGL3_Destory",
+				"ImGui_ImplOpenGL3_DestroyDeviceObjects"
+			],
+			[
+				"imgui_",
+				"imgui_impl_glfw.cpp"
+			],
+			[
+				"D",
+				"DEP_LIST"
+			],
+			[
+				"CMAKE_CXX_",
+				"CMAKE_CXX_COMPILER"
+			],
+			[
+				"WIN",
+				"WINDOW_NAME"
+			],
+			[
+				"TARGET",
+				"TARGET_LINK_LIBRARIES"
+			],
+			[
+				"TAR",
+				"TARGET_LINK_DIRECTORIES"
+			],
+			[
+				"TARG",
+				"TARGET_INCLUDE_DIRECTORIES"
+			],
+			[
+				"Def",
+				"DefWndProc"
+			],
+			[
+				"mo",
+				"modelList"
+			],
+			[
+				"LOG",
+				"LOG_INFO"
+			],
+			[
+				"m_Da",
+				"m_DemperConstant"
+			],
+			[
+				"sp",
+				"springForce1"
+			],
+			[
+				"sprin",
+				"springForce1"
+			],
+			[
+				"temp",
+				"tempModel1"
+			],
+			[
+				"spring",
+				"springForce1"
+			],
+			[
+				"tempMo",
+				"tempModel1"
+			],
+			[
+				"te",
+				"tempModel2"
+			],
+			[
+				"nor",
+				"norVEL1"
+			],
+			[
+				"uni",
+				"unitForce2"
+			],
+			[
+				"unit",
+				"unitForce2"
+			],
+			[
+				"no",
+				"norForce1"
+			],
+			[
+				"norFo",
+				"norForce2"
+			],
+			[
+				"OUT",
+				"OutNOR"
+			],
+			[
+				"CalAng",
+				"CalAngVelocity"
+			],
+			[
+				"CalA",
+				"CalAccelerate"
+			],
+			[
+				"norFO",
+				"norForce1"
+			],
+			[
+				"norFor",
+				"norForce1"
+			],
+			[
+				"lin",
+				"linVEL1"
+			],
+			[
+				"li",
+				"linVEL1"
+			],
+			[
+				"linVEL",
+				"linVEL1"
+			],
+			[
+				"m_Colli",
+				"m_CollisionConstant"
+			],
+			[
+				"DX",
+				"DXMULTIPLY"
+			],
+			[
+				"unitFOr",
+				"unitForce2"
+			],
+			[
+				"unitFor",
+				"unitForce1"
+			],
+			[
+				"Posit",
+				"Position1"
+			],
+			[
+				"Calcollision",
+				"CalCollisionModel"
+			],
+			[
+				"norForce",
+				"norForce1"
+			],
+			[
+				"norF",
+				"norForce1"
+			],
+			[
+				"unitFO",
+				"unitForce1"
+			],
+			[
+				"uint",
+				"unitForce1"
+			],
+			[
+				"unitNOr",
+				"unitNor1"
+			],
+			[
+				"Out",
+				"OutNOR"
+			],
+			[
+				"DXM",
+				"DXM_PHYSICS"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "resource/mesh/3d/cube.obj",
+			"settings":
+			{
+				"buffer_size": 935,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			},
+			"undo_stack":
+			[
+				[
+					135,
+					1,
+					"revert",
+					null,
+					"AgAAAAAAAAAAAAAAAAAAAAAAAACnAwAAIyBCbGVuZGVyIDMuNS4wCiMgd3d3LmJsZW5kZXIub3JnCm10bGxpYiBjdWJlLm10bApvIEN1YmUKdiAxLjAwMDAwMCAxLjAwMDAwMCAtMS4wMDAwMDAKdiAxLjAwMDAwMCAtMS4wMDAwMDAgLTEuMDAwMDAwCnYgMS4wMDAwMDAgMS4wMDAwMDAgMS4wMDAwMDAKdiAxLjAwMDAwMCAtMS4wMDAwMDAgMS4wMDAwMDAKdiAtMS4wMDAwMDAgMS4wMDAwMDAgLTEuMDAwMDAwCnYgLTEuMDAwMDAwIC0xLjAwMDAwMCAtMS4wMDAwMDAKdiAtMS4wMDAwMDAgMS4wMDAwMDAgMS4wMDAwMDAKdiAtMS4wMDAwMDAgLTEuMDAwMDAwIDEuMDAwMDAwCnZuIC0wLjAwMDAgMS4wMDAwIC0wLjAwMDAKdm4gLTAuMDAwMCAtMC4wMDAwIDEuMDAwMAp2biAtMS4wMDAwIC0wLjAwMDAgLTAuMDAwMAp2biAtMC4wMDAwIC0xLjAwMDAgLTAuMDAwMAp2biAxLjAwMDAgLTAuMDAwMCAtMC4wMDAwCnZuIC0wLjAwMDAgLTAuMDAwMCAtMS4wMDAwCnZ0IDAuNjI1MDAwIDAuNTAwMDAwCnZ0IDAuMzc1MDAwIDAuNTAwMDAwCnZ0IDAuNjI1MDAwIDAuNzUwMDAwCnZ0IDAuMzc1MDAwIDAuNzUwMDAwCnZ0IDAuODc1MDAwIDAuNTAwMDAwCnZ0IDAuNjI1MDAwIDAuMjUwMDAwCnZ0IDAuMTI1MDAwIDAuNTAwMDAwCnZ0IDAuMzc1MDAwIDAuMjUwMDAwCnZ0IDAuODc1MDAwIDAuNzUwMDAwCnZ0IDAuNjI1MDAwIDEuMDAwMDAwCnZ0IDAuNjI1MDAwIDAuMDAwMDAwCnZ0IDAuMzc1MDAwIDEuMDAwMDAwCnZ0IDAuMzc1MDAwIDAuMDAwMDAwCnZ0IDAuMTI1MDAwIDAuNzUwMDAwCnMgMAp1c2VtdGwgTWF0ZXJpYWwKZiAxLzEvMSA1LzUvMSA3LzkvMSAzLzMvMQpmIDQvNC8yIDMvMy8yIDcvMTAvMiA4LzEyLzIKZiA4LzEzLzMgNy8xMS8zIDUvNi8zIDYvOC8zCmYgNi83LzQgMi8yLzQgNC80LzQgOC8xNC80CmYgMi8yLzUgMS8xLzUgMy8zLzUgNC80LzUKZiA2LzgvNiA1LzYvNiAxLzEvNiAyLzIvNgoAAAAAAAAAAKcDAAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAApgMAAAAAAAAAAAAAAAAAAAAAAAAAAPC/"
+				]
+			]
+		},
+		{
+			"file": "src/Engine/Resource/ResourceManager.h",
+			"settings":
+			{
+				"buffer_size": 2119,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
+			"contents": "Searching 488 files for \"ResourceManager::Get\"\n\nC:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\Resource Idea.txt:\n   46  \t{\n   47  \t\tif ( ImGui::TreeNode( typeid(T).name().c_str() );\n   48: \t\tfor ( auto itr = ResourceManager::GetMap<T>().begin(); itr != ResourceManager::GetMap<T>().end(); itr++ )\n   49  \t\t{\n   50  \t\t\tif ( ImGui::Selectable( itr->GetName().c_str() ) )\n\nC:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\src\\Engine\\FileDialog\\ProjectManager.cpp:\n   39  \t\tif ( LoadString( Data[\"Type\"] ) == typeid(Component).name() )\n   40  \t\t{\n   41: \t\t\tResourceManager::GetResource<Scene>(ID)->InputResource<Component>( LoadString( Data[\"UUID\"] ) );\n   42  \t\t}\n   43  \t\telse if ( LoadString( Data[\"Type\"] ) == typeid(Camera).name() )\n   44  \t\t{\n   45: \t\t\tResourceManager::GetResource<Scene>(ID)->InputResource<Camera>( LoadString( Data[\"UUID\"] ) );\n   46  \t\t}\n   47  \t\telse if ( LoadString( Data[\"Type\"] ) == typeid(Light).name() )\n   48  \t\t{\n   49: \t\t\tResourceManager::GetResource<Scene>(ID)->InputResource<Light>( LoadString( Data[\"UUID\"] ) );\n   50  \t\t}\n   51  \t}\n   ..\n   66  \t\tif ( LoadString( Data[\"Type\"] ) == typeid(Mesh).name() )\n   67  \t\t{\n   68: \t\t\tResourceManager::GetResource<Component>(ID)->InputResource<Mesh>( LoadString( Data[\"UUID\"] ) );\n   69  \t\t}\n   70  \t\telse if ( LoadString( Data[\"Type\"] ) == typeid(Script).name() )\n   71  \t\t{\n   72: \t\t\tResourceManager::GetResource<Component>(ID)->InputResource<Script>( LoadString( Data[\"UUID\"] ) );\n   73  \t\t}\n   74  \t\telse if ( LoadString( Data[\"Type\"] ) == typeid(Shader).name() )\n   75  \t\t{\n   76: \t\t\tResourceManager::GetResource<Component>(ID)->InputResource<Shader>( LoadString( Data[\"UUID\"] ) );\n   77  \t\t}\n   78  \t\telse if ( LoadString( Data[\"Type\"] ) == typeid(Texture).name() )\n   79  \t\t{\n   80: \t\t\tResourceManager::GetResource<Component>(ID)->InputResource<Texture>( LoadString( Data[\"UUID\"] ) );\n   81  \t\t}\n   82  \t}\n   ..\n  167  \tYAML::Emitter Data;\n  168  \tData << YAML::BeginSeq;\n  169: \tfor ( auto ITRResourceMap : ResourceManager::Get() )\n  170  \t{\n  171  \t\tif ( !ITRResourceMap.second.empty() )\n\nC:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\src\\Engine\\FileDialog\\ProjectManager.h:\n   46  \t\tvoid LoadTranslation( YAML::Node& FileData, MyUUID ID )\n   47  \t\t{\n   48: \t\t\tResourceManager::GetResource<T>( ID )->SetTranslation( LoadXMFLOAT3( FileData[\"Translation\"] ) );\n   49  \t\t}\n   50  \t\ttemplate< class T >\n   51  \t\tvoid LoadRotation( YAML::Node& FileData, MyUUID ID )\n   52  \t\t{\n   53: \t\t\tResourceManager::GetResource<T>( ID )->SetRotation( LoadXMFLOAT3( FileData[\"Rotation\"] ) );\n   54  \t\t}\n   55  \t\ttemplate< class T >\n   56  \t\tvoid LoadScale( YAML::Node& FileData, MyUUID ID )\n   57  \t\t{\n   58: \t\t\tResourceManager::GetResource<T>( ID )->SetScale( LoadXMFLOAT3( FileData[\"Scale\"] ) );\n   59  \t\t}\n   60  \t\ttemplate< class T >\n   61  \t\tvoid LoadFilePath( YAML::Node& FileData, MyUUID ID )\n   62  \t\t{\n   63: \t\t\tResourceManager::GetResource<T>( ID )->SetFilePath( LoadString( FileData[\"FilePath\"] ) );\n   64  \t\t}\n   65  \n\nC:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\src\\Engine\\Layer\\PropertyBrowserGuiLayer.h:\n   53  \t\t\t\t\tfor ( auto ITRID : MapData->GetIDs<T>() )\n   54  \t\t\t\t\t{\n   55: \t\t\t\t\t\tIResource* Resource = ResourceManager::GetResource<T>( ITRID );\n   56  \t\t\t\t\t\tImGui::PushID( Resource->GetUUID().c_str() );\n   57  \t\t\t\t\t\tif ( ImGui::TreeNode( Resource->GetName().c_str() ) )\n   ..\n   75  \n   76  \t\t\t\tImGui::SeparatorText( ( Typename + \" List\" ).c_str() );\n   77: \t\t\t\tif ( !ResourceManager::GetMap<T>().empty() )\n   78  \t\t\t\t{\n   79: \t\t\t\t\tfor ( auto itr : ResourceManager::GetMap<T>() )\n   80  \t\t\t\t\t{\n   81  \t\t\t\t\t\tIResource* Resource = itr.second;\n\nC:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\src\\Engine\\Layer\\ResourceGuiLayer.h:\n   31  \t\t\t{\n   32  \t\t\t\tImGui::Spacing();\n   33: \t\t\t\tif ( !ResourceManager::GetMap<T>().empty() )\n   34  \t\t\t\t{\n   35: \t\t\t\t\tfor ( auto itr : ResourceManager::GetMap<T>() )\n   36  \t\t\t\t\t{\n   37  \t\t\t\t\t\tIResource* Resource = ( itr.second );\n\n19 matches across 5 files\n",
+			"settings":
+			{
+				"buffer_size": 4002,
+				"line_ending": "Windows",
+				"name": "Find Results",
+				"scratch": true
+			},
+			"undo_stack":
+			[
+			]
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"pip",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"install pak",
+				"Package Control: Install Package"
+			],
+			[
+				"color",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"colorsublime",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"install pack",
+				"Package Control: Install Package"
+			],
+			[
+				"pki",
+				"Package Control: Install Package"
+			],
+			[
+				"insp",
+				"Package Control: Install Package"
+			],
+			[
+				"prefe",
+				"Preferences: Key Bindings"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/build",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/Resource"
+	],
+	"file_history":
+	[
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/resource/mesh/3d/cube.mtl",
+		"/C/Users/겨울엔군고구마한잔/Hazel/Hazel/src/Hazel/Scene/Components.h",
+		"/C/Users/겨울엔군고구마한잔/Hazel/Hazel/src/Hazel/Scene/SceneCamera.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/CoreEngine/Timer.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/Layer/PropertyBrowserGuiLayer.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/Layer/PropertyBrowserGuiLayer.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/Resource/Light.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/CoreEngine/Timer.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/CMakeLists.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/ImGui/ImGuiUtils.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/ImGui/ImGuiAPI.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Window/WinAPI.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/RenderingEngine/RenderingStatus.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/Resource/Light.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/build/Debug/Example.yaml",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/FileDialog/ProjectManager.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/src/Engine/FileDialog/ProjectManager.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/NewEngine/GameEngine/.gitignore",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/RenderingEngine/RenderingEngine.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/UUID/MyUUID.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/Resource/ResourceManager.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/Layer/LayerManager.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/게임/OpenGL/Study/src/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Utils/Utils.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/Layer/ResourceGuiLayer.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/CoreEngine/CoreEngine.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/Dependency.cmake",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/RenderingEngine/RenderingEngine.h",
+		"/C/Users/겨울엔군고구마한잔/yaml-example/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/third-party/yaml-cpp/.gitignore",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/.gitignore",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/CMakeLists.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/CoreEngine/CoreEngine.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/PhysicsEngine/PhysicsEngine.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/src/Engine/PhysicsEngine/PhysicsEngine.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/NewEngine/Variable.cmake",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/Example/project/Dependency.cmake",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/Example/project/CMakeLists.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/SceneManager.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/Scene.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/Shader.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/IResourceManager.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXMessage/DXMessage.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXMessage/DXMessage.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXLog/DXLog.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/Mesh.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/ShaderType.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/Scene.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/IResource.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXType/DXWindow.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXType/DXResourceType.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/SUB/SUBLog/SUBLog.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/GameEngine.sublime-project",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/Dependency.cmake",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXIMGUI/DIFileBrowser.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/OBShader.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/DX/DXD3D/DXD3D.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/shader/Basic.hlsl",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/Object/OBResource.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/System/System.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/Design Engine",
+		"/C/Users/겨울엔군고구마한잔/Hazel/Hazel/src/Hazel/ImGui/ImGuiLayer.cpp",
+		"/C/Users/겨울엔군고구마한잔/Hazel/Hazel/src/Hazel/ImGui/ImGuiBuild.cpp",
+		"/C/Users/겨울엔군고구마한잔/yaml-example/Other.yaml",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/게임/OpenGL/Study/FileBrowser/books.xml",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/게임/OpenGL/Example/src/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/src/SUB/SUBCommon.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/GameEngine/CMakeLists.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXEngine/DXEngine.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXIMGUI/DXImGUI.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXIMGUI/DXImGUI.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXIMGUI/DIFileBrowser.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXIMGUI/DIFileBrowser.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXEngine/DXEngine.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXMessage/DXMessage.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXD3D/DXD3D.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/CMakeLists.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/.gitmessage.txt",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXD3D/DXD3D.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXType/DXWindow.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXType/DXData.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/병렬프로그래밍/src/SUB/Readtext.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/Object/OBManager.h",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/_AZTMP0_/skymap.dds",
+		"/C/Users/겨울엔군고구마한잔/Downloads/DX11_Lesson_18_First_Person_Camera_zip (2)/D3D11_FirstPersonCam/D3D11_FirstPersonCam/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/System/System.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/WIN/WIN.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 2D/src/System/System.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXCommon.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/WIN/WIN.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 2D/src/SUB/SUBInput/SUBInput.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/SUB/SUBBrowser/Readtext.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/SUB/SUBInput/SUBInput.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/게임/OpenGL/Study/FileBrowser/src/COM/SUB_COM.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXInput/DXInput.h",
+		"/C/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/dinput.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/Dependency.cmake",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/SUB/SUBCommon.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/System/System.h",
+		"/C/Users/겨울엔군고구마한잔/Downloads/imgui-master/imgui-master/examples/example_win32_directx11/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/게임/OpenGL/Project/src/GUI/GUI.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXTexture/DXTexture.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/Object/OBShader.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXImGUICommon.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/shader/Basic.hlsl",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/Object/OBModel.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXType/DXBuffer.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXCamera/DXCamera.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/Object/OBModel.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXTexture/DXTexture.h",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/Temp1_dx11tut18.zip/dx11tut18/Engine/Engine/data/light01.dds",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/Object/OBShader.h",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/Temp1_dx11src07.zip/dx11src07/graphicsclass.cpp",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/Temp1_dx11src06.zip/dx11src06/cameraclass.cpp",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/Temp1_dx11src06.zip/dx11src06/graphicsclass.cpp",
+		"/C/Users/겨울엔군고구마한잔/AppData/Local/Temp/Temp1_dx11src06.zip/dx11src06/modelclass.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork/src/DX/DXEngine/DXEngine.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXLight/DXLight.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/shader/PS_Basic.hlsl",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/shader/VS_Basic.hlsl",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/main.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/SUB/SUBInput/SUBInput.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXCamera/DXCamera.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXType/DXBufferType.h",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXLight/DXL_Shader/DXL_Shader.cpp",
+		"/C/Users/겨울엔군고구마한잔/OneDrive - 한양대학교/바탕 화면/C++/Directx11/FrameWork - 3D/src/DX/DXLight/DXL_Shader/DXL_Shader.h"
+	],
+	"find":
+	{
+		"height": 30.0
+	},
+	"find_in_files":
+	{
+		"height": 142.0,
+		"where_history":
+		[
+			"<project>"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"ResourceManager::Get"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"scrollbar_highlights": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"use_gitignore": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "resource/mesh/3d/cube.obj",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 935,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								797,
+								797
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content"
+							],
+							"origin_encoding": "ASCII",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/Engine/Resource/ResourceManager.h",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 2119,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								942,
+								942
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+									"1":
+									[
+										945,
+										946
+									]
+								},
+								"icon":
+								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/curly_bracket.png",
+										"region.purplish"
+									]
+								},
+								"open":
+								{
+									"1":
+									[
+										692,
+										693
+									]
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content"
+							],
+							"origin_encoding": "ASCII",
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"selected": true,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4002,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										214,
+										234
+									],
+									[
+										259,
+										279
+									],
+									[
+										562,
+										582
+									],
+									[
+										764,
+										784
+									],
+									[
+										962,
+										982
+									],
+									[
+										1169,
+										1189
+									],
+									[
+										1370,
+										1390
+									],
+									[
+										1573,
+										1593
+									],
+									[
+										1777,
+										1797
+									],
+									[
+										1999,
+										2019
+									],
+									[
+										2260,
+										2280
+									],
+									[
+										2481,
+										2501
+									],
+									[
+										2693,
+										2713
+									],
+									[
+										2902,
+										2922
+									],
+									[
+										3211,
+										3231
+									],
+									[
+										3477,
+										3497
+									],
+									[
+										3558,
+										3578
+									],
+									[
+										3798,
+										3818
+									],
+									[
+										3879,
+										3899
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								2023,
+								2023
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+									"1":
+									[
+										2022,
+										2023
+									]
+								},
+								"icon":
+								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/round_bracket.png",
+										"region.yellowish"
+									]
+								},
+								"open":
+								{
+									"1":
+									[
+										1975,
+										1976
+									]
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content"
+							],
+							"default_dir": "C:\\Users\\겨울엔군고구마한잔\\OneDrive - 한양대학교\\바탕 화면\\NewEngine\\src\\Engine\\Resource",
+							"detect_indentation": false,
+							"line_numbers": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([^ \t].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 504.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"stack_multiselect": false,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 30.0
+	},
+	"input":
+	{
+		"height": 50.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.Terminus":
+	{
+		"height": 228.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.mdpopups":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "NewEngine.sublime-project",
+	"replace":
+	{
+		"height": 56.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 233.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

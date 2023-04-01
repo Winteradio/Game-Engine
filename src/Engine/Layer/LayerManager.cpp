@@ -12,8 +12,6 @@ LayerManager& LayerManager::Get() { return m_LayerManager; }
 void LayerManager::Init( int Width, int Height )
 {
 	m_GuiLayerData.clear();
-	m_GameLayerData.clear();
-
 
 	MenuBrowserGuiLayer* MenuBrowserGui = new MenuBrowserGuiLayer();
 	MenuBrowserGui->Init( 0, 0, Width, 0 );
@@ -32,6 +30,13 @@ void LayerManager::Init( int Width, int Height )
 	PushGuiLayer( (IGuiLayer*)( LogGui ) );
 	PushGuiLayer( (IGuiLayer*)( ResourceGui ) );
 	PushGuiLayer( (IGuiLayer*)( PropertyBrowserGui ) );
+
+	m_GameLayerData.clear();
+
+	GameLayer* EditorView = new GameLayer();
+	EditorView->Init( 300, 20, Width - ( 300 + 300 ), Height - ( 300 ) );
+
+	PushGameLayer( EditorView );
 
 	FileBrowserGuiLayer::Get().Init( 200, 200, 800, 400 );
 	SettingBrowserGuiLayer::Get().Init( 200, 200, 600, 400 );

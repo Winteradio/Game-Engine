@@ -148,3 +148,92 @@ ProjectManager
 
 	-> Component
 		- It has map data structure that has typeinfo and UUId vector
+
+
+[ 2023-04-01 ]
+class SceneManager
+{
+private :
+	SceneManager() {};
+	~SceneManager() {};
+
+public :
+	void Init() {};
+	void Destroy() {};
+
+	static std::vector< Scene >& GetScenes()
+	{
+		return m_SceneManager.m_SceneData;
+	}
+
+	static void SetScene( Scene Other )
+	{
+		m_SceneManager.m_SceneData.push_back( Other );
+	}
+
+private :
+	static SceneManager m_SceneManager;
+	std::vector< Scene > m_SceneData;
+};
+
+class RenderSystem;
+class CollisionCheckSystem;
+
+class Scene
+{
+	public :
+		Scene() {};
+		~Scene() {};
+
+	public :
+		void Init()
+		{
+			R
+		}
+
+		void RegitserEntity( Entity& OtherEntity )
+		{
+
+		}
+
+		void RegisterComponent( Component& OtherComponent )
+		{
+
+		}
+
+		void RegisterSystem( System& OtherSystem )
+		{
+
+		}
+
+		void OnUpdate()
+		{
+
+		}
+};
+
+class Entity
+{
+	public :
+		Entity() {};
+		virtual ~Entity(){};
+
+	public :
+		virtual void Update() = 0;
+};
+
+struct Component
+{
+
+};
+
+class System
+{
+	public :
+		System() {};
+		virtual ~System() {};
+
+	public :
+		virtual void Init() = 0;
+		virtual void Update() = 0;
+};

@@ -13,6 +13,7 @@ class GameLayer : public ILayer
 
 	public :
 		void Init( int PosX, int PosY, int Width, int Height );
+		void Render( ID3D11DeviceContext* DeviceContext );
 		void Destroy();
 
 		void CreateViewport();

@@ -428,6 +428,7 @@ void PropertyBrowserGuiLayer::RenderColor( std::string Name, XMFLOAT4& Info, flo
 void PropertyBrowserGuiLayer::SetResource( IResource* Resource )
 {
 	m_Resource = Resource;
+	Log::Info("%s", typeid( *m_Resource ).name() );
 	strcpy( m_Temp, m_Resource->GetName().c_str() );
 }
 

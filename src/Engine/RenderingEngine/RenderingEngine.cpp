@@ -39,6 +39,11 @@ void RenderingEngine::Begin()
 
 void RenderingEngine::Render()
 {
+	for ( GameLayer* Layer : LayerManager::Get().GetGameLayer() )
+	{
+		if ( Layer->GetRendering() ) Layer->Render( DirectXAPI::Get().GetDeviceContext() );
+	}
+
 	for ( IGuiLayer* Layer : LayerManager::Get().GetGuiLayer() )
 	{
 		if( Layer->GetRendering() ) Layer->Render();

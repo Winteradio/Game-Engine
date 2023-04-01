@@ -9,6 +9,5 @@ int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	}
 	CoreEngine::Get().Start();
 
-
 	return 0;
 }
