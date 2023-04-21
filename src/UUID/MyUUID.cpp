@@ -11,7 +11,18 @@ MyUUID::MyUUID( std::string ID )
 
 MyUUID::~MyUUID()
 {
-	Destroy();
+}
+
+MyUUID& MyUUID::operator = ( std::string ID )
+{
+	m_ID = ID;
+	return *this;
+}
+
+MyUUID& MyUUID::operator = ( const std::string& ID )
+{
+	m_ID = ID;
+	return *this;
 }
 
 MyUUID::MyUUID( const MyUUID& Other )
@@ -30,11 +41,6 @@ void MyUUID::Init()
 	m_ID = std::string( UuidChar );
 
 	Log::Info(" Create UUID - %s", m_ID.c_str() );
-}
-
-void MyUUID::Destroy()
-{
-	m_ID.clear();
 }
 
 std::string& MyUUID::GetID() { return m_ID; }

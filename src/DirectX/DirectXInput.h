@@ -11,7 +11,7 @@ class DirectXInput
 		~DirectXInput();
 
 	public :
-		static DirectXInput& Get();
+		static DirectXInput& GetHandle();
 		void Init( HWND hWnd, int PosX, int PosY, int Width, int Height );
 		void Update();
 		void Destroy();

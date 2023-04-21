@@ -58,7 +58,7 @@ void DirectXAPI::Destroy()
 	if ( m_SwapChain != nullptr ) m_SwapChain->Release();
 }
 
-DirectXAPI& DirectXAPI::Get() { return m_DirectXAPI; }
+DirectXAPI& DirectXAPI::GetHandle() { return m_DirectXAPI; }
 ID3D11Device*& DirectXAPI::GetDevice() { return m_Device; }
 ID3D11DeviceContext*& DirectXAPI::GetDeviceContext() { return m_DeviceContext; }
 IDXGISwapChain*& DirectXAPI::GetSwapChain() { return m_SwapChain; }

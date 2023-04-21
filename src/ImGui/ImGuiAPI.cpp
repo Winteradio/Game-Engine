@@ -10,8 +10,6 @@ ImGuiAPI::~ImGuiAPI()
 	Destroy();
 }
 
-ImGuiAPI& ImGuiAPI::Get() { return m_ImGuiAPI; }
-
 void ImGuiAPI::Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext )
 {
 	IMGUI_CHECKVERSION();
@@ -55,6 +53,7 @@ void SetStyle()
 
 }
 
+ImGuiAPI& ImGuiAPI::GetHandle() { return m_ImGuiAPI; }
 ImGuiIO*& ImGuiAPI::GetImGuiIO() { return m_ImGuiIO; }
 
 ImGuiAPI ImGuiAPI::m_ImGuiAPI;

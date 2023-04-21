@@ -17,6 +17,7 @@ class Log
 	public :
 		static void Info( const char* Str, ... );
 		static void Error( const char* Str, ... );
+		static void Warn( const char* Str, ... );
 
 		static std::vector<std::string>& GetMessage();
 		static void Clear();

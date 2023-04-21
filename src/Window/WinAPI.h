@@ -11,12 +11,14 @@ class WinAPI : public IWindow
 		~WinAPI();
 
 	public :
-		static WinAPI& Get();
 		void Init( const char* ClassName, const char* TitleName, int PosX, int PosY, int Width, int Height );
 		void Init( int PosX, int PosY, int Width, int Height );
+
 		void Create();
 		void Destroy();
 		void Update();
+
+		static WinAPI& GetHandle();
 		HWND& GetWindowHandle();
 		HINSTANCE& GetWindowHandleInstance();
 

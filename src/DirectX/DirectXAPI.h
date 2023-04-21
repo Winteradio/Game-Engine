@@ -11,10 +11,10 @@ class DirectXAPI : public IWindow
 		~DirectXAPI();
 
 	public :
-		static DirectXAPI& Get();
 		void Init( int Width, int Height, HWND hWnd );
 		void Destroy();
 
+		static DirectXAPI& GetHandle();
 		ID3D11Device*& GetDevice();
 		ID3D11DeviceContext*& GetDeviceContext();
 		IDXGISwapChain*& GetSwapChain();

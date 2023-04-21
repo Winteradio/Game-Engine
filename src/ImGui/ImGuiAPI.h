@@ -12,7 +12,6 @@ class ImGuiAPI
 		~ImGuiAPI();
 
 	public :
-		static ImGuiAPI& Get();
 		void Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext );
 		void Destroy();
 		void Begin();
@@ -21,6 +20,7 @@ class ImGuiAPI
 		void SetFont();
 		void SetStyle();
 
+		static ImGuiAPI& GetHandle();
 		ImGuiIO*& GetImGuiIO();
 
 	private :

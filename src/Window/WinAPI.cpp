@@ -96,7 +96,7 @@ void WinAPI::Update()
 	UpdateWindow( m_hWnd );
 }
 
-WinAPI& WinAPI::Get() { return m_WinAPI; }
+WinAPI& WinAPI::GetHandle() { return m_WinAPI; }
 HWND& WinAPI::GetWindowHandle() { return m_hWnd; }
 HINSTANCE& WinAPI::GetWindowHandleInstance() { return m_hInstance; }
 
