@@ -2,11 +2,12 @@
 #define __ENTITY_H__
 
 #include "Log.h"
-#include "Components.h"
+#include "Component.h"
+#include "MyUUID.h"
 
 class Entity
 {
-	using ComponentData = std::map< const type_info*, void* >;
+	using Data = std::map< const std::type_info*, std::any >;
 
 	public :
 		Entity();
@@ -16,12 +17,12 @@ class Entity
 
 	public :
 		template< typename T >
-		void AddComponent( T*& Comp )
+		void AddComponent( T* Comp )
 		{
 			bool Result = HasComponent< T >();
 			if ( !Result )
 			{
-				m_Data[ &typeid( T ) ] = static_cast< void* >( Comp );
+				m_Data[ &typeid( T ) ] = Comp;
 			}
 		}
 
@@ -31,17 +32,21 @@ class Entity
 			bool Result = HasComponent< T >();
 			if ( Result )
 			{
-				m_Data.erase[ &typeid( T ) ];
+				m_Data.erase( &typeid( T ) );
 			}
 		}
 
 		template< typename T >
-		T& GetComponent()
+		T* GetComponent()
 		{
 			bool Result = HasComponent< T >();
 			if ( Result )
 			{
-				return static_cast<T>(*m_Data[ &typeid( T ) ]);
+				return std::any_cast< T* >( m_Data[ &typeid( T ) ] );
+			}
+			else
+			{
+				return nullptr;
 			}
 		}
 
@@ -60,8 +65,9 @@ class Entity
 			}
 		}
 
-		ComponentData& GetComponents();
+		Data& GetData();
 
+		void Destroy();
 		void SetID( MyUUID ID );
 		void SetName( std::string Name );
 		std::string& GetID();
@@ -70,7 +76,7 @@ class Entity
 	private :
 		MyUUID m_ID;
 		std::string m_Name;
-		ComponentData m_Data;
+		Data m_Data;
 };
 
 #endif // __ENTITY_H__

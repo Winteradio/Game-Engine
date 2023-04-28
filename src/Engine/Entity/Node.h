@@ -1,7 +1,8 @@
-#ifndef __NODES_H__
-#define __NODES_H__
+#ifndef __NODE_H__
+#define __NODE_H__
 
-#include "Components.h"
+#include "Component.h"
+#include "Entity.h"
 #include "MyUUID.h"
 
 struct INode
@@ -12,8 +13,9 @@ struct INode
 
 	public :
 		virtual void Init( Entity& Object ) = 0;
+		std::string& GetID() { return m_ID.GetID(); }
 
-	private :
+	protected :
 		MyUUID m_ID;
 };
 
@@ -24,8 +26,8 @@ struct RenderableNode : public INode
 		RenderableNode( Entity& Object ) : INode()
 		{
 			Transform = Object.GetComponent<TransformComponent>();
-			Mesh = Object.GetComponent<Mesh>();
-			Material = Object.GetComponent<Material>();
+			Mesh = Object.GetComponent<MeshComponent>();
+			Material = Object.GetComponent<MaterialComponent>();
 
 			m_ID = Object.GetID();
 		}
@@ -35,14 +37,14 @@ struct RenderableNode : public INode
 		void Init( Entity& Object )
 		{
 			Transform = Object.GetComponent<TransformComponent>();
-			Mesh = Object.GetComponent<Mesh>();
-			Material = Object.GetComponent<Material>();
+			Mesh = Object.GetComponent<MeshComponent>();
+			Material = Object.GetComponent<MaterialComponent>();
 
 			m_ID = Object.GetID();
 		}
 
-	private :
-		TransformComponent* Transfom = nullptr;
+	public :
+		TransformComponent* Transform = nullptr;
 		MeshComponent* Mesh = nullptr;
 		MaterialComponent* Material = nullptr;
 };
@@ -68,7 +70,7 @@ struct CameraNode : public INode
 		}
 
 
-	private :
+	public :
 		TransformComponent* Transform = nullptr;
 };
 
@@ -79,7 +81,7 @@ struct LightNode : public INode
 		LightNode( Entity& Object ) : INode()
 		{
 			Transform = Object.GetComponent<TransformComponent>();
-			Color = Object.GetComponent<Color>();
+			Color = Object.GetComponent<ColorComponent>();
 
 			m_ID = Object.GetID();
 		}
@@ -89,15 +91,15 @@ struct LightNode : public INode
 		void Init( Entity& Object )
 		{
 			Transform = Object.GetComponent<TransformComponent>();
-			Color = Object.GetComponent<Color>();
+			Color = Object.GetComponent<ColorComponent>();
 
 			m_ID = Object.GetID();
 		}
 
 
-	private :
+	public :
 		TransformComponent* Transform = nullptr;
 		ColorComponent* Color = nullptr;
 };
 
-#endif // __NODES_H__
+#endif // __NODE_H__

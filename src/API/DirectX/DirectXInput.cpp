@@ -10,7 +10,7 @@ DirectXInput::~DirectXInput()
 	Destroy();
 }
 
-DirectXInput& DirectXInput::Get() { return m_DirectXInput; }
+DirectXInput& DirectXInput::GetHandle() { return m_DirectXInput; }
 
 void DirectXInput::Init( HWND hWnd, int PosX, int PosY, int Width, int Height )
 {

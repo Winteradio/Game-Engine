@@ -24,6 +24,13 @@ void WinAPI::Init( int PosX, int PosY, int Width, int Height )
 	return Create();
 }
 
+void WinAPI::Init( const char* TitleName, int PosX, int PosY, int Width, int Height )
+{
+	m_TitleName = TitleName;
+
+	return Init( PosX, PosY, Width, Height );
+}
+
 void WinAPI::Init( const char* ClassName, const char* TitleName, int PosX, int PosY, int Width, int Height )
 {
 	m_ClassName = ClassName;

@@ -10,8 +10,12 @@ Entity::Entity( std::string Name, MyUUID ID ) : m_Name( Name ), m_ID( ID )
 
 Entity::~Entity() {}
 
-ComponentData& Entity::GetComponents() { return m_Data; }
+Entity::Data& Entity::GetData() { return m_Data; }
 
+void Entity::Destroy()
+{
+	m_Data.clear();
+}
 void Entity::SetID( MyUUID ID ) { m_ID = ID; }
 void Entity::SetName( std::string Name ) { m_Name = Name; }
 

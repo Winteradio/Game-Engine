@@ -5,22 +5,26 @@
 
 class SceneManager
 {
-	using SceneData = std::map< MyUUID, Scene, MyUUIDCompare >;
+	using Data = std::map< MyUUID, Scene, MyUUIDCompare >;
 
-	public :
+	private :
 		SceneManager();
 		~SceneManager();
 
 	public :
+		void Init();
 		void Create( std::string Name );
-		void Create( MyUUID ID, std::string Name );
-
+		void Create( std::string Name, MyUUID ID );
 		void Remove( MyUUID ID );
+		void Destroy();
+
+		static SceneManager& GetHandle();
 		Scene& GetScene( MyUUID ID );
-		SceneData& GetScenes();
+		Data& GetData();
 
 	private :
-		SceneData m_Data;
+		static SceneManager m_SceneManager;
+		Data m_Data;
 };
 
 #endif __SCENEMANAGER_H__

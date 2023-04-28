@@ -12,6 +12,7 @@ class WinAPI : public IWindow
 
 	public :
 		void Init( const char* ClassName, const char* TitleName, int PosX, int PosY, int Width, int Height );
+		void Init( const char* TitleName, int PosX, int PosY, int Width, int Height );
 		void Init( int PosX, int PosY, int Width, int Height );
 
 		void Create();

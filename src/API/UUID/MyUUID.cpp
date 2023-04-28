@@ -13,12 +13,6 @@ MyUUID::~MyUUID()
 {
 }
 
-MyUUID& MyUUID::operator = ( std::string ID )
-{
-	m_ID = ID;
-	return *this;
-}
-
 MyUUID& MyUUID::operator = ( const std::string& ID )
 {
 	m_ID = ID;

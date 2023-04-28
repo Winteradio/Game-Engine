@@ -1,5 +1,5 @@
-#ifndef __COMPONENTS_H__
-#define __COMPONENTS_H__
+#ifndef __COMPONENT_H__
+#define __COMPONENT_H__
 
 #include "DirectXAPI.h"
 
@@ -26,4 +26,4 @@ struct MaterialComponent
 };
 
 
-#endif // __COMPOENT_H__
+#endif // __COMPONENT_H__

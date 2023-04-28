@@ -1,6 +1,7 @@
 ## ignore all files in the build/ directory
 build/
-third-party/yaml-cpp/
-third-party/imgui/
+build32/
+build64/
+third-party/
 resource/
 OldVersionEngine/

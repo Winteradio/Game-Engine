@@ -5,6 +5,11 @@
 #include "WinAPI.h"
 #include "ImGuiAPI.h"
 
+#include "SceneManager.h"
+#include "NodeManager.h"
+#include "ComponentManager.h"
+#include "SystemManager.h"
+
 class Core
 {
 	private :

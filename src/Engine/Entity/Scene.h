@@ -3,10 +3,11 @@
 
 #include "Log.h"
 #include "Entity.h"
+#include "MyUUID.h"
 
 class Scene
 {
-	using EntityData = std::map< MyUUID, Entity, MyUUIDCompare >;
+	using Data = std::map< MyUUID, Entity, MyUUIDCompare >;
 
 	public :
 		Scene();
@@ -20,11 +21,13 @@ class Scene
 		void AddEntity( Entity Object );
 		void RemoveEntity( MyUUID ID );
 
-		EntityData& GetEntities();
+		Data& GetData();
 		Entity& GetEntity( MyUUID ID );
 
 		void SetID( MyUUID ID );
 		void SetName( std::string Name );
+
+		void Destroy();
 
 		std::string& GetID();
 		std::string& GetName();
@@ -32,7 +35,7 @@ class Scene
 	private :
 		MyUUID m_ID;
 		std::string m_Name;
-		EntityData m_Data;
+		Data m_Data;
 };
 
 #endif // __SCENE_H__

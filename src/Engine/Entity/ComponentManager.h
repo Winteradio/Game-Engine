@@ -1,17 +1,22 @@
 #ifndef __COMPONENTMANAGER_H__
 #define __COMPONENTMANAGER_H__
 
-#include "Components.h"
+#include "Component.h"
 
 class ComponentManager
 {
-	using ComponentData = std::map< const type_info*, std::vector< void* > >;
+	template< typename T >
+	using Vector = std::vector< T >;
+
+	using Data = std::map< const type_info*, std::any >;
 
 	public :
 		ComponentManager();
 		~ComponentManager();
 
 	public :
+		static ComponentManager& GetHandle();
+
 		template< typename T >
 		void CreateMap()
 		{
@@ -20,7 +25,7 @@ class ComponentManager
 
 			Log::Info(" Create Component Type's map -- %s -- ", Typename.c_str() );
 
-			m_Data[ &typeid( T ) ] = std::vector< void * >();
+			m_Data[ &typeid( T ) ] = std::vector< std::any >();
 
 			ClearMap<T>();
 		}
@@ -37,10 +42,14 @@ class ComponentManager
 			m_Data[ &typeid( T ) ].emplace_back( ( void* )( new T() ) );
 		}
 
-		ComponentData& GetComponents();
+		void Init();
+		void Destroy();
+
+		Data& GetData();
 
 	private :
-		ComponentData m_Data;
+		static ComponentManager m_ComponentManager;
+		Data m_Data;
 };
 
 #endif // __COMPONENTMANAGER_H__

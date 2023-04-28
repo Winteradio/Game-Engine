@@ -1,20 +1,17 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <filesystem>
-#include <typeinfo>
-#include <fstream>
 #include <algorithm>
+#include <any>
+#include <filesystem>
+#include <fstream>
+#include <future>
+#include <iostream>
 #include <map>
 #include <set>
-#include <unordered_map>
-#include <windows.h>
-
-#include <future>
+#include <string>
 #include <thread>
+#include <windows.h>
 
 #define MAX_LENGTH 512
 #pragma warning( disable : 4996 )

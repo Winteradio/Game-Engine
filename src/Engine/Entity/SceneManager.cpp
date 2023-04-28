@@ -3,11 +3,16 @@
 SceneManager::SceneManager() {}
 SceneManager::~SceneManager() {}
 
+void SceneManager::Init()
+{
+
+}
+
 void SceneManager::Create( std::string Name )
 {
 	MyUUID ID;
 	ID.Init();
-	m_Data[ ID ] = Scene( ID, Name );
+	m_Data[ ID ] = Scene( Name, ID );
 
 	Log::Info(" Create Scene ");
 	Log::Info(" Name : %s ", Name );
@@ -16,7 +21,7 @@ void SceneManager::Create( std::string Name )
 
 void SceneManager::Create( std::string Name, MyUUID ID )
 {
-	m_Data[ ID ] = Scene( ID, Name );
+	m_Data[ ID ] = Scene( Name, ID );
 
 	Log::Info(" Create Scene ");
 	Log::Info(" Name : %s ", Name );
@@ -32,12 +37,18 @@ void SceneManager::Remove( MyUUID ID )
 	Log::Info(" ID : %s ", TempScene.GetID() );
 }
 
-Scene& SceneManager::GetScene( MyUUID ID )
+void SceneManager::Destroy()
 {
-	return m_Data[ ID ];
+	for ( auto ITR : m_Data )
+	{
+		ITR.second.Destroy();
+	}
+
+	m_Data.clear();
 }
 
-SceneData& SceneManager::GetScenes()
-{
-	return m_Data;
-}
+SceneManager& SceneManager::GetHandle() { return m_SceneManager; }
+Scene& SceneManager::GetScene( MyUUID ID ){ return m_Data[ ID ]; }
+SceneManager::Data& SceneManager::GetData() { return m_Data; }
+
+SceneManager SceneManager::m_SceneManager;

@@ -506,6 +506,9 @@ Scene
 
 # System
 	-> The Function uses some type of Node
-
+	-> The System Needs very complex, and 
+	each system cannot contact each other,
+	just connect through node
+	
 # System Manager
 	-> Systems' Instance
