@@ -1,26 +1,15 @@
-# ------ Set Options for Projects --------------- #
-MESSAGE( STATUS "Set Options for Project")
-
-## CMake minimun version required
-CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
-
-## Make Project Name
-SET( PROJECT_NAME "Example" )
-## Project name
-PROJECT( ${PROJECT_NAME} )
-
-MESSAGE( STATUS "Setting Done")
-# ----------------------------------------------- #
-
 # ------ Set Variables -------------------------- #
 MESSAGE( STATUS "Set Variables")
-## Set Compiler
-SET( CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" )
-SET( CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" )
+## Set Compiler by Generator
+IF ( CMAKE_GENERATOR MATCHES "Visual Studio" )
+	MESSAGE( STATUS "${CMAKE_GENERATOR}" )
+	SET( CMAKE_CXX_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" )
+	SET( CMAKE_C_COMPILER "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" )
+ENDIF()
 # Set Build Type and Compiler Flags
-set(CMAKE_BUILD_TYPE Debug)
-if(MSVC)
-	MESSAGE( STATUS "${CMAKE_CXX_COMPILER_ID}")
+SET(CMAKE_BUILD_TYPE Debug)
+if( MSVC )
+	MESSAGE( STATUS "Compiler is ${CMAKE_CXX_COMPILER_ID}")
     # Use multi-process debugging
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /MP")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Zi /MP")
@@ -35,6 +24,22 @@ endif()
 SET( CMAKE_CXX_STANDARD 17 )
 ## Set Exe file place
 SET( RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+
+MESSAGE( STATUS "Setting Done")
+# ----------------------------------------------- #
+
+
+
+# ------ Set Options for Projects --------------- #
+MESSAGE( STATUS "Set Options for Project")
+
+## CMake minimun version required
+CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
+
+## Make Project Name
+SET( PROJECT_NAME "NewEngine" )
+## Project name
+PROJECT( ${PROJECT_NAME} )
 
 MESSAGE( STATUS "Setting Done")
 # ----------------------------------------------- #
@@ -83,7 +88,7 @@ LIST( APPEND SRCS
 		${ENTITY_DIR}/Component.h
 		${ENTITY_DIR}/ComponentManager.h ${ENTITY_DIR}/ComponentManager.cpp
 			## System
-		${ENTITY_DIR}/SystemManager.h
+		${ENTITY_DIR}/SystemManager.h ${ENTITY_DIR}/SystemManager.cpp
 
 	## API
 		## DirectX

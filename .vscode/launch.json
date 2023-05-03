@@ -9,7 +9,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/Debug/Example.exe",
+            "program": "${workspaceFolder}/build/Debug/NewEngine.exe",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
@@ -18,7 +18,7 @@
             "name" : "Debug with MSVC",
             "type" : "cppvsdbg",
             "request" : "launch",
-            "program" : "${workspaceFolder}/build/Debug/Example.exe",
+            "program" : "${workspaceFolder}/build/Debug/NewEngine.exe",
             "args" : [],
             "cwd" : "${workspaceFolder}",
             "stopAtEntry" : true,

@@ -512,3 +512,6 @@ Scene
 	
 # System Manager
 	-> Systems' Instance
+	-> Register System
+	-> Systems must be inheritance ISystem that has init,set and frame function's interface
+	-> System Manager set sequence of System on frame

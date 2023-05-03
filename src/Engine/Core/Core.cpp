@@ -49,6 +49,7 @@ void Core::InitManager()
 	SceneManager::GetHandle().Init();
 	NodeManager::GetHandle().Init();
 	ComponentManager::GetHandle().Init();
+	SystemManager::GetHandle().Init();
 }
 
 void Core::InitAPI()
@@ -77,6 +78,7 @@ void Core::Destroy()
 	SceneManager::GetHandle().Destroy();
 	NodeManager::GetHandle().Destroy();
 	ComponentManager::GetHandle().Destroy();
+	SystemManager::GetHandle().Destroy();
 }
 
 Core Core::m_Core;
