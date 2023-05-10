@@ -4,13 +4,12 @@ int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 {
 	Core::GetHandle().Init();
 
-	int Value = 10;
-
 	for ( auto Message : Log::GetMessage() )
 	{
 		std::cout << Message << std::endl;
 	}
 	Core::GetHandle().Start();
 
+	system("pause");
 	return 0;
 }

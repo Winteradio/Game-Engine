@@ -1,42 +1,30 @@
 #ifndef __SCENEMANAGER_H__
 #define __SCENEMANAGER_H__
 
-#include "Utils.h"
 #include "Scene.h"
-#include "MyUUID.h"
 
 class SceneManager
 {
-	public :
+	using Data = std::map< MyUUID, Scene, MyUUIDCompare >;
+
+	private :
 		SceneManager();
 		~SceneManager();
 
 	public :
 		void Init();
-		void Render();
-
-	public :
 		void Create( std::string Name );
 		void Create( std::string Name, MyUUID ID );
+		void Remove( MyUUID ID );
+		void Destroy();
 
-		void Destroy( MyUUID ID );
-
-		template< class T >
-		void AddComponent( T* Value )
-		{
-
-		}
-
-		template<class T >
-		void DeleteComponent( MyUUID ID )
-		{
-
-		}
-
-		Scene*& Get( MyUUID ID );
+		static SceneManager& GetHandle();
+		Scene& GetScene( MyUUID ID );
+		Data& GetData();
 
 	private :
-		std::map< MyUUID, Scene*, MyUUIDCompare > m_SceneData;
+		static SceneManager m_SceneManager;
+		Data m_Data;
 };
 
-#endif // __SCENEMANAGER_H__
+#endif __SCENEMANAGER_H__

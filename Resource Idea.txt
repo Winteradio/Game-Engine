@@ -515,3 +515,15 @@ Scene
 	-> Register System
 	-> Systems must be inheritance ISystem that has init,set and frame function's interface
 	-> System Manager set sequence of System on frame
+	
+	# ISystem
+		-> That is the interface of system
+		-> This Object has some pointer of prev, next ISystem.
+		-> Cause, System must have seqeunce during frame animation
+		-> For example, Collision Animation has first collision System,
+		Second CalculatePhysicsSystem, lastly RenderSystem.
+		-> So, if this sequence is linked list, the User using this engine,
+		more easily edit sequence, some system input or delete ... 
+		and, user can see thie sequence on game engine ui.
+		So, the User drag some system for inputting this sequence, 
+		just, connect prev system and next system.

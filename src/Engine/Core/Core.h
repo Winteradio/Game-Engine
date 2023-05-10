@@ -10,6 +10,9 @@
 #include "ComponentManager.h"
 #include "SystemManager.h"
 
+#include "AssetHandler.h"
+#include "FileHandler.h"
+
 class Core
 {
 	private :
@@ -22,8 +25,9 @@ class Core
 		void Update();
 
 		void Init();
-		void InitManager();
 		void InitAPI();
+		void InitHandler();
+		void InitManager();
 
 		void Destroy();
 

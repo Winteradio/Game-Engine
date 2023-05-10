@@ -1,3 +1,19 @@
+# ------ Set Options for Projects --------------- #
+MESSAGE( STATUS "Set Options for Project")
+
+## CMake minimun version required
+CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
+
+## Make Project Name
+SET( PROJECT_NAME "NewEngine" )
+## Project name
+PROJECT( ${PROJECT_NAME} )
+
+MESSAGE( STATUS "Setting Done")
+# ----------------------------------------------- #
+
+
+
 # ------ Set Variables -------------------------- #
 MESSAGE( STATUS "Set Variables")
 ## Set Compiler by Generator
@@ -30,22 +46,6 @@ MESSAGE( STATUS "Setting Done")
 
 
 
-# ------ Set Options for Projects --------------- #
-MESSAGE( STATUS "Set Options for Project")
-
-## CMake minimun version required
-CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
-
-## Make Project Name
-SET( PROJECT_NAME "NewEngine" )
-## Project name
-PROJECT( ${PROJECT_NAME} )
-
-MESSAGE( STATUS "Setting Done")
-# ----------------------------------------------- #
-
-
-
 # ------ Set Files ------------------------------ #
 MESSAGE( STATUS "Set Source File")
 
@@ -56,6 +56,8 @@ INCLUDE( Dependency.cmake)
 SET( ENGINE_DIR ${SRC_DIR}/Engine )
 	SET( CORE_DIR ${ENGINE_DIR}/Core )
 	SET( ENTITY_DIR ${ENGINE_DIR}/Entity )
+	SET( HANDLER_DIR ${ENGINE_DIR}/Handler )
+	SET( MANAGER_DIR ${ENGINE_DIR}/Manager )
 	SET( SYSTEM_DIR ${ENGINE_DIR}/System )
 
 SET( API_DIR ${SRC_DIR}/API )
@@ -75,20 +77,23 @@ LIST( APPEND SRCS
 		${CORE_DIR}/Core.h ${CORE_DIR}/Core.cpp
 		${CORE_DIR}/Log.h ${CORE_DIR}/Log.cpp
 		${CORE_DIR}/Timer.h ${CORE_DIR}/Timer.cpp
-
 		## Entity
 		${ENTITY_DIR}/Entity.h ${ENTITY_DIR}/Entity.cpp
-			## Scene
 		${ENTITY_DIR}/Scene.h ${ENTITY_DIR}/Scene.cpp
-		${ENTITY_DIR}/SceneManager.h ${ENTITY_DIR}/SceneManager.cpp
-			## Node
 		${ENTITY_DIR}/Node.h
-		${ENTITY_DIR}/NodeManager.h ${ENTITY_DIR}/NodeManager.cpp
-			## Component
 		${ENTITY_DIR}/Component.h
-		${ENTITY_DIR}/ComponentManager.h ${ENTITY_DIR}/ComponentManager.cpp
-			## System
-		${ENTITY_DIR}/SystemManager.h ${ENTITY_DIR}/SystemManager.cpp
+		## Handler
+		${HANDLER_DIR}/AssetHandler.h ${HANDLER_DIR}/AssetHandler.cpp
+		${HANDLER_DIR}/FileHandler.h ${HANDLER_DIR}/FileHandler.cpp
+		## Manager
+		${MANAGER_DIR}/ComponentManager.h ${MANAGER_DIR}/ComponentManager.cpp
+		${MANAGER_DIR}/NodeManager.h ${MANAGER_DIR}/NodeManager.cpp
+		${MANAGER_DIR}/SceneManager.h ${MANAGER_DIR}/SceneManager.cpp
+		${MANAGER_DIR}/SystemManager.h ${MANAGER_DIR}/SystemManager.cpp
+		## System
+		${SYSTEM_DIR}/ISystem.h
+		${SYSTEM_DIR}/CameraSystem.h ${SYSTEM_DIR}/CameraSystem.cpp
+		${SYSTEM_DIR}/RenderSystem.h ${SYSTEM_DIR}/RenderSystem.cpp
 
 	## API
 		## DirectX
@@ -119,7 +124,9 @@ LIST( APPEND INCS
 		${ENGINE_DIR}
 			${CORE_DIR}
 			${ENTITY_DIR}
+			${HANDLER_DIR}
 			${SYSTEM_DIR}
+			${MANAGER_DIR}
 
 	## API
 		${API_DIR}

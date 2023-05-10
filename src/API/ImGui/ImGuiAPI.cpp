@@ -22,6 +22,8 @@ void ImGuiAPI::Init( HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* Devic
 
 	if ( !ImGui_ImplDX11_Init( Device, DeviceContext ) ) { return Log::Error(" Failed - Init ImGui using DirectX Device and Context "); }
 	else { Log::Info(" Successed - Init ImGui using DirectX Device and Context "); }
+
+	Log::Info(" Successed - Init ImGui API ");
 }
 
 void ImGuiAPI::Destroy()
@@ -29,6 +31,8 @@ void ImGuiAPI::Destroy()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+
+	Log::Info(" Destroy - ImGui API ");
 }
 
 void ImGuiAPI::Begin()

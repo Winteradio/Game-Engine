@@ -79,7 +79,7 @@ void WinAPI::Create()
 		);
 
 	if ( !m_hWnd ) { Log::Error(" Failed - Create Window "); }
-	else { Log::Info(" Successed - Creat Window "); }
+	else { Log::Info(" Successed - Create Window "); }
 
 	// Show and Update Window
 	ShowWindow( m_hWnd, SW_SHOW );
@@ -88,7 +88,7 @@ void WinAPI::Create()
 
 void WinAPI::Destroy()
 {
-	Log::Info("Destroy Window");
+	Log::Info(" Destroy - Win API ");
 
 	DestroyWindow( m_hWnd );
 	UnregisterClass( m_ClassName.c_str(), m_hInstance );
