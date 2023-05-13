@@ -37,4 +37,4 @@ void MyUUID::Init()
 	Log::Info(" Create UUID - %s", m_ID.c_str() );
 }
 
-std::string& MyUUID::GetID() { return m_ID; }
+std::string& MyUUID::GetString() { return m_ID; }

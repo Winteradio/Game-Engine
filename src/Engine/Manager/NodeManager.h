@@ -6,7 +6,7 @@
 class NodeManager
 {
 	template< typename T >
-	using Vector = std::vector< T >;
+	using Vector = std::vector<T>;
 
 	using Data = std::map< const type_info*, std::any >;
 
@@ -16,11 +16,33 @@ class NodeManager
 
 	public :
 		static NodeManager& GetHandle();
+		void Init();
+		void Destroy();
+		Data& GetData();
+
+	public :
+
+		template< typename T >
+		bool HasVector()
+		{
+			if ( m_Data.find( &typeid( T ) ) == m_Data.end() ) return false;
+			else return true;
+		}
+
+		template< typename T >
+		Vector<T> GetVector()
+		{
+			bool Check = HasVector<T>();
+			if ( !Check ) CreateVector<T>();
+
+			return std::any_cast< Vector<T> >( m_Data[ &typeid( T ) ] );
+		}
 
 		template< typename T >
 		void ClearVector()
 		{
-			m_Data[ &typeid( T ) ].clear();
+			bool Check = HasVector<T>();
+			if ( Check ) GetVector<T>().clear();
 		}
 
 		template< typename T >
@@ -31,79 +53,35 @@ class NodeManager
 
 			Log::Info(" Create --%s-- Node Vector ", Typename.c_str() );
 
-			m_Data[ &typeid( T ) ] = Vector< T >();
+			m_Data[ &typeid( T ) ] = Vector<T>();
+
+			ClearVector<T>();
 		}
 
 		template< typename T >
-		Vector<T>* GetVector()
+		T* Get( MyUUID ID )
 		{
-			bool Result = HasVector< T >();
-			if ( Result )
+			bool Check = HasVector<T>();
+			if ( Check )
 			{
-				return &std::any_cast< Vector< T > >( m_Data[ &typeid( T ) ] );
-			}
-			else
-			{
-				return nullptr;
-			}
-		}
-
-		template< typename T >
-		bool HasVector()
-		{
-			auto itr = m_Data.find( &typeid( T ) );
-			if ( itr != m_Data.end() )
-			{
-				return true;
-			}
-			else
-			{
-				Log::Warn(" There is no node type of %s ", typeid( T ).name() );
-				return false;
-			}
-		}
-
-		template< typename T >
-		T* GetNode( MyUUID ID )
-		{
-			bool Result = HasVector< T >();
-			if ( Result )
-			{
-				Vector< T >& TempVector = m_Data[ &typeid( T ) ];
+				Vector<T>& TempVector = m_Data[ &typeid( T ) ];
 				auto itr = std::find_if( TempVector.begin(), TempVector.end(), 
 				[&]( const T& Node ) { return Node.m_ID == ID; } );
 
-				if ( itr != TempVector.end() )
-				{
-					return &(*itr);
-				} 
-				else
-				{
-					return nullptr;
-				}
+				if ( itr != TempVector.end() ) { return &(*itr);} 
+				else { return nullptr; }
 			}
-			else
-			{
-				return nullptr;
-			}
+			else{ return nullptr; }
 		}
 
 		template< typename T >
-		void CreateNode( Entity& Object )
+		void Create( Entity& Object )
 		{
-			bool Result = HasVector< T >();
-			if ( !Result )
-			{
-				CreateVector< T > ();
-			}
+			bool Check = HasVector<T>();
+			if ( !Check ) CreateVector<T>();
 
-			m_Data[ &typeid( T ) ].emplace_back( T( Object ) );
+			GetVector<T>.emplace_back( T( Object ) );
 		}
-
-		void Init();
-		void Destroy();
-
-		Data& GetData();
 
 	private :
 		static NodeManager m_NodeManager;

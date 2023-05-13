@@ -527,3 +527,112 @@ Scene
 		and, user can see thie sequence on game engine ui.
 		So, the User drag some system for inputting this sequence, 
 		just, connect prev system and next system.
+
+[ 2023-05-10 ]
+## Category
+	0. Global Variable ( static variable )
+		-> This Object is static variable
+		-> This Object is global variable
+
+	1. Handler	
+		-> Manage without Entity, Component, Node, System, Scene
+		-> Manage Asset, Files ... etc
+
+	2. Manager
+		-> Manage Entity, Component, Node, System, Scene
+	
+	3. ECS( Entity Component System )
+		-> Entity
+			-> Connection of Components
+			-> This object must have unique number that is called as UUID
+		-> Component
+			-> This object is actial data
+		-> System
+			-> This object is acting
+			-> This object run using Node or Component
+
+		-> Node
+			-> This object is unrealitic data's or data's connection by entity
+		-> Scene	
+			-> This object is connection of Entities.
+
+## RelationShip
+	0. Global Variable ( static variable )
+		0.1 Core
+			0.1.1 Core
+			0.1.2 Log
+			0.1.3 Timer
+		0.2 API
+			0.2.1 WinAPI
+			0.2.2 DirectXAPI
+			0.2.3 ImGuiAPI
+		0.3 Handler
+		0.4 Manager
+
+	1. Handler
+		1.1 AssetHandler
+		1.2 FileHandler
+
+	2. Manager
+		2.1 SceneManager
+		2.2 Scene( EntityManager )
+		2.3 ComponentManager
+		2.4 NodeManager
+		2.5 SystemManager
+
+	3. ECS ( Entity Component System )
+		3.1 Entity
+		3.2 Component
+		3.3 System
+		3.4 Node
+		3.5 Scene ( Entity Manager )
+
+[ 2023-05-11 ]
+## Scene's work
+	1. Make Entity
+	2. Add Entity
+	3. Remove Entity
+
+## ComponentManager's work
+	1. Make Component
+	2. Add Component
+	3. Remove Component
+
+## NodeManager's work
+	1. Make Node through Entity's ID
+	2. Add Node through Entity's ID
+	3. Remove Node through Entity's ID
+
+## Entity's work
+	1. Add Component -> Through ComponentManager
+	2. Make Component -> Through ComponentManager
+	3. Give Entity's ID
+	4. Give Entity's Name
+
+## Property UI's work
+	1. Render Entity's Component -> Through NodeManager;
+	2. Edit Entity's Component -> Through NodeManager;
+	3. Render Array of Entity's Node -> Through NodeManager;
+	4. Edit Entity's Node -> Through NodeManager;
+
+	5. Render Scene's System -> Through SystemManager;
+	6. Edit Scene's System Sequence -> Through SystemManager;
+
+## Main UI's work
+	1. Open Project File -> Through FileHandler + YAML
+	2. Save Project File -> Through FileHandler + YAML
+	3. Make Scene, Component, Node -> Through Scene, Component, Node Manager
+	4. Register System -> Through SystemManager
+
+## Scene Array UI's work
+	1. Select Scene -> Through SceneManager
+	2. Make Scene -> Through SceneManager
+	3. Remove Scene -> Through SceneManager
+	4. Select Entity -> Through Scene
+		4.1. Send Entity's ID to Property UI
+	5. Make Entity -> Through Scene
+	6. Remove Entity -> Through Scene
+
+## Log UI's work
+	1. Print Log -> Through Log
+	2. Save Log File -> Through AssetHandler

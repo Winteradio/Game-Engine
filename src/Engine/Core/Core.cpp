@@ -38,7 +38,13 @@ void Core::Update()
 	DirectXAPI::GetHandle().Begin();
 	ImGuiAPI::GetHandle().Begin();
 
-	SystemManager::GetHandle().Update();
+	SystemManager::GetHandle().Update( 0.0f );
+
+	LogUIHandler::GetHandle().Update( 0.0f );
+	MainUIHandler::GetHandle().Update( 0.0f );
+	MenuBarUIHandler::GetHandle().Update( 0.0f );
+	PropertyUIHandler::GetHandle().Update( 0.0f );
+	StateUIHandler::GetHandle().Update( 0.0f );
 
 	ImGuiAPI::GetHandle().End();
 	DirectXAPI::GetHandle().End();
@@ -72,6 +78,12 @@ void Core::InitHandler()
 {
 	AssetHandler::GetHandle().Init();
 	FileHandler::GetHandle().Init();
+
+	MenuBarUIHandler::GetHandle().Init( 0, 0, 1440, 20 );
+	MainUIHandler::GetHandle().Init( 0, 20, 300, 840 - 20 );
+	PropertyUIHandler::GetHandle().Init( 1440 - 300, 20, 300, 840 - 20 );
+	StateUIHandler::GetHandle().Init( 300, 20, 1440 - 600, 30 );
+	LogUIHandler::GetHandle().Init( 300, 600, 1440 - 600, 240 );
 }
 
 void Core::InitManager()
@@ -90,6 +102,10 @@ void Core::Destroy()
 
 	AssetHandler::GetHandle().Destroy();
 	FileHandler::GetHandle().Destroy();
+	MainUIHandler::GetHandle().Destroy();
+	MenuBarUIHandler::GetHandle().Destroy();
+	PropertyUIHandler::GetHandle().Destroy();
+	StateUIHandler::GetHandle().Destroy();
 
 	SceneManager::GetHandle().Destroy();
 	NodeManager::GetHandle().Destroy();

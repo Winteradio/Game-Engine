@@ -76,6 +76,7 @@ LIST( APPEND SRCS
 		## Core
 		${CORE_DIR}/Core.h ${CORE_DIR}/Core.cpp
 		${CORE_DIR}/Log.h ${CORE_DIR}/Log.cpp
+		${CORE_DIR}/Name.h ${CORE_DIR}/Name.cpp
 		${CORE_DIR}/Timer.h ${CORE_DIR}/Timer.cpp
 		## Entity
 		${ENTITY_DIR}/Entity.h ${ENTITY_DIR}/Entity.cpp
@@ -83,9 +84,16 @@ LIST( APPEND SRCS
 		${ENTITY_DIR}/Node.h
 		${ENTITY_DIR}/Component.h
 		## Handler
+		${HANDLER_DIR}/Handler.h
 		${HANDLER_DIR}/AssetHandler.h ${HANDLER_DIR}/AssetHandler.cpp
 		${HANDLER_DIR}/FileHandler.h ${HANDLER_DIR}/FileHandler.cpp
+		${HANDLER_DIR}/LogUIHandler.h ${HANDLER_DIR}/LogUIHandler.cpp
+		${HANDLER_DIR}/MainUIHandler.h ${HANDLER_DIR}/MainUIHandler.cpp
+		${HANDLER_DIR}/MenuBarUIHandler.h ${HANDLER_DIR}/MenuBarUIHandler.cpp
+		${HANDLER_DIR}/PropertyUIHandler.h	${HANDLER_DIR}/PropertyUIHandler.cpp
+		${HANDLER_DIR}/StateUIHandler.h ${HANDLER_DIR}/StateUIHandler.cpp
 		## Manager
+		${MANAGER_DIR}/Manager.h
 		${MANAGER_DIR}/ComponentManager.h ${MANAGER_DIR}/ComponentManager.cpp
 		${MANAGER_DIR}/NodeManager.h ${MANAGER_DIR}/NodeManager.cpp
 		${MANAGER_DIR}/SceneManager.h ${MANAGER_DIR}/SceneManager.cpp

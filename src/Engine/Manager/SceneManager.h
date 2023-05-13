@@ -5,7 +5,7 @@
 
 class SceneManager
 {
-	using Data = std::map< MyUUID, Scene, MyUUIDCompare >;
+	using Data = std::vector< Scene >;
 
 	private :
 		SceneManager();
@@ -13,14 +13,14 @@ class SceneManager
 
 	public :
 		void Init();
-		void Create( std::string Name );
-		void Create( std::string Name, MyUUID ID );
-		void Remove( MyUUID ID );
+		void Create();
+		void Remove( int Index );
 		void Destroy();
 
 		static SceneManager& GetHandle();
-		Scene& GetScene( MyUUID ID );
+		Scene& GetScene( int Index );
 		Data& GetData();
+		size_t GetCount();
 
 	private :
 		static SceneManager m_SceneManager;

@@ -7,11 +7,21 @@
 struct TagComponent
 {
 	std::string Tag;
+
+	TagComponent() = default;
+	TagComponent( const TagComponent& Other ) = default;
+	TagComponent( const std::string& Name ) : Tag( Name ) {};
+	~TagComponent() = default;
 };
 
 struct IDComponent
 {
 	MyUUID ID;
+
+	IDComponent() = default;
+	IDComponent( const IDComponent& Other ) = default;
+	IDComponent( const MyUUID& ID ) : ID( ID ) {};
+	~IDComponent() = default;
 };
 
 struct TransformComponent
@@ -19,11 +29,23 @@ struct TransformComponent
 	XMFLOAT3 Translation = XMFLOAT3( 0.0f, 0.0f, 0.0f );
 	XMFLOAT3 Rotation = XMFLOAT3( 0.0f, 0.0f, 0.0f );
 	XMFLOAT3 Scale = XMFLOAT3( 0.0f, 0.0f, 0.0f );
+
+	TransformComponent() = default;
+	TransformComponent( const TransformComponent& Other ) = default;
+	TransformComponent( const XMFLOAT3& Trans ) : Translation( Trans ) {};
+	TransformComponent( const XMFLOAT3& Trans, const XMFLOAT3& Rot ) : Translation( Trans ), Rotation( Rot ) {};
+	TransformComponent( const XMFLOAT3& Trans, const XMFLOAT3& Rot, const XMFLOAT3& Scale ) : Translation( Trans ), Rotation( Rot ), Scale( Scale ) {};
+	~TransformComponent() = default;
 };
 
 struct ColorComponent
 {
 	XMFLOAT4 Color = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
+
+	ColorComponent() = default;
+	ColorComponent( const ColorComponent& Other ) = default;
+	ColorComponent( const XMFLOAT4& Color ) : Color( Color ) {};
+	~ColorComponent() = default;
 };
 
 struct MeshComponent
@@ -39,15 +61,6 @@ struct MaterialComponent
 struct ShaderComponent
 {
 
-};
-
-struct RenderingStatusComponent
-{
-	ID3D11RenderTargetView* RenderTargetView = nullptr;
-	ID3D11DepthStencilView* DepthStencilView = nullptr;
-	ID3D11DepthStencilState* DepthStencilState = nullptr;
-	ID3D11RasterizerState* RasterizerState = nullptr;
-	ID3D11BlendState* BlendState = nullptr;
 };
 
 struct RenderableComponent

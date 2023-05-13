@@ -12,12 +12,12 @@ AssetHandler::~AssetHandler()
 
 void AssetHandler::Init()
 {
-
+    Log::Info(" Init - Asset Handler ");
 }
 
 void AssetHandler::Destroy()
 {
-    
+    Log::Info(" Destroy - Asset Handler ");
 }
 
 template<>

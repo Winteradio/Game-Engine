@@ -16,7 +16,7 @@ class MyUUID
 
 	public :
 		void Init();
-		std::string& GetID();
+		std::string& GetString();
 
 	private :
 		std::string m_ID;
@@ -27,7 +27,7 @@ class MyUUIDCompare
 	public :
 		bool operator() ( MyUUID Id1, MyUUID Id2 ) const
 		{
-			if ( Id1.GetID() < Id2.GetID() )
+			if ( Id1.GetString() < Id2.GetString() )
 			{
 				return true;
 			}

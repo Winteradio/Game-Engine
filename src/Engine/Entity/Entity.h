@@ -11,15 +11,13 @@ class Entity
 
 	public :
 		Entity();
-		Entity( std::string Name );
-		Entity( std::string Name, MyUUID ID );
 		virtual ~Entity();
 
 	public :
 		template< typename T >
 		void AddComponent( T* Comp )
 		{
-			bool Result = HasComponent< T >();
+			bool Result = HasComponent<T>();
 			if ( !Result )
 			{
 				m_Data[ &typeid( T ) ] = Comp;
@@ -29,7 +27,7 @@ class Entity
 		template< typename T >
 		void RemoveComponent()
 		{
-			bool Result = HasComponent< T >();
+			bool Result = HasComponent<T>();
 			if ( Result )
 			{
 				m_Data.erase( &typeid( T ) );
@@ -39,7 +37,7 @@ class Entity
 		template< typename T >
 		T* GetComponent()
 		{
-			bool Result = HasComponent< T >();
+			bool Result = HasComponent<T>();
 			if ( Result )
 			{
 				return std::any_cast< T* >( m_Data[ &typeid( T ) ] );
@@ -54,28 +52,17 @@ class Entity
 		bool HasComponent()
 		{
 			auto itr = m_Data.find( &typeid( T ) );
-			if ( itr != m_Data.end() )
-			{
-				return true;
-			}
-			else
-			{
-				Log::Warn("There is no component type of %s ", typeid( T ).name() );
-				return false;
-			}
+			if ( itr != m_Data.end() ) { return true; }
+			else { return false; }
 		}
 
-		Data& GetData();
-
-		void Destroy();
-		void SetID( MyUUID ID );
-		void SetName( std::string Name );
-		std::string& GetID();
+		MyUUID& GetID();
+		std::string& GetIDString();
 		std::string& GetName();
+		Data& GetData();
+		void Destroy();
 
 	private :
-		MyUUID m_ID;
-		std::string m_Name;
 		Data m_Data;
 };
 

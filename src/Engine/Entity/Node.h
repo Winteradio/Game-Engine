@@ -12,7 +12,7 @@ struct INode
 
 	public :
 		virtual void Init( Entity& Object ) = 0;
-		std::string& GetID() { return m_ID.GetID(); }
+		std::string& GetID() { return m_ID.GetString(); }
 
 	protected :
 		MyUUID m_ID;

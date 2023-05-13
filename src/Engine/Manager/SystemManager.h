@@ -24,7 +24,7 @@ class SystemManager
 
         void Init();
         void Destroy();
-        void Update();
+        void Update( float DeltaTime );
 
         Data& GetData();
 

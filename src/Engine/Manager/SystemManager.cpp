@@ -34,6 +34,8 @@ void SystemManager::Init()
     Destroy();
     Add( new CameraSystem() );
     Add( new RenderSystem() );
+
+    Log::Info(" Init - System Manager ");
 }
 
 void SystemManager::Destroy()
@@ -46,11 +48,11 @@ void SystemManager::Destroy()
     m_Data.clear();
 }
 
-void SystemManager::Update()
+void SystemManager::Update( float DeltaTime )
 {
     for ( auto System : m_Data )
     {
-        System->Update( 0.0f );
+        System->Update( DeltaTime );
     }
 }
 

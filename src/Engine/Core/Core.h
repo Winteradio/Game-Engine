@@ -5,13 +5,8 @@
 #include "WinAPI.h"
 #include "ImGuiAPI.h"
 
-#include "SceneManager.h"
-#include "NodeManager.h"
-#include "ComponentManager.h"
-#include "SystemManager.h"
-
-#include "AssetHandler.h"
-#include "FileHandler.h"
+#include "Manager.h"
+#include "Handler.h"
 
 class Core
 {

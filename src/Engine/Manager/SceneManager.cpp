@@ -5,50 +5,39 @@ SceneManager::~SceneManager() {}
 
 void SceneManager::Init()
 {
-
+    Log::Info(" Init - System Manager ");
 }
 
-void SceneManager::Create( std::string Name )
+void SceneManager::Create()
 {
-	MyUUID ID;
-	ID.Init();
-	m_Data[ ID ] = Scene( Name, ID );
+	m_Data.emplace_back( Scene() );
+	m_Data.back().SetIndex( (int)m_Data.size() - 1 );
 
 	Log::Info(" Create Scene ");
-	Log::Info(" Name : %s ", Name );
-	Log::Info(" ID : %s ", Name, ID.GetID() );
+	Log::Info(" Index : %zu ", m_Data.size() - 1 );
 }
 
-void SceneManager::Create( std::string Name, MyUUID ID )
+void SceneManager::Remove( int Index )
 {
-	m_Data[ ID ] = Scene( Name, ID );
-
-	Log::Info(" Create Scene ");
-	Log::Info(" Name : %s ", Name );
-	Log::Info(" ID : %s ", Name, ID.GetID() );
-}
-
-void SceneManager::Remove( MyUUID ID )
-{
-	Scene& TempScene = m_Data[ ID ];
+	m_Data.erase( m_Data.begin() + Index );
 
 	Log::Info(" Remove Scene ");
-	Log::Info(" Name : %s ", TempScene.GetName() );
-	Log::Info(" ID : %s ", TempScene.GetID() );
+	Log::Info(" Name : %s ", Index );
 }
 
 void SceneManager::Destroy()
 {
-	for ( auto ITR : m_Data )
+	for ( Scene Other : m_Data )
 	{
-		ITR.second.Destroy();
+		Other.Destroy();
 	}
 
 	m_Data.clear();
 }
 
 SceneManager& SceneManager::GetHandle() { return m_SceneManager; }
-Scene& SceneManager::GetScene( MyUUID ID ){ return m_Data[ ID ]; }
+Scene& SceneManager::GetScene( int Index ){ return m_Data[ Index ]; }
+size_t SceneManager::GetCount() { return m_Data.size(); }
 SceneManager::Data& SceneManager::GetData() { return m_Data; }
 
 SceneManager SceneManager::m_SceneManager;
