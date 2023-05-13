@@ -16,6 +16,7 @@ class PropertyUIHandler
         void Init( int PosX, int PosY, int Width, int Height );
         void Destroy();
         void Update( float DeltaTime );
+        void SetID( MyUUID ID );
 
     private :
         static PropertyUIHandler m_PropertyUIHandler;
@@ -25,6 +26,9 @@ class PropertyUIHandler
         int m_PosY;
         int m_Width;
         int m_Height;
+
+        MyUUID m_ID;
+        char m_Temp[ MAX_LENGTH ];
 };
 
 #endif // __PROPERTYUIHANDLER_H__

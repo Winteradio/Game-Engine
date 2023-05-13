@@ -1,6 +1,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#define MAX_LENGTH 512
+
 #include <algorithm>
 #include <any>
 #include <filesystem>
@@ -8,6 +10,7 @@
 #include <future>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <thread>

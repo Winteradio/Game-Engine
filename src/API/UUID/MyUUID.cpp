@@ -37,4 +37,10 @@ void MyUUID::Init()
 	Log::Info(" Create UUID - %s", m_ID.c_str() );
 }
 
+bool MyUUID::Empty()
+{
+	if ( m_ID.empty() ) return true;
+	else return false;
+}
+
 std::string& MyUUID::GetString() { return m_ID; }

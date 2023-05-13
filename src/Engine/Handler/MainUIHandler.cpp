@@ -1,5 +1,7 @@
 #include "MainUIHandler.h"
 
+#include "PropertyUIHandler.h"
+
 MainUIHandler::MainUIHandler()
 {
 
@@ -32,10 +34,14 @@ void MainUIHandler::Update( float DeltaTime )
 
 	ImGui::Begin( "Main" );
     ImGui::SeparatorText(" Scene ");
-    if ( ImGui::Selectable( " Create New Scene ... " ) )
+    ImGui::PushID( "Create Scene " );
+    ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+    if ( ImGui::Selectable( " New ... " ) )
     {
-        SceneManager::GetHandle().Create();
+        SceneManager::GetHandle().CreateScene();
     }
+    ImGui::PopStyleColor();
+    ImGui::PopID();
     for ( auto& scene : SceneManager::GetHandle().GetData() )
     {
         ImGui::PushID( ( scene.GetName() + std::to_string( scene.GetIndex() ) ).c_str() );
@@ -48,22 +54,49 @@ void MainUIHandler::Update( float DeltaTime )
                 scene.CreateEntity();
             }
 
-            /*
-            for ( auto& Tag : ComponentManager::GetHandle().GetVector<TagComponent>() )
+            for ( auto& [ ID, entity ] : scene.GetData() )
             {
-                ImGui::Text("%s", Tag.Tag.c_str() );
+                ImGui::PushID( entity.GetID().GetString().c_str() );
+				ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+                ImGui::Text( entity.GetID().GetString().substr( 0, 6 ).c_str() );
+				ImGui::PopStyleColor();
+				ImGui::SameLine();
+                if ( ImGui::Selectable( entity.GetName().c_str() ) )
+                {
+                    PropertyUIHandler::GetHandle().SetID( entity.GetID() );
+                }
+                ImGui::PopID();
             }
-
-            for ( auto& Tag : ComponentManager::GetHandle().GetVector<IDComponent>() )
-            {
-                ImGui::Text("%s", Tag.ID.GetString().c_str() );
-            }
-            */
 
             ImGui::TreePop();
         }
         ImGui::PopID();
     }
+
+
+    ImGui::SeparatorText(" Entity ");
+    ImGui::PushID( "Create Entity " );
+    ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+    if ( ImGui::Selectable( " New ... " ) )
+    {
+        EntityManager::GetHandle().CreateEntity();
+    }
+    ImGui::PopStyleColor();
+    ImGui::PopID();
+    for ( auto& [ ID, entity ] : EntityManager::GetHandle().GetData() )
+    {
+        ImGui::PushID( entity.GetID().GetString().c_str() );
+        ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+        ImGui::Text( entity.GetID().GetString().substr( 0, 6 ).c_str() );
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        if ( ImGui::Selectable( entity.GetName().c_str() ) )
+        {
+            PropertyUIHandler::GetHandle().SetID( entity.GetID() );
+        }
+        ImGui::PopID();
+    }
+
 
     ImGui::SeparatorText( " System " );
     for ( auto system : SystemManager::GetHandle().GetData() )
@@ -72,7 +105,6 @@ void MainUIHandler::Update( float DeltaTime )
     }
 	ImGui::End();
 
-    ImGui::ShowDemoWindow();
 }
 
 MainUIHandler& MainUIHandler::GetHandle() { return m_MainUIHandler; }

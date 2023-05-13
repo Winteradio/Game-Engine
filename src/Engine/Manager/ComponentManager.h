@@ -58,13 +58,13 @@ class ComponentManager
 		}
 
 		template< typename T, typename... Args >
-		T* Create( Args&&... args )
+		int Create( Args&&... args )
 		{
 			bool Check = HasVector<T>();
 			if ( !Check ) CreateVector<T>();
 			GetVector<T>().emplace_back( T( std::forward< Args >( args )... ) );
 
-			return &GetVector<T>().back();
+			return GetVector<T>().size() - 1;
 		}
 
 	private :

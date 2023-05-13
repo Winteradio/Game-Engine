@@ -46,6 +46,8 @@ void Core::Update()
 	PropertyUIHandler::GetHandle().Update( 0.0f );
 	StateUIHandler::GetHandle().Update( 0.0f );
 
+	ImGui::ShowDemoWindow();
+
 	ImGuiAPI::GetHandle().End();
 	DirectXAPI::GetHandle().End();
 }
@@ -88,9 +90,10 @@ void Core::InitHandler()
 
 void Core::InitManager()
 {
-	SceneManager::GetHandle().Init();
-	NodeManager::GetHandle().Init();
 	ComponentManager::GetHandle().Init();
+	EntityManager::GetHandle().Init();
+	NodeManager::GetHandle().Init();
+	SceneManager::GetHandle().Init();
 	SystemManager::GetHandle().Init();
 }
 
@@ -107,9 +110,10 @@ void Core::Destroy()
 	PropertyUIHandler::GetHandle().Destroy();
 	StateUIHandler::GetHandle().Destroy();
 
-	SceneManager::GetHandle().Destroy();
-	NodeManager::GetHandle().Destroy();
 	ComponentManager::GetHandle().Destroy();
+	EntityManager::GetHandle().Destroy();
+	NodeManager::GetHandle().Destroy();
+	SceneManager::GetHandle().Destroy();
 	SystemManager::GetHandle().Destroy();
 }
 

@@ -17,6 +17,7 @@ class MyUUID
 	public :
 		void Init();
 		std::string& GetString();
+		bool Empty();
 
 	private :
 		std::string m_ID;

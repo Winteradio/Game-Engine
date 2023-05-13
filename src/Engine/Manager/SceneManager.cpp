@@ -5,10 +5,10 @@ SceneManager::~SceneManager() {}
 
 void SceneManager::Init()
 {
-    Log::Info(" Init - System Manager ");
+    Log::Info(" Init - Scene Manager ");
 }
 
-void SceneManager::Create()
+void SceneManager::CreateScene()
 {
 	m_Data.emplace_back( Scene() );
 	m_Data.back().SetIndex( (int)m_Data.size() - 1 );
@@ -17,7 +17,7 @@ void SceneManager::Create()
 	Log::Info(" Index : %zu ", m_Data.size() - 1 );
 }
 
-void SceneManager::Remove( int Index )
+void SceneManager::RemoveScene( int Index )
 {
 	m_Data.erase( m_Data.begin() + Index );
 

@@ -32,10 +32,18 @@ void PropertyUIHandler::Update( float DeltaTime )
 
 	ImGui::Begin( "Property" );
 	{
-
+        if ( !m_ID.Empty() )
+        {
+            ImGui::SeparatorText(" Name ");
+            ImGui::SeparatorText(" UUID ");
+            ImGui::SeparatorText(" Components Info ");
+            ImGui::SeparatorText(" Nodes Info ");
+        }
 	}
 	ImGui::End();
 }
+
+void PropertyUIHandler::SetID( MyUUID ID ) { m_ID = ID; }
 
 PropertyUIHandler& PropertyUIHandler::GetHandle() { return m_PropertyUIHandler; }
 

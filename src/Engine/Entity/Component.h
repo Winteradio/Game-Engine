@@ -4,7 +4,12 @@
 #include "DirectXAPI.h"
 #include "MyUUID.h"
 
-struct TagComponent
+struct IComponent
+{
+	virtual ~IComponent() = default;
+};
+
+struct TagComponent : public IComponent
 {
 	std::string Tag;
 
@@ -14,17 +19,7 @@ struct TagComponent
 	~TagComponent() = default;
 };
 
-struct IDComponent
-{
-	MyUUID ID;
-
-	IDComponent() = default;
-	IDComponent( const IDComponent& Other ) = default;
-	IDComponent( const MyUUID& ID ) : ID( ID ) {};
-	~IDComponent() = default;
-};
-
-struct TransformComponent
+struct TransformComponent : public IComponent
 {
 	XMFLOAT3 Translation = XMFLOAT3( 0.0f, 0.0f, 0.0f );
 	XMFLOAT3 Rotation = XMFLOAT3( 0.0f, 0.0f, 0.0f );
@@ -38,7 +33,7 @@ struct TransformComponent
 	~TransformComponent() = default;
 };
 
-struct ColorComponent
+struct ColorComponent : public IComponent
 {
 	XMFLOAT4 Color = XMFLOAT4( 0.0f, 0.0f, 0.0f, 1.0f );
 
@@ -48,22 +43,22 @@ struct ColorComponent
 	~ColorComponent() = default;
 };
 
-struct MeshComponent
+struct MeshComponent : public IComponent
 {
 
 };
 
-struct MaterialComponent
+struct MaterialComponent : public IComponent
 {
 
 };
 
-struct ShaderComponent
+struct ShaderComponent : public IComponent
 {
 
 };
 
-struct RenderableComponent
+struct RenderableComponent : public IComponent
 {
 	bool Renderable = false;
 };

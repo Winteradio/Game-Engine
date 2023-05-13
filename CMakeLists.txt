@@ -95,6 +95,7 @@ LIST( APPEND SRCS
 		## Manager
 		${MANAGER_DIR}/Manager.h
 		${MANAGER_DIR}/ComponentManager.h ${MANAGER_DIR}/ComponentManager.cpp
+		${MANAGER_DIR}/EntityManager.h ${MANAGER_DIR}/EntityManager.cpp
 		${MANAGER_DIR}/NodeManager.h ${MANAGER_DIR}/NodeManager.cpp
 		${MANAGER_DIR}/SceneManager.h ${MANAGER_DIR}/SceneManager.cpp
 		${MANAGER_DIR}/SystemManager.h ${MANAGER_DIR}/SystemManager.cpp

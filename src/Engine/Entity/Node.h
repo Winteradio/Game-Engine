@@ -43,9 +43,9 @@ struct RenderableNode : public INode
 		}
 
 	public :
-		TransformComponent* Transform = nullptr;
-		MeshComponent* Mesh = nullptr;
-		MaterialComponent* Material = nullptr;
+		int Transform;
+		int Mesh;
+		int Material;
 };
 
 struct CameraNode : public INode
@@ -70,7 +70,7 @@ struct CameraNode : public INode
 
 
 	public :
-		TransformComponent* Transform = nullptr;
+		int Transform;
 };
 
 struct LightNode : public INode
@@ -97,8 +97,8 @@ struct LightNode : public INode
 
 
 	public :
-		TransformComponent* Transform = nullptr;
-		ColorComponent* Color = nullptr;
+		int Transform;
+		int Color;
 };
 
 #endif // __NODE_H__

@@ -27,37 +27,7 @@ void Scene::CreateEntity( std::string Name )
 
 void Scene::CreateEntity( std::string Name, MyUUID ID )
 {
-	m_Data[ ID ] = Entity();
-	Entity& Object = GetEntity( ID );
-	Object.AddComponent< TagComponent >( ComponentManager::GetHandle().Create< TagComponent >( Name ) );
-	Object.AddComponent< IDComponent >( ComponentManager::GetHandle().Create< IDComponent >( ID ) );
-
-	Log::Info(" Entity Start ");
-	for ( auto itr = m_Data.begin(); itr != m_Data.end(); itr++ )
-	{	
-		Entity& entity = itr->second;
-		if ( entity.HasComponent< TagComponent >() )
-		{
-			Log::Info(" Have Tag ");
-			Log::Info(" %p ", entity.GetComponent< TagComponent >() );
-		}
-	}
-
-	Log::Info(" Component Manager Start ");
-	for ( auto& Tag : ComponentManager::GetHandle().GetVector<TagComponent>() )
-	{
-		Log::Info(" %p ", &Tag );
-	}
-	Log::Info(" Vector Address");
-	Log::Info(" %p ", &ComponentManager::GetHandle().GetVector<TagComponent>()[0] );
-	/*
-		if ( entity.HasComponent< IDComponent >() )
-		{
-			Log::Info(" Have ID ");
-			Log::Info(" %p ", entity.GetComponent< IDComponent >() );
-		}
-	}
-	*/
+	m_Data[ ID ] = Entity( ID, Name );
 }
 
 void Scene::AddEntity( Entity Object )

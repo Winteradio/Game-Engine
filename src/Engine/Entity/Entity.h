@@ -7,45 +7,36 @@
 
 class Entity
 {
-	using Data = std::map< const std::type_info*, std::any >;
+	using Data = std::map< const std::type_info*, int >;
 
 	public :
 		Entity();
+		Entity( std::string Name );
+		Entity( MyUUID ID );
+		Entity( MyUUID ID, std::string Name );
 		virtual ~Entity();
 
 	public :
 		template< typename T >
-		void AddComponent( T* Comp )
+		void AddComponent( int Index )
 		{
 			bool Result = HasComponent<T>();
-			if ( !Result )
-			{
-				m_Data[ &typeid( T ) ] = Comp;
-			}
+			if ( !Result ) m_Data[ &typeid( T ) ] = Index;
 		}
 
 		template< typename T >
 		void RemoveComponent()
 		{
 			bool Result = HasComponent<T>();
-			if ( Result )
-			{
-				m_Data.erase( &typeid( T ) );
-			}
+			if ( Result ) m_Data.erase( &typeid( T ) );
 		}
 
 		template< typename T >
-		T* GetComponent()
+		int GetComponent()
 		{
 			bool Result = HasComponent<T>();
-			if ( Result )
-			{
-				return std::any_cast< T* >( m_Data[ &typeid( T ) ] );
-			}
-			else
-			{
-				return nullptr;
-			}
+			if ( Result ) { return m_Data[ &typeid( T ) ]; }
+			else { return -1; }
 		}
 
 		template< typename T >
@@ -56,14 +47,19 @@ class Entity
 			else { return false; }
 		}
 
-		MyUUID& GetID();
-		std::string& GetIDString();
-		std::string& GetName();
+	public :
+		void SetID( MyUUID ID );
+		void SetName( std::string Name );
+
 		Data& GetData();
+		MyUUID& GetID();
+		std::string& GetName();
 		void Destroy();
 
 	private :
 		Data m_Data;
+		MyUUID m_ID;
+		std::string m_Name;
 };
 
 #endif // __ENTITY_H__
