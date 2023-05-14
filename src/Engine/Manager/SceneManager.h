@@ -18,6 +18,9 @@ class SceneManager
 
 	public :
 		void CreateScene();
+		void CreateScene( int Index );
+		void CreateScene( std::string Name );
+		void CreateScene( int Index, std::string Name);
 		void RemoveScene( int Index );
 		Scene& GetScene( int Index );
 

@@ -7,6 +7,8 @@ namespace FS = std::filesystem;
 
 class FileHandler
 {
+    using Data = std::vector< FS::path >;
+
     private :
         FileHandler();
         ~FileHandler();
@@ -19,18 +21,24 @@ class FileHandler
     public :
 		void PathGoUp( FS::path& Path );
 		void PathGoDown( FS::path FolderPath, FS::path& MainPath );
-		std::vector< FS::path > GetDirectories( FS::path Path );
-		std::vector< FS::path > GetFiles( std::string Filter, FS::path Path );
-		bool CheckFilter( std::string Filter, FS::path Path );
-		std::string GetFileName( FS::path Path );
-		bool IsPathFile( FS::path Path );
-		bool Compare( FS::path OnePath, FS::path OtherPath );
 
+		bool CheckFilter( std::string Filter, FS::path Path );
+		bool IsPathFile( FS::path Path );
+
+        void UpdateDirectories( FS::path Path );
+        void UpdateFiles( std::string Filter, FS::path Path );
+
+		Data GetDirectories();
+		Data GetFiles();
+		std::string GetFileName( FS::path Path );
+        std::string GetFileExtension( FS::path Path );
 
     public :
         static FileHandler m_FileHandler;
-        std::vector< FS::path > m_Directories;
-        std::vector< FS::path > m_Files;        
+        Data m_Directories;
+        Data m_Files;        
 };
+
+static	bool Compare( FS::path OnePath, FS::path OtherPath );
 
 #endif // __FILEHANDLER_H__

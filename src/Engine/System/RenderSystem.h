@@ -10,6 +10,7 @@ class RenderSystem : public ISystem
 {
     public :
         RenderSystem();
+        RenderSystem( MyUUID ID );
         virtual ~RenderSystem();
 
     public :

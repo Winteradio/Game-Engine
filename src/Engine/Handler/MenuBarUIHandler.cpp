@@ -1,5 +1,7 @@
 #include "MenuBarUIHandler.h"
 
+#include "FileBrowserUIHandler.h"
+
 MenuBarUIHandler::MenuBarUIHandler()
 {
 
@@ -37,14 +39,17 @@ void MenuBarUIHandler::Update( float DeltaTime )
 		{
 			if ( ImGui::MenuItem(" Open ", "Ctrl + O") )
 			{
+				FileBrowserUIHandler::GetHandle().Begin( "yaml", true );
 			}
 
 			if ( ImGui::MenuItem(" Save ", "Ctrl + S") )
 			{
+				FileBrowserUIHandler::GetHandle().Begin( ".yaml", false );
 			}
 
 			if ( ImGui::MenuItem(" Save as ", "Ctrl + S") )
 			{
+				FileBrowserUIHandler::GetHandle().Begin( ".yaml", false );
 			}
 
 			ImGui::EndMenu();

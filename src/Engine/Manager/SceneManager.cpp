@@ -10,11 +10,24 @@ void SceneManager::Init()
 
 void SceneManager::CreateScene()
 {
-	m_Data.emplace_back( Scene() );
-	m_Data.back().SetIndex( (int)m_Data.size() - 1 );
+	CreateScene( (int)m_Data.size() - 1, "Default" );
+}
 
-	Log::Info(" Create Scene ");
-	Log::Info(" Index : %zu ", m_Data.size() - 1 );
+void SceneManager::CreateScene( int Index )
+{
+	CreateScene( Index, "Default" );
+}
+
+void SceneManager::CreateScene( std::string Name )
+{
+	CreateScene( (int)m_Data.size() -1 , Name );
+}
+
+void SceneManager::CreateScene( int Index, std::string Name )
+{
+	m_Data.emplace_back( Scene( Index, Name ) );
+
+	Log::Info(" Create Scene Name : %s / Index : %d ", m_Data.back().GetName().c_str(), m_Data.back().GetIndex() );
 }
 
 void SceneManager::RemoveScene( int Index )

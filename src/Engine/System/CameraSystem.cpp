@@ -5,6 +5,11 @@ CameraSystem::CameraSystem() : ISystem()
     
 }
 
+CameraSystem::CameraSystem( MyUUID ID ) : ISystem( ID )
+{
+
+}
+
 CameraSystem::~CameraSystem()
 {
 

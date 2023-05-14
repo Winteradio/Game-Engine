@@ -38,8 +38,7 @@ void Core::Update()
 	DirectXAPI::GetHandle().Begin();
 	ImGuiAPI::GetHandle().Begin();
 
-	SystemManager::GetHandle().Update( 0.0f );
-
+	FileBrowserUIHandler::GetHandle().Update( 0.0f );
 	LogUIHandler::GetHandle().Update( 0.0f );
 	MainUIHandler::GetHandle().Update( 0.0f );
 	MenuBarUIHandler::GetHandle().Update( 0.0f );
@@ -81,6 +80,7 @@ void Core::InitHandler()
 	AssetHandler::GetHandle().Init();
 	FileHandler::GetHandle().Init();
 
+	FileBrowserUIHandler::GetHandle().Init( 200, 200, 800, 400 );
 	MenuBarUIHandler::GetHandle().Init( 0, 0, 1440, 20 );
 	MainUIHandler::GetHandle().Init( 0, 20, 300, 840 - 20 );
 	PropertyUIHandler::GetHandle().Init( 1440 - 300, 20, 300, 840 - 20 );
@@ -105,8 +105,11 @@ void Core::Destroy()
 
 	AssetHandler::GetHandle().Destroy();
 	FileHandler::GetHandle().Destroy();
+
+	FileBrowserUIHandler::GetHandle().Destroy();
 	MainUIHandler::GetHandle().Destroy();
 	MenuBarUIHandler::GetHandle().Destroy();
+	LogUIHandler::GetHandle().Destroy();
 	PropertyUIHandler::GetHandle().Destroy();
 	StateUIHandler::GetHandle().Destroy();
 

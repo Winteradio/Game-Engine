@@ -49,24 +49,16 @@ void MainUIHandler::Update( float DeltaTime )
         ImGui::SameLine();
         if ( ImGui::TreeNode( scene.GetName().c_str() ) )
         {
-            if ( ImGui::Selectable( " Create New Entity ... " ) )
+            ImGui::SeparatorText(" Registered Entities ... ");
+            for ( auto ID : scene.GetRegisteredEntities() )
             {
-                scene.CreateEntity();
+                ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+                ImGui::Text( ID.GetString().substr( 0, 6 ).c_str() );
+                ImGui::PopStyleColor();               
+                ImGui::SameLine();
+                ImGui::Text( EntityManager::GetHandle().GetEntity( ID )->GetName().c_str() );
             }
-
-            for ( auto& [ ID, entity ] : scene.GetData() )
-            {
-                ImGui::PushID( entity.GetID().GetString().c_str() );
-				ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
-                ImGui::Text( entity.GetID().GetString().substr( 0, 6 ).c_str() );
-				ImGui::PopStyleColor();
-				ImGui::SameLine();
-                if ( ImGui::Selectable( entity.GetName().c_str() ) )
-                {
-                    PropertyUIHandler::GetHandle().SetID( entity.GetID() );
-                }
-                ImGui::PopID();
-            }
+            ImGui::SeparatorText(" Registered Systems ... ");
 
             ImGui::TreePop();
         }
@@ -94,14 +86,54 @@ void MainUIHandler::Update( float DeltaTime )
         {
             PropertyUIHandler::GetHandle().SetID( entity.GetID() );
         }
+
+        if ( ImGui::BeginPopupContextItem() )
+        {
+            ImGui::SeparatorText(" Register to Scene ... ");
+            for ( auto& scene : SceneManager::GetHandle().GetData() )
+            {
+                ImGui::PushID( ( scene.GetName() + std::to_string( scene.GetIndex() ) ).c_str() );
+                if ( ImGui::Selectable( ( "#" + std::to_string( scene.GetIndex() ) + " " + scene.GetName() ).c_str() ) )
+                {
+                    scene.RegisterEntity( ID );
+                }
+                ImGui::PopID();
+            } 
+            ImGui::EndPopup();
+        }
         ImGui::PopID();
     }
 
 
     ImGui::SeparatorText( " System " );
-    for ( auto system : SystemManager::GetHandle().GetData() )
+    for ( auto& [ ID, System ] : SystemManager::GetHandle().GetData() )
     {
-        ImGui::Text( Name::Get( typeid( *system ) ).c_str() );
+        ImGui::PushID( System->GetID().GetString().c_str() );
+        ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+        ImGui::Text( System->GetID().GetString().substr( 0, 6 ).c_str() );
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+
+        if ( ImGui::Selectable( Name::Get( typeid( *System ) ).c_str() ) )
+        {
+            PropertyUIHandler::GetHandle().SetID( System->GetID() );
+        }
+
+        if ( ImGui::BeginPopupContextItem() )
+        {
+            ImGui::SeparatorText(" Register to Scene ... ");
+            for ( auto& scene : SceneManager::GetHandle().GetData() )
+            {
+                ImGui::PushID( ( scene.GetName() + std::to_string( scene.GetIndex() ) ).c_str() );
+                if ( ImGui::Selectable( ( "#" + std::to_string( scene.GetIndex() ) + " " + scene.GetName() ).c_str() ) )
+                {
+                    scene.RegisterSystem( ID );
+                }
+                ImGui::PopID();
+            } 
+            ImGui::EndPopup();
+        }
+        ImGui::PopID();
     }
 	ImGui::End();
 

@@ -10,37 +10,17 @@ SystemManager::~SystemManager()
 
 }
 
-void SystemManager::Add( ISystem* Other )
-{
-    m_Data.emplace_back( Other );
-}
-
-void SystemManager::SwapByIndex( int First, int Last )
-{
-    std::swap( m_Data[ First ], m_Data[ Last ] );
-}
-
-void SystemManager::Remove( ISystem* Other )
-{
-    m_Data.erase( 
-        std::remove_if( m_Data.begin(), m_Data.end(), 
-        [Other]( ISystem* pISystem ) { return pISystem == Other; } ), 
-        m_Data.end() 
-    );
-}
-
 void SystemManager::Init()
 {
-    Destroy();
-    Add( new CameraSystem() );
-    Add( new RenderSystem() );
+    Create( new CameraSystem() );
+    Create( new RenderSystem() );
 
     Log::Info(" Init - System Manager ");
 }
 
 void SystemManager::Destroy()
 {
-    for ( auto System : m_Data )
+    for ( auto& [ ID, System ] : m_Data )
     {
         delete System;
     }
@@ -48,11 +28,51 @@ void SystemManager::Destroy()
     m_Data.clear();
 }
 
-void SystemManager::Update( float DeltaTime )
+void SystemManager::Create( ISystem* Other )
 {
-    for ( auto System : m_Data )
+    MyUUID ID;
+    ID.Init();
+    Create( Other, ID );
+}
+
+void SystemManager::Create( ISystem* Other, MyUUID ID )
+{
+    bool Check = Has( ID );
+    if ( !Check ) 
     {
-        System->Update( DeltaTime );
+        Other->SetID( ID );
+        m_Data[ ID ] = Other;
+    }
+}
+
+void SystemManager::Remove( MyUUID ID )
+{
+    bool Check = Has( ID );
+    if ( Check )
+    {
+        auto SystemITR = m_Data.find( ID );
+        delete m_Data[ ID ];
+        m_Data.erase( SystemITR );
+    }
+}
+
+bool SystemManager::Has( MyUUID ID )
+{
+    if ( m_Data.find( ID ) != m_Data.end() ) return true;
+    else return false;
+}
+
+ISystem* SystemManager::Get( MyUUID ID )
+{
+    bool Check = Has( ID );
+    if ( Check )
+    {
+        return m_Data[ ID ];
+    }
+    else
+    {
+        Log::Warn(" There is no System of this ID ", ID.GetString().c_str() );
+        return nullptr;
     }
 }
 

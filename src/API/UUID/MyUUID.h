@@ -11,6 +11,7 @@ class MyUUID
 		MyUUID();
 		MyUUID( std::string ID );
 		MyUUID( const MyUUID& Other );
+		bool operator == ( const MyUUID& Other ) const;
 		MyUUID& operator = ( const std::string& ID );
 		~MyUUID();
 

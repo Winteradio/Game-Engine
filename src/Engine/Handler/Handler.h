@@ -3,6 +3,7 @@
 
 #include "AssetHandler.h"
 #include "FileHandler.h"
+#include "FileBrowserUIHandler.h"
 #include "LogUIHandler.h"
 #include "MainUIHandler.h"
 #include "MenuBarUIHandler.h"

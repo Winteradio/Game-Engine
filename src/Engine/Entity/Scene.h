@@ -2,37 +2,43 @@
 #define __SCENE_H__
 
 #include "Log.h"
-#include "Entity.h"
 #include "MyUUID.h"
 
-#include "ComponentManager.h"
-#include "NodeManager.h"
+#include "SystemManager.h"
 
 class Scene
 {
-	using Data = std::map< MyUUID, Entity, MyUUIDCompare >;
+	using EntityData = std::set< MyUUID, MyUUIDCompare >;
+	using SystemData = std::vector< MyUUID >;
 
 	public :
 		Scene();
+		Scene( int Index );
+		Scene( std::string Name );
+		Scene( int Index, std::string Name );
 		~Scene();
 
 	public :
 		void Init();
 		void Destroy();
+		void Update( float DeltaTime );
 	
 	public :
-		void CreateEntity();
-		void CreateEntity( MyUUID ID );
-		void CreateEntity( std::string Name );
-		void CreateEntity( std::string Name, MyUUID ID );
-		
-		void AddEntity( Entity Object );
+		void RegisterEntity( MyUUID ID );
+		void RegisterSystem( MyUUID ID );
+
 		void RemoveEntity( MyUUID ID );
+		void RemoveSystem( MyUUID ID );
+		
 		bool HasEntity( MyUUID ID );
+		bool HasSystem( MyUUID ID );
 
+		void ClearEntity();
+		void ClearSystem();
 
-		Entity& GetEntity( MyUUID ID );
-		Data& GetData();
+	public :
+		EntityData& GetRegisteredEntities();
+		SystemData& GetRegisteredSystems();
 		std::string& GetName();
 		int& GetIndex();
 
@@ -40,7 +46,8 @@ class Scene
 		void SetIndex( int Index );
 
 	private :
-		Data m_Data;
+		EntityData m_EntityData;
+		SystemData m_SystemData;
 		std::string m_Name;
 		int m_Index;
 };

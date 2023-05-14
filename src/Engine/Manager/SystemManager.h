@@ -9,7 +9,7 @@
 
 class SystemManager
 {
-    using Data = std::vector< ISystem* >;
+    using Data = std::map< MyUUID, ISystem*, MyUUIDCompare >;
 
 	private :
         SystemManager();
@@ -17,15 +17,17 @@ class SystemManager
 
     public :
         static SystemManager& GetHandle();
-
-        void Add( ISystem* Other );
-        void SwapByIndex( int First, int Last );
-        void Remove( ISystem* Other );
-
         void Init();
         void Destroy();
-        void Update( float DeltaTime );
 
+    public :
+        void Create( ISystem* Other );
+        void Create( ISystem* Other, MyUUID ID );
+        
+        void Remove( MyUUID ID );
+        bool Has( MyUUID ID );
+
+        ISystem* Get( MyUUID ID );
         Data& GetData();
 
     private :

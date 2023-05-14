@@ -41,6 +41,7 @@ void EntityManager::CreateEntity( std::string Name )
 void EntityManager::CreateEntity( MyUUID ID, std::string Name )
 {
     m_Data[ ID ] = Entity( ID, Name );
+    Log::Info(" Create Entity ");
 }
 
 void EntityManager::AddEntity( Entity Other )

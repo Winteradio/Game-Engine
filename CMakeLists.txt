@@ -87,6 +87,7 @@ LIST( APPEND SRCS
 		${HANDLER_DIR}/Handler.h
 		${HANDLER_DIR}/AssetHandler.h ${HANDLER_DIR}/AssetHandler.cpp
 		${HANDLER_DIR}/FileHandler.h ${HANDLER_DIR}/FileHandler.cpp
+		${HANDLER_DIR}/FileBrowserUIHandler.h ${HANDLER_DIR}/FileBrowserUIHandler.cpp
 		${HANDLER_DIR}/LogUIHandler.h ${HANDLER_DIR}/LogUIHandler.cpp
 		${HANDLER_DIR}/MainUIHandler.h ${HANDLER_DIR}/MainUIHandler.cpp
 		${HANDLER_DIR}/MenuBarUIHandler.h ${HANDLER_DIR}/MenuBarUIHandler.cpp

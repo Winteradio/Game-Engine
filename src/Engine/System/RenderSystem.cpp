@@ -6,6 +6,11 @@ RenderSystem::RenderSystem() : ISystem()
     
 }
 
+RenderSystem::RenderSystem( MyUUID ID ) : ISystem( ID ) 
+{
+    
+}
+
 RenderSystem::~RenderSystem()
 {
 

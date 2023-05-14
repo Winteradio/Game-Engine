@@ -10,6 +10,7 @@ class CameraSystem : public ISystem
 {
     public :
         CameraSystem();
+        CameraSystem( MyUUID );
         virtual ~CameraSystem();
 
     public :

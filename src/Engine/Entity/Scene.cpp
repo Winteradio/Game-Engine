@@ -4,65 +4,83 @@ Scene::Scene()
 {
 	m_Name = "Default";
 }
+
+Scene::Scene( int Index ) : m_Index( Index ) {}
+Scene::Scene( int Index, std::string Name ) : m_Index( Index ), m_Name( Name ) {}
+Scene::Scene( std::string Name ) : m_Name( Name ) {}
+
 Scene::~Scene() {}
 
-void Scene::CreateEntity()
+void Scene::Init()
 {
-	MyUUID ID;
-	ID.Init();
-	CreateEntity( "Default", ID );
+
 }
 
-void Scene::CreateEntity( MyUUID ID )
+void Scene::Destroy()
 {
-	CreateEntity( "Default", ID );
+	ClearEntity();
+	ClearSystem();
 }
 
-void Scene::CreateEntity( std::string Name )
+void Scene::Update( float DeltaTime )
 {
-	MyUUID ID;
-	ID.Init();
-	CreateEntity( Name, ID );
+	
 }
 
-void Scene::CreateEntity( std::string Name, MyUUID ID )
+void Scene::RegisterEntity( MyUUID ID )
 {
-	m_Data[ ID ] = Entity( ID, Name );
+	bool Check = HasEntity( ID );
+	if ( !Check ) m_EntityData.insert( ID );
 }
 
-void Scene::AddEntity( Entity Object )
+void Scene::RegisterSystem( MyUUID ID )
 {
-	m_Data[ Object.GetID() ] = Object;
+	bool Check = HasSystem( ID );
+	if ( !Check ) m_SystemData.push_back( ID );
 }
 
 void Scene::RemoveEntity( MyUUID ID )
 {
 	bool Check = HasEntity( ID );
-	if ( Check )
+	if ( Check ) 
 	{
-		auto ITR = m_Data.find( ID );
-		m_Data.erase( ITR );
+		auto ITR = m_EntityData.find( ID );
+		m_EntityData.erase( ITR );
+	}
+}
+
+void Scene::RemoveSystem( MyUUID ID )
+{
+	bool Check = HasSystem( ID );
+	if ( Check ) 
+	{
+		auto ITR = std::remove_if( 
+			m_SystemData.begin(), m_SystemData.end(), 
+			[&]( const MyUUID& Other ) { return Other == ID; } );
+		m_SystemData.erase( ITR, m_SystemData.end() );
 	}
 }
 
 bool Scene::HasEntity( MyUUID ID )
 {
-	if ( m_Data.find( ID ) == m_Data.end() ) return false;
-	return true;
+	auto ITR = m_EntityData.find( ID );
+	if ( ITR != m_EntityData.end() ) return true;
+	else return false;
 }
 
-void Scene::Destroy()
+bool Scene::HasSystem( MyUUID ID )
 {
-	for ( auto ITR : m_Data )
-	{
-		ITR.second.Destroy();
-	}
-
-	m_Data.clear();
+	auto ITR = std::find( m_SystemData.begin(), m_SystemData.end(), ID );
+	if ( ITR != m_SystemData.end() ) return true;
+	else return false;
 }
 
-Entity& Scene::GetEntity( MyUUID ID ) { return m_Data[ ID ]; }
-Scene::Data& Scene::GetData() { return m_Data; };
+void Scene::ClearEntity() { m_EntityData.clear(); }
+void Scene::ClearSystem() { m_SystemData.clear(); }
+
+Scene::EntityData& Scene::GetRegisteredEntities() { return m_EntityData; }
+Scene::SystemData& Scene::GetRegisteredSystems() { return m_SystemData; }
+
 std::string& Scene::GetName() { return m_Name; };
 int& Scene::GetIndex() { return m_Index; };
 
