@@ -81,43 +81,60 @@ bool Compare( FS::path One, FS::path Other )
 	}
 }
 
-void FileHandler::UpdateDirectories( FS::path Path )
+std::vector<FS::path> FileHandler::UpdateDirectories(FS::path Path)
 {
-	std::vector< FS::path > Result;
-	Result.push_back( Path );
-	while( Path.generic_string() != "C:" )
-	{
-		PathGoUp( Path );
-		Result.push_back( Path );
-	}
+    std::vector<FS::path> Result;
+    Result.push_back(Path);
 
-    m_Directories = Result;
+    try
+    {
+        while (Path.generic_string() != "C:")
+        {
+            PathGoUp(Path);
+            Result.push_back(Path);
+        }
+    }
+    catch (const FS::filesystem_error& ex)
+    {
+        // Handle the exception or log the error
+        printf("Failed to update directories: %s", std::string(ex.what()).c_str());
+    }
+
+    return Result;
 }
 
-void FileHandler::UpdateFiles( std::string Filter, FS::path Path )
+std::vector<FS::path> FileHandler::UpdateFiles(std::string Filter, FS::path Path)
 {
-	if ( Path.generic_string() == "C:" )
-	{
-		std::string Temp = Path.generic_string() + "/";
-		Path = Temp;
-	}
+    if (Path.generic_string() == "C:")
+    {
+        std::string Temp = Path.generic_string() + "/";
+        Path = Temp;
+    }
 
-	std::vector< FS::path > Result;
+    std::vector<FS::path> Result;
 
-	FS::directory_iterator ITR( Path );
-	while( ITR != FS::end( ITR ) )
-	{
-		const FS::directory_entry& ENTRY = *ITR;
-		if ( CheckFilter( Filter, ENTRY.path() ) )
-		{
-			Result.push_back( ENTRY.path() );
-		}
-		ITR++;
-	}
+    try
+    {
+        FS::directory_iterator ITR(Path);
+        while (ITR != FS::end(ITR))
+        {
+            const FS::directory_entry& ENTRY = *ITR;
+            if (CheckFilter(Filter, ENTRY.path()))
+            {
+                Result.push_back(ENTRY.path());
+            }
+            ITR++;
+        }
 
-	sort( Result.begin(), Result.end(), Compare );
+        sort(Result.begin(), Result.end(), Compare);
+    }
+    catch (const FS::filesystem_error& ex)
+    {
+        // Handle the exception or log the error
+        printf("Failed to update files: %s", std::string(ex.what()).c_str());
+    }
 
-    m_Files = Result;
+    return Result;
 }
 
 FileHandler::Data FileHandler::GetDirectories()

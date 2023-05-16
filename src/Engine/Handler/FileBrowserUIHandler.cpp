@@ -69,9 +69,8 @@ void FileBrowserUIHandler::Update( float DeltaTime )
 		if ( ImGui::Button("Filter") )
 		{
 			m_Filter = m_Temp;
-            FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
             m_Files.clear();
-            m_Files = FileHandler::GetHandle().GetFiles();
+            m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
 	        m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
 		}
 	}
@@ -133,7 +132,6 @@ void FileBrowserUIHandler::Update( float DeltaTime )
 		if ( FileHandler::GetHandle().IsPathFile( Path ) ) ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 255, 50, 255, 255 ) );
 		else ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 50, 255, 255, 255 ) );
 
-
 		if ( ImGui::Selectable( FileHandler::GetHandle().GetFileName( Path ).c_str() ) )
 		{
 			if ( !FileHandler::GetHandle().IsPathFile( Path ) )
@@ -187,13 +185,12 @@ void FileBrowserUIHandler::Update( float DeltaTime )
         m_MainPath = m_CurrentPath;
 
 
-        FileHandler::GetHandle().UpdateDirectories( m_MainPath );
-        m_Directories.clear();
-        m_Directories = FileHandler::GetHandle().GetDirectories();
+		m_Directories.clear();
+		m_Files.clear();
 
-        FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
-        m_Files.clear();
-        m_Files = FileHandler::GetHandle().GetFiles();
+        m_Directories = FileHandler::GetHandle().UpdateDirectories( m_MainPath );
+
+        m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
 	    m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
     }
 }
@@ -210,13 +207,12 @@ void FileBrowserUIHandler::Begin( std::string Extension, bool Mode )
     m_Filter.clear();
     m_SelectedFiles.clear();
 
-    FileHandler::GetHandle().UpdateDirectories( m_MainPath );
-    m_Directories.clear();
-    m_Directories = FileHandler::GetHandle().GetDirectories();
+	m_Directories.clear();
+	m_Files.clear();
 
-    FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
-    m_Files.clear();
-    m_Files = FileHandler::GetHandle().GetFiles();
+    m_Directories = FileHandler::GetHandle().UpdateDirectories( m_MainPath );
+    m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
+
 	m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
 }
 void FileBrowserUIHandler::End() { m_Rendering = false; }

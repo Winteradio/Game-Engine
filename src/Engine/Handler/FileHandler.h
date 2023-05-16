@@ -2,6 +2,8 @@
 #define __FILEHANDLER_H__
 
 #include "Log.h"
+#include <stdexcept> // For std::runtime_error
+#include <system_error> // For std::filesystem::filesystem_error
 
 namespace FS = std::filesystem;
 
@@ -25,8 +27,8 @@ class FileHandler
 		bool CheckFilter( std::string Filter, FS::path Path );
 		bool IsPathFile( FS::path Path );
 
-        void UpdateDirectories( FS::path Path );
-        void UpdateFiles( std::string Filter, FS::path Path );
+        std::vector< FS::path > UpdateDirectories( FS::path Path );
+        std::vector< FS::path > UpdateFiles( std::string Filter, FS::path Path );
 
 		Data GetDirectories();
 		Data GetFiles();
