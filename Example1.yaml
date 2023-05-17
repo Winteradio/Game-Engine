@@ -1,6 +1,8 @@
 - Index: 0
   Name: Default
-- Index: 1
-  Name: Default
-- Index: 2
-  Name: Default
+  Entity:
+    - UUID: 00c8574d-5350-4d81-9163-1b12b0dc86ef
+      UUID: 160b6081-16a2-46d6-af36-e0907ef864ea
+  System:
+    - UUID: 965e2b48-5dc0-4436-81ce-467393313c2d
+      UUID: fcd8cc43-fab9-46b6-8767-3538cde39361

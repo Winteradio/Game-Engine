@@ -97,7 +97,7 @@ std::vector<FS::path> FileHandler::UpdateDirectories(FS::path Path)
     catch (const FS::filesystem_error& ex)
     {
         // Handle the exception or log the error
-        printf("Failed to update directories: %s", std::string(ex.what()).c_str());
+        Log::Error("Failed to update directories: %s", std::string(ex.what()).c_str());
     }
 
     return Result;
@@ -131,7 +131,7 @@ std::vector<FS::path> FileHandler::UpdateFiles(std::string Filter, FS::path Path
     catch (const FS::filesystem_error& ex)
     {
         // Handle the exception or log the error
-        printf("Failed to update files: %s", std::string(ex.what()).c_str());
+        Log::Error("Failed to update files: %s", std::string(ex.what()).c_str());
     }
 
     return Result;

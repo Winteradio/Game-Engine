@@ -26,6 +26,8 @@ class MainUIHandler
         int m_PosY;
         int m_Width;
         int m_Height;
+
+        char m_Temp[MAX_LENGTH];
 };
 
 #endif // __MAINUIHANDLER_H__

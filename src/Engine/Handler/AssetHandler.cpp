@@ -43,6 +43,24 @@ void AssetHandler::Save( FS::path Path )
 void AssetHandler::LoadYAML( FS::path Path )
 {
     Log::Info(" Load File %s ", Path.generic_string().c_str() );
+
+    YAML::Node Data = YAML::LoadFile( Path.generic_string() );
+
+    for ( auto scene : Data )
+    {
+        SceneManager::GetHandle().CreateScene( scene["Index"].as<int>(), scene["Name"].as<std::string>() );
+
+        for ( auto entity : scene["Entity"]["UUID"] )
+        {
+            Log::Info("%s", entity.as<std::string>() );
+            SceneManager::GetHandle().GetScene( scene["Index"].as<int>() ).RegisterEntity( entity.as<std::string>() );
+        }
+
+        for ( auto system : scene["System"]["UUID"] )
+        {
+            SceneManager::GetHandle().GetScene( scene["Index"].as<int>() ).RegisterSystem( system.as<std::string>() );
+        }
+    }
 }
 
 void AssetHandler::SaveYAML( FS::path Path )
@@ -56,6 +74,27 @@ void AssetHandler::SaveYAML( FS::path Path )
         Data << YAML::BeginMap;
         Data << YAML::Key << "Index" << YAML::Value << scene.GetIndex();
         Data << YAML::Key << "Name" << YAML::Value << scene.GetName();
+
+        Data << YAML::Key << "Entity" << YAML::Value;
+        Data << YAML::BeginSeq;
+        Data << YAML::BeginMap;
+        for ( auto ID : scene.GetRegisteredEntities() )
+        {
+            Data << YAML::Key << "UUID" << YAML::Value << ID.GetString();
+        }
+        Data << YAML::EndMap;
+        Data << YAML::EndSeq;
+
+        Data << YAML::Key << "System" << YAML::Value;
+        Data << YAML::BeginSeq;
+        Data << YAML::BeginMap;
+        for ( auto ID : scene.GetRegisteredSystems() )
+        {
+            Data << YAML::Key << "UUID" << YAML::Value << ID.GetString();
+        }
+        Data << YAML::EndMap;
+        Data << YAML::EndSeq;
+
         Data << YAML::EndMap;
     }
     Data << YAML::EndSeq;

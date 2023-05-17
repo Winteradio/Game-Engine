@@ -69,8 +69,9 @@ void FileBrowserUIHandler::Update( float DeltaTime )
 		if ( ImGui::Button("Filter") )
 		{
 			m_Filter = m_Temp;
-            m_Files.clear();
-            m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
+
+			UpdateFile();
+
 	        m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
 		}
 	}
@@ -97,6 +98,7 @@ void FileBrowserUIHandler::Update( float DeltaTime )
 					if ( FileHandler::GetHandle().CheckFilter( m_Extension, FileHandler::GetHandle().GetFileName( Path ) ) )
 					{
 						m_Rendering = false;
+						AssetHandler::GetHandle().Load( Path );
 					}
 				}
 				End();
@@ -184,15 +186,19 @@ void FileBrowserUIHandler::Update( float DeltaTime )
     {
         m_MainPath = m_CurrentPath;
 
+		UpdateFile();
 
-		m_Directories.clear();
-		m_Files.clear();
-
-        m_Directories = FileHandler::GetHandle().UpdateDirectories( m_MainPath );
-
-        m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
 	    m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
     }
+}
+
+void FileBrowserUIHandler::UpdateFile()
+{
+	m_Directories.clear();
+	m_Directories = FileHandler::GetHandle().UpdateDirectories( m_MainPath );
+
+	m_Files.clear();
+	m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
 }
 
 void FileBrowserUIHandler::Begin( std::string Extension, bool Mode ) 
@@ -207,11 +213,7 @@ void FileBrowserUIHandler::Begin( std::string Extension, bool Mode )
     m_Filter.clear();
     m_SelectedFiles.clear();
 
-	m_Directories.clear();
-	m_Files.clear();
-
-    m_Directories = FileHandler::GetHandle().UpdateDirectories( m_MainPath );
-    m_Files = FileHandler::GetHandle().UpdateFiles( m_Filter, m_MainPath );
+	UpdateFile();
 
 	m_ColumnElement = (int)( ( m_Files.size() + 1 )/ m_Columns ) + 1;
 }

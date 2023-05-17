@@ -47,6 +47,7 @@ void MainUIHandler::Update( float DeltaTime )
         ImGui::PushID( ( scene.GetName() + std::to_string( scene.GetIndex() ) ).c_str() );
         ImGui::Text( ( "#" + std::to_string( scene.GetIndex() ) ).c_str() );
         ImGui::SameLine();
+
         if ( ImGui::TreeNode( scene.GetName().c_str() ) )
         {
             ImGui::SeparatorText(" Registered Entities ... ");
@@ -82,6 +83,8 @@ void MainUIHandler::Update( float DeltaTime )
         ImGui::Text( entity.GetID().GetString().substr( 0, 6 ).c_str() );
         ImGui::PopStyleColor();
         ImGui::SameLine();
+
+        
         if ( ImGui::Selectable( entity.GetName().c_str() ) )
         {
             PropertyUIHandler::GetHandle().SetID( entity.GetID() );

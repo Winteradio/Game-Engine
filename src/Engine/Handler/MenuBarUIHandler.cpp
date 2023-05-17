@@ -37,6 +37,15 @@ void MenuBarUIHandler::Update( float DeltaTime )
 	{
 		if ( ImGui::BeginMenu( "File" ) )
 		{
+			if ( ImGui::MenuItem(" New ", "Ctrl + N") )
+			{
+				SceneManager::GetHandle().Destroy();
+				EntityManager::GetHandle().Destroy();
+				NodeManager::GetHandle().Destroy();
+				ComponentManager::GetHandle().Destroy();
+				SystemManager::GetHandle().Destroy();
+			}
+
 			if ( ImGui::MenuItem(" Open ", "Ctrl + O") )
 			{
 				FileBrowserUIHandler::GetHandle().Begin( "yaml", true );

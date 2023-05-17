@@ -38,6 +38,8 @@ class AssetHandler
         void LoadJPG( FS::path Path );
         void SaveJPG( FS::path Path );
 
+    public :
+
     private :
         static AssetHandler m_AssetHandler;
 };

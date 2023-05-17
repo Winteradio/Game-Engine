@@ -20,6 +20,7 @@ class FileBrowserUIHandler
         void Init( int PosX, int PosY, int Width, int Height );
         void Destroy();
         void Update( float DeltaTime );
+        void UpdateFile();
         void Begin( std::string Extension, bool Mode );
         void End();
 

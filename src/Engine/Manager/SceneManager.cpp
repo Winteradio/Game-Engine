@@ -10,7 +10,7 @@ void SceneManager::Init()
 
 void SceneManager::CreateScene()
 {
-	CreateScene( (int)m_Data.size() - 1, "Default" );
+	CreateScene( (int)m_Data.size(), "Default" );
 }
 
 void SceneManager::CreateScene( int Index )

@@ -8,7 +8,7 @@
                 "${workspaceFolder}/src/Utils/**",
                 "${workspaceFolder}/third-party/**",
                 "${workspaceFolder}/asset/**",
-                "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Include"
+                "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Include",
             ],
             "defines": [
                 "_DEBUG"
