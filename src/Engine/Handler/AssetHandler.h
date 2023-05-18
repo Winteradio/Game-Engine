@@ -2,6 +2,7 @@
 #define __ASSETHANDLER_H__
 
 #include "Log.h"
+#include "Name.h"
 
 #define YAML_CPP_STATIC_DEFINE
 
@@ -37,6 +38,11 @@ class AssetHandler
 
         void LoadJPG( FS::path Path );
         void SaveJPG( FS::path Path );
+
+    public :    
+        void LoadScene( YAML::Node& FileData );
+        void LoadEntity( YAML::Node& FileData );
+        void LoadSystem( YAML::Node& FileData );
 
     public :
 

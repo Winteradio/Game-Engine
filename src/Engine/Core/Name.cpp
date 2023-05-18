@@ -20,7 +20,7 @@ std::string Name::Get( const std::type_info& Type )
         return Result;
     }
 
-    Result.erase( 0, ITR );
+    Result.erase( 0, ITR + 1 );
 
     return Result;
 }

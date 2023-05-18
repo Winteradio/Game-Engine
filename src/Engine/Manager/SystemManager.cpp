@@ -12,9 +12,6 @@ SystemManager::~SystemManager()
 
 void SystemManager::Init()
 {
-    Create( new CameraSystem() );
-    Create( new RenderSystem() );
-
     Log::Info(" Init - System Manager ");
 }
 
@@ -30,9 +27,16 @@ void SystemManager::Destroy()
 
 void SystemManager::Create( ISystem* Other )
 {
-    MyUUID ID;
-    ID.Init();
-    Create( Other, ID );
+    if ( Other->GetID().GetString().empty() )
+    {
+        MyUUID ID;
+        ID.Init();
+        Create( Other, ID );
+    }
+    else
+    {
+        Create( Other, Other->GetID() );
+    }
 }
 
 void SystemManager::Create( ISystem* Other, MyUUID ID )
@@ -42,6 +46,7 @@ void SystemManager::Create( ISystem* Other, MyUUID ID )
     {
         Other->SetID( ID );
         m_Data[ ID ] = Other;
+        Log::Info(" Create System %s ", ID.GetString().c_str() );
     }
 }
 
@@ -67,6 +72,7 @@ ISystem* SystemManager::Get( MyUUID ID )
     bool Check = Has( ID );
     if ( Check )
     {
+        Log::Info( Name::Get( typeid( *m_Data[ID]) ).c_str() );
         return m_Data[ ID ];
     }
     else

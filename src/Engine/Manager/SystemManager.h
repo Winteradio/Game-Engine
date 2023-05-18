@@ -2,6 +2,7 @@
 #define __SYSTEMMANAGER_H__
 
 #include "Log.h"
+#include "Name.h"
 #include "ISystem.h"
 
 #include "RenderSystem.h"
@@ -9,6 +10,7 @@
 
 class SystemManager
 {
+    using Type = std::set< std::type_index >;
     using Data = std::map< MyUUID, ISystem*, MyUUIDCompare >;
 
 	private :
@@ -28,6 +30,7 @@ class SystemManager
         bool Has( MyUUID ID );
 
         ISystem* Get( MyUUID ID );
+        Type& GetType();
         Data& GetData();
 
     private :

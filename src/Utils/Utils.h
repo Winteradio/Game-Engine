@@ -13,6 +13,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <typeindex>
 #include <thread>
 #include <utility>
 #include <windows.h>

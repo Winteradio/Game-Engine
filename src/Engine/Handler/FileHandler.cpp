@@ -63,11 +63,7 @@ bool Compare( FS::path One, FS::path Other )
 {
 	std::string stringOne = One.generic_string();
 	std::string stringOther = Other.generic_string();
-	if ( FS::is_regular_file( One ) && FS::is_regular_file( Other ) )
-	{
-		return stringOne < stringOther;
-	}
-	else if ( FS::is_directory( One ) && FS::is_directory( Other ) )
+	if ( FS::is_regular_file( One ) == FS::is_regular_file( Other ) )
 	{
 		return stringOne < stringOther;
 	}
@@ -75,7 +71,7 @@ bool Compare( FS::path One, FS::path Other )
 	{
 		return false;
 	}
-	else
+	else // ( FS::is_directory( One ) && FS::is_regular_file( Other ) )
 	{
 		return true;
 	}

@@ -52,14 +52,26 @@ void MainUIHandler::Update( float DeltaTime )
         {
             ImGui::SeparatorText(" Registered Entities ... ");
             for ( auto ID : scene.GetRegisteredEntities() )
-            {
+            { 
                 ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
                 ImGui::Text( ID.GetString().substr( 0, 6 ).c_str() );
                 ImGui::PopStyleColor();               
                 ImGui::SameLine();
                 ImGui::Text( EntityManager::GetHandle().GetEntity( ID )->GetName().c_str() );
+                // When Just call ID and register in scene and no make entity
+                // This method call Error
             }
+
             ImGui::SeparatorText(" Registered Systems ... ");
+            for ( auto ID : scene.GetRegisteredSystems() )
+            {
+                ImGui::PushStyleColor( ImGuiCol_Text, IM_COL32( 155, 155, 155, 255 ) );
+                ImGui::Text( ID.GetString().substr( 0, 6 ).c_str() );
+                ImGui::PopStyleColor();               
+                ImGui::SameLine();
+                SystemManager::GetHandle().Get( ID );
+                ImGui::Text( Name::Get( typeid( ( SystemManager::GetHandle().Get( ID ) ) ) ).c_str() );
+            }
 
             ImGui::TreePop();
         }

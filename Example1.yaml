@@ -1,8 +1,26 @@
-- Index: 0
-  Name: Default
-  Entity:
-    - UUID: 00c8574d-5350-4d81-9163-1b12b0dc86ef
-      UUID: 160b6081-16a2-46d6-af36-e0907ef864ea
-  System:
-    - UUID: 965e2b48-5dc0-4436-81ce-467393313c2d
-      UUID: fcd8cc43-fab9-46b6-8767-3538cde39361
+- Part: Scene
+  Objects:
+    - Name: Default
+      Index: 0
+      Entity:
+        []
+      System:
+        []
+    - Name: Default
+      Index: 1
+      Entity:
+        - UUID: 81798ee7-339e-4ff8-94ed-b606029448a7
+        - UUID: cb8599b3-9cf0-4d88-a0f2-e530b18b2b44
+      System:
+        []
+
+- Part: Entity
+  Objects:
+    - Name: Default
+      UUID: 81798ee7-339e-4ff8-94ed-b606029448a7
+    - Name: Default
+      UUID: cb8599b3-9cf0-4d88-a0f2-e530b18b2b44
+
+- Part: System
+  Objects:
+    []
