@@ -9,8 +9,7 @@ if (WIN32)
     message(STATUS "- GameEngine Platform : Windows")
     add_executable(${PROJECT_NAME} WIN32)
 else ()
-    message(STATUS "- GameEngine Platform : Others")
-    add_executable(${PROJECT_NAME})
+    message(FATAL_ERROR "- GameEngine Platform : Others (Not supported yet)")
 endif()
 
 # ------ Set the project options ------ #
@@ -63,6 +62,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	ReflectionProject 
 	LogProject
 	glm
+	opengl32
+	gdi32
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
