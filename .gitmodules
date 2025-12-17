@@ -1,0 +1,24 @@
+[submodule "external/ECS"]
+	path = external/ECS
+	url = https://github.com/Winteradio/ECS-with-Scene-and-Node.git
+[submodule "external/glad"]
+	path = external/glad
+	url = https://github.com/Winteradio/glad.git
+[submodule "external/Memory"]
+	path = external/Memory
+	url = https://github.com/Winteradio/MemoryPool.git
+[submodule "external/Container"]
+	path = external/Container
+	url = https://github.com/Winteradio/Container.git
+[submodule "external/Reflection"]
+	path = external/Reflection
+	url = https://github.com/Winteradio/Reflection.git
+[submodule "external/Log"]
+	path = external/Log
+	url = https://github.com/Winteradio/Log.git
+[submodule "external/CMake"]
+	path = external/CMake
+	url = https://github.com/Winteradio/CMake.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git
