@@ -1,14 +1,11 @@
-#include "Core.h"
+#include <Log/include/Log.h>
+#include <Log/include/LogPlatform.h>
 
-int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd )
+int MAIN()
 {
-	Core::GetHandle().Init();
+	Log::Init(1024, Log::Enum::eMode_Print, Log::Enum::eLevel_Type);
 
-	for ( auto Message : Log::GetMessage() )
-	{
-		std::cout << Message << std::endl;
-	}
-	Core::GetHandle().Start();
+	LOGINFO() << "Hello World";
 
 	system("pause");
 	return 0;
