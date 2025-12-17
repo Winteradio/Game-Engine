@@ -55,7 +55,7 @@ GameEngine/
 │   ├── ECS/          # 데이터 지향 ECS 프레임워크
 │   ├── glad/         # OpenGL 로더 및 WGL 확장
 │   ├── glm/          # OpenGL 수학 라이브러리
-│   ├── Log/          # 비동기 로깅 시스템
+│   ├── Log/          # 로깅 시스템
 │   ├── Memory/       # 커스텀 메모리 할당자
 │   └── Reflection/   # 런타임 리플렉션 및 직렬화
 ├── include			  # 엔진 코어 헤더 파일
