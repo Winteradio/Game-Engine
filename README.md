@@ -127,3 +127,49 @@ cmake --build . --config Release
 ## 📝 라이선스 (License)
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참고하세요.
+
+--- 2025-12-29
+
+- class RHIBufferDesc
+	-> Primitive 단위로 Buffer 적재되어 있음
+	-> 혹은 VertexBuffer를 상속받아서 묶음 자체로 처리 가능
+
+	- Size
+	- Stride
+	- Usage (Enum)
+
+- class RHIBuffer
+
+- class RHITextureDesc
+	- TextureDimension
+	- TextureCreateFlags
+		-> RenderTarget (FrameBuffer)
+		-> DepthStencil (FrameBuffer)
+		-> ShaderResource (Real-Texture)
+		-> SRGB (SRGB용??)
+		-> CPUWritable (VTX 같은 역할?)
+	- PixelFormat
+	- ClearValueBinding
+	- IntPoint
+	- Extent
+	- Depth
+	- ArraySize
+	- NumMips
+	- NumSamples
+	- ExtData
+
+- class RHISamplerState
+- class RHIRaserizerState
+- class RHIDepthStencilState
+- class RHIBlendState
+
+- class RHIShaderData??
+- class RHIShader
+- class RHIGraphicShader : RHIShader
+- class RHIVertexShader : RHIGraphicShader
+- class ...
+
+- class RHIGraphicsPipeLineState
+
+- class RHIComputeShader : RHIShader
+- class RHIComputePipeLineState

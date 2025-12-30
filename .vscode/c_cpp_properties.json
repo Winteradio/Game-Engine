@@ -3,10 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/src/API/**",
-                "${workspaceFolder}/src/Engine/**",
-                "${workspaceFolder}/src/Utils/**",
-                "${workspaceFolder}/third-party/**",
+                "${workspaceFolder}/Engine/**",
+                "${workspaceFolder}/external/**",
                 "${workspaceFolder}/asset/**",
                 "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Include",
             ],
