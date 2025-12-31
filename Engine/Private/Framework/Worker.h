@@ -6,6 +6,12 @@
 
 namespace wtr
 {
+	enum class eWorkerType : uint8_t
+	{
+		eProceduer,
+		eConsumer
+	};
+
 	class Worker
 	{
 	public :

@@ -1,52 +1,45 @@
 #include <Framework/Engine.h>
+
+#include <Framework/Input/InputStorage.h>
 #include <Platform/Win32/Win32Window.h>
 #include <Platform/Win32/Win32InputHandler.h>
+#include <Renderer/RenderContext.h>
 
+#include <Memory/include/Core.h>
 #include <Log/include/Log.h>
 
 namespace wtr
 {
 	Engine::Engine()
-		: m_Window(nullptr)
-		, m_InputHandler(nullptr)
-		, m_Application(nullptr)
-		, m_RHIDevice(nullptr)
-		, m_RHIContext(nullptr)
-		, m_InputStorage()
+		: m_window(nullptr)
+		, m_inputHandler(nullptr)
+		, m_application(nullptr)
+		, m_inputStorage(nullptr)
+		, m_renderContext(nullptr)
+		, m_worldWorker()
+		, m_renderWorker()
 	{}
 
 	Engine::~Engine()
 	{
 		Shutdown();
 
-		if (nullptr != m_Window)
+		if (nullptr != m_window)
 		{
-			delete m_Window;
-			m_Window = nullptr;
+			delete m_window;
+			m_window = nullptr;
 		}
 
-		if (nullptr != m_InputHandler)
+		if (nullptr != m_inputHandler)
 		{
-			delete m_InputHandler;
-			m_InputHandler = nullptr;
+			delete m_inputHandler;
+			m_inputHandler = nullptr;
 		}
 
-		if (nullptr != m_Application)
+		if (nullptr != m_application)
 		{
-			delete m_Application;
-			m_Application = nullptr;
-		}
-
-		if (nullptr != m_RHIDevice)
-		{
-			delete m_RHIDevice;
-			m_RHIDevice = nullptr;
-		}
-
-		if (nullptr != m_RHIContext)
-		{
-			delete m_RHIContext;
-			m_RHIContext = nullptr;
+			delete m_application;
+			m_application = nullptr;
 		}
 	}
 
@@ -54,13 +47,33 @@ namespace wtr
 	{
 		LOGINFO() << "[Engine] Initializing Engine";
 
+		m_inputStorage = Memory::MakeRef<InputStorage>();
+		m_renderContext = Memory::MakeRef<RenderContext>();
+		if (!m_inputStorage || !m_renderContext)
+		{
+			LOGERROR() << "[Engine] Failed to create the input storage and render context";
+			return false;
+		}
+
 		if (!InitWindow(mainWindowDesc))
 		{
 			LOGERROR() << "[Engine] Failed to initialize main window";
 			return false;
 		}
 
-		m_Window->Show();
+		if (!m_worldWorker.Init(m_inputStorage, m_renderContext))
+		{
+			LOGERROR() << "[Engine] Failed to initialize the world worker";
+			return false;
+		}
+
+		if (!m_renderWorker.Init(m_renderContext))
+		{
+			LOGERROR() << "[Engine] Failed to initialize the render worker";
+			return false;
+		}
+
+		m_window->Show();
 
 		LOGINFO() << "[Engine] Engine initialized successfully";
 		return true;
@@ -70,8 +83,8 @@ namespace wtr
 	{
 		if (eWindowType::eWin32 == mainWindowDesc.Type)
 		{
-			m_Window = new Win32Window();
-			m_InputHandler = new Win32InputHandler();
+			m_window = new Win32Window();
+			m_inputHandler = new Win32InputHandler();
 		}
 		else
 		{
@@ -79,13 +92,13 @@ namespace wtr
 			return false;
 		}
 		
-		if (!m_Window->Init(mainWindowDesc))
+		if (!m_window->Init(mainWindowDesc))
 		{
 			LOGERROR() << "[Engine] Failed to initialize main window";
 			return false;
 		}
 
-		m_Window->SetInputHandler(m_InputHandler);
+		m_window->SetInputHandler(m_inputHandler);
 
 		LOGINFO() << "[Engine] Main window initialized successfully";
 
@@ -96,10 +109,13 @@ namespace wtr
 	{
 		LOGINFO() << "[Engine] Shutting down Engine";
 
-		if (m_Window)
+		if (m_window)
 		{
-			m_Window->Shutdown();
+			m_window->Shutdown();
 		}
+
+		m_worldWorker.Stop();
+		m_renderWorker.Stop();
 
 		LOGINFO() << "[Engine] Engine shut down successfully";
 	}
@@ -108,51 +124,37 @@ namespace wtr
 	{
 		LOGINFO() << "[Engine] Running Engine";
 
-		while (m_Window->GetStatus() != eWindowStatus::eClosed)
+		m_worldWorker.Start();
+		m_renderWorker.Start();
+
+		while (m_window->GetStatus() != eWindowStatus::eClosed)
 		{
-			m_Window->PollEvents();
+			m_window->PollEvents();
 
-			if (m_Window->GetStatus() == eWindowStatus::eActive)
-			{
-				Update();
-				Render();
-			}
-
-			if (m_InputHandler)
-			{
-				m_InputHandler->PopInputEvent();
-			}
+			UpdateInput();
 		}
 
 		LOGINFO() << "[Engine] Engine run completed";
 	}
 
-	void Engine::Update()
-	{
-		UpdateInput();
-	}
-
 	void Engine::UpdateInput()
 	{
-		if (m_InputHandler)
+		if (!m_inputHandler || !m_inputStorage)
 		{
-			m_InputStorage.Prepare();
-			
-			while (!m_InputHandler->IsEmpty())
-			{
-				const InputDesc& inputDesc = m_InputHandler->GetInputEvent();
-				if (inputDesc.Type != eInputType::eNone)
-				{
-					m_InputStorage.Update(inputDesc);
-				}
-
-				m_InputHandler->PopInputEvent();
-			}
+			return;
 		}
-	}
 
-	void Engine::Render()
-	{
-		// Implementation for rendering
+		m_inputStorage->Prepare();
+
+		while (!m_inputHandler->IsEmpty())
+		{
+			const InputDesc& inputDesc = m_inputHandler->GetInputEvent();
+			if (inputDesc.Type != eInputType::eNone)
+			{
+				m_inputStorage->Update(inputDesc);
+			}
+
+			m_inputHandler->PopInputEvent();
+		}
 	}
 };

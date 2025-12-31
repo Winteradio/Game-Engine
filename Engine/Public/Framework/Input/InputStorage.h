@@ -1,9 +1,12 @@
 #ifndef __WTR_INPUTSTORAGE_H__
 #define __WTR_INPUTSTORAGE_H__
 
+#include <Memory/include/Pointer/RefPtr.h>
+
 #include <Framework/Input/InputTypes.h>
 #include <Framework/Math/MathTypes.h>
 
+#include <atomic>
 #include <string>
 
 namespace wtr
@@ -36,7 +39,7 @@ namespace wtr
 		static std::string ToString(const InputData& data);
 	};
 
-	class InputStorage
+	class InputStorage : public Memory::RefCounted
 	{
 		public :
 			InputStorage();
@@ -45,6 +48,7 @@ namespace wtr
 		public :
 			void Prepare();
 			void Update(const InputDesc& inputDesc);
+			void SwapInput();
 
 			bool IsChanaged() const;
 			bool IsDown(eKeyCode key) const;
@@ -63,8 +67,13 @@ namespace wtr
 			const size_t GetKeyBit(eKeyCode key) const;
 
 		private :
-			InputData m_PrevData;
-			InputData m_CurrData;
+			InputData m_InputData[3];
+
+			InputData* m_CurrData;
+			InputData* m_LogicData;
+
+			std::atomic<bool>		m_Swapped;
+			std::atomic<InputData*> m_PrevData;
 
 			static constexpr size_t KEY_BIT = 4;
 	};

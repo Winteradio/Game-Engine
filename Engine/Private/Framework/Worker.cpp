@@ -28,10 +28,11 @@ namespace wtr
 			return;
 		}
 
+		m_isRunning = false;
+
 		if (m_thread.joinable())
 		{
 			m_thread.join();
-			m_isRunning = false;
 		}
 	}
 

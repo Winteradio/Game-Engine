@@ -2,6 +2,9 @@
 #define __WTR_ENGINE_H__
 
 #include <Framework/Input/InputStorage.h>
+#include <Renderer/RenderWorker.h>
+#include <Renderer/RenderContext.h>
+#include <World/WorldWorker.h>
 
 namespace wtr
 {
@@ -10,8 +13,6 @@ namespace wtr
 	class Window;
 	class Application;
 	class InputHandler;
-	class RHIDevice;
-	class RHIContext;
 
 	struct WindowDesc;
 };
@@ -32,18 +33,18 @@ namespace wtr
 		private :
 			bool InitWindow(const WindowDesc& mainWindowDesc);
 
-			void Update();
 			void UpdateInput();
-			void Render();
 
 		private :
-			Window*			m_Window;
-			InputHandler*	m_InputHandler;
-			Application*	m_Application;
-			RHIDevice*		m_RHIDevice;
-			RHIContext*		m_RHIContext;
+			Window*			m_window;
+			InputHandler*	m_inputHandler;
+			Application*	m_application;
 
-			InputStorage	m_InputStorage;
+			Memory::RefPtr<InputStorage> m_inputStorage;
+			Memory::RefPtr<RenderContext> m_renderContext;
+			
+			WorldWorker		m_worldWorker;
+			RenderWorker	m_renderWorker;
 	};
 };
 
