@@ -4,20 +4,22 @@
 #include <Memory/include/Pointer/RefPtr.h>
 
 #include <Framework/Worker.h>
-#include <Renderer/RenderContext.h>
-#include <Renderer/Renderer.h>
-#include <RHI/RHISystem.h>
+#include <Framework/FrameContext.h>
 
 namespace wtr
 {
+
 	class RenderWorker : public Worker
 	{
 	public :
+		using RenderFunc = std::function<void(RenderCommandList&)>;
+
 		RenderWorker();
 		~RenderWorker();
 
 	public :
-		bool Init(const Memory::RefPtr<RenderContext> refRenderContext);
+		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
+		void SetFunction(const RenderFunc func);
 
 	protected :
 		void onStart() override;
@@ -25,10 +27,9 @@ namespace wtr
 		void onDestroy() override;
 
 	private :
-		Renderer m_renderer;
-		RHISystem m_system;
+		Memory::RefPtr<FrameContext> m_refFrameContext;
 
-		Memory::RefPtr<RenderContext> m_refRenderContext;
+		RenderFunc m_renderFunc;
 	};
 };
 

@@ -16,6 +16,16 @@ namespace wtr
 		size_t GetFrame() const;
 		void SetFrame(const size_t frame);
 
+		void SetClearCommand();
+		void SetDrawCommand();
+		void SetDispatchCommand();
+		void SetUpdateBufferCommand();
+		void SetUpdateTextureCommand();
+		void SetUpdateSamplerCommand();
+		void SetCopyBufferCommand();
+		void SetCopyTextureCommand();
+		void SetViewportCommand();
+
 	private :
 		size_t m_frame;
 	};

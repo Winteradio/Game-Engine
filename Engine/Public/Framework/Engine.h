@@ -1,20 +1,21 @@
 #ifndef __WTR_ENGINE_H__
 #define __WTR_ENGINE_H__
 
-#include <Framework/Input/InputStorage.h>
-#include <Renderer/RenderWorker.h>
-#include <Renderer/RenderContext.h>
-#include <World/WorldWorker.h>
+#include <Memory/include/Pointer/RootPtr.h>
+#include <Memory/include/Pointer/RefPtr.h>
+
+#include <World/World.h>
+#include <Renderer/Renderer.h>
 
 namespace wtr
 {
-	enum class eWindowType : uint8_t;
-
 	class Window;
-	class Application;
 	class InputHandler;
+	class InputStorage;
+	class FrameContext;
 
 	struct WindowDesc;
+	struct RenderDesc;
 };
 
 namespace wtr
@@ -26,25 +27,29 @@ namespace wtr
 			virtual ~Engine();
 
 		public :
-			bool Init(const WindowDesc& mainWindowDesc);
+			bool Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc);
 			void Shutdown();
 			void Run();
 
+			Memory::ObjectPtr<World> GetWorld();
+			Memory::ObjectPtr<Renderer> GetRenderer();
+
 		private :
-			bool InitWindow(const WindowDesc& mainWindowDesc);
+			bool InitWindow(const WindowDesc& windowDesc);
+			bool InitRender(const RenderDesc& renderDesc);
+			bool InitWorld();
 
 			void UpdateInput();
 
 		private :
 			Window*			m_window;
 			InputHandler*	m_inputHandler;
-			Application*	m_application;
 
-			Memory::RefPtr<InputStorage> m_inputStorage;
-			Memory::RefPtr<RenderContext> m_renderContext;
+			Memory::RefPtr<InputStorage>	m_inputStorage;
+			Memory::RefPtr<FrameContext>	m_frameContext;
 			
-			WorldWorker		m_worldWorker;
-			RenderWorker	m_renderWorker;
+			Memory::RootPtr<World>	m_world;
+			Memory::RootPtr<Renderer> m_renderer;
 	};
 };
 

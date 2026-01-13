@@ -1,5 +1,5 @@
-#ifndef __WTR_RENDERCONTEXT_H__
-#define __WTR_RENDERCONTEXT_H__
+#ifndef __WTR_FRAMECONTEXT_H__
+#define __WTR_FRAMECONTEXT_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
 
@@ -12,19 +12,20 @@
 namespace wtr
 {
 	enum class eWorkerType : uint8_t;
-}
+};
 
 namespace wtr
 {
-	class RenderContext : public Memory::RefCounted
+	class FrameContext : public Memory::RefCounted
 	{
 	public :
-		RenderContext();
-		~RenderContext();
+		FrameContext();
+		~FrameContext();
 
 	public :
 		RenderCommandList& Acquire(const eWorkerType eType);
 		void Return(const eWorkerType eType, RenderCommandList& commandList);
+		void Notify(const eWorkerType eType);
 
 	private :
 		static constexpr size_t COMMAND_BUFFER = 3;
@@ -34,7 +35,9 @@ namespace wtr
 		std::condition_variable m_cvWorld;
 		std::condition_variable m_cvRender;
 		RenderCommandList m_commandList[COMMAND_BUFFER];
+
+		bool m_isRunning;
 	};
 }
 
-#endif // __WTR_RENDERCONTEXT_H__
+#endif // __WTR_FRAMECONTEXT_H__

@@ -1,47 +1,85 @@
 #include <World/WorldWorker.h>
 
 #include <Framework/Input/InputStorage.h>
-#include <Renderer/RenderContext.h>
+#include <Framework/FrameContext.h>
 
 namespace wtr
 {
 	WorldWorker::WorldWorker()
-		: m_refInputStorage()
+		: m_timeStep()
+		, m_updateFunc()
+		, m_renderFunc()
+		, m_refInputStorage(nullptr)
+		, m_refFrameContext(nullptr)
 	{}
 
 	WorldWorker::~WorldWorker()
 	{}
 
-	bool WorldWorker::Init(const Memory::RefPtr<InputStorage> refInputStorage, const Memory::RefPtr<RenderContext> refRenderContext)
+	void WorldWorker::SetInputStorage(const Memory::RefPtr<InputStorage> inputStorage)
 	{
-		if (!refInputStorage || !refRenderContext)
+		if (inputStorage)
 		{
-			return false;
+			m_refInputStorage = inputStorage;
 		}
+	}
 
-		m_refInputStorage = refInputStorage;
-		m_refRenderContext = refRenderContext;
+	void WorldWorker::SetFrameContext(const Memory::RefPtr<FrameContext> frameContext)
+	{
+		if (frameContext)
+		{
+			m_refFrameContext = frameContext;
+		}
+	}
 
-		return true;
+	void WorldWorker::SetFunction(const UpdateFunc func)
+	{
+		if (func)
+		{
+			m_updateFunc = func;
+		}
+	}
+
+	void WorldWorker::SetFunction(const RenderFunc func)
+	{
+		if (func)
+		{
+			m_renderFunc = func;
+		}
 	}
 
 	void WorldWorker::onStart()
 	{}
 
-#include <Windows.h>
-
 	void WorldWorker::onUpdate()
 	{
-		Sleep(500);
+		m_timeStep.Tick();
 
 		if (m_refInputStorage)
 		{
 			m_refInputStorage->SwapInput();
 		}
+
+		if (m_updateFunc)
+		{
+			m_updateFunc(m_timeStep);
+		}
+
+		if (m_renderFunc && m_refFrameContext)
+		{
+			auto& commandList = m_refFrameContext->Acquire(eWorkerType::eProceduer);
+
+			m_renderFunc(commandList);
+
+			m_refFrameContext->Return(eWorkerType::eProceduer, commandList);
+		}
 	}
 
 	void WorldWorker::onDestroy()
 	{
-		m_refInputStorage.Reset();
+		if (m_refFrameContext)
+		{
+			m_refFrameContext->Notify(eWorkerType::eProceduer);
+		}
 	}
 }

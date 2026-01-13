@@ -124,12 +124,6 @@ namespace wtr
 
 	void InputStorage::Prepare()
 	{
-		//if (IsChanaged())
-		//{
-		//	LOGINFO() << "[Input] Current : " << InputData::ToString(*m_CurrData);
-		//	LOGINFO() << "[Input] Logic : " << InputData::ToString(*m_LogicData);
-		//}
-
 		static InputData copyData;
 		copyData = *m_CurrData;
 
@@ -192,8 +186,6 @@ namespace wtr
 
 		m_LogicData = m_PrevData.exchange(m_LogicData);
 		m_Swapped.exchange(true);
-
-		LOGINFO() << "[Input] Updated Logic : " << InputData::ToString(*m_LogicData);
 	}
 
 	bool InputStorage::IsChanaged() const

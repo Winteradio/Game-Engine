@@ -1,22 +1,22 @@
-#include <Renderer/RenderContext.h>
+#include <Framework/FrameContext.h>
 
 #include <Framework/Worker.h>
-#include <Renderer/RenderCommandList.h>
 
 namespace wtr
 {
-	RenderContext::RenderContext()
+	FrameContext::FrameContext()
 		: m_mutexWorld()
 		, m_mutexRender()
 		, m_cvWorld()
 		, m_cvRender()
 		, m_commandList()
+		, m_isRunning(true)
 	{}
 
-	RenderContext::~RenderContext()
+	FrameContext::~FrameContext()
 	{}
 
-	RenderCommandList& RenderContext::Acquire(const eWorkerType eType)
+	RenderCommandList& FrameContext::Acquire(const eWorkerType eType)
 	{
 		if (eWorkerType::eProceduer == eType)
 		{
@@ -32,7 +32,7 @@ namespace wtr
 					}
 				}
 
-				return false;
+				return !this->m_isRunning;
 			};
 
 			m_cvWorld.wait(lock, checkFree);
@@ -60,7 +60,7 @@ namespace wtr
 						}
 					}
 
-					return false;
+					return !this->m_isRunning;
 				};
 
 			m_cvRender.wait(lock, checkReady);
@@ -68,7 +68,7 @@ namespace wtr
 			size_t minFrame = size_t(0) - 1;
 			size_t minIndex = size_t(0) - 1;
 
-			for (size_t index; index < COMMAND_BUFFER; index++)
+			for (size_t index = 0; index < COMMAND_BUFFER; index++)
 			{
 				auto& commandList = m_commandList[index];
 
@@ -87,7 +87,7 @@ namespace wtr
 		return nullList;
 	}
 
-	void RenderContext::Return(const eWorkerType eType, RenderCommandList& commandList)
+	void FrameContext::Return(const eWorkerType eType, RenderCommandList& commandList)
 	{
 		if (eWorkerType::eProceduer == eType)
 		{
@@ -101,5 +101,19 @@ namespace wtr
 
 			m_cvWorld.notify_one();
 		}
+	}
+
+	void FrameContext::Notify(const eWorkerType eType)
+	{
+		if (eWorkerType::eProceduer == eType)
+		{
+			m_cvWorld.notify_all();
+		}
+		else
+		{
+			m_cvRender.notify_all();
+		}
+
+		m_isRunning = false;
 	}
 }

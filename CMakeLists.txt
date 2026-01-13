@@ -2,7 +2,7 @@
 message(STATUS "# Set the basic options for the GameEngine project")
 
 cmake_minimum_required(VERSION 3.20)
-project(GameEngine LANGUAGES CXX)
+project(GameEngine LANGUAGES C CXX)
 
 # ------ Create the executable program ------ #
 if (WIN32)
@@ -41,20 +41,17 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/glm glm)
 set(MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
-set(GLAD_INCLUDE_FILES
-	${EXTERNAL_DIR}/glad/include/glad/glad_wgl.h
-	${EXTERNAL_DIR}/glad/include/glad/glad.h
+set(GLAD_FILES
+	${EXTERNAL_DIR}/glad/glad_wgl.h
+	${EXTERNAL_DIR}/glad/glad.h
 
-	${EXTERNAL_DIR}/glad/include/KHR/khrplatform.h
+	${EXTERNAL_DIR}/glad/khrplatform.h
+
+	${EXTERNAL_DIR}/glad/glad_wgl.c
+	${EXTERNAL_DIR}/glad/glad.c
 )
 
-set(GLAD_SOURCE_FILES
-	${EXTERNAL_DIR}/glad/src/glad_wgl.c
-	${EXTERNAL_DIR}/glad/src/glad.c
-)
-
-source_group(TREE "${EXTERNAL_DIR}/glad" PREFIX "glad" FILES ${GLAD_INCLUDE_FILES})
-source_group(TREE "${EXTERNAL_DIR}/glad" PREFIX "glad" FILES ${GLAD_SOURCE_FILES})
+source_group(TREE "${EXTERNAL_DIR}/glad" PREFIX "glad" FILES ${GLAD_FILES})
 
 set(ENGINE_DIR ${MAIN_DIR}/Engine)
 set(ENGINE_PUBLIC_DIR ${ENGINE_DIR}/Public)
@@ -80,6 +77,9 @@ set(ENGINE_FRAMEWORK_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Framework/InputStorage.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/InputTypes.cpp
 
+	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.h
+	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.cpp
+
 	${ENGINE_PRIVATE_DIR}/Framework/Worker.h
 	${ENGINE_PRIVATE_DIR}/Framework/Worker.cpp
 )
@@ -94,6 +94,7 @@ set(ENGINE_PLATFORM_FILES
 
 set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderCommands.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderCommandList.h
 )
@@ -102,9 +103,6 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommands.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
-
-	${ENGINE_PRIVATE_DIR}/Renderer/RenderContext.h
-	${ENGINE_PRIVATE_DIR}/Renderer/RenderContext.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
@@ -115,42 +113,50 @@ set(ENGINE_RHI_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/RHI/RHICommandList.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIDefinitions.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIResources.h
-	${ENGINE_PUBLIC_DIR}/RHI/RHITypes.h
 )
 
 set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommands.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommandList.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHIDefinitions.cpp
-
-	${ENGINE_PRIVATE_DIR}/RHI/RHIContext.h
-	${ENGINE_PRIVATE_DIR}/RHI/RHIDevice.h
 	
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
 
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.h
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLContext.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLContext.cpp
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLDevice.h
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLDevice.cpp
 )
 
 set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/World.h
+	${ENGINE_PUBLIC_DIR}/World/WorldView.h
+	${ENGINE_PUBLIC_DIR}/World/WorldScene.h
 	${ENGINE_PUBLIC_DIR}/World/WorldCommands.h
 	${ENGINE_PUBLIC_DIR}/World/WorldCommandList.h
+
+	${ENGINE_PUBLIC_DIR}/World/Component.h
+	${ENGINE_PUBLIC_DIR}/World/Node.h
+	${ENGINE_PUBLIC_DIR}/World/System.h
 )
 
 set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/World.cpp
+	${ENGINE_PRIVATE_DIR}/World/WorldView.cpp
+	${ENGINE_PRIVATE_DIR}/World/WorldScene.cpp
 	${ENGINE_PRIVATE_DIR}/World/WorldCommands.cpp
 	${ENGINE_PRIVATE_DIR}/World/WorldCommandList.cpp
 
 	${ENGINE_PRIVATE_DIR}/World/WorldWorker.h
 	${ENGINE_PRIVATE_DIR}/World/WorldWorker.cpp
+
+	${ENGINE_PRIVATE_DIR}/World/Component.cpp
+	${ENGINE_PRIVATE_DIR}/World/Node.cpp
+	${ENGINE_PRIVATE_DIR}/World/System.cpp
 )
 
 source_group(TREE "${ENGINE_PUBLIC_DIR}/Framework" PREFIX "Public\\Framework" FILES ${ENGINE_FRAMEWORK_PUBLIC_FILES})
@@ -159,7 +165,7 @@ source_group(TREE "${ENGINE_PUBLIC_DIR}/RHI" PREFIX "Public\\RHI" FILES ${ENGINE
 source_group(TREE "${ENGINE_PUBLIC_DIR}/World" PREFIX "Public\\World" FILES ${ENGINE_WORLD_PUBLIC_FILES})
 
 source_group(TREE "${ENGINE_PRIVATE_DIR}/Framework" PREFIX "Private\\Framework" FILES ${ENGINE_FRAMEWORK_PRIVATE_FILES})
-source_group(TREE "${ENGINE_PRIVATE_DIR}/Platform" PREFIX "Public\\RHI" FILES ${ENGINE_PLATFORM_FILES})
+source_group(TREE "${ENGINE_PRIVATE_DIR}/Platform" PREFIX "Private\\Platform" FILES ${ENGINE_PLATFORM_FILES})
 source_group(TREE "${ENGINE_PRIVATE_DIR}/Renderer" PREFIX "Private\\Renderer" FILES ${ENGINE_RENDERER_PRIVATE_FILES})
 source_group(TREE "${ENGINE_PRIVATE_DIR}/RHI" PREFIX "Private\\RHI" FILES ${ENGINE_RHI_PRIVATE_FILES})
 source_group(TREE "${ENGINE_PRIVATE_DIR}/World" PREFIX "Private\\World" FILES ${ENGINE_WORLD_PRIVATE_FILES})
@@ -181,6 +187,9 @@ set(CLIENT_DIR ${MAIN_DIR}/Client)
 set(CLIENT_HEADER_LIST ${CLIENT_DIR}/include)
 set(CLIENT_SOURCE_LIST
     ${CLIENT_DIR}/src/main.cpp
+
+	${CLIENT_DIR}/include/DemoApplication.h
+	${CLIENT_DIR}/src/DemoApplication.cpp
 )
 
 set(HEADER_LIST 
@@ -193,8 +202,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${ENGINE_SOURCE_LIST}
 	${CLIENT_SOURCE_LIST}
 
-	${GLAD_INCLUDE_FILES}
-	${GLAD_SOURCE_FILES}
+	${GLAD_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_LIST})

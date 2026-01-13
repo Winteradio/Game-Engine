@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/Engine/**",
+                "${workspaceFolder}/Client/**",
                 "${workspaceFolder}/external/**",
                 "${workspaceFolder}/asset/**",
                 "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Include",

@@ -2,20 +2,33 @@
 #define __WTR_WORLDWORKER_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <ECS/include/TimeStep.h>
 #include <Framework/Worker.h>
-#include <Framework/Input/InputStorage.h>
-#include <Renderer/RenderContext.h>
+#include <functional>
+
+namespace wtr
+{
+	class InputStorage;
+	class FrameContext;
+	class RenderCommandList;
+};
 
 namespace wtr
 {
 	class WorldWorker : public Worker
 	{
 	public :
+		using UpdateFunc = std::function<void(const ECS::TimeStep&)>;
+		using RenderFunc = std::function<void(RenderCommandList&)>;
+
 		WorldWorker();
 		~WorldWorker();
 
 	public :
-		bool Init(const Memory::RefPtr<InputStorage> refInputStorage, const Memory::RefPtr<RenderContext> refRenderContext);
+		void SetInputStorage(const Memory::RefPtr<InputStorage> inputStorage);
+		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
+		void SetFunction(const UpdateFunc func);
+		void SetFunction(const RenderFunc func);
 
 	protected :
 		void onStart() override;
@@ -23,8 +36,13 @@ namespace wtr
 		void onDestroy() override;
 
 	private :
+		ECS::TimeStep m_timeStep;
+
 		Memory::RefPtr<InputStorage> m_refInputStorage;
-		Memory::RefPtr<RenderContext> m_refRenderContext;
+		Memory::RefPtr<FrameContext> m_refFrameContext;
+
+		UpdateFunc m_updateFunc;
+		RenderFunc m_renderFunc;
 	};
 };
 

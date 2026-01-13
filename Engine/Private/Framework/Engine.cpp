@@ -1,9 +1,15 @@
 #include <Framework/Engine.h>
 
 #include <Framework/Input/InputStorage.h>
+#include <Framework/FrameContext.h>
+
 #include <Platform/Win32/Win32Window.h>
 #include <Platform/Win32/Win32InputHandler.h>
-#include <Renderer/RenderContext.h>
+
+#include <World/World.h>
+#include <World/WorldWorker.h>
+#include <Renderer/Renderer.h>
+#include <Renderer/RenderWorker.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -13,17 +19,14 @@ namespace wtr
 	Engine::Engine()
 		: m_window(nullptr)
 		, m_inputHandler(nullptr)
-		, m_application(nullptr)
 		, m_inputStorage(nullptr)
-		, m_renderContext(nullptr)
-		, m_worldWorker()
-		, m_renderWorker()
+		, m_frameContext(nullptr)
+		, m_renderer()
+		, m_world()
 	{}
 
 	Engine::~Engine()
 	{
-		Shutdown();
-
 		if (nullptr != m_window)
 		{
 			delete m_window;
@@ -35,41 +38,39 @@ namespace wtr
 			delete m_inputHandler;
 			m_inputHandler = nullptr;
 		}
-
-		if (nullptr != m_application)
-		{
-			delete m_application;
-			m_application = nullptr;
-		}
 	}
 
-	bool Engine::Init(const WindowDesc& mainWindowDesc)
+	bool Engine::Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc)
 	{
 		LOGINFO() << "[Engine] Initializing Engine";
 
+		Log::Init(1024, Log::Enum::eMode_Print, Log::Enum::eLevel_Type);
+		Memory::Init(4096, 100);
+
 		m_inputStorage = Memory::MakeRef<InputStorage>();
-		m_renderContext = Memory::MakeRef<RenderContext>();
-		if (!m_inputStorage || !m_renderContext)
+		m_frameContext = Memory::MakeRef<FrameContext>();
+
+		if (!m_inputStorage || !m_frameContext)
 		{
-			LOGERROR() << "[Engine] Failed to create the input storage and render context";
+			LOGERROR() << "[Engine] Failed to create the input storage and frame context";
 			return false;
 		}
 
-		if (!InitWindow(mainWindowDesc))
+		if (!InitWindow(windowDesc))
 		{
-			LOGERROR() << "[Engine] Failed to initialize main window";
+			LOGERROR() << "[Engine] Failed to initialize the window";
 			return false;
 		}
 
-		if (!m_worldWorker.Init(m_inputStorage, m_renderContext))
+		if (!InitRender(renderDesc))
 		{
-			LOGERROR() << "[Engine] Failed to initialize the world worker";
+			LOGERROR() << "[Engine] Failed to initialize the renderer";
 			return false;
 		}
 
-		if (!m_renderWorker.Init(m_renderContext))
+		if (!InitWorld())
 		{
-			LOGERROR() << "[Engine] Failed to initialize the render worker";
+			LOGERROR() << "[Engine] Failed to initialize the world";
 			return false;
 		}
 
@@ -79,9 +80,9 @@ namespace wtr
 		return true;
 	}
 
-	bool Engine::InitWindow(const WindowDesc& mainWindowDesc)
+	bool Engine::InitWindow(const WindowDesc& windowDesc)
 	{
-		if (eWindowType::eWin32 == mainWindowDesc.Type)
+		if (eWindowType::eWin32 == windowDesc.Type)
 		{
 			m_window = new Win32Window();
 			m_inputHandler = new Win32InputHandler();
@@ -92,7 +93,7 @@ namespace wtr
 			return false;
 		}
 		
-		if (!m_window->Init(mainWindowDesc))
+		if (!m_window->Init(windowDesc))
 		{
 			LOGERROR() << "[Engine] Failed to initialize main window";
 			return false;
@@ -101,6 +102,71 @@ namespace wtr
 		m_window->SetInputHandler(m_inputHandler);
 
 		LOGINFO() << "[Engine] Main window initialized successfully";
+
+		return true;
+	}
+
+	bool Engine::InitRender(const RenderDesc& renderDesc)
+	{
+		if (!m_window)
+		{
+			LOGERROR() << "[Engne] The Window's native handle is invalid, failed to initialize the render";
+			return false;
+		}
+
+		void* nativeHandle = m_window->GetNativeHandle();
+
+		Memory::ObjectPtr<RenderWorker> worker = Memory::MakePtr<RenderWorker>();
+		if (!worker)
+		{
+			LOGERROR() << "[Engine] Failed to create the render worker";
+			return false;
+		}
+
+		worker->SetFrameContext(m_frameContext);
+
+		m_renderer = Memory::MakePtr<Renderer>();
+		if (!m_renderer)
+		{
+			LOGERROR() << "[Engine] Failed to create the renderer";
+			return false;
+		}
+
+		if (!m_renderer->Init(renderDesc, nativeHandle))
+		{
+			LOGERROR() << "[Engine] Failed to initialize renderer";
+			return false;
+		}
+
+		m_renderer->SetWorker(worker);
+
+		LOGINFO() << "[Engine] Renderer initialized successfully";
+
+		return true;
+	}
+
+	bool Engine::InitWorld()
+	{
+		Memory::ObjectPtr<WorldWorker> worker = Memory::MakePtr<WorldWorker>();
+		if (!worker)
+		{
+			LOGERROR() << "[Engine] Failed to create the world worker";
+			return false;
+		}
+
+		m_world = Memory::MakePtr<World>();
+		if (!m_world)
+		{
+			LOGERROR() << "[Engine] Failed to create the world";
+			return false;
+		}
+
+		worker->SetInputStorage(m_inputStorage);
+		worker->SetFrameContext(m_frameContext);
+
+		m_world->SetWorker(worker);
+
+		LOGINFO() << "[Engine] Succeed to initialize the world";
 
 		return true;
 	}
@@ -114,8 +180,19 @@ namespace wtr
 			m_window->Shutdown();
 		}
 
-		m_worldWorker.Stop();
-		m_renderWorker.Stop();
+		if (m_world)
+		{
+			m_world->Stop();
+			m_world.Reset();
+		}
+
+		if (m_renderer)
+		{
+			m_renderer->Stop();
+			m_renderer.Reset();
+		}
+
+		Memory::Release();
 
 		LOGINFO() << "[Engine] Engine shut down successfully";
 	}
@@ -124,8 +201,15 @@ namespace wtr
 	{
 		LOGINFO() << "[Engine] Running Engine";
 
-		m_worldWorker.Start();
-		m_renderWorker.Start();
+		if (m_world)
+		{
+			m_world->Run();
+		}
+
+		if (m_renderer)
+		{
+			m_renderer->Run();
+		}
 
 		while (m_window->GetStatus() != eWindowStatus::eClosed)
 		{
@@ -135,6 +219,16 @@ namespace wtr
 		}
 
 		LOGINFO() << "[Engine] Engine run completed";
+	}
+
+	Memory::ObjectPtr<World> Engine::GetWorld()
+	{
+		return m_world;
+	}
+
+	Memory::ObjectPtr<Renderer> Engine::GetRenderer()
+	{
+		return m_renderer;
 	}
 
 	void Engine::UpdateInput()
