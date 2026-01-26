@@ -2,8 +2,7 @@
 #define __WTR_FRAMECONTEXT_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
-
-#include <Renderer/RenderCommandList.h>
+#include <Framework/FrameView.h>
 
 #include <thread>
 #include <mutex>
@@ -23,18 +22,18 @@ namespace wtr
 		~FrameContext();
 
 	public :
-		RenderCommandList& Acquire(const eWorkerType eType);
-		void Return(const eWorkerType eType, RenderCommandList& commandList);
+		FrameView& Acquire(const eWorkerType eType);
+		void Return(const eWorkerType eType, FrameView& commandList);
 		void Notify(const eWorkerType eType);
 
 	private :
-		static constexpr size_t COMMAND_BUFFER = 3;
+		static constexpr size_t FRAME_BUFFER = 3;
 
 		std::mutex m_mutexWorld;
 		std::mutex m_mutexRender;
 		std::condition_variable m_cvWorld;
 		std::condition_variable m_cvRender;
-		RenderCommandList m_commandList[COMMAND_BUFFER];
+		FrameView m_frameList[FRAME_BUFFER];
 
 		bool m_isRunning;
 	};

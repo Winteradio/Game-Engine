@@ -1,30 +1,17 @@
 #ifndef __WTR_COMMANDLIST_H__
 #define __WTR_COMMANDLIST_H__
 
-#include <cstdint>
-#include <atomic>
-
 #include <Container/include/LinearArena.h>
-
 #include <Reflection/include/Utils.h>
 
 namespace wtr
 {
-	enum class eCommandState : uint8_t
-	{
-		eFree = 0x00,
-		eWriting = 0x01,
-		eReady = 0x02,
-		eReading = 0x03
-	};
-
 	template<typename CommandBase>
 	class CommandList
 	{
 	public :
 		CommandList()
 			: m_allocator()
-			, m_eState(eCommandState::eFree)
 		{}
 
 		virtual ~CommandList()
@@ -39,7 +26,7 @@ namespace wtr
 			void* memory = m_allocator.Allocate<Command>();
 			if (nullptr == memory)
 			{
-				return;
+				return nullptr;
 			}
 
 			CommandBase* command = new (memory) Command(std::forward<Args>(args)...);
@@ -52,20 +39,8 @@ namespace wtr
 			m_allocator.Reset();
 		}
 
-	public :
-		const eCommandState GetState() const
-		{
-			return m_eState.load();
-		}
-
-		void SetState(const eCommandState state)
-		{
-			m_eState.exchange(state);
-		}
-
-	private :
+	protected :
 		wtr::LinearArena m_allocator;
-		std::atomic<eCommandState> m_eState;
 	};
 }
 

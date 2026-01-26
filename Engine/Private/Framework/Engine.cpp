@@ -27,6 +27,8 @@ namespace wtr
 
 	Engine::~Engine()
 	{
+		Shutdown();
+
 		if (nullptr != m_window)
 		{
 			delete m_window;

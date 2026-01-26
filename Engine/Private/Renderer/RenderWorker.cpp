@@ -35,11 +35,11 @@ namespace wtr
 	{
 		if (m_renderFunc && m_refFrameContext)
 		{
-			auto& commandList = m_refFrameContext->Acquire(eWorkerType::eConsumer);
+			auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
 
-			m_renderFunc(commandList);
+			m_renderFunc(frame);
 
-			m_refFrameContext->Return(eWorkerType::eConsumer, commandList);
+			m_refFrameContext->Return(eWorkerType::eConsumer, frame);
 		}
 	}
 

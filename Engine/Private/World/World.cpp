@@ -1,7 +1,7 @@
 #include <World/World.h>
 
 #include <World/WorldWorker.h>
-#include <Renderer/RenderCommandList.h>
+#include <Framework/FrameView.h>
 
 namespace wtr
 {
@@ -11,7 +11,6 @@ namespace wtr
 		, component()
 		, system()
 		, scene()
-		, view()
 		, m_worker()
 	{}
 
@@ -59,19 +58,9 @@ namespace wtr
 		}
 	}
 
-	void World::Render(RenderCommandList& commandList)
+	void World::Render(FrameView& frame)
 	{
-		static size_t frame = 0;
-		LOGINFO() << "[WORLD] Frame : " << frame++;
-
-		for (const auto& viewPair : view.GetView())
-		{
-			const auto& worldView = viewPair.second;
-			if (!worldView.active)
-			{
-				continue;
-			}
-		}
+		LOGINFO() << "[WORLD] Frame : " << frame.GetFrame();
 	}
 
 	void World::SetWorker(const Memory::ObjectPtr<WorldWorker>& worker)
@@ -88,11 +77,11 @@ namespace wtr
 				}
 			};
 
-			WorldWorker::RenderFunc render = [this](RenderCommandList& commandList)
+			WorldWorker::RenderFunc render = [this](FrameView& frame)
 			{
 				if (this)
 				{
-					this->Render(commandList);
+					this->Render(frame);
 				}
 			};
 

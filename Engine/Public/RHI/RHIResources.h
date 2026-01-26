@@ -7,11 +7,16 @@ namespace wtr
 {
 	class RHIResource : public Memory::RefCounted
 	{
-
+		public :
+			RHIResource() = default;
+			virtual ~RHIResource() = default;
 	};
 
 	class RHIBuffer : public RHIResource 
 	{
+		public :
+			RHIBuffer() = default;
+			virtual ~RHIBuffer() = default;
 	};
 
 	class RHITexture : public RHIResource
@@ -29,6 +34,9 @@ namespace wtr
 
 	class RHIState
 	{
+		public :
+			RHIState() = default;
+			virtual ~RHIState() = default;
 	};
 
 	class RHIDepthStencilState : public RHIState

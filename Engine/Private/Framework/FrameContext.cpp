@@ -9,14 +9,14 @@ namespace wtr
 		, m_mutexRender()
 		, m_cvWorld()
 		, m_cvRender()
-		, m_commandList()
+		, m_frameList()
 		, m_isRunning(true)
 	{}
 
 	FrameContext::~FrameContext()
 	{}
 
-	RenderCommandList& FrameContext::Acquire(const eWorkerType eType)
+	FrameView& FrameContext::Acquire(const eWorkerType eType)
 	{
 		if (eWorkerType::eProceduer == eType)
 		{
@@ -24,9 +24,9 @@ namespace wtr
 
 			auto checkFree = [this]()
 			{
-				for (auto& commandList : this->m_commandList)
+				for (auto& frame : this->m_frameList)
 				{
-					if (eCommandState::eFree == commandList.GetState())
+					if (eFrameState::eFree == frame.GetState())
 					{
 						return true;
 					}
@@ -37,12 +37,12 @@ namespace wtr
 
 			m_cvWorld.wait(lock, checkFree);
 
-			for (auto& commandList : m_commandList)
+			for (auto& frame : m_frameList)
 			{
-				if (eCommandState::eFree == commandList.GetState())
+				if (eFrameState::eFree == frame.GetState())
 				{
-					commandList.SetState(eCommandState::eWriting);
-					return commandList;
+					frame.SetState(eFrameState::eWriting);
+					return frame;
 				}
 			}
 		}
@@ -52,9 +52,9 @@ namespace wtr
 
 			auto checkReady = [this]()
 				{
-					for (auto& commandList : this->m_commandList)
+					for (auto& frame : this->m_frameList)
 					{
-						if (eCommandState::eReady == commandList.GetState())
+						if (eFrameState::eReady == frame.GetState())
 						{
 							return true;
 						}
@@ -68,36 +68,38 @@ namespace wtr
 			size_t minFrame = size_t(0) - 1;
 			size_t minIndex = size_t(0) - 1;
 
-			for (size_t index = 0; index < COMMAND_BUFFER; index++)
+			for (size_t index = 0; index < FRAME_BUFFER; index++)
 			{
-				auto& commandList = m_commandList[index];
+				auto& frame = m_frameList[index];
 
-				if (eCommandState::eReady == commandList.GetState() && minFrame >= commandList.GetFrame())
+				if (eFrameState::eReady == frame.GetState() && minFrame >= frame.GetFrame())
 				{
-					minFrame = commandList.GetFrame();
+					minFrame = frame.GetFrame();
 					minIndex = index;
 				}
 			}
 
-			return m_commandList[minIndex];
+			if (minIndex < FRAME_BUFFER)
+			{
+				return m_frameList[minIndex];
+			}
 		}
 
-		static RenderCommandList nullList;
-
+		static FrameView nullList;
 		return nullList;
 	}
 
-	void FrameContext::Return(const eWorkerType eType, RenderCommandList& commandList)
+	void FrameContext::Return(const eWorkerType eType, FrameView& frame)
 	{
 		if (eWorkerType::eProceduer == eType)
 		{
-			commandList.SetState(eCommandState::eReady);
+			frame.SetState(eFrameState::eReady);
 
 			m_cvRender.notify_one();
 		}
 		else
 		{
-			commandList.SetState(eCommandState::eFree);
+			frame.SetState(eFrameState::eFree);
 
 			m_cvWorld.notify_one();
 		}

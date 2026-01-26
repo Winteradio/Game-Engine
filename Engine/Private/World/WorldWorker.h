@@ -10,7 +10,7 @@ namespace wtr
 {
 	class InputStorage;
 	class FrameContext;
-	class RenderCommandList;
+	class FrameView;
 };
 
 namespace wtr
@@ -19,7 +19,7 @@ namespace wtr
 	{
 	public :
 		using UpdateFunc = std::function<void(const ECS::TimeStep&)>;
-		using RenderFunc = std::function<void(RenderCommandList&)>;
+		using RenderFunc = std::function<void(FrameView&)>;
 
 		WorldWorker();
 		~WorldWorker();

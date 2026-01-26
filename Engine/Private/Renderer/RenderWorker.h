@@ -12,7 +12,7 @@ namespace wtr
 	class RenderWorker : public Worker
 	{
 	public :
-		using RenderFunc = std::function<void(RenderCommandList&)>;
+		using RenderFunc = std::function<void(FrameView&)>;
 
 		RenderWorker();
 		~RenderWorker();

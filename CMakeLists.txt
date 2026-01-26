@@ -70,18 +70,23 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.h
 )
 
-set(ENGINE_FRAMEWORK_PRIVATE_FILES
-	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h
-	
+set(ENGINE_FRAMEWORK_PRIVATE_FILES	
 	${ENGINE_PRIVATE_DIR}/Framework/Engine.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/InputStorage.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/InputTypes.cpp
 
+	${ENGINE_PRIVATE_DIR}/Framework/Worker.h
+	${ENGINE_PRIVATE_DIR}/Framework/Worker.cpp
+
+	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h
+
 	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.h
 	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.cpp
 
-	${ENGINE_PRIVATE_DIR}/Framework/Worker.h
-	${ENGINE_PRIVATE_DIR}/Framework/Worker.cpp
+	${ENGINE_PRIVATE_DIR}/Framework/FrameView.h
+	${ENGINE_PRIVATE_DIR}/Framework/FrameView.cpp
+	${ENGINE_PRIVATE_DIR}/Framework/SceneView.h
+	${ENGINE_PRIVATE_DIR}/Framework/SceneView.cpp
 )
 
 set(ENGINE_PLATFORM_FILES
@@ -95,17 +100,22 @@ set(ENGINE_PLATFORM_FILES
 set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
-	${ENGINE_PUBLIC_DIR}/Renderer/RenderCommands.h
-	${ENGINE_PUBLIC_DIR}/Renderer/RenderCommandList.h
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
-	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommands.cpp
-	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MeshProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MeshProxy.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
 )
 
 set(ENGINE_RHI_PUBLIC_FILES
@@ -134,20 +144,17 @@ set(ENGINE_RHI_PRIVATE_FILES
 
 set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/World.h
-	${ENGINE_PUBLIC_DIR}/World/WorldView.h
-	${ENGINE_PUBLIC_DIR}/World/WorldScene.h
 	${ENGINE_PUBLIC_DIR}/World/WorldCommands.h
 	${ENGINE_PUBLIC_DIR}/World/WorldCommandList.h
 
 	${ENGINE_PUBLIC_DIR}/World/Component.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
 	${ENGINE_PUBLIC_DIR}/World/System.h
+	${ENGINE_PUBLIC_DIR}/World/Scene.h
 )
 
 set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/World.cpp
-	${ENGINE_PRIVATE_DIR}/World/WorldView.cpp
-	${ENGINE_PRIVATE_DIR}/World/WorldScene.cpp
 	${ENGINE_PRIVATE_DIR}/World/WorldCommands.cpp
 	${ENGINE_PRIVATE_DIR}/World/WorldCommandList.cpp
 
@@ -157,6 +164,7 @@ set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/Component.cpp
 	${ENGINE_PRIVATE_DIR}/World/Node.cpp
 	${ENGINE_PRIVATE_DIR}/World/System.cpp
+	${ENGINE_PRIVATE_DIR}/World/Scene.cpp
 )
 
 source_group(TREE "${ENGINE_PUBLIC_DIR}/Framework" PREFIX "Public\\Framework" FILES ${ENGINE_FRAMEWORK_PUBLIC_FILES})

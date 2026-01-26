@@ -5,15 +5,13 @@
 #include <ECS/include/Registry/NodeRegistry.h>
 #include <ECS/include/Registry/SystemRegistry.h>
 #include <ECS/include/Container/EntityContainer.h>
-#include <ECS/include/Object/Scene.h>
 
-#include <World/WorldView.h>
-#include <World/WorldScene.h>
+#include <World/Scene.h>
 #include <World/WorldWorker.h>
 
 namespace wtr
 {
-	class RenderCommandList;
+	class FrameView;
 };
 
 namespace wtr
@@ -42,15 +40,12 @@ namespace wtr
 		PROPERTY(scene);
 		SceneContainer scene;
 
-		PROPERTY(view);
-		ViewContainer view;
-
 	public :
 		void Run();
 		void Stop();
 
 		void Update(const ECS::TimeStep& timeStep);
-		void Render(RenderCommandList& commandList);
+		void Render(FrameView& frame);
 
 		void SetWorker(const Memory::ObjectPtr<WorldWorker>& worker);
 

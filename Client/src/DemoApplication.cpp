@@ -45,6 +45,33 @@ namespace demo
 		}
 
 		auto& world = engine->GetWorld();
+		if (!world)
+		{
+			LOGERROR() << "[GAME] Failed to get the world from the engine";
+			engine->Shutdown();
+			return;
+		}
+
+		auto& mainScene = world->scene.Create("MainScene");
+		auto mainView = wtr::ViewInfo();
+		mainView.name = "MainView";
+		mainView.pipeline = "BasePipeline";
+		mainView.cameraID = ECS::UUID();
+		mainView.posX = 0;
+		mainView.posY = 0;
+		mainView.width = 1280;
+		mainView.height = 720;
+		mainView.active = true;
+
+		mainScene.RegisterView(mainView);
+
+		auto& renderer = engine->GetRenderer();
+		if (!renderer)
+		{
+			LOGERROR() << "[GAME] Failed to get the renderer from the engine";
+			engine->Shutdown();
+			return;
+		}
 	}
 
 	void Game::onRun()

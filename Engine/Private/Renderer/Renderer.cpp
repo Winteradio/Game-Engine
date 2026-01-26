@@ -1,6 +1,6 @@
 #include <Renderer/Renderer.h>
 
-#include <Renderer/RenderCommandList.h>
+#include <FrameWork/FrameView.h>
 #include <Renderer/RenderWorker.h>
 #include <RHI/OpenGL/GLSystem.h>
 
@@ -55,10 +55,9 @@ namespace wtr
 		}
 	}
 
-	void Renderer::Render(RenderCommandList& commandList)
+	void Renderer::Render(FrameView& frame)
 	{
-		static size_t frame = 0;
-		LOGINFO() << "[RENDERER] Frame : " << frame++;
+		LOGINFO() << "[RENDERER] Frame : " << frame.GetFrame();
 	}
 
 	void Renderer::SetWorker(const Memory::ObjectPtr<RenderWorker>& worker)
@@ -67,11 +66,11 @@ namespace wtr
 		{
 			m_worker = worker;
 
-			RenderWorker::RenderFunc render = [this](RenderCommandList& commandList)
+			RenderWorker::RenderFunc render = [this](FrameView& frame)
 			{
 				if (this)
 				{
-					this->Render(commandList);
+					this->Render(frame);
 				}
 			};
 

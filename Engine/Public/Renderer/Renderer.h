@@ -10,7 +10,7 @@
 
 namespace wtr
 {
-	class RenderCommandList;
+	class FrameView;
 };
 
 namespace wtr
@@ -36,7 +36,7 @@ namespace wtr
 		void Run();
 		void Stop();
 
-		void Render(RenderCommandList& commandList);
+		void Render(FrameView& frame);
 		void SetWorker(const Memory::ObjectPtr<RenderWorker>& worker);
 
 	private :

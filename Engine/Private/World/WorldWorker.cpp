@@ -67,11 +67,12 @@ namespace wtr
 
 		if (m_renderFunc && m_refFrameContext)
 		{
-			auto& commandList = m_refFrameContext->Acquire(eWorkerType::eProceduer);
+			auto& frame = m_refFrameContext->Acquire(eWorkerType::eProceduer);
+			frame.SetFrame(m_timeStep.frame);
 
-			m_renderFunc(commandList);
+			m_renderFunc(frame);
 
-			m_refFrameContext->Return(eWorkerType::eProceduer, commandList);
+			m_refFrameContext->Return(eWorkerType::eProceduer, frame);
 		}
 	}
 

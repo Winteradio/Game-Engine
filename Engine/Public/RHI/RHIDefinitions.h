@@ -22,6 +22,8 @@ namespace wtr
 	struct RHIShaderDesc
 	{
 		static constexpr eResourceType type = eResourceType::eShader;
+
+		eShaderType shaderType;
 	};
 
 	struct RHIStateDesc
