@@ -30,13 +30,6 @@ namespace wtr
 
 		wtr::DynamicArray<RHICommandBase*> m_commands;
 	};
-
-	class RHICommandExcutor
-	{
-	public :
-		RHICommandExcutor() = default;
-		~RHICommandExcutor() = default;
-	};
 };
 
 #endif // __WTR_RHI_COMMANDLIST_H__

@@ -7,12 +7,6 @@
 #include <ECS/include/Container/EntityContainer.h>
 
 #include <World/Scene.h>
-#include <World/WorldWorker.h>
-
-namespace wtr
-{
-	class FrameView;
-};
 
 namespace wtr
 {
@@ -46,11 +40,6 @@ namespace wtr
 
 		void Update(const ECS::TimeStep& timeStep);
 		void Render(FrameView& frame);
-
-		void SetWorker(const Memory::ObjectPtr<WorldWorker>& worker);
-
-	private :
-		Memory::RootPtr<WorldWorker> m_worker;
 	};
 };
 

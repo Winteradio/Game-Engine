@@ -7,10 +7,9 @@ namespace wtr
 {
 	WorldWorker::WorldWorker()
 		: m_timeStep()
-		, m_updateFunc()
-		, m_renderFunc()
 		, m_refInputStorage(nullptr)
 		, m_refFrameContext(nullptr)
+		, m_world(nullptr)
 	{}
 
 	WorldWorker::~WorldWorker()
@@ -32,19 +31,11 @@ namespace wtr
 		}
 	}
 
-	void WorldWorker::SetFunction(const UpdateFunc func)
+	void WorldWorker::SetWorld(const Memory::ObjectPtr<World> world)
 	{
-		if (func)
+		if (world)
 		{
-			m_updateFunc = func;
-		}
-	}
-
-	void WorldWorker::SetFunction(const RenderFunc func)
-	{
-		if (func)
-		{
-			m_renderFunc = func;
+			m_world = world;
 		}
 	}
 
@@ -55,25 +46,20 @@ namespace wtr
 	{
 		m_timeStep.Tick();
 
-		if (m_refInputStorage)
+		if (!m_refInputStorage || !m_world || !m_refFrameContext)
 		{
-			m_refInputStorage->SwapInput();
+			return;
 		}
 
-		if (m_updateFunc)
-		{
-			m_updateFunc(m_timeStep);
-		}
+		m_refInputStorage->SwapInput();
 
-		if (m_renderFunc && m_refFrameContext)
-		{
-			auto& frame = m_refFrameContext->Acquire(eWorkerType::eProceduer);
-			frame.SetFrame(m_timeStep.frame);
+		auto& frame = m_refFrameContext->Acquire(eWorkerType::eProceduer);
+		frame.SetFrame(m_timeStep.frame);
 
-			m_renderFunc(frame);
+		m_world->Update(m_timeStep);
+		m_world->Render(frame);
 
-			m_refFrameContext->Return(eWorkerType::eProceduer, frame);
-		}
+		m_refFrameContext->Return(eWorkerType::eProceduer, frame);
 	}
 
 	void WorldWorker::onDestroy()

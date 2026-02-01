@@ -70,6 +70,18 @@ namespace wtr
 			return false;
 		}
 
+		if (!InitRHI())
+		{
+			LOGERROR() << "[Engine] Failed to initialize the RHI";
+			return false;
+		}
+
+		if (!InitAsset())
+		{
+			LOGERROR() << "[Engine] Failed to initialize the Asset Manager";
+			return false;
+		}
+
 		if (!InitWorld())
 		{
 			LOGERROR() << "[Engine] Failed to initialize the world";
@@ -118,7 +130,7 @@ namespace wtr
 
 		void* nativeHandle = m_window->GetNativeHandle();
 
-		Memory::ObjectPtr<RenderWorker> worker = Memory::MakePtr<RenderWorker>();
+		Memory::RefPtr<RenderWorker> worker = Memory::MakeRef<RenderWorker>();
 		if (!worker)
 		{
 			LOGERROR() << "[Engine] Failed to create the render worker";
@@ -149,7 +161,7 @@ namespace wtr
 
 	bool Engine::InitWorld()
 	{
-		Memory::ObjectPtr<WorldWorker> worker = Memory::MakePtr<WorldWorker>();
+		Memory::RefPtr<WorldWorker> worker = Memory::MakeRef<WorldWorker>();
 		if (!worker)
 		{
 			LOGERROR() << "[Engine] Failed to create the world worker";
@@ -171,6 +183,16 @@ namespace wtr
 		LOGINFO() << "[Engine] Succeed to initialize the world";
 
 		return true;
+	}
+
+	bool Engine::InitRHI()
+	{
+
+	}
+
+	bool Engine::InitAsset()
+	{
+
 	}
 
 	void Engine::Shutdown()

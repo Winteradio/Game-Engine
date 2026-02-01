@@ -60,6 +60,28 @@ namespace wtr
 		eDouble = 0x08
 	};
 
+	enum class eVertexSemantic : uint8_t
+	{
+		eNone		= 0x00,
+		ePosition	= 0x00,
+		eNormal		= 0x01,
+		eTangent	= 0x02,
+		eColor		= 0x03,
+		eTexCoord	= 0x04,
+		eJoint 		= 0x05,
+		eWeight		= 0x06
+	};
+
+	enum class eBindingType : uint8_t
+	{
+		eNone			= 0x00,
+		eUniform		= 0x01,
+		eUniformBuffer	= 0x02,
+		eStorageBuffer 	= 0x03,
+		eSampler		= 0x04,
+		eTexture		= 0x05,
+	};
+
 	enum class ePixelFormat : uint8_t
 	{
 		eNone			= 0x00,
@@ -105,15 +127,22 @@ namespace wtr
 		eVertex			= 0x01,
 		eGeometry		= 0x02,
 		eHull			= 0x03,
-		eFragment		= 0x04,
+		ePixel			= 0x04,
 		eCompute		= 0x05,
 	};
 
-	enum class eCullMode : uint8_t
+	enum class eCullFace : uint8_t
 	{
-		eNone	= 0x00,
-		eCW		= 0x01 << 0,
-		eCCW	= 0x01 << 1
+		eNone		= 0x00,
+		eFront 		= 0x01,
+		eBack		= 0x02,
+		eFront_Back = 0x03,
+	};
+
+	enum class eFrontFace : uint8_t
+	{
+		eCCW	= 0x00,
+		eCW		= 0x01,
 	};
 
 	enum class eDrawMode : uint8_t
@@ -149,7 +178,7 @@ namespace wtr
 
 	enum class eCompareFunc : uint8_t
 	{
-		eNone			= 0x00,
+		eNever			= 0x00,
 		eEqual			= 0x01,
 		eNotEqual		= 0x02,
 		eLess			= 0x03,
@@ -157,6 +186,45 @@ namespace wtr
 		eGreater		= 0x05,
 		eGreatorEqual	= 0x06,
 		eAlways			= 0xFF,
+	};
+
+	enum class eStencilOp : uint8_t
+	{
+		eZero			= 0x00,
+		eKeep			= 0x01,
+		eReplace		= 0x02,
+		eInc_Clamp	= 0x03,
+		eInc_Wrap 	= 0x04,
+		eDec_Clamp = 0x05,
+		eDec_Wrap 	= 0x06,
+		eInvert			= 0x07,
+	};
+
+	enum class eBlendFunc : uint8_t
+	{
+		eZero					= 0x00,
+		eOne					= 0x01,
+		eSrc_Color				= 0x02,
+		eOne_Minus_Src_Color	= 0x03,
+		eDst_Color				= 0x04,
+		eOne_Minus_Dst_Color 	= 0x05,
+		eSrc_Alpha				= 0x06,
+		eOne_Minus_Src_Alpha	= 0x07,
+		eDst_Alpha				= 0x08,
+		eOne_Minus_Dst_Alpha	= 0x09,
+		eConst_Color			= 0x0A,
+		eOne_Minus_Const_Alpha	= 0x0B,
+		eSrc_Alpha_Saturate		= 0x0C,
+	};
+
+	enum class eBlendOp : uint8_t
+	{
+		eNone			= 0x00,
+		eAdd			= 0x01,
+		eSub			= 0x02,
+		eReverse_Sub	= 0x03,
+		eMin			= 0x04,
+		eMax			= 0x05,
 	};
 
 	enum class eRenderTarget : uint8_t
@@ -178,16 +246,6 @@ namespace wtr
 	inline eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
-	}
-
-	inline eCullMode operator|(eCullMode a, eCullMode b)
-	{
-		return static_cast<eCullMode>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-	}
-
-	inline eCullMode operator&(eCullMode a, eCullMode b)
-	{
-		return static_cast<eCullMode>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
 	inline eClearBuffer operator|(eClearBuffer a, eClearBuffer b)

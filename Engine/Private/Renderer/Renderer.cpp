@@ -21,7 +21,7 @@ namespace wtr
 	{
 		if (eRenderType::eOpenGL == desc.Type)
 		{
-			m_system = Memory::MakePtr<GLSystem>();
+			m_system = Memory::MakeRef<GLSystem>();
 		}
 
 		if (!m_system)
@@ -60,7 +60,7 @@ namespace wtr
 		LOGINFO() << "[RENDERER] Frame : " << frame.GetFrame();
 	}
 
-	void Renderer::SetWorker(const Memory::ObjectPtr<RenderWorker>& worker)
+	void Renderer::SetWorker(const Memory::RefPtr<RenderWorker>& worker)
 	{
 		if (worker)
 		{

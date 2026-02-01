@@ -1,12 +1,15 @@
 #include <Renderer/RenderWorker.h>
 
 #include <Framework/FrameContext.h>
+#include <Renderer/Renderer.h>
+#include <RHI/RHICommandExecutor.h>
 
 namespace wtr
 {
 	RenderWorker::RenderWorker()
 		: m_refFrameContext(nullptr)
-		, m_renderFunc()
+		, m_refRenderer(nullptr)
+		, m_refExecutor(nullptr)
 	{}
 
 	RenderWorker::~RenderWorker()
@@ -20,11 +23,19 @@ namespace wtr
 		}
 	}
 
-	void RenderWorker::SetFunction(const RenderFunc func)
+	void RenderWorker::SetRenderer(const Memory::RefPtr<Renderer> renderer)
 	{
-		if (func)
+		if (renderer)
 		{
-			m_renderFunc = func;
+			m_refRenderer = renderer;
+		}
+	}
+
+	void RenderWorker::SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor)
+	{
+		if (executor)
+		{
+			m_refExecutor = executor;
 		}
 	}
 
@@ -33,14 +44,16 @@ namespace wtr
 
 	void RenderWorker::onUpdate()
 	{
-		if (m_renderFunc && m_refFrameContext)
+		if (!m_refFrameContext || !m_refRenderer || !m_refExecutor)
 		{
-			auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
-
-			m_renderFunc(frame);
-
-			m_refFrameContext->Return(eWorkerType::eConsumer, frame);
+			return;
 		}
+
+		auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
+		auto& cmdList = m_refCommandExecutor->Acquire
+		m_refRenderer->Render(frame, )
+		m_refRenderer->RenderFrame(frame, m_refExecutor);
+		m_refFrameContext->Return(eWorkerType::eConsumer, frame);
 	}
 
 	void RenderWorker::onDestroy()

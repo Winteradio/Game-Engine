@@ -2,15 +2,15 @@
 #define __WTR_WORLDWORKER_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Memory/include/Pointer/ObjectPtr.h>
 #include <ECS/include/TimeStep.h>
 #include <Framework/Worker.h>
-#include <functional>
+#include <World/World.h>
 
 namespace wtr
 {
 	class InputStorage;
 	class FrameContext;
-	class FrameView;
 };
 
 namespace wtr
@@ -18,17 +18,13 @@ namespace wtr
 	class WorldWorker : public Worker
 	{
 	public :
-		using UpdateFunc = std::function<void(const ECS::TimeStep&)>;
-		using RenderFunc = std::function<void(FrameView&)>;
-
 		WorldWorker();
 		~WorldWorker();
 
 	public :
 		void SetInputStorage(const Memory::RefPtr<InputStorage> inputStorage);
 		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
-		void SetFunction(const UpdateFunc func);
-		void SetFunction(const RenderFunc func);
+		void SetWorld(const Memory::ObjectPtr<World> world);
 
 	protected :
 		void onStart() override;
@@ -40,9 +36,7 @@ namespace wtr
 
 		Memory::RefPtr<InputStorage> m_refInputStorage;
 		Memory::RefPtr<FrameContext> m_refFrameContext;
-
-		UpdateFunc m_updateFunc;
-		RenderFunc m_renderFunc;
+		Memory::ObjectPtr<World> m_world;
 	};
 };
 

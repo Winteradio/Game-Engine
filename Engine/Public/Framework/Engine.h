@@ -5,7 +5,6 @@
 #include <Memory/include/Pointer/RefPtr.h>
 
 #include <World/World.h>
-#include <Renderer/Renderer.h>
 
 namespace wtr
 {
@@ -13,6 +12,14 @@ namespace wtr
 	class InputHandler;
 	class InputStorage;
 	class FrameContext;
+	class Renderer;
+	class RHISystem;
+	class AssetManager;
+	
+	class WorldWorker;
+	class RenderWorker;
+	class RHIWorker;
+	class AssetWorker;
 
 	struct WindowDesc;
 	struct RenderDesc;
@@ -38,6 +45,8 @@ namespace wtr
 			bool InitWindow(const WindowDesc& windowDesc);
 			bool InitRender(const RenderDesc& renderDesc);
 			bool InitWorld();
+			bool InitRHI();
+			bool InitAsset();
 
 			void UpdateInput();
 
@@ -49,7 +58,14 @@ namespace wtr
 			Memory::RefPtr<FrameContext>	m_frameContext;
 			
 			Memory::RootPtr<World>	m_world;
-			Memory::RootPtr<Renderer> m_renderer;
+			Memory::RefPtr<Renderer> m_renderer;
+			Memory::RefPtr<RHISystem> m_rhiSystem;
+			Memory::RefPtr<AssetManager> m_assetManager;
+
+			Memory::RefPtr<WorldWorker> m_worldWorker;
+			Memory::RefPtr<RenderWorker> m_renderWorker;
+			Memory::RefPtr<RHIWorker> m_rhiWorker;
+			Memory::RefPtr<AssetWorker> m_assetWorker;
 	};
 };
 

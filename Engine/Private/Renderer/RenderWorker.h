@@ -4,22 +4,26 @@
 #include <Memory/include/Pointer/RefPtr.h>
 
 #include <Framework/Worker.h>
-#include <Framework/FrameContext.h>
 
 namespace wtr
 {
+	class FrameContext;
+	class Renderer;
+	class RHICommandExecutor;
+};
 
+namespace wtr
+{
 	class RenderWorker : public Worker
 	{
 	public :
-		using RenderFunc = std::function<void(FrameView&)>;
-
 		RenderWorker();
 		~RenderWorker();
 
 	public :
 		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
-		void SetFunction(const RenderFunc func);
+		void SetRenderer(const Memory::RefPtr<Renderer> renderer);
+		void SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor);
 
 	protected :
 		void onStart() override;
@@ -28,8 +32,8 @@ namespace wtr
 
 	private :
 		Memory::RefPtr<FrameContext> m_refFrameContext;
-
-		RenderFunc m_renderFunc;
+		Memory::RefPtr<Renderer> m_refRenderer;
+		Memory::RefPtr<RHICommandExecutor> m_refExecutor;
 	};
 };
 

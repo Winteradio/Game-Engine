@@ -100,6 +100,10 @@ set(ENGINE_PLATFORM_FILES
 set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
+
+	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/Base.h
+	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.h
+	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.cpp
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
@@ -116,22 +120,31 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/PipeLine/PipeLineGraph.h
 )
 
 set(ENGINE_RHI_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/RHI/RHICommands.h	
 	${ENGINE_PUBLIC_DIR}/RHI/RHICommandList.h
-	${ENGINE_PUBLIC_DIR}/RHI/RHIDefinitions.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIDescriptions.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIResources.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIStates.h
 )
 
 set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommands.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommandList.cpp
-	${ENGINE_PRIVATE_DIR}/RHI/RHIDefinitions.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIResources.cpp
 	
+	${ENGINE_PRIVATE_DIR}/RHI/RHICommandExecutor.h
+	${ENGINE_PRIVATE_DIR}/RHI/RHICommandExecutor.cpp
+
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
+
+	${ENGINE_PRIVATE_DIR}/RHI/RHIWorker.h
+	${ENGINE_PRIVATE_DIR}/RHI/RHIWorker.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.cpp
@@ -166,6 +179,25 @@ set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/System.cpp
 	${ENGINE_PRIVATE_DIR}/World/Scene.cpp
 )
+
+set(ENGINE_ASSET_PUBLIC_FILES
+	${ENGINE_PUBLIC_DIR}/Asset/AssetParser.h
+	${ENGINE_PUBLIC_DIR}/Asset/AssetManager.h
+)
+
+set(ENGINE_ASSET_PRIVATE_DIR
+	${ENGINE_PRIVATE_DIR}/Asset/AssetParser.cpp
+	${ENGINE_PRIVATE_DIR}/Asset/AssetManager.cpp
+
+	${ENGINE_PRIVATE_DIR}/Asset/AssetLoader.h
+	${ENGINE_PRIVATE_DIR}/Asset/AssetLoader.cpp
+
+	${ENGINE_PRIVATE_DIR}/Asset/AssetResult.h
+
+	${ENGINE_PRIVATE_DIR}/Asset/AssetWorker.h
+	${ENGINE_PRIVATE_DIR}/Asset/AssetWorker.cpp
+)
+
 
 source_group(TREE "${ENGINE_PUBLIC_DIR}/Framework" PREFIX "Public\\Framework" FILES ${ENGINE_FRAMEWORK_PUBLIC_FILES})
 source_group(TREE "${ENGINE_PUBLIC_DIR}/Renderer" PREFIX "Public\\Renderer" FILES ${ENGINE_RENDERER_PUBLIC_FILES})
