@@ -50,11 +50,14 @@ namespace wtr
 		}
 
 		auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
-		auto& cmdList = m_refExecutor;
-		// m_refGraph->
-		// m_refGraph->Render(frame, )
-		// m_refGraph->RenderFrame(frame, m_refExecutor);
+		auto cmdList = m_refExecutor->Acquire();
+		
+		m_refGraph->PreDraw(cmdList);
+		m_refGraph->Draw(frame, cmdList);
+		m_refGraph->PostDraw(cmdList);
+
 		m_refFrameContext->Return(eWorkerType::eConsumer, frame);
+		m_refExecutor->Submit(cmdList);
 	}
 
 	void RenderWorker::onDestroy()

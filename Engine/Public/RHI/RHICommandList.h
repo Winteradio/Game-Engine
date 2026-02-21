@@ -57,6 +57,7 @@ namespace wtr
 		}
 
 		void ExecuteAll(Memory::RefPtr<RHISystem> system);
+		void Reset();
 
 	public :
 		void Clear(const RHIClearState& state);

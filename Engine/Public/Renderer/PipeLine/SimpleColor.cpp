@@ -24,13 +24,17 @@ namespace wtr
 			return;
 		}
 
+		// tick 증가량은 그대로 두거나DeltaTime을 곱해 프레임 독립적으로 관리하세요.
 		static float tick = 0.0f;
-		tick += 0.01f;
-		
+		tick += (tick >= 6.283185307f) ? -6.283185307f + 0.01f : 0.01f;
+
 		RHIClearState clearState = m_pipeLine->GetClearState();
-		clearState.color.r = std::sin(tick);
-		clearState.color.g = std::cos(tick);
-		clearState.color.b = std::tan(tick);
+
+		// 1. sin 함수를 [0, 1] 범위로 변환: (sin(x) * 0.5) + 0.5
+		// 2. 각 채널에 120도(2π/3)씩 차이를 주어 색상이 부드럽게 돌아가도록 설정
+		clearState.color.r = std::sin(tick) * 0.5f + 0.5f;
+		clearState.color.g = std::sin(tick + 2.094f) * 0.5f + 0.5f; // + 120도
+		clearState.color.b = std::sin(tick + 4.188f) * 0.5f + 0.5f; // + 240도
 		clearState.color.a = 1.0f;
 
 		commandList->Clear(clearState);

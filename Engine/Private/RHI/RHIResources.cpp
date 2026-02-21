@@ -7,6 +7,16 @@ namespace wtr
 		return nullptr;
 	}
 
+	void RHIResource::SetState(const eResourceState eState)
+	{
+		m_state = eState;
+	}
+
+	const eResourceState RHIResource::GetState() const
+	{
+		return m_state;
+	}
+
 	RHIBuffer::RHIBuffer(const RHIBufferDesc& desc)
 		: m_desc(desc)
 	{}

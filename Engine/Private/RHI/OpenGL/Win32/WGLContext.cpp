@@ -49,6 +49,12 @@ namespace wtr
 			return false;
 		}
 
+		if (!ReleaseCurrent())
+		{
+			LOGERROR() << "[WGL] Failed to release current context";
+			return false;
+		}
+
 		LOGINFO() << "[WGL] Succeed to initialize the OpenGL Context";
 
 		return true;
@@ -58,7 +64,22 @@ namespace wtr
 	{
 		if (!wglMakeCurrent(m_deviceContext, m_renderingContext))
 		{
-			LOGERROR() << "[WGL] Unable to apply OpenGL context to window";
+			DWORD error = GetLastError();
+			LOGERROR() << "[WGL] Unable to apply OpenGL context to window. Error Code : " << static_cast<long long>(error);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	bool WGLContext::ReleaseCurrent()
+	{
+		if (!wglMakeCurrent(NULL, NULL))
+		{
+			DWORD error = GetLastError();
+			LOGERROR() << "[WGL] Unable to apply OpenGL context to window. Error Code : " << static_cast<long long>(error);
+
 			return false;
 		}
 

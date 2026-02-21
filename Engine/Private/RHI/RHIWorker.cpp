@@ -6,6 +6,8 @@
 namespace wtr
 {
 	RHIWorker::RHIWorker()
+		: m_refSystem(nullptr)
+		, m_refExecutor(nullptr)
 	{
 	}
 
@@ -33,6 +35,11 @@ namespace wtr
 		{
 			return;
 		}
+
+		m_refSystem->MakeCurrent();
+		m_refExecutor->Execute(m_refSystem);
+		m_refSystem->Present();
+		m_refSystem->ReleaseCurrent();
 	}
 
 	void RHIWorker::onDestroy()

@@ -28,7 +28,10 @@ namespace wtr
 		{
 			cmd->Execute(system);
 		}
+	}
 
+	void RHICommandList::Reset()
+	{
 		m_commands.Clear();
 		Super::Reset();
 	}

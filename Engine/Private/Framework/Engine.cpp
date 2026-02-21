@@ -250,6 +250,7 @@ namespace wtr
 
 			m_worldWorker->SetInputStorage(m_inputStorage);
 			m_worldWorker->SetFrameContext(m_frameContext);
+			m_worldWorker->SetWorld(m_world);
 		}
 
 		LOGINFO() << "[Engine] Succeed to initialize the world";
@@ -300,6 +301,26 @@ namespace wtr
 	void Engine::Run()
 	{
 		LOGINFO() << "[Engine] Running Engine";
+
+		if (m_rhiWorker)
+		{
+			m_rhiWorker->Start();
+		}
+
+		if (m_assetWorker)
+		{
+			m_assetWorker->Start();
+		}
+
+		if (m_renderWorker)
+		{
+			m_renderWorker->Start();
+		}
+
+		if (m_worldWorker)
+		{
+			m_worldWorker->Start();
+		}
 
 		while (m_window->GetStatus() != eWindowStatus::eClosed)
 		{

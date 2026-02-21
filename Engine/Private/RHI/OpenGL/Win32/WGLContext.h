@@ -14,6 +14,7 @@ namespace wtr
 	public :
 		bool Init(void* nativeHandle);
 		bool MakeCurrent();
+		bool ReleaseCurrent();
 		void Present();
 
 	private :

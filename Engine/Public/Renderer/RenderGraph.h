@@ -7,6 +7,7 @@
 namespace wtr
 {
 	class FrameView;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -23,10 +24,13 @@ namespace wtr
 		~RenderGraph();
 
 	public :
+		bool Init();
 		void Add(Memory::RefPtr<PipeLine> pipeline);
 		void Remove(Memory::RefPtr<PipeLine> pipeline);
-		void Prepare();
-		void Draw(const FrameView& frame);
+
+		void PreDraw(Memory::RefPtr<RHICommandList> cmdList);
+		void Draw(const FrameView& frame, Memory::RefPtr<RHICommandList> cmdList);
+		void PostDraw(Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
 		PipeLineGraph m_graph;

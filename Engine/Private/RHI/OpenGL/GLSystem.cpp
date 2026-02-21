@@ -61,6 +61,16 @@ namespace wtr
 		glFlush();
 	}
 
+	void GLSystem::MakeCurrent()
+	{
+		m_context.MakeCurrent();
+	}
+
+	void GLSystem::ReleaseCurrent()
+	{
+		m_context.ReleaseCurrent();
+	}
+
 	void GLSystem::Present()
 	{
 		m_context.Present();

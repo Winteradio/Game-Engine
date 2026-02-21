@@ -35,9 +35,10 @@ namespace wtr
 		using ExecuteFunc = void(*)(Memory::RefPtr<RHISystem> system, RHICommandBase*);
 
 		RHICommandBase(const ExecuteFunc func);
+		virtual ~RHICommandBase() {}
 
 	public :
-		virtual void Execute(Memory::RefPtr<RHISystem> system);
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		ExecuteFunc m_func = nullptr;
@@ -74,7 +75,7 @@ namespace wtr
 		~RHICommandClear() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIClearState m_state;
@@ -87,7 +88,7 @@ namespace wtr
 		~RHICommandFlush() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 	};
 
 	class RHICommandPresent : public RHICommand<RHICommandPresent>
@@ -97,7 +98,7 @@ namespace wtr
 		~RHICommandPresent() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 	};
 
 	class RHICommandResize : public RHICommand<RHICommandResize>
@@ -108,7 +109,7 @@ namespace wtr
 		~RHICommandResize() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const uint32_t m_width;
@@ -124,7 +125,7 @@ namespace wtr
 		~RHICommandColorState() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIColorState m_state;
@@ -137,7 +138,7 @@ namespace wtr
 		~RHICommandDepthState() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIDepthState m_state;
@@ -150,7 +151,7 @@ namespace wtr
 		~RHICommandStencilState() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIStencilState m_state;
@@ -163,7 +164,7 @@ namespace wtr
 		~RHICommandBlendState() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIBlendState m_state;
@@ -176,7 +177,7 @@ namespace wtr
 		~RHICommandRasterizerState() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIRasterizerState m_state;
@@ -189,7 +190,7 @@ namespace wtr
 		~RHICommandInitializeBuffer() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIBufferDesc m_desc;
@@ -203,7 +204,7 @@ namespace wtr
 		~RHICommandInitializeTexture() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHITextureDesc m_desc;
@@ -217,7 +218,7 @@ namespace wtr
 		~RHICommandInitializeSampler() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHISamplerDesc m_desc;
@@ -231,7 +232,7 @@ namespace wtr
 		~RHICommandInitializeVertexShader() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIVertexShaderDesc m_desc;
@@ -245,7 +246,7 @@ namespace wtr
 		~RHICommandInitializeGeometryShader() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIGeometryShaderDesc m_desc;
@@ -259,7 +260,7 @@ namespace wtr
 		~RHICommandInitializePixelShader() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIPixelShaderDesc m_desc;
@@ -273,7 +274,7 @@ namespace wtr
 		~RHICommandInitializeComputeShader() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIComputeShaderDesc m_desc;
@@ -287,7 +288,7 @@ namespace wtr
 		~RHICommandInitializePipeLine() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIPipeLineDesc m_desc;
@@ -301,7 +302,7 @@ namespace wtr
 		~RHICommandUpdateBuffer() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHIBufferDesc m_desc;
@@ -315,7 +316,7 @@ namespace wtr
 		~RHICommandUpdateTexture() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const RHITextureDesc m_desc;
@@ -329,7 +330,7 @@ namespace wtr
 		~RHICommandRemoveBuffer() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const Memory::RefPtr<RHIBuffer> m_buffer;
@@ -342,7 +343,7 @@ namespace wtr
 		~RHICommandRemoveTexture() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const Memory::RefPtr<RHITexture> m_texture;
@@ -355,7 +356,7 @@ namespace wtr
 		~RHICommandRemoveSampler() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const Memory::RefPtr<RHISampler> m_sampler;
@@ -368,7 +369,7 @@ namespace wtr
 		~RHICommandRemoveShader() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const Memory::RefPtr<RHIShader> m_shader;
@@ -381,7 +382,7 @@ namespace wtr
 		~RHICommandRemovePipeLine() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
 		const Memory::RefPtr<RHIPipeLine> m_pipeline;
@@ -394,7 +395,7 @@ namespace wtr
 		~RHICommandDrawIndexPrimitive() = default;
 
 	public :
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute(Memory::RefPtr<RHISystem> system);
 	};
 };
 

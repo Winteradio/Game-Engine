@@ -19,6 +19,8 @@ namespace wtr
 	public :
 		void Clear(const RHIClearState& state) override;
 		void Flush() override;
+		void MakeCurrent() override;
+		void ReleaseCurrent() override;
 		void Present() override;
 		void Resize(const uint32_t width, const uint32_t height) override;
 		void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height) override;

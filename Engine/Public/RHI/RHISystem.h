@@ -62,6 +62,8 @@ namespace wtr
 	public :
 		virtual void Clear(const RHIClearState& state) = 0;
 		virtual void Flush() = 0;
+		virtual void MakeCurrent() = 0;
+		virtual void ReleaseCurrent() = 0;
 		virtual void Present() = 0;
 		virtual void Resize(const uint32_t width, const uint32_t height) = 0;
 		virtual void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height) = 0;
