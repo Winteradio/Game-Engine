@@ -41,7 +41,7 @@ namespace wtr
 		}
 	}
 
-	void World::Render(FrameView& frame)
+	void World::Render(const FrameView& frame)
 	{
 		LOGINFO() << "[WORLD] Frame : " << frame.GetFrame();
 	}

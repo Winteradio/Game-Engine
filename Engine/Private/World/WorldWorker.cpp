@@ -9,7 +9,7 @@ namespace wtr
 		: m_timeStep()
 		, m_refInputStorage(nullptr)
 		, m_refFrameContext(nullptr)
-		, m_world(nullptr)
+		, m_world()
 	{}
 
 	WorldWorker::~WorldWorker()

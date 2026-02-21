@@ -1,8 +1,6 @@
 #ifndef __WTR_INPUTSTORAGE_H__
 #define __WTR_INPUTSTORAGE_H__
 
-#include <Memory/include/Pointer/RefPtr.h>
-
 #include <Framework/Input/InputTypes.h>
 #include <Framework/Math/MathTypes.h>
 
@@ -39,7 +37,7 @@ namespace wtr
 		static std::string ToString(const InputData& data);
 	};
 
-	class InputStorage : public Memory::RefCounted
+	class InputStorage
 	{
 		public :
 			InputStorage();

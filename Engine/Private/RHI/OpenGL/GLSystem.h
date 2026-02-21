@@ -29,17 +29,17 @@ namespace wtr
 		void SetBlendState(const RHIBlendState& state);
 		void SetRasterizerState(const RHIRasterizerState& state);
 
-		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc& desc) override;
-		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc& desc) override;
-		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc& desc) override;
-		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc& desc) override;
-		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc& desc) override;
-		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc& desc) override;
-		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc& desc) override;
+		void InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer);
+		void InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture);
+		void InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler);
+		void InitializeVertexShader(const RHIVertexShaderDesc& desc, Memory::RefPtr<RHIVertexShader> shader);
+		void InitializeGeometryShader(const RHIGeometryShaderDesc& desc, Memory::RefPtr<RHIGeometryShader> shader);
+		void InitializePixelShader(const RHIPixelShaderDesc& desc, Memory::RefPtr<RHIPixelShader> shader);
+		void InitializeComputeShader(const RHIComputeShaderDesc& desc, Memory::RefPtr<RHIComputeShader> shader);
+		void InitializePipeLine(const RHIPipeLineDesc& desc, Memory::RefPtr<RHIPipeLine> pipeline);
 
 		void UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture) override;
-		void UpdateSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler) override;
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) override;
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture) override;

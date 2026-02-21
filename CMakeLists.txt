@@ -98,16 +98,17 @@ set(ENGINE_PLATFORM_FILES
 )
 
 set(ENGINE_RENDERER_PUBLIC_FILES
-	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
 
-	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/Base.h
+	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.h
+	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.h
 	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.cpp
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
-	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderGraph.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
@@ -130,6 +131,7 @@ set(ENGINE_RHI_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/RHI/RHIDescriptions.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIResources.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIStates.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHISystem.h
 )
 
 set(ENGINE_RHI_PRIVATE_FILES
@@ -140,7 +142,6 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommandExecutor.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommandExecutor.cpp
 
-	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/RHIWorker.h

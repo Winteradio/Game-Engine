@@ -1,8 +1,6 @@
 #ifndef __WTR_SCENEVIEW_H__
 #define __WTR_SCENEVIEW_H__
 
-#include <Memory/include/Pointer/RefPtr.h>
-
 #include <Renderer/Proxy/ProxyList.h>
 #include <Renderer/Proxy/MeshProxy.h>
 #include <Renderer/Proxy/MaterialProxy.h>
@@ -10,7 +8,7 @@
 
 namespace wtr
 {
-	class SceneView : public Memory::RefCounted
+	class SceneView
 	{
 		public :
 			SceneView() = default;

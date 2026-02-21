@@ -1,7 +1,7 @@
 #ifndef __WTR_SIMPLECOLOR_H__
 #define __WTR_SIMPLECOLOR_H__
 
-#include <Renderer/PipeLine/Base.h>
+#include <Renderer/PipeLine/PipeLine.h>
 
 namespace wtr
 {
@@ -10,22 +10,19 @@ namespace wtr
 
 namespace wtr
 {
-	namespace PipeLine
+	class SimpleColor : public PipeLine
 	{
-		class SimpleColor : public Base
-		{
-		public :
-			SimpleColor(Memory::RefPtr<RHISystem> system);
-			virtual ~SimpleColor();
+	public :
+		SimpleColor();
+		virtual ~SimpleColor();
 
-		public :
-			virtual void Draw(const SceneView& scene) override;
-			virtual void Init() override;
+	public :
+		virtual void Draw(const SceneView& scene, Memory::RefPtr<RHICommandList> commandList);
+		virtual void Init(Memory::RefPtr<RHICommandList> commandList);
 
-		private :
-			Memory::RefPtr<RHIShader> m_vertexShader;
-			Memory::RefPtr<RHIShader> m_pixelShader;
-		};
+	private :
+		Memory::RefPtr<RHIShader> m_vertexShader;
+		Memory::RefPtr<RHIShader> m_pixelShader;
 	};
 };
 

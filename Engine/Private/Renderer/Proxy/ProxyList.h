@@ -33,7 +33,7 @@ namespace wtr
 			return proxy;
 		}
 
-		void Clear()
+		void Reset()
 		{
 			for (auto* proxy : m_proxies)
 			{
@@ -45,7 +45,7 @@ namespace wtr
 
 			m_proxies.Clear();
 
-			Super::Clear();
+			Super::Reset();
 		}
 
 		const wtr::DynamicArray<ProxyBase*>& GetProxies() const

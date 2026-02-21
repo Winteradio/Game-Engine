@@ -3,7 +3,7 @@
 #include <Framework/Engine.h>
 #include <Framework/Window.h>
 #include <Renderer/RenderTypes.h>
-#include <Renderer/Renderer.h>
+#include <Renderer/RenderGraph.h>
 
 #include <Log/include/Log.h>
 
@@ -64,14 +64,6 @@ namespace demo
 		mainView.active = true;
 
 		mainScene.RegisterView(mainView);
-
-		auto& renderer = engine->GetRenderer();
-		if (!renderer)
-		{
-			LOGERROR() << "[GAME] Failed to get the renderer from the engine";
-			engine->Shutdown();
-			return;
-		}
 	}
 
 	void Game::onRun()

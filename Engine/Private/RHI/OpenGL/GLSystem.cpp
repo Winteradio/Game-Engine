@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 
 #include <RHI/RHIStates.h>
+#include <RHI/RHIResources.h>
 
 namespace wtr
 {
@@ -269,48 +270,34 @@ namespace wtr
 		m_rasterizerState = state;
 	}
 
-	Memory::RefPtr<RHIBuffer> GLSystem::CreateBuffer(const RHIBufferDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
+	{}
 
-	Memory::RefPtr<RHITexture> GLSystem::CreateTexture(const RHITextureDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
+	{}
 
-	Memory::RefPtr<RHISampler> GLSystem::CreateSampler(const RHISamplerDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler)
+	{}
 
-	Memory::RefPtr<RHIVertexShader> GLSystem::CreateVertexShader(const RHIVertexShaderDesc& dsec)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeVertexShader(const RHIVertexShaderDesc& desc, Memory::RefPtr<RHIVertexShader> shader)
+	{}
 
-	Memory::RefPtr<RHIGeometryShader> GLSystem::CreateGeometryShader(const RHIGeometryShaderDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderDesc& desc, Memory::RefPtr<RHIGeometryShader> shader)
+	{}
 
-	Memory::RefPtr<RHIPixelShader> GLSystem::CreatePixelShader(const RHIPixelShaderDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializePixelShader(const RHIPixelShaderDesc& desc, Memory::RefPtr<RHIPixelShader> shader)
+	{}
 
-	Memory::RefPtr<RHIComputeShader> GLSystem::CreateComputeShader(const RHIComputeShaderDesc& desc)
-	{
-		return nullptr;
-	}
+	void GLSystem::InitializeComputeShader(const RHIComputeShaderDesc& desc, Memory::RefPtr<RHIComputeShader> shader)
+	{}
+
+	void GLSystem::InitializePipeLine(const RHIPipeLineDesc& desc, Memory::RefPtr<RHIPipeLine> pipeline)
+	{}
 
 	void GLSystem::UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
 	{}
 
 	void GLSystem::UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
-	{}
-
-	void GLSystem::UpdateSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler)
 	{}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)

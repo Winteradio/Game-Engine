@@ -1,7 +1,6 @@
 #ifndef __WTR_FRAMECONTEXT_H__
 #define __WTR_FRAMECONTEXT_H__
 
-#include <Memory/include/Pointer/RefPtr.h>
 #include <Framework/FrameView.h>
 
 #include <thread>
@@ -15,7 +14,7 @@ namespace wtr
 
 namespace wtr
 {
-	class FrameContext : public Memory::RefCounted
+	class FrameContext
 	{
 	public :
 		FrameContext();

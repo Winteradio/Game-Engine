@@ -1,19 +1,29 @@
 #ifndef __WTR_RHICOMMANDEXECUTOR_H__
 #define __WTR_RHICOMMANDEXECUTOR_H__
 
+#include <Memory/include/Pointer/RefPtr.h>
+
+#include <RHI/RHICommandList.h>
+
 namespace wtr
 {
-	class RHICommandExecutor : public Memory::RefCounted
+	class RHISystem;
+};
+
+namespace wtr
+{
+	class RHICommandExecutor
 	{
 	public :
 		RHICommandExecutor();
 		~RHICommandExecutor();
 
 	public :
-		// Methods to execute RHI commands would go here
+		RHICommandList& Acquire();
+		void Release(RHICommandList&& commandList);
+		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
-		// Private members for command execution
 	};
 };
 

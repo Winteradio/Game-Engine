@@ -8,7 +8,7 @@
 namespace wtr
 {
 	class FrameContext;
-	class Renderer;
+	class RenderGraph;
 	class RHICommandExecutor;
 };
 
@@ -22,7 +22,7 @@ namespace wtr
 
 	public :
 		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
-		void SetRenderer(const Memory::RefPtr<Renderer> renderer);
+		void SetGraph(const Memory::RefPtr<RenderGraph> graph);
 		void SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor);
 
 	protected :
@@ -32,7 +32,7 @@ namespace wtr
 
 	private :
 		Memory::RefPtr<FrameContext> m_refFrameContext;
-		Memory::RefPtr<Renderer> m_refRenderer;
+		Memory::RefPtr<RenderGraph> m_refGraph;
 		Memory::RefPtr<RHICommandExecutor> m_refExecutor;
 	};
 };

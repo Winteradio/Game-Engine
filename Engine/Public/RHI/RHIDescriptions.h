@@ -92,6 +92,8 @@ namespace wtr
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
 	{
+		RHIClearState		clear;
+		RHIColorState		color;
 		RHIDepthState 		depth;
 		RHIStencilState		stencil;
 		RHIBlendState		blend;

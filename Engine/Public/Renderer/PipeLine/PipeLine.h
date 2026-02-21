@@ -6,30 +6,24 @@
 namespace wtr
 {
 	class SceneView;
-	class RHISystem;
 	class RHIPipeLine;
-
-	struct RHIPipeLineDesc;
+	class RHICommandList;
 };
 
 namespace wtr
 {
-	namespace PipeLine
+	class PipeLine
 	{
-		class Base
-		{
 		public :
-			Base(Memory::RefPtr<RHISystem> system);
-			virtual ~Base();
+			PipeLine();
+			virtual ~PipeLine();
 
 		public :
-			virtual void Draw(const SceneView& scene) = 0;
-			virtual void Init() = 0;
+			virtual void Draw(const SceneView& scene, Memory::RefPtr<RHICommandList> commandList) = 0;
+			virtual void Init(Memory::RefPtr<RHICommandList> commandList) = 0;
 
 		protected :
 			Memory::RefPtr<RHIPipeLine> m_pipeLine;
-			Memory::RefPtr<RHISystem> m_system;
-		};
 	};
 };
 

@@ -8,8 +8,8 @@ namespace wtr
 {
 	void SceneView::Reset()
 	{
-		m_meshCommand.Clear();
-		m_materialCommand.Clear();
-		m_primitiveCommand.Clear();
+		m_meshCommand.Reset();
+		m_materialCommand.Reset();
+		m_primitiveCommand.Reset();
 	}
 }

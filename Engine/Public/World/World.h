@@ -10,6 +10,11 @@
 
 namespace wtr
 {
+	class FrameView;
+};
+
+namespace wtr
+{
 	class World : public ECS::Object
 	{
 		GENERATE(World);
@@ -35,11 +40,8 @@ namespace wtr
 		SceneContainer scene;
 
 	public :
-		void Run();
-		void Stop();
-
 		void Update(const ECS::TimeStep& timeStep);
-		void Render(FrameView& frame);
+		void Render(const FrameView& frame);
 	};
 };
 

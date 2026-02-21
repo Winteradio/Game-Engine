@@ -119,6 +119,42 @@ namespace wtr
 		return m_desc.wrapR;
 	}
 
+	RHIVertexShader::RHIVertexShader(const RHIVertexShaderDesc& desc)
+		: m_dsec(desc)
+	{}
+
+	const void* RHIVertexShader::GetRawBuffer() const
+	{
+		return static_cast<const void*>(this);
+	}
+
+	RHIGeometryShader::RHIGeometryShader(const RHIGeometryShaderDesc& desc)
+		: m_desc(desc)
+	{}
+
+	const void* RHIGeometryShader::GetRawBuffer() const
+	{
+		return static_cast<const void*>(this);
+	}
+
+	RHIPixelShader::RHIPixelShader(const RHIPixelShaderDesc& desc)
+		: m_desc(desc)
+	{}
+
+	const void* RHIPixelShader::GetRawBuffer() const
+	{
+		return static_cast<const void*>(this);
+	}
+
+	RHIComputeShader::RHIComputeShader(const RHIComputeShaderDesc& desc)
+		: m_desc(desc)
+	{}
+
+	const void* RHIComputeShader::GetRawBuffer() const
+	{
+		return static_cast<const void*>(this);
+	}
+
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
 	{}
@@ -126,6 +162,16 @@ namespace wtr
 	const void* RHIPipeLine::GetRawBuffer() const
 	{
 		return static_cast<const void*>(this);
+	}
+
+	const RHIClearState RHIPipeLine::GetClearState() const
+	{
+		return m_desc.clear;
+	}
+
+	const RHIColorState RHIPipeLine::GetColorState() const
+	{
+		return m_desc.color;
 	}
 
 	const RHIDepthState RHIPipeLine::GetDepthState() const

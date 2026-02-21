@@ -12,8 +12,9 @@ namespace wtr
 	class InputHandler;
 	class InputStorage;
 	class FrameContext;
-	class Renderer;
+	class RenderGraph;
 	class RHISystem;
+	class RHICommandExecutor;
 	class AssetManager;
 	
 	class WorldWorker;
@@ -39,11 +40,12 @@ namespace wtr
 			void Run();
 
 			Memory::ObjectPtr<World> GetWorld();
-			Memory::ObjectPtr<Renderer> GetRenderer();
+			Memory::RefPtr<RenderGraph> GetGraph();
 
 		private :
 			bool InitWindow(const WindowDesc& windowDesc);
 			bool InitRender(const RenderDesc& renderDesc);
+			bool InitRHI(const RenderDesc& renderDesc);
 			bool InitWorld();
 			bool InitRHI();
 			bool InitAsset();
@@ -58,8 +60,9 @@ namespace wtr
 			Memory::RefPtr<FrameContext>	m_frameContext;
 			
 			Memory::RootPtr<World>	m_world;
-			Memory::RefPtr<Renderer> m_renderer;
+			Memory::RefPtr<RenderGraph> m_renderGraph;
 			Memory::RefPtr<RHISystem> m_rhiSystem;
+			Memory::RefPtr<RHICommandExecutor> m_rhiExecutor;
 			Memory::RefPtr<AssetManager> m_assetManager;
 
 			Memory::RefPtr<WorldWorker> m_worldWorker;

@@ -6,10 +6,17 @@
 #include <Platform/Win32/Win32Window.h>
 #include <Platform/Win32/Win32InputHandler.h>
 
+#include <Asset/AssetManager.h>
+#include <Asset/AssetWorker.h>
 #include <World/World.h>
 #include <World/WorldWorker.h>
-#include <Renderer/Renderer.h>
+#include <Renderer/RenderTypes.h>
+#include <Renderer/RenderGraph.h>
 #include <Renderer/RenderWorker.h>
+#include <RHI/RHISystem.h>
+#include <RHI/RHICommandExecutor.h>
+#include <RHI/OpenGL/GLSystem.h>
+#include <RHI/RHIWorker.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -21,8 +28,15 @@ namespace wtr
 		, m_inputHandler(nullptr)
 		, m_inputStorage(nullptr)
 		, m_frameContext(nullptr)
-		, m_renderer()
 		, m_world()
+		, m_renderGraph(nullptr)
+		, m_rhiSystem(nullptr)
+		, m_assetManager(nullptr)
+		, m_worldWorker(nullptr)
+		, m_renderWorker(nullptr)
+		, m_rhiWorker(nullptr)
+		, m_rhiExecutor(nullptr)
+		, m_assetWorker(nullptr)
 	{}
 
 	Engine::~Engine()
@@ -67,12 +81,6 @@ namespace wtr
 		if (!InitRender(renderDesc))
 		{
 			LOGERROR() << "[Engine] Failed to initialize the renderer";
-			return false;
-		}
-
-		if (!InitRHI())
-		{
-			LOGERROR() << "[Engine] Failed to initialize the RHI";
 			return false;
 		}
 
@@ -122,98 +130,166 @@ namespace wtr
 
 	bool Engine::InitRender(const RenderDesc& renderDesc)
 	{
-		if (!m_window)
+		if (!InitRHI(renderDesc))
 		{
-			LOGERROR() << "[Engne] The Window's native handle is invalid, failed to initialize the render";
+			LOGERROR() << "[Engine] Failed to initialize the rhi";
 			return false;
 		}
 
-		void* nativeHandle = m_window->GetNativeHandle();
-
-		Memory::RefPtr<RenderWorker> worker = Memory::MakeRef<RenderWorker>();
-		if (!worker)
+		// Initialize the render graph
 		{
-			LOGERROR() << "[Engine] Failed to create the render worker";
-			return false;
+			m_renderGraph = Memory::MakeRef<RenderGraph>();
+			if (!m_renderGraph)
+			{
+				LOGERROR() << "[Engine] Failed to create the render graph";
+				return false;
+			}			
 		}
 
-		worker->SetFrameContext(m_frameContext);
-
-		m_renderer = Memory::MakePtr<Renderer>();
-		if (!m_renderer)
+		// Initialize the render worker
 		{
-			LOGERROR() << "[Engine] Failed to create the renderer";
-			return false;
-		}
+			m_renderWorker = Memory::MakeRef<RenderWorker>();
+			if (!m_renderWorker)
+			{
+				LOGERROR() << "[Engine] Failed to create the render worker";
+				return false;
+			}
 
-		if (!m_renderer->Init(renderDesc, nativeHandle))
-		{
-			LOGERROR() << "[Engine] Failed to initialize renderer";
-			return false;
+			m_renderWorker->SetGraph(m_renderGraph);
+			m_renderWorker->SetFrameContext(m_frameContext);
+			m_renderWorker->SetExecutor(m_rhiExecutor);
 		}
-
-		m_renderer->SetWorker(worker);
 
 		LOGINFO() << "[Engine] Renderer initialized successfully";
 
 		return true;
 	}
 
+	bool Engine::InitRHI(const RenderDesc& renderDesc)
+	{
+		// Initialize the RHI System
+		{
+			if (!m_window)
+			{
+				LOGERROR() << "[Engne] The Window is invalid, failed to initialize the render";
+				return false;
+			}
+
+			void* nativeHandle = m_window->GetNativeHandle();
+			if (nullptr == nativeHandle)
+			{
+				LOGERROR() << "[Engine] The Window's native handle is invalide, failed to initialize the rhi system";
+				return false;
+			}
+
+			if (eRenderType::eOpenGL == renderDesc.Type)
+			{
+				m_rhiSystem = Memory::MakeRef<GLSystem>();
+			}
+			else
+			{
+				LOGERROR() << "[Engine] Not implemented Graphics API, failed to initialize the rhi system";
+				return false;
+			}
+
+			if (!m_rhiSystem->Init(nativeHandle))
+			{
+				LOGERROR() << "[Engine] Failed to initialize the rhi system";
+				return false;
+			}
+		}
+
+		// Initialize the RHI Command Executor
+		{
+			m_rhiExecutor = Memory::MakeRef<RHICommandExecutor>();
+			if (!m_rhiExecutor)
+			{
+				LOGERROR() << "[Engine] Failed to create the rhi command executor";
+				return false;
+			}
+		}
+
+		// Initialize the RHI Worker
+		{
+			m_rhiWorker = Memory::MakeRef<RHIWorker>();
+			if (!m_rhiWorker)
+			{
+				LOGERROR() << "[Engine] Failed to create the rhi worker";
+				return false;
+			}
+
+			m_rhiWorker->SetExecutor(m_rhiExecutor);
+			m_rhiWorker->SetSystem(m_rhiSystem);
+		}
+
+		LOGINFO() << "[Engine] Succeed to initialize the rhi";
+
+		return true;
+	}
+
 	bool Engine::InitWorld()
 	{
-		Memory::RefPtr<WorldWorker> worker = Memory::MakeRef<WorldWorker>();
-		if (!worker)
+		// Initialize the main world
 		{
-			LOGERROR() << "[Engine] Failed to create the world worker";
-			return false;
+			m_world = Memory::MakePtr<World>();
+			if (!m_world)
+			{
+				LOGERROR() << "[Engine] Failed to create the world";
+				return false;
+			}
 		}
 
-		m_world = Memory::MakePtr<World>();
-		if (!m_world)
+		// Initialize the world worker
 		{
-			LOGERROR() << "[Engine] Failed to create the world";
-			return false;
+			m_worldWorker = Memory::MakeRef<WorldWorker>();
+			if (!m_worldWorker)
+			{
+				LOGERROR() << "[Engine] Failed to create the world worker";
+				return false;
+			}
+
+			m_worldWorker->SetInputStorage(m_inputStorage);
+			m_worldWorker->SetFrameContext(m_frameContext);
 		}
-
-		worker->SetInputStorage(m_inputStorage);
-		worker->SetFrameContext(m_frameContext);
-
-		m_world->SetWorker(worker);
 
 		LOGINFO() << "[Engine] Succeed to initialize the world";
 
 		return true;
 	}
 
-	bool Engine::InitRHI()
-	{
-
-	}
-
 	bool Engine::InitAsset()
 	{
-
+		// TODO
+		return true;
 	}
 
 	void Engine::Shutdown()
 	{
 		LOGINFO() << "[Engine] Shutting down Engine";
 
+		if (m_worldWorker)
+		{
+			m_worldWorker->Stop();
+		}
+
+		if (m_assetWorker)
+		{
+			m_assetWorker->Stop();
+		}
+
+		if (m_renderWorker)
+		{
+			m_renderWorker->Stop();
+		}
+
+		if (m_rhiWorker)
+		{
+			m_rhiWorker->Stop();
+		}
+
 		if (m_window)
 		{
 			m_window->Shutdown();
-		}
-
-		if (m_world)
-		{
-			m_world->Stop();
-			m_world.Reset();
-		}
-
-		if (m_renderer)
-		{
-			m_renderer->Stop();
-			m_renderer.Reset();
 		}
 
 		Memory::Release();
@@ -224,16 +300,6 @@ namespace wtr
 	void Engine::Run()
 	{
 		LOGINFO() << "[Engine] Running Engine";
-
-		if (m_world)
-		{
-			m_world->Run();
-		}
-
-		if (m_renderer)
-		{
-			m_renderer->Run();
-		}
 
 		while (m_window->GetStatus() != eWindowStatus::eClosed)
 		{
@@ -250,9 +316,9 @@ namespace wtr
 		return m_world;
 	}
 
-	Memory::ObjectPtr<Renderer> Engine::GetRenderer()
+	Memory::RefPtr<RenderGraph> Engine::GetGraph()
 	{
-		return m_renderer;
+		return m_renderGraph;
 	}
 
 	void Engine::UpdateInput()

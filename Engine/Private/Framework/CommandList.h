@@ -34,7 +34,7 @@ namespace wtr
 			return command;
 		}
 
-		void Clear()
+		void Reset()
 		{
 			m_allocator.Reset();
 		}

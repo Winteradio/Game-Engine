@@ -1,14 +1,14 @@
 #include <Renderer/RenderWorker.h>
 
 #include <Framework/FrameContext.h>
-#include <Renderer/Renderer.h>
+#include <Renderer/RenderGraph.h>
 #include <RHI/RHICommandExecutor.h>
 
 namespace wtr
 {
 	RenderWorker::RenderWorker()
 		: m_refFrameContext(nullptr)
-		, m_refRenderer(nullptr)
+		, m_refGraph(nullptr)
 		, m_refExecutor(nullptr)
 	{}
 
@@ -23,11 +23,11 @@ namespace wtr
 		}
 	}
 
-	void RenderWorker::SetRenderer(const Memory::RefPtr<Renderer> renderer)
+	void RenderWorker::SetGraph(const Memory::RefPtr<RenderGraph> graph)
 	{
-		if (renderer)
+		if (graph)
 		{
-			m_refRenderer = renderer;
+			m_refGraph = graph;
 		}
 	}
 
@@ -44,15 +44,16 @@ namespace wtr
 
 	void RenderWorker::onUpdate()
 	{
-		if (!m_refFrameContext || !m_refRenderer || !m_refExecutor)
+		if (!m_refFrameContext || !m_refGraph || !m_refExecutor)
 		{
 			return;
 		}
 
 		auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
-		auto& cmdList = m_refCommandExecutor->Acquire
-		m_refRenderer->Render(frame, )
-		m_refRenderer->RenderFrame(frame, m_refExecutor);
+		auto& cmdList = m_refExecutor;
+		// m_refGraph->
+		// m_refGraph->Render(frame, )
+		// m_refGraph->RenderFrame(frame, m_refExecutor);
 		m_refFrameContext->Return(eWorkerType::eConsumer, frame);
 	}
 

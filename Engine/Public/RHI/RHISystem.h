@@ -72,14 +72,6 @@ namespace wtr
 		virtual void SetBlendState(const RHIBlendState& state) = 0;
 		virtual void SetRasterizerState(const RHIRasterizerState& state) = 0;
 
-		virtual Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc& desc) = 0;
-		virtual Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc& desc) = 0;
-		virtual Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc& desc) = 0;
-		virtual Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc& desc) = 0;
-		virtual Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc& desc) = 0;
-		virtual Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc& desc) = 0;
-		virtual Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc& desc) = 0;
-
 		virtual void InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture) = 0;
 		virtual void InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler) = 0;
@@ -91,7 +83,6 @@ namespace wtr
 
 		virtual void UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture) = 0;
-		virtual void UpdateSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler) = 0;
 
 		virtual void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void RemoveTexture(Memory::RefPtr<RHITexture> texture) = 0;
