@@ -1,13 +1,14 @@
 #include <RHI/RHIWorker.h>
 
 #include <RHI/RHISystem.h>
-#include <RHI/RHICommandExecutor.h>
+#include <RHI/RHIExecutor.h>
 
 namespace wtr
 {
 	RHIWorker::RHIWorker()
 		: m_refSystem(nullptr)
-		, m_refExecutor(nullptr)
+		, m_refFrameExecutor(nullptr)
+		, m_refTaskExecutor(nullptr)
 	{
 	}
 
@@ -20,29 +21,41 @@ namespace wtr
 		m_refSystem = rhiSystem;
 	}
 
-	void RHIWorker::SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor)
+	void RHIWorker::SetFrameExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
-		m_refExecutor = executor;
+		m_refFrameExecutor = executor;
+	}
+
+	void RHIWorker::SetTaskExecutor(const Memory::RefPtr<RHIExecutor> executor)
+	{
+		m_refTaskExecutor = executor;
 	}
 
 	void RHIWorker::onStart()
 	{
+		m_refSystem->MakeCurrent();
 	}
 
 	void RHIWorker::onUpdate()
 	{
-		if (!m_refSystem || !m_refExecutor)
+		if (!m_refSystem)
 		{
 			return;
 		}
 
-		m_refSystem->MakeCurrent();
-		m_refExecutor->Execute(m_refSystem);
-		m_refSystem->Present();
-		m_refSystem->ReleaseCurrent();
+		if (m_refTaskExecutor)
+		{
+			m_refTaskExecutor->Execute(m_refSystem);
+		}
+
+		if (m_refFrameExecutor)
+		{
+			m_refFrameExecutor->Execute(m_refSystem);
+		}
 	}
 
 	void RHIWorker::onDestroy()
 	{
+		m_refSystem->ReleaseCurrent();
 	}
 }

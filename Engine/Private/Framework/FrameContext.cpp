@@ -1,6 +1,7 @@
 #include <Framework/FrameContext.h>
 
 #include <Framework/Worker.h>
+#include <Log/include/Log.h>
 
 namespace wtr
 {
@@ -51,17 +52,17 @@ namespace wtr
 			std::unique_lock<std::mutex> lock(m_mutexRender);
 
 			auto checkReady = [this]()
+			{
+				for (auto& frame : this->m_frameList)
 				{
-					for (auto& frame : this->m_frameList)
+					if (eFrameState::eReady == frame.GetState())
 					{
-						if (eFrameState::eReady == frame.GetState())
-						{
-							return true;
-						}
+						return true;
 					}
+				}
 
-					return !this->m_isRunning;
-				};
+				return !this->m_isRunning;
+			};
 
 			m_cvRender.wait(lock, checkReady);
 
@@ -93,15 +94,21 @@ namespace wtr
 	{
 		if (eWorkerType::eProceduer == eType)
 		{
-			frame.SetState(eFrameState::eReady);
+			{
+				std::lock_guard<std::mutex> lock(m_mutexRender);
+				frame.SetState(eFrameState::eReady);
+			}
 
-			m_cvRender.notify_one();
+			m_cvRender.notify_all();
 		}
 		else
 		{
-			frame.SetState(eFrameState::eFree);
+			{
+				std::lock_guard<std::mutex> lock(m_mutexWorld);
+				frame.SetState(eFrameState::eFree);
+			}
 
-			m_cvWorld.notify_one();
+			m_cvWorld.notify_all();
 		}
 	}
 

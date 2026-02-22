@@ -11,7 +11,7 @@ namespace wtr
 {
 	class AssetLoader;
 	class AssetManager;
-	class RHICommandExecutor;
+	class RHIExecutor;
 };
 
 namespace wtr
@@ -25,7 +25,7 @@ namespace wtr
 	public :
 		void SetManager(const Memory::RefPtr<AssetManager> assetManager);
 		void SetLoader(const Memory::RefPtr<AssetLoader> assetLoader);
-		void SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor);
+		void SetExecutor(const Memory::RefPtr<RHIExecutor> executor);
 
 	protected :
 		void onStart() override;
@@ -35,7 +35,7 @@ namespace wtr
 	private :
 		Memory::RefPtr<AssetManager> m_refManager;
 		Memory::RefPtr<AssetLoader> m_refLoader;
-		Memory::RefPtr<RHICommandExecutor> m_refExecutor;
+		Memory::RefPtr<RHIExecutor> m_refExecutor;
 
 		wtr::DynamicArray<TaskWorker> m_threads;
 	};

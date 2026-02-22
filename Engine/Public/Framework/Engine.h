@@ -14,7 +14,7 @@ namespace wtr
 	class FrameContext;
 	class RenderGraph;
 	class RHISystem;
-	class RHICommandExecutor;
+	class RHIExecutor;
 	class AssetManager;
 	
 	class WorldWorker;
@@ -59,16 +59,19 @@ namespace wtr
 			Memory::RefPtr<InputStorage>	m_inputStorage;
 			Memory::RefPtr<FrameContext>	m_frameContext;
 			
-			Memory::RootPtr<World>	m_world;
-			Memory::RefPtr<RenderGraph> m_renderGraph;
-			Memory::RefPtr<RHISystem> m_rhiSystem;
-			Memory::RefPtr<RHICommandExecutor> m_rhiExecutor;
 			Memory::RefPtr<AssetManager> m_assetManager;
-
-			Memory::RefPtr<WorldWorker> m_worldWorker;
-			Memory::RefPtr<RenderWorker> m_renderWorker;
-			Memory::RefPtr<RHIWorker> m_rhiWorker;
 			Memory::RefPtr<AssetWorker> m_assetWorker;
+
+			Memory::RootPtr<World>	m_world;
+			Memory::RefPtr<WorldWorker> m_worldWorker;
+
+			Memory::RefPtr<RenderGraph> m_renderGraph;
+			Memory::RefPtr<RenderWorker> m_renderWorker;
+
+			Memory::RefPtr<RHISystem> m_rhiSystem;
+			Memory::RefPtr<RHIExecutor> m_rhiFrameExecutor;
+			Memory::RefPtr<RHIExecutor> m_rhiTaskExecutor;
+			Memory::RefPtr<RHIWorker> m_rhiWorker;
 	};
 };
 

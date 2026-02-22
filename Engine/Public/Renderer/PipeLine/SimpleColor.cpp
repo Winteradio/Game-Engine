@@ -26,7 +26,8 @@ namespace wtr
 
 		// tick 증가량은 그대로 두거나DeltaTime을 곱해 프레임 독립적으로 관리하세요.
 		static float tick = 0.0f;
-		tick += (tick >= 6.283185307f) ? -6.283185307f + 0.01f : 0.01f;
+		const float diff = 0.01;
+		tick += (tick >= 6.283185307f) ? -6.283185307f + diff : diff;
 
 		RHIClearState clearState = m_pipeLine->GetClearState();
 

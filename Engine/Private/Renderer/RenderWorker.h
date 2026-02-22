@@ -9,7 +9,7 @@ namespace wtr
 {
 	class FrameContext;
 	class RenderGraph;
-	class RHICommandExecutor;
+	class RHIExecutor;
 };
 
 namespace wtr
@@ -23,7 +23,7 @@ namespace wtr
 	public :
 		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
 		void SetGraph(const Memory::RefPtr<RenderGraph> graph);
-		void SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor);
+		void SetExecutor(const Memory::RefPtr<RHIExecutor> executor);
 
 	protected :
 		void onStart() override;
@@ -33,7 +33,7 @@ namespace wtr
 	private :
 		Memory::RefPtr<FrameContext> m_refFrameContext;
 		Memory::RefPtr<RenderGraph> m_refGraph;
-		Memory::RefPtr<RHICommandExecutor> m_refExecutor;
+		Memory::RefPtr<RHIExecutor> m_refExecutor;
 	};
 };
 

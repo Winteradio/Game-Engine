@@ -15,6 +15,7 @@ namespace wtr
 	struct RenderDesc
 	{
 		eRenderType Type = eRenderType::eNone;
+		size_t FrameCount = 3;
 	};
 
 	class RenderGraph

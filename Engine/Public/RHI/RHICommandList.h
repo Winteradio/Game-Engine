@@ -58,6 +58,8 @@ namespace wtr
 
 		void ExecuteAll(Memory::RefPtr<RHISystem> system);
 		void Reset();
+		void SetFrame(const size_t frame);
+		const size_t GetFrame() const;
 
 	public :
 		void Clear(const RHIClearState& state);
@@ -93,6 +95,7 @@ namespace wtr
 
 	private :
 		wtr::DynamicArray<RHICommandBase*> m_commands;
+		size_t m_frame;
 	};
 };
 

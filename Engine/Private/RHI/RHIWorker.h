@@ -8,7 +8,7 @@
 namespace wtr
 {
 	class RHISystem;
-	class RHICommandExecutor;
+	class RHIExecutor;
 };
 
 namespace wtr
@@ -21,7 +21,8 @@ namespace wtr
 
 	public :
 		void SetSystem(const Memory::RefPtr<RHISystem> rhiSystem);
-		void SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor);
+		void SetFrameExecutor(const Memory::RefPtr<RHIExecutor> executor);
+		void SetTaskExecutor(const Memory::RefPtr<RHIExecutor> executor);
 
 	public :
 		void onStart() override;
@@ -30,7 +31,8 @@ namespace wtr
 
 	private :
 		Memory::RefPtr<RHISystem> m_refSystem;
-		Memory::RefPtr<RHICommandExecutor> m_refExecutor;
+		Memory::RefPtr<RHIExecutor> m_refFrameExecutor;
+		Memory::RefPtr<RHIExecutor> m_refTaskExecutor;
 	};
 };
 

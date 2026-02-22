@@ -12,6 +12,7 @@ namespace wtr
 	RHICommandList::RHICommandList()
 		: CommandList<RHICommandBase>()
 		, m_commands()
+		, m_frame(0)
 	{}
 
 	RHICommandList::~RHICommandList()
@@ -34,6 +35,16 @@ namespace wtr
 	{
 		m_commands.Clear();
 		Super::Reset();
+	}
+
+	void RHICommandList::SetFrame(const size_t frame)
+	{
+		m_frame = frame;
+	}
+
+	const size_t RHICommandList::GetFrame() const
+	{
+		return m_frame;
 	}
 
 	void RHICommandList::Clear(const RHIClearState& state)

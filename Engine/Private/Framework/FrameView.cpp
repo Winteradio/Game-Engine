@@ -1,6 +1,7 @@
 #include <Framework/FrameView.h>
 
 #include <Framework/SceneView.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
@@ -18,7 +19,7 @@ namespace wtr
 	{
 		if ((m_viewIndex + 1) >= m_views.Size())
 		{
-			Memory::RefPtr<SceneView> newScene = Memory::RefPtr<SceneView>(new SceneView());
+			Memory::RefPtr<SceneView> newScene = Memory::MakeRef<SceneView>();
 			m_views.PushBack(newScene);
 		}
 

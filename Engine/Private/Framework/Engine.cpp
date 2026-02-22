@@ -14,7 +14,8 @@
 #include <Renderer/RenderGraph.h>
 #include <Renderer/RenderWorker.h>
 #include <RHI/RHISystem.h>
-#include <RHI/RHICommandExecutor.h>
+#include <RHI/RHIFrameExecutor.h>
+#include <RHI/RHITaskExecutor.h>
 #include <RHI/OpenGL/GLSystem.h>
 #include <RHI/RHIWorker.h>
 
@@ -29,14 +30,13 @@ namespace wtr
 		, m_inputStorage(nullptr)
 		, m_frameContext(nullptr)
 		, m_world()
-		, m_renderGraph(nullptr)
-		, m_rhiSystem(nullptr)
-		, m_assetManager(nullptr)
 		, m_worldWorker(nullptr)
+		, m_renderGraph(nullptr)
 		, m_renderWorker(nullptr)
+		, m_rhiSystem(nullptr)
+		, m_rhiFrameExecutor(nullptr)
+		, m_rhiTaskExecutor(nullptr)
 		, m_rhiWorker(nullptr)
-		, m_rhiExecutor(nullptr)
-		, m_assetWorker(nullptr)
 	{}
 
 	Engine::~Engine()
@@ -157,7 +157,7 @@ namespace wtr
 
 			m_renderWorker->SetGraph(m_renderGraph);
 			m_renderWorker->SetFrameContext(m_frameContext);
-			m_renderWorker->SetExecutor(m_rhiExecutor);
+			m_renderWorker->SetExecutor(m_rhiFrameExecutor);
 		}
 
 		LOGINFO() << "[Engine] Renderer initialized successfully";
@@ -201,10 +201,25 @@ namespace wtr
 
 		// Initialize the RHI Command Executor
 		{
-			m_rhiExecutor = Memory::MakeRef<RHICommandExecutor>();
-			if (!m_rhiExecutor)
+			Memory::RefPtr<RHIFrameExecutor> frameExecutor = Memory::MakeRef<RHIFrameExecutor>();
+			if (!frameExecutor)
 			{
-				LOGERROR() << "[Engine] Failed to create the rhi command executor";
+				LOGERROR() << "[Engine] Failed to create the rhi frame executor";
+				return false;
+			}
+
+			if (!frameExecutor->Init(renderDesc.FrameCount))
+			{
+				LOGERROR() << "[Engine] Failed to initialize the rhi frame executor";
+				return false;
+			}
+
+			m_rhiFrameExecutor = frameExecutor;
+
+			m_rhiTaskExecutor = Memory::MakeRef<RHITaskExecutor>();
+			if (!m_rhiTaskExecutor)
+			{
+				LOGERROR() << "[Engine] Failed to create the rhi task executor";
 				return false;
 			}
 		}
@@ -218,7 +233,8 @@ namespace wtr
 				return false;
 			}
 
-			m_rhiWorker->SetExecutor(m_rhiExecutor);
+			m_rhiWorker->SetFrameExecutor(m_rhiFrameExecutor);
+			m_rhiWorker->SetTaskExecutor(m_rhiTaskExecutor);
 			m_rhiWorker->SetSystem(m_rhiSystem);
 		}
 

@@ -40,7 +40,7 @@ namespace wtr
 		}
 	}
 
-	void AssetWorker::SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor)
+	void AssetWorker::SetExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
 		if (executor)
 		{

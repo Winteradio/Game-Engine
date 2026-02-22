@@ -2,7 +2,8 @@
 
 #include <Framework/FrameContext.h>
 #include <Renderer/RenderGraph.h>
-#include <RHI/RHICommandExecutor.h>
+#include <RHI/RHIExecutor.h>
+#include <RHI/RHICommandList.h>
 
 namespace wtr
 {
@@ -31,7 +32,7 @@ namespace wtr
 		}
 	}
 
-	void RenderWorker::SetExecutor(const Memory::RefPtr<RHICommandExecutor> executor)
+	void RenderWorker::SetExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
 		if (executor)
 		{
@@ -51,7 +52,12 @@ namespace wtr
 
 		auto& frame = m_refFrameContext->Acquire(eWorkerType::eConsumer);
 		auto cmdList = m_refExecutor->Acquire();
+		if (!cmdList)
+		{
+			return;
+		}
 		
+		cmdList->SetFrame(frame.GetFrame());
 		m_refGraph->PreDraw(cmdList);
 		m_refGraph->Draw(frame, cmdList);
 		m_refGraph->PostDraw(cmdList);
