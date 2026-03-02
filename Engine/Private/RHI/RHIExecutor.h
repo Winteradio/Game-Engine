@@ -14,13 +14,16 @@ namespace wtr
 	class RHIExecutor
 	{
 	public :
-		RHIExecutor() = default;
+		RHIExecutor(Memory::RefPtr<RHISystem> system);
 		virtual ~RHIExecutor() = default;
 
 	public :
 		virtual Memory::RefPtr<RHICommandList> Acquire() = 0;
 		virtual void Submit(Memory::RefPtr<RHICommandList> cmdList) = 0;
-		virtual void Execute(Memory::RefPtr<RHISystem> system) = 0;
+		virtual void Execute() = 0;
+
+	protected :
+		Memory::RefPtr<RHISystem> m_system;
 	};
 };
 

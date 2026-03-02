@@ -5,6 +5,8 @@
 #include <Renderer/RenderTypes.h>
 #include <Renderer/RenderGraph.h>
 
+#include <Asset/AssetSystem.h>
+
 #include <Log/include/Log.h>
 
 namespace demo
@@ -64,6 +66,9 @@ namespace demo
 		mainView.active = true;
 
 		mainScene.RegisterView(mainView);
+
+		const std::string cubePath = "asset/mesh/3d/cube.obj";
+		wtr::AssetSystem::Load(cubePath);
 	}
 
 	void Game::onRun()

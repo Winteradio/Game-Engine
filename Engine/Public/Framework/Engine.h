@@ -59,7 +59,6 @@ namespace wtr
 			Memory::RefPtr<InputStorage>	m_inputStorage;
 			Memory::RefPtr<FrameContext>	m_frameContext;
 			
-			Memory::RefPtr<AssetManager> m_assetManager;
 			Memory::RefPtr<AssetWorker> m_assetWorker;
 
 			Memory::RootPtr<World>	m_world;

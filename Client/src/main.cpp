@@ -5,10 +5,11 @@
 
 int MAIN()
 {
-	demo::Game game;
-	game.onInit();
-	game.onRun();
-	game.onShutdown();
+	{
+		demo::Game game;
+		game.onInit();
+		game.onRun();
+	}
 
 	system("pause");
 

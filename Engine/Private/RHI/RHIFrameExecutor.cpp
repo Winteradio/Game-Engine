@@ -9,8 +9,9 @@
 
 namespace wtr
 {
-	RHIFrameExecutor::RHIFrameExecutor()
-		: m_frameCount(0)
+	RHIFrameExecutor::RHIFrameExecutor(Memory::RefPtr<RHISystem> system)
+		: RHIExecutor(system)
+		, m_frameCount(0)
 		, m_recordIndex(0)
 		, m_beginIndex(0)
 		, m_endIndex(0)
@@ -60,9 +61,9 @@ namespace wtr
 		m_endIndex.store(endNext, std::memory_order_release);
 	}
 
-	void RHIFrameExecutor::Execute(Memory::RefPtr<RHISystem> system)
+	void RHIFrameExecutor::Execute()
 	{
-		if (!system)
+		if (!m_system)
 		{
 			return;
 		}
@@ -77,10 +78,9 @@ namespace wtr
 			Memory::RefPtr<RHICommandList> cmdList = m_listPool[now];
 			if (cmdList)
 			{
-				cmdList->ExecuteAll(system);
-				system->Present();
+				cmdList->ExecuteAll();
+				m_system->Present();
 			}
-
 			now = GetNext(now);
 		}
 
@@ -100,7 +100,7 @@ namespace wtr
 
 		for (size_t count = 0; count < m_frameCount; count++)
 		{
-			Memory::RefPtr<RHICommandList> cmdList = Memory::MakeRef<RHICommandList>();
+			Memory::RefPtr<RHICommandList> cmdList = Memory::MakeRef<RHICommandList>(m_system);
 			if (!cmdList)
 			{
 				break;

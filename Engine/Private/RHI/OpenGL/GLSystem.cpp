@@ -1,10 +1,12 @@
 #include <RHI/OpenGL/GLSystem.h>
 
+#include <Memory/include/Core.h>
 #include <Log/include/Log.h>
 #include <glad/glad.h>
 
 #include <RHI/RHIStates.h>
 #include <RHI/RHIResources.h>
+#include <RHI/OpenGL/GLResources.h>
 
 namespace wtr
 {
@@ -68,7 +70,10 @@ namespace wtr
 
 	void GLSystem::ReleaseCurrent()
 	{
-		m_context.ReleaseCurrent();
+		if (m_context.GetCurrent())
+		{
+			m_context.ReleaseCurrent();
+		}
 	}
 
 	void GLSystem::Present()
@@ -280,34 +285,90 @@ namespace wtr
 		m_rasterizerState = state;
 	}
 
-	void GLSystem::InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
+	Memory::RefPtr<RHIBuffer> GLSystem::CreateBuffer(const RHIBufferDesc desc)
+	{
+		Memory::RefPtr<RHIBuffer> refBuffer = Memory::MakeRef<GLBuffer>(desc);
+
+		return refBuffer;
+	}
+
+	Memory::RefPtr<RHITexture> GLSystem::CreateTexture(const RHITextureDesc desc)
+	{
+		Memory::RefPtr<RHITexture> refTexture = Memory::MakeRef<GLTexture>(desc);
+
+		return refTexture;
+	}
+
+	Memory::RefPtr<RHISampler> GLSystem::CreateSampler(const RHISamplerDesc desc)
+	{
+		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<RHISampler>(desc);
+
+		return refSampler;
+	}
+
+	Memory::RefPtr<RHIVertexShader> GLSystem::CreateVertexShader(const RHIVertexShaderDesc desc)
+	{
+		Memory::RefPtr<RHIVertexShader> refVertexShader = Memory::MakeRef<GLVertexShader>(desc);
+
+		return refVertexShader;
+	}
+
+	Memory::RefPtr<RHIGeometryShader> GLSystem::CreateGeometryShader(const RHIGeometryShaderDesc desc)
+	{
+		Memory::RefPtr<RHIGeometryShader> refGeometryShader = Memory::MakeRef<GLGeometryShader>(desc);
+
+		return refGeometryShader;
+	}
+
+	Memory::RefPtr<RHIPixelShader> GLSystem::CreatePixelShader(const RHIPixelShaderDesc desc)
+	{
+		Memory::RefPtr<RHIPixelShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
+
+		return refPixelShader;
+	}
+
+	Memory::RefPtr<RHIComputeShader> GLSystem::CreateComputeShader(const RHIComputeShaderDesc desc)
+	{
+		Memory::RefPtr<RHIComputeShader> refComputeShader = Memory::MakeRef<GLComputeShader>(desc);
+
+		return refComputeShader;
+	}
+
+	Memory::RefPtr<RHIPipeLine> GLSystem::CreatePipeLine(const RHIPipeLineDesc desc)
+	{
+		Memory::RefPtr<RHIPipeLine> refPipeLine = Memory::MakeRef<GLPipeLine>(desc);
+
+		return refPipeLine;
+	}
+
+	void GLSystem::InitializeBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer)
 	{}
 
-	void GLSystem::InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
+	void GLSystem::InitializeTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture)
 	{}
 
-	void GLSystem::InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler)
+	void GLSystem::InitializeSampler(const RHISamplerCreateInfo info, Memory::RefPtr<RHISampler> sampler)
 	{}
 
-	void GLSystem::InitializeVertexShader(const RHIVertexShaderDesc& desc, Memory::RefPtr<RHIVertexShader> shader)
+	void GLSystem::InitializeVertexShader(const RHIVertexShaderCreateInfo info, Memory::RefPtr<RHIVertexShader> shader)
 	{}
 
-	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderDesc& desc, Memory::RefPtr<RHIGeometryShader> shader)
+	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateInfo info, Memory::RefPtr<RHIGeometryShader> shader)
 	{}
 
-	void GLSystem::InitializePixelShader(const RHIPixelShaderDesc& desc, Memory::RefPtr<RHIPixelShader> shader)
+	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateInfo info, Memory::RefPtr<RHIPixelShader> shader)
 	{}
 
-	void GLSystem::InitializeComputeShader(const RHIComputeShaderDesc& desc, Memory::RefPtr<RHIComputeShader> shader)
+	void GLSystem::InitializeComputeShader(const RHIComputeShaderCreateInfo info, Memory::RefPtr<RHIComputeShader> shader)
 	{}
 
-	void GLSystem::InitializePipeLine(const RHIPipeLineDesc& desc, Memory::RefPtr<RHIPipeLine> pipeline)
+	void GLSystem::InitializePipeLine(const RHIPipeLineCreateInfo info, Memory::RefPtr<RHIPipeLine> pipeline)
 	{}
 
-	void GLSystem::UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
+	void GLSystem::UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer)
 	{}
 
-	void GLSystem::UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
+	void GLSystem::UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture)
 	{}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)

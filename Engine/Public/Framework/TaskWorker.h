@@ -19,18 +19,26 @@ namespace wtr
 		void operator()();
 
 		template<typename Logic, typename Callback, typename... Args>
-		static Task Make(Logic&& logic, Callback&& callback, Args&&... args)
+		static Memory::RefPtr<Task> Make(Logic&& logic, Callback&& callback, Args&&... args)
 		{
-			auto taskFunc = [taskLogic = std::forward<Logic>(logic), 
-				taskCallback = std::forward<Callback>(callback), 
-				...taskArgs = std::forward<Args>(args)...]
-				() mutable
-			{
-				auto result = taskLogic(taskArgs...);
-				taskCallback(result);
-			};
+			auto taskFunc = [taskLogic = std::forward<Logic>(logic),
+				taskCallback = std::forward<Callback>(callback),
+				argsTuple = std::make_tuple(std::forward<Args>(args)...)]() mutable
+				{
+					if constexpr (std::is_void_v<std::invoke_result_t<Logic, Args...>>) {
 
-			return Task(taskFunc);
+						std::apply(taskLogic, std::move(argsTuple));
+						taskCallback();
+
+					}
+					else 
+					{
+						auto result = std::apply(taskLogic, std::move(argsTuple));
+						taskCallback(result);
+					}
+				};
+
+			return Memory::MakeRef<Task>(taskFunc);
 		};
 	};
 
@@ -46,7 +54,7 @@ namespace wtr
 		
 		void Set(Memory::RefPtr<Task> task);
 		
-		bool IsRunning() const;
+		bool IsWaited() const;
 		bool IsJoinable() const;
 
 	protected :
@@ -55,6 +63,7 @@ namespace wtr
 		void onDestroy() override;
 
 	private :
+		std::atomic<bool> m_isWaited;
 		std::condition_variable m_cv;
 		std::mutex m_mutex;
 		Memory::RefPtr<Task> m_task;

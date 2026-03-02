@@ -25,6 +25,15 @@ namespace wtr
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
 
+	struct RHIBufferCreateInfo;
+	struct RHITextureCreateInfo;
+	struct RHISamplerCreateInfo;
+	struct RHIVertexShaderCreateInfo;
+	struct RHIGeometryShaderCreateInfo;
+	struct RHIPixelShaderCreateInfo;
+	struct RHIComputeShaderCreateInfo;
+	struct RHIPipeLineCreateInfo;
+
 	struct RHIColorState;
 	struct RHIDepthState;
 	struct RHIStencilState;
@@ -74,23 +83,32 @@ namespace wtr
 		virtual void SetBlendState(const RHIBlendState& state) = 0;
 		virtual void SetRasterizerState(const RHIRasterizerState& state) = 0;
 
-		virtual void InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture) = 0;
-		virtual void InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler) = 0;
-		virtual void InitializeVertexShader(const RHIVertexShaderDesc& desc, Memory::RefPtr<RHIVertexShader> shader) = 0;
-		virtual void InitializeGeometryShader(const RHIGeometryShaderDesc& desc, Memory::RefPtr<RHIGeometryShader> shader) = 0;
-		virtual void InitializePixelShader(const RHIPixelShaderDesc& desc, Memory::RefPtr<RHIPixelShader> shader) = 0;
-		virtual void InitializeComputeShader(const RHIComputeShaderDesc& desc, Memory::RefPtr<RHIComputeShader> shader) = 0;
-		virtual void InitializePipeLine(const RHIPipeLineDesc& desc, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
+		virtual Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc desc) = 0;
+		virtual Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc desc) = 0;
+		virtual Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc desc) = 0;
+		virtual Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc desc) = 0;
+		virtual Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc desc) = 0;
+		virtual Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc desc) = 0;
+		virtual Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc desc) = 0;
+		virtual Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) = 0;
 
-		virtual void UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void InitializeBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual void InitializeTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void InitializeSampler(const RHISamplerCreateInfo info, Memory::RefPtr<RHISampler> sampler) = 0;
+		virtual void InitializeVertexShader(const RHIVertexShaderCreateInfo info, Memory::RefPtr<RHIVertexShader> shader) = 0;
+		virtual void InitializeGeometryShader(const RHIGeometryShaderCreateInfo info, Memory::RefPtr<RHIGeometryShader> shader) = 0;
+		virtual void InitializePixelShader(const RHIPixelShaderCreateInfo info, Memory::RefPtr<RHIPixelShader> shader) = 0;
+		virtual void InitializeComputeShader(const RHIComputeShaderCreateInfo info, Memory::RefPtr<RHIComputeShader> shader) = 0;
+		virtual void InitializePipeLine(const RHIPipeLineCreateInfo info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
+
+		virtual void UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual void UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture) = 0;
 
 		virtual void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void RemoveTexture(Memory::RefPtr<RHITexture> texture) = 0;
 		virtual void RemoveSampler(Memory::RefPtr<RHISampler> sampler) = 0;
 		virtual void RemoveShader(Memory::RefPtr<RHIShader> shader) = 0;
-		virtual void RemovePipeLine(Memory::RefPtr<RHIPipeLine> shader) = 0;
+		virtual void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 
 		virtual void DrawIndexPrimitive() = 0;
 

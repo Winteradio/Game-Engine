@@ -30,6 +30,15 @@ namespace wtr
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
 
+	struct RHIBufferCreateInfo;
+	struct RHITextureCreateInfo;
+	struct RHISamplerCreateInfo;
+	struct RHIVertexShaderCreateInfo;
+	struct RHIGeometryShaderCreateInfo;
+	struct RHIPixelShaderCreateInfo;
+	struct RHIComputeShadercreateInfo;
+	struct RHIPipeLineCreateInfo;
+
 	struct RHIColorState;
 	struct RHIDepthState;
 	struct RHIStencilState;
@@ -45,7 +54,7 @@ namespace wtr
 	public :
 		using Super = CommandList<RHICommandBase>;
 
-		RHICommandList();
+		RHICommandList(Memory::RefPtr<RHISystem> system);
 		~RHICommandList();
 
 		template<typename T, typename... Args>
@@ -56,7 +65,7 @@ namespace wtr
 			m_commands.PushBack(command);
 		}
 
-		void ExecuteAll(Memory::RefPtr<RHISystem> system);
+		void ExecuteAll();
 		void Reset();
 		void SetFrame(const size_t frame);
 		const size_t GetFrame() const;
@@ -73,17 +82,17 @@ namespace wtr
 		void SetBlendState(const RHIBlendState& state);
 		void SetRasterizerState(const RHIRasterizerState& state);
 
-		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc& desc);
-		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc& desc);
-		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc& desc);
-		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc& desc);
-		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc& desc);
-		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc& desc);
-		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc& desc);
-		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc& desc);
+		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferCreateInfo info);
+		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureCreateInfo info);
+		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerCreateInfo info);
+		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderCreateInfo info);
+		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderCreateInfo info);
+		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderCreateInfo info);
+		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateInfo info);
+		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateInfo info);
 
-		void UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer);
-		void UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture);
+		void UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer);
+		void UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture);
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer);
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture);
@@ -94,6 +103,7 @@ namespace wtr
 		void DrawIndexPrimitive();
 
 	private :
+		Memory::RefPtr<RHISystem> m_system;
 		wtr::DynamicArray<RHICommandBase*> m_commands;
 		size_t m_frame;
 	};

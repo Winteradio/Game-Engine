@@ -86,6 +86,12 @@ namespace wtr
 		return true;
 	}
 
+	bool WGLContext::GetCurrent()
+	{
+		HGLRC currentContext = wglGetCurrentContext();
+		return currentContext == m_renderingContext;
+	}
+
 	void WGLContext::Present()
 	{
 		SwapBuffers(m_deviceContext);

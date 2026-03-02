@@ -10,6 +10,24 @@ namespace wtr
 	Worker::~Worker()
 	{}
 
+	Worker::Worker(Worker&& other) noexcept
+		: m_isRunning(other.m_isRunning.load(std::memory_order_relaxed))
+		, m_thread(std::move(other.m_thread))
+	{
+		other.m_isRunning.store(false, std::memory_order_relaxed);
+	}
+
+	Worker& Worker::operator=(Worker&& other) noexcept
+	{
+		if (this != &other)
+		{
+			m_isRunning.store(other.m_isRunning.load(std::memory_order_relaxed), std::memory_order_relaxed);
+			m_thread = std::move(other.m_thread);
+			other.m_isRunning.store(false, std::memory_order_relaxed);
+		}
+		return *this;
+	}
+
 	void Worker::Start()
 	{
 		if (m_isRunning)

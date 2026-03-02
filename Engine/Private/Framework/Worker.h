@@ -19,6 +19,12 @@ namespace wtr
 		Worker();
 		virtual ~Worker();
 
+		Worker(const Worker&) = delete;
+		Worker& operator=(const Worker&) = delete;
+
+		Worker(Worker&& other) noexcept;
+		Worker& operator=(Worker&& other) noexcept;
+
 	public :
 		void Start();
 		void Stop();

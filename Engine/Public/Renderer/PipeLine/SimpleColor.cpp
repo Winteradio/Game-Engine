@@ -6,6 +6,8 @@
 #include <RHI/RHIResources.h>
 #include <RHI/RHIStates.h>
 
+#include <Log/include/Log.h>
+
 namespace wtr
 {
 	SimpleColor::SimpleColor()
@@ -50,7 +52,7 @@ namespace wtr
 			return;
 		}
 
-		RHIPipeLineDesc desc;
+		RHIPipeLineCreateInfo desc;
 		desc.clear.clearBuffer = eClearBuffer::eColor;
 		desc.clear.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 		desc.depth.enable = false;

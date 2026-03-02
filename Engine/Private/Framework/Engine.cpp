@@ -6,7 +6,6 @@
 #include <Platform/Win32/Win32Window.h>
 #include <Platform/Win32/Win32InputHandler.h>
 
-#include <Asset/AssetManager.h>
 #include <Asset/AssetWorker.h>
 #include <World/World.h>
 #include <World/WorldWorker.h>
@@ -42,18 +41,6 @@ namespace wtr
 	Engine::~Engine()
 	{
 		Shutdown();
-
-		if (nullptr != m_window)
-		{
-			delete m_window;
-			m_window = nullptr;
-		}
-
-		if (nullptr != m_inputHandler)
-		{
-			delete m_inputHandler;
-			m_inputHandler = nullptr;
-		}
 	}
 
 	bool Engine::Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc)
@@ -122,6 +109,7 @@ namespace wtr
 		}
 
 		m_window->SetInputHandler(m_inputHandler);
+		m_window->SetCloseCallback([this](){this->Shutdown();});
 
 		LOGINFO() << "[Engine] Main window initialized successfully";
 
@@ -201,7 +189,7 @@ namespace wtr
 
 		// Initialize the RHI Command Executor
 		{
-			Memory::RefPtr<RHIFrameExecutor> frameExecutor = Memory::MakeRef<RHIFrameExecutor>();
+			Memory::RefPtr<RHIFrameExecutor> frameExecutor = Memory::MakeRef<RHIFrameExecutor>(m_rhiSystem);
 			if (!frameExecutor)
 			{
 				LOGERROR() << "[Engine] Failed to create the rhi frame executor";
@@ -216,12 +204,14 @@ namespace wtr
 
 			m_rhiFrameExecutor = frameExecutor;
 
-			m_rhiTaskExecutor = Memory::MakeRef<RHITaskExecutor>();
-			if (!m_rhiTaskExecutor)
+			Memory::RefPtr<RHITaskExecutor> taskExecutor = Memory::MakeRef<RHITaskExecutor>(m_rhiSystem);
+			if (!taskExecutor)
 			{
 				LOGERROR() << "[Engine] Failed to create the rhi task executor";
 				return false;
 			}
+
+			m_rhiTaskExecutor = taskExecutor;
 		}
 
 		// Initialize the RHI Worker
@@ -276,7 +266,18 @@ namespace wtr
 
 	bool Engine::InitAsset()
 	{
-		// TODO
+		m_assetWorker = Memory::MakeRef<AssetWorker>();
+		if (!m_assetWorker)
+		{
+			LOGERROR() << "[Engine] Failed to create the asset worker";
+			return false;
+		}
+
+		m_assetWorker->SetExecutor(m_rhiTaskExecutor);
+		m_assetWorker->SetTaskThread(4);
+
+		LOGINFO() << "[Engine] Succeed to initialize the asset worker";
+
 		return true;
 	}
 
@@ -287,26 +288,39 @@ namespace wtr
 		if (m_worldWorker)
 		{
 			m_worldWorker->Stop();
+			m_worldWorker.Reset();
 		}
 
 		if (m_assetWorker)
 		{
 			m_assetWorker->Stop();
+			m_assetWorker.Reset();
 		}
 
 		if (m_renderWorker)
 		{
 			m_renderWorker->Stop();
+			m_renderWorker.Reset();
 		}
 
 		if (m_rhiWorker)
 		{
 			m_rhiWorker->Stop();
+			m_rhiWorker.Reset();
 		}
 
 		if (m_window)
 		{
 			m_window->Shutdown();
+			
+			delete m_window;
+			m_window = nullptr;
+		}
+
+		if (m_inputHandler)
+		{
+			delete m_inputHandler;
+			m_inputHandler = nullptr;
 		}
 
 		Memory::Release();
@@ -338,7 +352,7 @@ namespace wtr
 			m_worldWorker->Start();
 		}
 
-		while (m_window->GetStatus() != eWindowStatus::eClosed)
+		while (m_window && m_window->GetStatus() != eWindowStatus::eClosed)
 		{
 			m_window->PollEvents();
 

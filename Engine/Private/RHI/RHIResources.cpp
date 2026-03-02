@@ -2,6 +2,44 @@
 
 namespace wtr
 {
+	eResourceState operator|(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator&(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator^(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) ^ static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator~(const eResourceState state)
+	{
+		return static_cast<eResourceState>(~static_cast<uint8_t>(state));
+	}
+
+	eResourceState operator|=(eResourceState lhs, const eResourceState rhs)
+	{
+		lhs = lhs | rhs;
+		return lhs;
+	}
+
+	eResourceState operator&=(eResourceState lhs, const eResourceState rhs)
+	{
+		lhs = lhs & rhs;
+		return lhs;
+	}
+
+	eResourceState operator^=(eResourceState lhs, const eResourceState rhs)
+	{
+		lhs = lhs ^ rhs;
+		return lhs;
+	}
+
 	const void* RHIResource::GetRawBuffer() const
 	{
 		return nullptr;

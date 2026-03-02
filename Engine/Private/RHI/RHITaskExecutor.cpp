@@ -12,7 +12,12 @@
 
 namespace wtr
 {
-	RHITaskExecutor::RHITaskExecutor()
+	RHITaskExecutor::RHITaskExecutor(Memory::RefPtr<RHISystem> system)
+		: RHIExecutor(system)
+		 , m_listMutex()
+		 , m_freeMutex()
+		 , m_listPool()
+		, m_freePool()
 	{}
 
 	RHITaskExecutor::~RHITaskExecutor()
@@ -28,7 +33,7 @@ namespace wtr
 	{
 	}
 
-	void RHITaskExecutor::Execute(Memory::RefPtr<RHISystem> system)
+	void RHITaskExecutor::Execute()
 	{
 	}
 }

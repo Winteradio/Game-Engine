@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <functional>
 
 namespace wtr
 {
@@ -65,6 +66,8 @@ namespace wtr
 
 			virtual void SetInputHandler(InputHandler* inputHandler) = 0;
 			virtual const InputHandler* GetInputHandler() const = 0;
+
+			virtual void SetCloseCallback(const std::function<void()>& callback) = 0;
 	};
 };
 

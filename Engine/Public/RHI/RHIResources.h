@@ -10,11 +10,19 @@ namespace wtr
 {
 	enum class eResourceState : uint8_t
 	{
-		eNone	= 0x00,
-		eLoaded = 0x01,
-		eReady	= 0x02,
-		eError	= 0x03
+		eNone		= 0x00,
+		eLoaded		= 0x01,
+		eReady		= 0x02,
+		eAll		= 0xFF
 	};
+
+	eResourceState operator|(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator&(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator^(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator~(const eResourceState state);
+	eResourceState operator|=(eResourceState lhs, const eResourceState rhs);
+	eResourceState operator&=(eResourceState lhs, const eResourceState rhs);
+	eResourceState operator^=(eResourceState lhs, const eResourceState rhs);
 
 	class RHIResource
 	{

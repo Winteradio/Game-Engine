@@ -15,13 +15,13 @@ namespace wtr
 	public :
 		using ListPool = wtr::DynamicArray<Memory::RefPtr<RHICommandList>>;
 
-		RHIFrameExecutor();
+		RHIFrameExecutor(Memory::RefPtr<RHISystem> system);
 		virtual ~RHIFrameExecutor();
 
 	public :
 		Memory::RefPtr<RHICommandList> Acquire() override;
 		void Submit(Memory::RefPtr<RHICommandList> cmdList) override;
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute() override;
 
 		bool Init(const size_t frameCount);
 

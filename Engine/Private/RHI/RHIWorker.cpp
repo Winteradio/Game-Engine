@@ -38,19 +38,14 @@ namespace wtr
 
 	void RHIWorker::onUpdate()
 	{
-		if (!m_refSystem)
-		{
-			return;
-		}
-
 		if (m_refTaskExecutor)
 		{
-			m_refTaskExecutor->Execute(m_refSystem);
+			m_refTaskExecutor->Execute();
 		}
 
 		if (m_refFrameExecutor)
 		{
-			m_refFrameExecutor->Execute(m_refSystem);
+			m_refFrameExecutor->Execute();
 		}
 	}
 

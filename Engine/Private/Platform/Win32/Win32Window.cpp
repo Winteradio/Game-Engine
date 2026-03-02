@@ -15,6 +15,7 @@ namespace wtr
 		, m_height(600)
 		, m_posX(0)
 		, m_posY(0)
+		, m_closeCallback()
 	{}
 
 	Win32Window::~Win32Window()
@@ -97,6 +98,7 @@ namespace wtr
 			if (IsWindow(m_WindowHandle))
 			{
 				DestroyWindow(m_WindowHandle);
+				PostQuitMessage(0);
 			}
 			m_WindowHandle = nullptr;
 		}
@@ -170,6 +172,11 @@ namespace wtr
 		return m_InputHandler;
 	}
 
+	void Win32Window::SetCloseCallback(const std::function<void()>& closeCallback)
+	{
+		m_closeCallback = closeCallback;
+	}
+
 	LRESULT CALLBACK Win32Window::InputCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Win32Window* window = nullptr;
@@ -194,17 +201,7 @@ namespace wtr
 			switch (uMsg)
 			{
 				case WM_CLOSE:
-				{
-					DestroyWindow(hwnd);
-					break;
-				}
-
 				case WM_DESTROY:
-				{
-					PostQuitMessage(0);
-					break;
-				}
-
 				case WM_KEYDOWN:
 				case WM_KEYUP:
 				case WM_MOUSEMOVE:
@@ -218,8 +215,7 @@ namespace wtr
 				case WM_SIZE:
 				case WM_SIZING:
 				{
-					window->HandleMessage(uMsg, wParam, lParam);
-					break;
+					return window->HandleMessage(uMsg, wParam, lParam);
 				}
 
 				default:
@@ -236,6 +232,16 @@ namespace wtr
 		{
 			switch (uMsg)
 			{
+				case WM_CLOSE:
+				case WM_DESTROY:
+				{
+					if (m_closeCallback)
+					{
+						m_closeCallback();
+					}
+					break;
+				}
+
 				case WM_KEYDOWN:
 				{
 					bool isRepeat = (lParam & (0x01 << 30)) != 0;

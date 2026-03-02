@@ -42,6 +42,9 @@ namespace wtr
 		uint32_t	stride = 0;
 	};
 
+	struct RHIBufferCreateInfo : RHIBufferDesc
+	{};
+
 	struct RHITextureDesc : RHIDesc<eResourceType::eTexture>
 	{
 		uint32_t		width = 0;
@@ -53,6 +56,9 @@ namespace wtr
 		eTextureUsage 	usage = eTextureUsage::eNone;
 	};
 
+	struct RHITextureCreateInfo : RHITextureDesc
+	{};
+
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
 	{
 		eFilterMode		minFilter = eFilterMode::eNone;
@@ -62,6 +68,9 @@ namespace wtr
 		eWrapMode		wrapT = eWrapMode::eNone;
 		eWrapMode		wrapR = eWrapMode::eNone;
 	};
+
+	struct RHISamplerCreateInfo : RHISamplerDesc
+	{};
 
 	template<enum class eShaderType Type>
 	struct RHIShaderDesc : RHIDesc<eResourceType::eShader>
@@ -90,6 +99,22 @@ namespace wtr
 	{
 	};
 
+	struct RHIVertexShaderCreateInfo : RHIVertexShaderDesc
+	{
+	};
+
+	struct RHIGeometryShaderCreateInfo : RHIGeometryShaderDesc
+	{
+	};
+
+	struct RHIPixelShaderCreateInfo : RHIPixelShaderDesc
+	{
+	};
+
+	struct RHIComputeShaderCreateInfo : RHIComputeShaderDesc
+	{
+	};
+
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
 	{
 		RHIClearState		clear;
@@ -99,6 +124,9 @@ namespace wtr
 		RHIBlendState		blend;
 		RHIRasterizerState	rasterizer;
 	};
+
+	struct RHIPipeLineCreateInfo : RHIPipeLineDesc
+	{};
 };
 
 

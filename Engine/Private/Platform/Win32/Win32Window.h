@@ -32,6 +32,8 @@ namespace wtr
 			void SetInputHandler(InputHandler* inputHandler) override;
 			const InputHandler* GetInputHandler() const override;
 
+			void SetCloseCallback(const std::function<void()>& callback) override;
+
 		private :
 			static LRESULT CALLBACK InputCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -48,6 +50,8 @@ namespace wtr
 			int m_height;
 			int m_posX;
 			int m_posY;
+
+			std::function<void()> m_closeCallback;
 	};
 };
 

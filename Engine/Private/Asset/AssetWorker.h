@@ -9,9 +9,11 @@
 
 namespace wtr
 {
+	class Asset;
 	class AssetLoader;
 	class AssetManager;
 	class RHIExecutor;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -23,8 +25,7 @@ namespace wtr
 		~AssetWorker();
 
 	public :
-		void SetManager(const Memory::RefPtr<AssetManager> assetManager);
-		void SetLoader(const Memory::RefPtr<AssetLoader> assetLoader);
+		void SetTaskThread(const size_t count);
 		void SetExecutor(const Memory::RefPtr<RHIExecutor> executor);
 
 	protected :
@@ -33,11 +34,14 @@ namespace wtr
 		void onDestroy() override;
 
 	private :
-		Memory::RefPtr<AssetManager> m_refManager;
-		Memory::RefPtr<AssetLoader> m_refLoader;
+		void onParse(Memory::RefPtr<Asset> asset);
+		void onCreate(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+		void onBind(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+
+	private :
 		Memory::RefPtr<RHIExecutor> m_refExecutor;
 
-		wtr::DynamicArray<TaskWorker> m_threads;
+		wtr::DynamicArray<Memory::RefPtr<TaskWorker>> m_threads;
 	};
 };
 
