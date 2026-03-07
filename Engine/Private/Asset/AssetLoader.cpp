@@ -3,6 +3,8 @@
 #include <Asset/AssetTypes.h>
 #include <Asset/AssetFactory.h>
 #include <Asset/OBJParser.h>
+#include <Asset/MTLParser.h>
+#include <Asset/StbImageParser.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -17,6 +19,12 @@ namespace wtr
 	void AssetLoader::Init()
 	{
 		m_parserMap[eExtension::eOBJ] = Memory::MakeRef<OBJParser>();
+		m_parserMap[eExtension::eMTL] = Memory::MakeRef<MTLParser>();
+
+		auto imageParser = Memory::MakeRef<StbImageParser>();
+		m_parserMap[eExtension::eJPG] = imageParser;
+		m_parserMap[eExtension::ePNG] = imageParser;
+		m_parserMap[eExtension::eBMP] = imageParser;
 	}
 
 	Memory::RefPtr<AssetParser> AssetLoader::GetParser(const std::string& path)

@@ -1,13 +1,388 @@
 #include <Asset/OBJParser.h>
 
 #include <Log/include/Log.h>
+#include <Asset/AssetTypes.h>
+#include <Asset/AssetFactory.h>
+#include <Memory/include/Core.h>
 
-#include <iostream>
+#include <sstream>
+#include <charconv>
 
 namespace wtr
 {
+	class StringStream
+	{
+	public :
+		StringStream(const std::string_view& str)
+			: m_view(str)
+		{}
+
+		template<typename T>
+		StringStream& operator>>(T& out)
+		{
+			Skip();
+
+			if (Empty())
+			{
+				return *this;
+			}
+
+			auto [ptr, ec] = std::from_chars(m_view.data(), m_view.data() + m_view.size(), out);
+
+			if (ec == std::errc{}) {
+				m_view.remove_prefix(ptr - m_view.data());
+			}
+			return *this;
+		}
+
+		template<>
+		StringStream& operator>><std::string>(std::string& out)
+		{
+			Skip();
+
+			if (Empty())
+			{
+				return *this;
+			}
+
+			std::string_view view;
+			*this >> view;
+
+			if (!view.empty()) {
+				out = view;
+			}
+			else {
+				out.clear();
+			}
+
+			return *this;
+		}
+
+		template<>
+		StringStream& operator>><std::string_view>(std::string_view& out)
+		{
+			Skip();
+
+			if (Empty())
+			{
+				return *this;
+			}
+
+			size_t delimiter = m_view.find_first_of(" \t\n\r");
+			if (delimiter == std::string_view::npos) {
+				out = m_view;
+				m_view.remove_prefix(m_view.size());
+			}
+			else {
+				out = m_view.substr(0, delimiter);
+				m_view.remove_prefix(delimiter);
+			}
+			return *this;
+		}
+
+		bool Skip(char target)
+		{
+			if (Empty())
+			{
+				return false;
+			}
+
+			if (m_view[0] == target)
+			{
+				m_view.remove_prefix(1);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		bool Empty() const
+		{
+			return m_view.empty();
+		}
+
+	private :
+		void Skip()
+		{
+			const size_t first = m_view.find_first_not_of(" \t\r\n");
+			if (first != std::string_view::npos)
+			{
+				m_view.remove_prefix(first);
+			}
+			else
+			{
+				m_view.remove_prefix(m_view.size());
+				m_view = {};
+			}
+		}
+
+	private :
+		std::string_view m_view;
+	};
+
+	constexpr size_t MAX_FACE_VERTICES = 3;
+	constexpr int ERROR_INDEX = 0;
+
 	void OBJParser::Parse(Memory::RefPtr<Asset> asset)
 	{
+		if (!asset)
+		{
+			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is invalid";
+			return;
+		}
 
+		Memory::RefPtr<MeshAsset> mesh = Memory::Cast<MeshAsset>(asset);
+		if (!mesh)
+		{
+			mesh->SetState(eAssetState::eError);
+			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is not the mesh asset";
+			return;
+		}
+
+		wtr::DynamicArray<uint8_t> fileBuffer = ReadBuffer(asset);
+		if (fileBuffer.Empty())
+		{
+			mesh->SetState(eAssetState::eError);
+			LOGINFO() << "[OBJ] Failed to read the obj file : " << asset->path;
+		}
+
+		OBJMesh objTotalMesh;
+		OBJGroups objGroups;
+		OBJMaterials objMaterials;
+
+		const uint8_t* curr = fileBuffer.Data();
+		const uint8_t* end = curr + fileBuffer.Size();
+
+		while (curr != end)
+		{
+			const uint8_t* lineEnd = curr;
+			while (lineEnd != end && *lineEnd != '\n' && *lineEnd != '\r')
+			{
+				lineEnd++;
+			}
+
+			std::string_view line(reinterpret_cast<const char*>(curr), static_cast<size_t>(lineEnd - curr));
+
+			if (curr < end && *curr == '\r' || *curr == '\n')
+			{
+				curr++; 
+				continue;
+			}
+
+			StringStream lineStream(line);
+			
+			std::string_view tag;
+			lineStream >> tag;
+
+			if (tag == "mtllib")
+			{
+				std::string mtlPath = GetPath(asset) + "/";
+				lineStream >> mtlPath;
+
+				objMaterials.Insert(mtlPath);
+			}
+			else if (tag == "v")
+			{
+				fvec3 pos;
+				lineStream >> pos.x >> pos.y >> pos.z;
+
+				objTotalMesh.pos.PushBack(pos);
+			}
+			else if (tag == "vt")
+			{
+				fvec2 uv;
+				lineStream >> uv.x >> uv.y;
+
+				objTotalMesh.uv.PushBack(uv);
+			}
+			else if (tag == "vn")
+			{
+				fvec3 nor;
+				lineStream >> nor.x >> nor.y >> nor.z;
+
+				objTotalMesh.nor.PushBack(nor);
+			}
+			else if (tag == "vp")
+			{
+				fvec3 free;
+				lineStream >> free.x >> free.y >> free.z;
+
+				objTotalMesh.free.PushBack(free);
+			}
+			else if (tag == "g")
+			{
+				OBJGroup group;
+				lineStream >> group.name;
+
+				objGroups.EmplaceBack(std::move(group));
+			}
+			else if (tag == "usemtl")
+			{
+				if (objGroups.Empty())
+				{
+					continue;
+				}
+
+				auto& group = objGroups.Back();
+
+				lineStream >> group.material;
+			}
+			else if (tag == "f")
+			{
+				if (objGroups.Empty())
+				{
+					continue;
+				}
+
+				auto& group = objGroups.Back();
+
+				OBJFace face;
+				std::string_view faceView;
+				do
+				{
+					lineStream >> faceView;
+					StringStream faceStream(faceView);
+
+					OBJVertex vertex { ERROR_INDEX, ERROR_INDEX, ERROR_INDEX, ERROR_INDEX };
+
+					faceStream >> vertex.pos;
+					faceStream.Skip('/');
+					faceStream >> vertex.uv;
+					faceStream.Skip('/');
+					faceStream >> vertex.nor;
+					faceStream.Skip('/');
+					faceStream >> vertex.free;
+
+					face.vertices.PushBack(vertex);
+				}
+				while (!lineStream.Empty());
+
+				if (face.vertices.Size() > 3)
+				{
+					mesh->SetState(eAssetState::eError);
+
+					LOGINFO() << "[OBJ] The face has more than 3 vertices, which is not supported : " << std::string(line);
+					return;
+				}
+
+				group.faces.EmplaceBack(std::move(face));
+			}
+			else
+			{
+				std::string tagString(tag);
+
+				if (!tagString.empty())
+				{
+					LOGINFO() << "[OBJ] Unknown tag: " << tagString;
+				}
+			}
+
+			curr = lineEnd;
+		}
+
+		if (ParseInternal(mesh, objTotalMesh, objGroups, objMaterials))
+		{
+			mesh->SetState(eAssetState::eLoaded);
+		}
+		else
+		{
+			mesh->SetState(eAssetState::eError);
+			LOGERROR() << "[OBJ] Failed to parser the obj file : " << mesh->path;
+		}
+	}
+
+	bool OBJParser::ParseInternal(Memory::RefPtr<MeshAsset> mesh, const OBJMesh& totalMesh, const OBJGroups& groups, const OBJMaterials& materials)
+	{
+		if (!mesh)
+		{
+			LOGERROR() << "[OBJ] Failed to parse the obj file, the mesh asset is invalid";
+			return false;
+		}
+
+		if (groups.Empty())
+		{
+			LOGERROR() << "[OBJ] Failed to parse the obj file, the group is empty";
+			return false;
+		}
+
+		if (totalMesh.pos.Empty() && totalMesh.uv.Empty() && totalMesh.nor.Empty() && totalMesh.free.Empty())
+		{
+			LOGERROR() << "[OBJ] Failed to the parse the obj file, the total mesh's buffer is empty";
+			return false;
+		}
+
+		for (const auto& fileName : materials)
+		{
+			const std::string path = GetPath(mesh) + "/" + fileName;
+			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(AssetFactory::Create(path));
+			if (material)
+			{
+				mesh->materials.EmplaceBack(std::move(material));
+			}
+		}
+
+		OBJMesh finalMesh;
+		finalMesh.pos.Reserve(totalMesh.pos.Size());
+		finalMesh.uv.Reserve(totalMesh.uv.Size());
+		finalMesh.nor.Reserve(totalMesh.nor.Size());
+		finalMesh.free.Reserve(totalMesh.free.Size());
+
+		wtr::DynamicArray<uint32_t> indexBuffer;
+
+		wtr::HashMap<OBJVertex, uint32_t, OBJVertexHash> vertexMap;
+		vertexMap.Reserve(totalMesh.pos.Size());
+
+		for (const auto& group : groups)
+		{
+			vertexMap.Clear();
+			indexBuffer.Clear();
+			indexBuffer.Reserve(group.faces.Size() * MAX_FACE_VERTICES);
+
+			size_t vertexCount = 0;
+			for (const auto& face : group.faces)
+			{
+				for (const auto& vertex : face.vertices)
+				{
+					auto itr = vertexMap.Find(vertex);
+					if (itr == vertexMap.End())
+					{
+						vertexMap.Insert(std::make_pair(vertex, vertexCount++));
+
+						if (vertex.pos != ERROR_INDEX)
+						{
+							const size_t index = (vertex.pos > 0) ? vertex.pos - 1 : totalMesh.pos.Size() + vertex.pos;
+
+							finalMesh.pos.PushBack(totalMesh.pos[index]);
+						}
+
+						if (vertex.uv != ERROR_INDEX)
+						{
+							const size_t index = (vertex.uv > 0) ? vertex.uv - 1 : totalMesh.uv.Size() + vertex.uv;
+							finalMesh.uv.PushBack(totalMesh.uv[index]);
+						}
+
+						if (vertex.nor != ERROR_INDEX)
+						{
+							const size_t index = (vertex.nor > 0) ? vertex.nor - 1 : totalMesh.nor.Size() + vertex.nor;
+							finalMesh.nor.PushBack(totalMesh.nor[index]);
+						}
+
+						if (vertex.free != ERROR_INDEX)
+						{
+							const size_t index = (vertex.free > 0) ? vertex.free - 1 : totalMesh.free.Size() + vertex.free;
+							finalMesh.free.PushBack(totalMesh.free[index]);
+						}
+					}
+
+					indexBuffer.PushBack(itr->second);
+				}
+			}
+
+
+		}
+
+		return true;
 	}
 }

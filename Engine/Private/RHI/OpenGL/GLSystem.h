@@ -40,17 +40,17 @@ namespace wtr
 		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 
-		void InitializeBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer);
-		void InitializeTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture);
-		void InitializeSampler(const RHISamplerCreateInfo info, Memory::RefPtr<RHISampler> sampler);
-		void InitializeVertexShader(const RHIVertexShaderCreateInfo info, Memory::RefPtr<RHIVertexShader> shader);
-		void InitializeGeometryShader(const RHIGeometryShaderCreateInfo info, Memory::RefPtr<RHIGeometryShader> shader);
-		void InitializePixelShader(const RHIPixelShaderCreateInfo info, Memory::RefPtr<RHIPixelShader> shader);
-		void InitializeComputeShader(const RHIComputeShaderCreateInfo info, Memory::RefPtr<RHIComputeShader> shader);
-		void InitializePipeLine(const RHIPipeLineCreateInfo info, Memory::RefPtr<RHIPipeLine> pipeline);
+		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
+		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
+		void InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader);
+		void InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader);
+		void InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader);
+		void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader);
+		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);
 
-		void UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer) override;
-		void UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture) override;
+		void UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
+		void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) override;
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture) override;

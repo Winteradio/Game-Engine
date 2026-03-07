@@ -128,7 +128,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeBuffer::RHICommandInitializeBuffer(const RHIBufferCreateInfo info, const Memory::RefPtr<RHIBuffer> buffer)
+	RHICommandInitializeBuffer::RHICommandInitializeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
 		: m_info(info)
 		, m_buffer(buffer)
 	{}
@@ -141,7 +141,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeTexture::RHICommandInitializeTexture(const RHITextureCreateInfo info, const Memory::RefPtr<RHITexture> texture)
+	RHICommandInitializeTexture::RHICommandInitializeTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
 		: m_info(info)
 		, m_texture(texture)
 	{}
@@ -154,7 +154,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeSampler::RHICommandInitializeSampler(const RHISamplerCreateInfo info, const Memory::RefPtr<RHISampler> sampler)
+	RHICommandInitializeSampler::RHICommandInitializeSampler(const RHISamplerCreateDesc info, const Memory::RefPtr<RHISampler> sampler)
 		: m_info(info)
 		, m_sampler(sampler)
 	{}
@@ -167,7 +167,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeVertexShader::RHICommandInitializeVertexShader(const RHIVertexShaderCreateInfo info, const Memory::RefPtr<RHIVertexShader> shader)
+	RHICommandInitializeVertexShader::RHICommandInitializeVertexShader(const RHIVertexShaderCreateDesc info, const Memory::RefPtr<RHIVertexShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -180,7 +180,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeGeometryShader::RHICommandInitializeGeometryShader(const RHIGeometryShaderCreateInfo info, const Memory::RefPtr<RHIGeometryShader> shader)
+	RHICommandInitializeGeometryShader::RHICommandInitializeGeometryShader(const RHIGeometryShaderCreateDesc info, const Memory::RefPtr<RHIGeometryShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -193,7 +193,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIPixelShaderCreateInfo info, const Memory::RefPtr<RHIPixelShader> shader)
+	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIPixelShaderCreateDesc info, const Memory::RefPtr<RHIPixelShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -206,7 +206,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeComputeShader::RHICommandInitializeComputeShader(const RHIComputeShaderCreateInfo info, const Memory::RefPtr<RHIComputeShader> shader)
+	RHICommandInitializeComputeShader::RHICommandInitializeComputeShader(const RHIComputeShaderCreateDesc info, const Memory::RefPtr<RHIComputeShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -219,7 +219,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializePipeLine::RHICommandInitializePipeLine(const RHIPipeLineCreateInfo info, const Memory::RefPtr<RHIPipeLine> shader)
+	RHICommandInitializePipeLine::RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, const Memory::RefPtr<RHIPipeLine> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -232,7 +232,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUpdateBuffer::RHICommandUpdateBuffer(const RHIBufferCreateInfo info, const Memory::RefPtr<RHIBuffer> buffer)
+	RHICommandUpdateBuffer::RHICommandUpdateBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
 		: m_info(info)
 		, m_buffer(buffer)
 	{}
@@ -245,7 +245,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUpdateTexture::RHICommandUpdateTexture(const RHITextureCreateInfo info, const Memory::RefPtr<RHITexture> texture)
+	RHICommandUpdateTexture::RHICommandUpdateTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
 		: m_info(info)
 		, m_texture(texture)
 	{}

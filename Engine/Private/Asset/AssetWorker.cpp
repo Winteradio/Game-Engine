@@ -79,15 +79,16 @@ namespace wtr
 				continue;
 			}
 
-			if (eAssetState::eNone == asset->GetState())
+			const eAssetState state = asset->GetState();
+			if (eAssetState::eNone == state)
 			{
 				onParse(asset);
 			}
-			else if (eAssetState::eLoaded == asset->GetState())
+			else if (eAssetState::eLoaded == state)
 			{
 				onCreate(asset, cmdList);
 			}
-			else if (eAssetState::eCreated == asset->GetState())
+			else if (eAssetState::eCreated == state)
 			{
 				onBind(asset, cmdList);
 			}
@@ -144,6 +145,23 @@ namespace wtr
 		if (!asset || !cmdList)
 		{
 			return;
+		}
+
+		if (eAsset::eCompose == asset->type)
+		{
+			Memory::RefPtr<ComposeAsset> compose = Memory::Cast<ComposeAsset>(asset);
+			if (compose)
+			{
+				for (auto& mesh : compose->meshs)
+				{
+					
+				}
+
+				for (auto& texture : compose->textures)
+				{
+
+				}
+			}
 		}
 	}
 

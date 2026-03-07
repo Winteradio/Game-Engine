@@ -3,6 +3,7 @@
 
 #include <Reflection/include/Type/TypeMacro.h>
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Container/include/DynamicArray.h>
 
 namespace wtr
 {
@@ -19,6 +20,14 @@ namespace wtr
 
 	public :
 		virtual void Parse(Memory::RefPtr<Asset> asset) = 0;
+
+	protected : 
+		std::stringstream ReadStream(Memory::RefPtr<Asset> asset);
+		wtr::DynamicArray<uint8_t> ReadBuffer(Memory::RefPtr<Asset> asset);
+		std::string GetPath(Memory::RefPtr<Asset> asset);
+		std::string GetName(Memory::RefPtr<Asset> asset);
+		std::string GetExtension(Memory::RefPtr<Asset> asset);
+		void Done(Memory::RefPtr<Asset> asset);
 	};
 };
 

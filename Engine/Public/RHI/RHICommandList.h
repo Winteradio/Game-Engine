@@ -30,14 +30,14 @@ namespace wtr
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
 
-	struct RHIBufferCreateInfo;
-	struct RHITextureCreateInfo;
-	struct RHISamplerCreateInfo;
-	struct RHIVertexShaderCreateInfo;
-	struct RHIGeometryShaderCreateInfo;
-	struct RHIPixelShaderCreateInfo;
-	struct RHIComputeShadercreateInfo;
-	struct RHIPipeLineCreateInfo;
+	struct RHIBufferCreateDesc;
+	struct RHITextureCreateDesc;
+	struct RHISamplerCreateDesc;
+	struct RHIVertexShaderCreateDesc;
+	struct RHIGeometryShaderCreateDesc;
+	struct RHIPixelShaderCreateDesc;
+	struct RHIComputeShaderCreateDesc;
+	struct RHIPipeLineCreateDesc;
 
 	struct RHIColorState;
 	struct RHIDepthState;
@@ -82,17 +82,17 @@ namespace wtr
 		void SetBlendState(const RHIBlendState& state);
 		void SetRasterizerState(const RHIRasterizerState& state);
 
-		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferCreateInfo info);
-		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureCreateInfo info);
-		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerCreateInfo info);
-		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderCreateInfo info);
-		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderCreateInfo info);
-		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderCreateInfo info);
-		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateInfo info);
-		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateInfo info);
+		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferCreateDesc info);
+		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureCreateDesc info);
+		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerCreateDesc info);
+		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderCreateDesc info);
+		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderCreateDesc info);
+		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderCreateDesc info);
+		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateDesc info);
+		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateDesc info);
 
-		void UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer);
-		void UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture);
+		void UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer);
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture);

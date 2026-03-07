@@ -7,6 +7,7 @@
 #include <Platform/Win32/Win32InputHandler.h>
 
 #include <Asset/AssetWorker.h>
+#include <Asset/AssetSystem.h>
 #include <World/World.h>
 #include <World/WorldWorker.h>
 #include <Renderer/RenderTypes.h>
@@ -285,6 +286,8 @@ namespace wtr
 	{
 		LOGINFO() << "[Engine] Shutting down Engine";
 
+		AssetSystem::Shutdown();
+
 		if (m_worldWorker)
 		{
 			m_worldWorker->Stop();
@@ -323,6 +326,7 @@ namespace wtr
 			m_inputHandler = nullptr;
 		}
 
+		AssetSystem::Release();
 		Memory::Release();
 
 		LOGINFO() << "[Engine] Engine shut down successfully";

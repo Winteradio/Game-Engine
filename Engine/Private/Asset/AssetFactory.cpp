@@ -12,11 +12,12 @@ namespace wtr
 	const wtr::StaticArray<AssetType, static_cast<size_t>(eExtension::eEnd)> ASSET_TYPE = 
 	{
 		{ eExtension::eNone, eAsset::eNone },
-		{ eExtension::eOBJ, eAsset::eCompose },
+		{ eExtension::eOBJ, eAsset::eMesh },
 		{ eExtension::eFBX, eAsset::eCompose },
 		{ eExtension::ePNG, eAsset::eTexture },
 		{ eExtension::eJPG, eAsset::eTexture },
 		{ eExtension::eBMP, eAsset::eTexture },
+		{ eExtension::eMTL, eAsset::eMaterial },
 		{ eExtension::eGLSL, eAsset::eShader }
 	};
 
@@ -92,6 +93,10 @@ namespace wtr
 		else if (extension == "glsl")
 		{
 			return eExtension::eGLSL;
+		}
+		else if (extension == "mtl")
+		{
+			return eExtension::eMTL;
 		}
 		else
 		{

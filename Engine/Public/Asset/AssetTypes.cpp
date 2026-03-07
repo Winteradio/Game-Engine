@@ -44,7 +44,8 @@ namespace wtr
 
 	Asset::Asset()
 		: id(ECS::UUID())
-		, path("")
+		, name()
+		, path()
 		, extension(eExtension::eNone)
 		, type(eAsset::eNone)
 		, state(eAssetState::eNone)
@@ -52,6 +53,7 @@ namespace wtr
 
 	Asset::Asset(const std::string& path, const eExtension extension, const eAsset type)
 		: id(ECS::UUID())
+		, name()
 		, path(path)
 		, extension(extension)
 		, type(type)
@@ -83,85 +85,166 @@ namespace wtr
 		return eResourceState::eNone;
 	}
 
+	MaterialAsset::MaterialAsset()
+		: Asset()
+		, baseColor()
+		, specularMap()
+		, normalMap()
+		, ambientColor(1.f)
+		, diffuseColor(1.f)
+		, specularColor(0.f)
+		, shininess(32.f)
+		, opacity(1.f)
+	{}
+
+	MaterialAsset::MaterialAsset(const std::string& path, const eExtension extension)
+		: Asset(path, extension, eAsset::eMaterial)
+		, baseColor()
+		, specularMap()
+		, normalMap()
+		, ambientColor(1.f)
+		, diffuseColor(1.f)
+		, specularColor(0.f)
+		, shininess(32.f)
+		, opacity(1.f)
+	{}
+
+	eResourceState MaterialAsset::GetResourceState() const
+	{
+		if (!baseColor && !specularMap && !normalMap)
+		{
+			return eResourceState::eReady;
+		}
+
+		eResourceState allState = eResourceState::eAll;
+		if (baseColor)
+		{
+			allState &= baseColor->GetResourceState();
+		}
+
+		if (specularMap)
+		{
+			allState &= specularMap->GetResourceState();
+		}
+
+		if (normalMap)
+		{
+			allState &= normalMap->GetResourceState();
+		}
+
+		return allState;
+	}
+
+	TextureAsset::TextureAsset()
+		: Asset()
+		, rawBuffer()
+		, texture()
+	{}
+
+	TextureAsset::TextureAsset(const std::string& path, const eExtension extension)
+		: Asset(path, extension, eAsset::eTexture)
+		, rawBuffer()
+		, texture()
+	{}
+
+	eResourceState TextureAsset::GetResourceState() const
+	{
+		if (!rawBuffer)
+		{
+			return eResourceState::eNone;
+		}
+
+		if (rawBuffer->data.Empty())
+		{
+			return eResourceState::eError;
+		}
+
+		if (texture)
+		{
+			return texture->GetState();
+		}
+
+		return eResourceState::eError;
+	}
+
 	MeshAsset::MeshAsset()
 		: Asset()
-	{}
+		, rawBuffers()
+		, buffers()
+		, rawIndex()
+		, index()
+		, sections()
+		, materials()
+	{
+	}
 
 	MeshAsset::MeshAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eMesh)
-	{}
+		, rawBuffers()
+		, buffers()
+		, rawIndex()
+		, index()
+		, sections()
+		, materials()
+	{
+	}
 
 	eResourceState MeshAsset::GetResourceState() const
 	{
+		if (rawBuffers.Empty() && !rawIndex)
+		{
+			return eResourceState::eNone;
+		}
+
 		eResourceState resource = eResourceState::eAll;
 
-		for (const auto& [name, buffer] : buffers)
+		for (const auto& [key, buffer] : buffers)
 		{
 			if (buffer)
 			{
 				resource &= buffer->GetState();
 			}
-			else
+		}
+
+		for (const auto& material : materials)
+		{
+			if (material)
 			{
-				resource &= eResourceState::eNone;
-				break;
+				resource &= material->GetResourceState();
 			}
 		}
 
 		return resource;
 	}
 
-	MaterialAsset::MaterialAsset()
-		: Asset()
-	{}
-
-	MaterialAsset::MaterialAsset(const std::string& path, const eExtension extension)
-		: Asset(path, extension, eAsset::eMaterial)
-	{}
-
-	eResourceState MaterialAsset::GetResourceState() const
-	{
-		return eResourceState::eAll;
-	}
-
-	TextureAsset::TextureAsset()
-		: Asset()
-	{}
-
-	TextureAsset::TextureAsset(const std::string& path, const eExtension extension)
-		: Asset(path, extension, eAsset::eTexture)
-	{}
-
-	eResourceState TextureAsset::GetResourceState() const
-	{
-		if (texture)
-		{
-			return texture->GetState();
-		}
-		else
-		{
-			return eResourceState::eNone;
-		}
-	}
-
 	ShaderAsset::ShaderAsset()
 		: Asset()
+		, rawBuffer()
 	{}
 
 	ShaderAsset::ShaderAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eShader)
+		, rawBuffer()
 	{}
 
 	eResourceState ShaderAsset::GetResourceState() const
 	{
+		if (!rawBuffer)
+		{
+			return eResourceState::eNone;
+		}
+
+		if (rawBuffer->data.Empty())
+		{
+			return eResourceState::eError;
+		}
+
 		if (shader)
 		{
 			return shader->GetState();
 		}
-		else
-		{
-			return eResourceState::eNone;
-		}
+
+		return eResourceState::eError;
 	}
 
 	ComposeAsset::ComposeAsset()
@@ -174,19 +257,19 @@ namespace wtr
 	{
 	}
 
-	eAssetState ComposeAsset::GetState() const
+	eResourceState ComposeAsset::GetResourceState() const
 	{
-		eAssetState state = eAssetState::eAll;
+		if (meshs.Empty() && materials.Empty() && textures.Empty())
+		{
+			return eResourceState::eNone;
+		}
+
+		eResourceState allState = eResourceState::eAll;
 		for (const auto& mesh : meshs)
 		{
 			if (mesh)
 			{
-				state &= mesh->GetState();
-			}
-			else
-			{
-				state = eAssetState::eNone;
-				break;
+				allState &= mesh->GetResourceState();
 			}
 		}
 
@@ -194,12 +277,7 @@ namespace wtr
 		{
 			if (material)
 			{
-				state &= material->GetState();
-			}
-			else
-			{
-				state = eAssetState::eNone;
-				break;
+				allState &= material->GetResourceState();
 			}
 		}
 
@@ -207,15 +285,11 @@ namespace wtr
 		{
 			if (texture)
 			{
-				state &= texture->GetState();
-			}
-			else
-			{
-				state = eAssetState::eNone;
-				break;
+				allState &= texture->GetResourceState();
 			}
 		}
 
-		return state;
+
+		return allState;
 	}
 }

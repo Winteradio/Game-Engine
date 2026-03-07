@@ -22,19 +22,19 @@ namespace wtr
 		return static_cast<eResourceState>(~static_cast<uint8_t>(state));
 	}
 
-	eResourceState operator|=(eResourceState lhs, const eResourceState rhs)
+	eResourceState& operator|=(eResourceState& lhs, const eResourceState rhs)
 	{
 		lhs = lhs | rhs;
 		return lhs;
 	}
 
-	eResourceState operator&=(eResourceState lhs, const eResourceState rhs)
+	eResourceState& operator&=(eResourceState& lhs, const eResourceState rhs)
 	{
 		lhs = lhs & rhs;
 		return lhs;
 	}
 
-	eResourceState operator^=(eResourceState lhs, const eResourceState rhs)
+	eResourceState& operator^=(eResourceState& lhs, const eResourceState rhs)
 	{
 		lhs = lhs ^ rhs;
 		return lhs;

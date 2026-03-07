@@ -341,34 +341,34 @@ namespace wtr
 		return refPipeLine;
 	}
 
-	void GLSystem::InitializeBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer)
+	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{}
 
-	void GLSystem::InitializeTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture)
+	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{}
 
-	void GLSystem::InitializeSampler(const RHISamplerCreateInfo info, Memory::RefPtr<RHISampler> sampler)
+	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
 	{}
 
-	void GLSystem::InitializeVertexShader(const RHIVertexShaderCreateInfo info, Memory::RefPtr<RHIVertexShader> shader)
+	void GLSystem::InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader)
 	{}
 
-	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateInfo info, Memory::RefPtr<RHIGeometryShader> shader)
+	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader)
 	{}
 
-	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateInfo info, Memory::RefPtr<RHIPixelShader> shader)
+	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader)
 	{}
 
-	void GLSystem::InitializeComputeShader(const RHIComputeShaderCreateInfo info, Memory::RefPtr<RHIComputeShader> shader)
+	void GLSystem::InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader)
 	{}
 
-	void GLSystem::InitializePipeLine(const RHIPipeLineCreateInfo info, Memory::RefPtr<RHIPipeLine> pipeline)
+	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
 	{}
 
-	void GLSystem::UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer)
+	void GLSystem::UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{}
 
-	void GLSystem::UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture)
+	void GLSystem::UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)

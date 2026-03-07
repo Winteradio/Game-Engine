@@ -22,6 +22,8 @@ namespace wtr
 		std::mutex mutexTask;
 
 		std::string assetPath = std::filesystem::current_path().string() + "/../";
+
+		std::atomic<bool> running = true;
 	};
 
 	AssetCore& GetCore()
@@ -58,13 +60,26 @@ namespace wtr
 		core.manager.RemoveAsset(path);
 	}
 
+	void AssetSystem::Shutdown()
+	{
+		AssetCore& core = GetCore();
+		core.running = false;
+		core.cvTask.notify_all();
+	}
+
+	void AssetSystem::Release()
+	{
+		AssetCore& core = GetCore();
+		core.manager.Release();
+	}
+
 	AssetSystem::TaskQueue AssetSystem::GetTask()
 	{
 		AssetCore& core = GetCore();
 
 		{
 			std::unique_lock<std::mutex> lock(core.mutexTask);
-			core.cvTask.wait(lock, [&core] { return !core.taskQueue.empty(); });
+			core.cvTask.wait(lock, [&core] { return !core.taskQueue.empty() || !core.running; });
 		}
 
 		TaskQueue tasks;

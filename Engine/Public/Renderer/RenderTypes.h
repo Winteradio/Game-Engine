@@ -269,4 +269,5 @@ namespace wtr
 	}
 };
 
+
 #endif // __WTR_RENDERTYPES_H__N

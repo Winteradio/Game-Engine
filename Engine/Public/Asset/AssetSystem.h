@@ -26,6 +26,7 @@ namespace wtr
 
 		static Memory::RefPtr<Asset> Load(const std::string& path);
 		static void Unload(const std::string& path);
+		static void Shutdown();
 		static void Release();
 
 	private :

@@ -13,16 +13,17 @@ namespace wtr
 		eNone		= 0x00,
 		eLoaded		= 0x01,
 		eReady		= 0x02,
-		eAll		= 0xFF
+		eAll		= 0x0F,
+		eError		= 0x10,
 	};
 
 	eResourceState operator|(const eResourceState lhs, const eResourceState rhs);
 	eResourceState operator&(const eResourceState lhs, const eResourceState rhs);
 	eResourceState operator^(const eResourceState lhs, const eResourceState rhs);
 	eResourceState operator~(const eResourceState state);
-	eResourceState operator|=(eResourceState lhs, const eResourceState rhs);
-	eResourceState operator&=(eResourceState lhs, const eResourceState rhs);
-	eResourceState operator^=(eResourceState lhs, const eResourceState rhs);
+	eResourceState& operator|=(eResourceState& lhs, const eResourceState rhs);
+	eResourceState& operator&=(eResourceState& lhs, const eResourceState rhs);
+	eResourceState& operator^=(eResourceState& lhs, const eResourceState rhs);
 
 	class RHIResource
 	{

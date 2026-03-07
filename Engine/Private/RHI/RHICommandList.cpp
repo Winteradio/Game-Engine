@@ -88,7 +88,7 @@ namespace wtr
 		Enqueue<RHICommandRasterizerState>(state);
 	}
 
-	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateInfo info)
+	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -102,7 +102,7 @@ namespace wtr
 		return refBuffer;
 	}
 
-	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateInfo info)
+	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -116,7 +116,7 @@ namespace wtr
 		return refTexture;
 	}
 
-	Memory::RefPtr<RHISampler> RHICommandList::CreateSampler(const RHISamplerCreateInfo info)
+	Memory::RefPtr<RHISampler> RHICommandList::CreateSampler(const RHISamplerCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -130,7 +130,7 @@ namespace wtr
 		return refSampler;
 	}
 
-	Memory::RefPtr<RHIVertexShader> RHICommandList::CreateVertexShader(const RHIVertexShaderCreateInfo info)
+	Memory::RefPtr<RHIVertexShader> RHICommandList::CreateVertexShader(const RHIVertexShaderCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -144,7 +144,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIGeometryShader> RHICommandList::CreateGeometryShader(const RHIGeometryShaderCreateInfo info)
+	Memory::RefPtr<RHIGeometryShader> RHICommandList::CreateGeometryShader(const RHIGeometryShaderCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -158,7 +158,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIPixelShader> RHICommandList::CreatePixelShader(const RHIPixelShaderCreateInfo info)
+	Memory::RefPtr<RHIPixelShader> RHICommandList::CreatePixelShader(const RHIPixelShaderCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -172,7 +172,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIComputeShader> RHICommandList::CreateComputeShader(const RHIComputeShaderCreateInfo info)
+	Memory::RefPtr<RHIComputeShader> RHICommandList::CreateComputeShader(const RHIComputeShaderCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -186,7 +186,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIPipeLine> RHICommandList::CreatePipeLine(const RHIPipeLineCreateInfo info)
+	Memory::RefPtr<RHIPipeLine> RHICommandList::CreatePipeLine(const RHIPipeLineCreateDesc info)
 	{
 		if (!m_system)
 		{
@@ -200,12 +200,12 @@ namespace wtr
 		return refPipeLine;
 	}
 
-	void RHICommandList::UpdateBuffer(const RHIBufferCreateInfo info, Memory::RefPtr<RHIBuffer> buffer)
+	void RHICommandList::UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		Enqueue<RHICommandUpdateBuffer>(info, buffer);
 	}
 
-	void RHICommandList::UpdateTexture(const RHITextureCreateInfo info, Memory::RefPtr<RHITexture> texture)
+	void RHICommandList::UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		Enqueue<RHICommandUpdateTexture>(info, texture);
 	}

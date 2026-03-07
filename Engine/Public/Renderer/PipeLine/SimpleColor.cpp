@@ -52,7 +52,7 @@ namespace wtr
 			return;
 		}
 
-		RHIPipeLineCreateInfo desc;
+		RHIPipeLineCreateDesc desc;
 		desc.clear.clearBuffer = eClearBuffer::eColor;
 		desc.clear.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 		desc.depth.enable = false;

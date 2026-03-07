@@ -6,8 +6,11 @@
 #include <Renderer/RenderGraph.h>
 
 #include <Asset/AssetSystem.h>
+#include <Asset/AssetTypes.h>
 
 #include <Log/include/Log.h>
+
+#include <imgui/imgui.h>
 
 namespace demo
 {
@@ -67,7 +70,8 @@ namespace demo
 
 		mainScene.RegisterView(mainView);
 
-		const std::string cubePath = "asset/mesh/3d/cube.obj";
+		const std::string cubePath = "asset/mesh/3d/dragon.obj";
+		//const std::string cubePath = "asset/mesh/3d/cube.obj";
 		wtr::AssetSystem::Load(cubePath);
 	}
 

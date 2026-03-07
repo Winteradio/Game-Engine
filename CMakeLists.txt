@@ -37,9 +37,24 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/ECS ECS)
 set(GLM_BUILD_TESTS OFF CACHE BOOL "Build GLM tests" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glm glm)
 
+set(YAML_BUILD_SHARED_LIBS true)
+set(YAML_CPP_BUILD_TOOLS OFF)
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_INSTALL OFF)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE) # CTest 타겟 생성 방지
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp yaml-cpp)
+
 # ------ Set the properties the executable program ------ #
 set(MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
+
+set(IMGUI_FILES
+	${EXTERNAL_DIR}/imgui/imgui.cpp
+	${EXTERNAL_DIR}/imgui/imgui_demo.cpp
+	${EXTERNAL_DIR}/imgui/imgui_draw.cpp
+	${EXTERNAL_DIR}/imgui/imgui_tables.cpp
+	${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
+)
 
 set(GLAD_FILES
 	${EXTERNAL_DIR}/glad/glad_wgl.h
@@ -52,6 +67,7 @@ set(GLAD_FILES
 )
 
 source_group(TREE "${EXTERNAL_DIR}/glad" PREFIX "glad" FILES ${GLAD_FILES})
+source_group(TREE "${EXTERNAL_DIR}/imgui" PREFIX "imgui" FILES ${IMGUI_FILES})
 
 set(ENGINE_DIR ${MAIN_DIR}/Engine)
 set(ENGINE_PUBLIC_DIR ${ENGINE_DIR}/Public)
@@ -192,17 +208,25 @@ set(ENGINE_ASSET_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Asset/AssetSystem.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetLoader.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetFactory.h
-	${ENGINE_PUBLIC_DIR}/Asset/AssetParser.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetResult.h
 	
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.cpp
 
+	${ENGINE_PUBLIC_DIR}/Asset/AssetParser.h
+	${ENGINE_PUBLIC_DIR}/Asset/AssetParser.cpp
+
 	${ENGINE_PUBLIC_DIR}/Asset/OBJParser.h
 	${ENGINE_PUBLIC_DIR}/Asset/OBJParser.cpp
 
+	${ENGINE_PUBLIC_DIR}/Asset/MTLParser.h
+	${ENGINE_PUBLIC_DIR}/Asset/MTLParser.cpp
+
 	${ENGINE_PUBLIC_DIR}/Asset/GLSLParser.h
 	${ENGINE_PUBLIC_DIR}/Asset/GLSLParser.cpp
+
+	${ENGINE_PUBLIC_DIR}/Asset/StbImageParser.h
+	${ENGINE_PUBLIC_DIR}/Asset/StbImageParser.cpp
 )
 
 set(ENGINE_ASSET_PRIVATE_FILES
@@ -266,6 +290,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CLIENT_SOURCE_LIST}
 
 	${GLAD_FILES}
+	${IMGUI_FILES}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_LIST})
