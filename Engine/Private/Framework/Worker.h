@@ -6,6 +6,13 @@
 
 namespace wtr
 {
+	enum class eWorkerType : uint8_t
+	{
+		eProceduer,
+		eConsumer,
+		eTask,
+	};
+
 	class Worker
 	{
 	public :
@@ -24,7 +31,7 @@ namespace wtr
 	private :
 		void Run();
 
-	private :
+	protected :
 		std::atomic<bool> m_isRunning;
 		std::thread m_thread;
 	};

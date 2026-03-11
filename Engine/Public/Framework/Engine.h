@@ -1,19 +1,29 @@
 #ifndef __WTR_ENGINE_H__
 #define __WTR_ENGINE_H__
 
-#include <Framework/Input/InputStorage.h>
+#include <Memory/include/Pointer/RootPtr.h>
+#include <Memory/include/Pointer/RefPtr.h>
+
+#include <World/World.h>
 
 namespace wtr
 {
-	enum class eWindowType : uint8_t;
-
 	class Window;
-	class Application;
 	class InputHandler;
-	class RHIDevice;
-	class RHIContext;
+	class InputStorage;
+	class FrameContext;
+	class RenderGraph;
+	class RHISystem;
+	class RHIExecutor;
+	class AssetManager;
+	
+	class WorldWorker;
+	class RenderWorker;
+	class RHIWorker;
+	class AssetWorker;
 
 	struct WindowDesc;
+	struct RenderDesc;
 };
 
 namespace wtr
@@ -25,25 +35,43 @@ namespace wtr
 			virtual ~Engine();
 
 		public :
-			bool Init(const WindowDesc& mainWindowDesc);
+			bool Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc);
 			void Shutdown();
 			void Run();
 
-		private :
-			bool InitWindow(const WindowDesc& mainWindowDesc);
+			Memory::ObjectPtr<World> GetWorld();
+			Memory::RefPtr<RenderGraph> GetGraph();
 
-			void Update();
+		private :
+			bool InitWindow(const WindowDesc& windowDesc);
+			bool InitRender(const RenderDesc& renderDesc);
+			bool InitRHI(const RenderDesc& renderDesc);
+			bool InitWorld();
+			bool InitRHI();
+			bool InitAsset();
+
 			void UpdateInput();
-			void Render();
 
 		private :
-			Window*			m_Window;
-			InputHandler*	m_InputHandler;
-			Application*	m_Application;
-			RHIDevice*		m_RHIDevice;
-			RHIContext*		m_RHIContext;
+			Window*			m_window;
+			InputHandler*	m_inputHandler;
 
-			InputStorage	m_InputStorage;
+			Memory::RefPtr<InputStorage>	m_inputStorage;
+			Memory::RefPtr<FrameContext>	m_frameContext;
+			
+			Memory::RefPtr<AssetManager> m_assetManager;
+			Memory::RefPtr<AssetWorker> m_assetWorker;
+
+			Memory::RootPtr<World>	m_world;
+			Memory::RefPtr<WorldWorker> m_worldWorker;
+
+			Memory::RefPtr<RenderGraph> m_renderGraph;
+			Memory::RefPtr<RenderWorker> m_renderWorker;
+
+			Memory::RefPtr<RHISystem> m_rhiSystem;
+			Memory::RefPtr<RHIExecutor> m_rhiFrameExecutor;
+			Memory::RefPtr<RHIExecutor> m_rhiTaskExecutor;
+			Memory::RefPtr<RHIWorker> m_rhiWorker;
 	};
 };
 

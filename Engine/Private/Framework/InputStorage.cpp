@@ -112,8 +112,11 @@ namespace wtr
 	}
 
 	InputStorage::InputStorage()
-		: m_PrevData()
-		, m_CurrData()
+		: m_InputData()
+		, m_CurrData(&m_InputData[0])
+		, m_PrevData(&m_InputData[1])
+		, m_LogicData(&m_InputData[2]) 
+		, m_Swapped(false)
 	{}
 
 	InputStorage::~InputStorage()
@@ -121,20 +124,23 @@ namespace wtr
 
 	void InputStorage::Prepare()
 	{
-		//if (IsChanaged())
-		//{
-		//	LOGINFO() << "[Input] " << InputData::ToString(m_CurrData);
-		//}
+		static InputData copyData;
+		copyData = *m_CurrData;
 
-		m_PrevData = m_CurrData;
-		m_CurrData.mouseDelta = fvec2(0.f);
-		m_CurrData.mouseScroll = 0.f;
-		
-		for (size_t index = 1; index < sizeof(m_CurrData.keyboard) * 2; ++index)
+		m_CurrData = m_PrevData.exchange(m_CurrData);
+
+		if (m_Swapped)
 		{
-			size_t keyIndex = index / 2;
-			uint8_t& keyData = m_CurrData.keyboard[keyIndex];
-			keyData &= (index % 2 == 0) ? 0x10 : 0x01;
+			m_CurrData->windowSize = copyData.windowSize;
+			m_CurrData->mousePos = copyData.mousePos;
+			m_CurrData->mouseDelta = fvec2(0.f);
+			m_CurrData->mouseScroll = 0.f;
+
+			m_Swapped.exchange(false);
+		}
+		else
+		{
+			*m_CurrData = copyData;
 		}
 	}
 
@@ -146,30 +152,45 @@ namespace wtr
 			const size_t keyIndex = GetKeyIndex(inputDesc.Key);
 			const size_t keyBit = GetKeyBit(inputDesc.Key);
 
-			uint8_t& keyData = m_CurrData.keyboard[keyIndex];
-			keyData |= (static_cast<uint8_t>(inputDesc.Action) << keyBit);
-			keyData |= (eInputAction::eRelease != inputDesc.Action) ? (0x01 << keyBit) : (0x00 << keyBit);
+			if (keyIndex != 0 || keyBit != 0)
+			{
+				uint8_t& keyData = m_CurrData->keyboard[keyIndex];
+				keyData |= (static_cast<uint8_t>(inputDesc.Action) << keyBit);
+				keyData = (eInputAction::eRelease != inputDesc.Action) ? keyData | (0x01 << keyBit) : keyData & (~(0x01 << keyBit));
+			}
 		}
 		else if (eInputType::eMouseMove == inputDesc.Type)
 		{
-			m_CurrData.mousePos = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
-			m_CurrData.mouseDelta = m_CurrData.mousePos - m_PrevData.mousePos;
+			const fvec2 currPos = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
+			m_CurrData->mouseDelta += currPos - m_CurrData->mousePos;
+			m_CurrData->mousePos = currPos;
 		}
 		else if (eInputType::eMouseScroll == inputDesc.Type)
 		{
-			m_CurrData.mouseScroll = inputDesc.ScrollDelta;
+			m_CurrData->mouseScroll = inputDesc.ScrollDelta;
 		}
 		else if (eInputType::eWindowResize == inputDesc.Type)
 		{
-			m_CurrData.windowSize = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
+			m_CurrData->windowSize = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
 		}
 		else
 		{}
 	}
 
+	void InputStorage::SwapInput()
+	{
+		for (size_t index = 0; index < sizeof(m_LogicData->keyboard); ++index)
+		{
+			m_LogicData->keyboard[index] &= 0x00;
+		}
+
+		m_LogicData = m_PrevData.exchange(m_LogicData);
+		m_Swapped.exchange(true);
+	}
+
 	bool InputStorage::IsChanaged() const
 	{
-		return m_PrevData != m_CurrData;
+		return *m_LogicData != *m_CurrData;
 	}
 
 	bool InputStorage::IsDown(eKeyCode key) const
@@ -177,7 +198,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_CurrData.keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
 
 		return (keyData & eInputAction::eDown) != eInputAction::eNone;
 	}
@@ -187,7 +208,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_CurrData.keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
 
 		return (keyData & eInputAction::ePress) != eInputAction::eNone;
 	}
@@ -197,7 +218,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_CurrData.keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
 
 		return (keyData & eInputAction::eRelease) != eInputAction::eNone;
 	}
@@ -207,29 +228,29 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_CurrData.keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
 
 		return (keyData & eInputAction::eRepeat) != eInputAction::eNone;
 	}
 
 	const fvec2& InputStorage::GetMousePosition() const
 	{
-		return m_CurrData.mousePos;
+		return m_LogicData->mousePos;
 	}
 
 	const fvec2& InputStorage::GetMouseDelta() const
 	{
-		return m_CurrData.mouseDelta;
+		return m_LogicData->mouseDelta;
 	}
 
 	float InputStorage::GetMouseScroll() const
 	{
-		return m_CurrData.mouseScroll;
+		return m_LogicData->mouseScroll;
 	}
 
 	const fvec2& InputStorage::GetWindowSize() const
 	{
-		return m_CurrData.windowSize;
+		return m_LogicData->windowSize;
 	}
 
 	const size_t InputStorage::GetKeyIndex(eKeyCode key) const

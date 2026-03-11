@@ -18,6 +18,7 @@ namespace wtr
 		}
 
 		m_thread = std::thread(&Worker::Run, this);
+
 		m_isRunning = true;
 	}
 
@@ -28,10 +29,13 @@ namespace wtr
 			return;
 		}
 
+		m_isRunning = false;
+
+		onDestroy();
+
 		if (m_thread.joinable())
 		{
 			m_thread.join();
-			m_isRunning = false;
 		}
 	}
 
@@ -43,7 +47,5 @@ namespace wtr
 		{
 			onUpdate();
 		}
-
-		onDestroy();
 	}
 }

@@ -12,8 +12,8 @@ namespace wtr
 			virtual ~Application() = default;
 
 		public :
-			virtual void onInit(Engine& engine) = 0;
-			virtual void onUpdate(const float deltaTime) = 0;
+			virtual void onInit() = 0;
+			virtual void onRun() = 0;
 			virtual void onShutdown() = 0;
 	};
 };
