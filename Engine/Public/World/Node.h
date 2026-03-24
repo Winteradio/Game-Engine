@@ -3,38 +3,65 @@
 
 #include <ECS/include/Object/Data.h>
 #include <Memory/include/Pointer/ObjectPtr.h>
+#include <Reflection/include/Type/TypeMacro.h>
 
 #include <World/Component.h>
 #include <Framework/Math/MathTypes.h>
 
 namespace wtr
 {
-	namespace Node
+	class Scene;
+};
+
+namespace wtr
+{
+	class SceneNode : public ECS::Node
 	{
-		struct Transform : ECS::Node::Base
-		{
-			Memory::ObjectPtr<Component::Transform> transform;
-		};
+		GENERATE(SceneNode);
 
-		struct Camera : ECS::Node::Base
-		{
-			Memory::ObjectPtr<Component::Transform> transform;
-			Memory::ObjectPtr<Component::Camera> camera;
-		};
+	public :
+		SceneNode() = default;
+		virtual ~SceneNode() = default;
 
-		struct Resource : ECS::Node::Base
-		{
-			Memory::ObjectPtr<Component::Resource> resource;
-		};
+	public :
+		void SetScene(Scene* owner);
+		void Clear();
 
-		struct StaticMesh : Resource
-		{
-		};
+		void UpdatePosition(const fvec3& position);
+		void UpdateRotation(const fvec3& rotation);
+		void UpdateScale(const fvec3& scale);
 
-		struct Material : Resource
-		{
+		const fvec3 GetPosition() const;
+		const fvec3 GetRotation() const;
+		const fvec3 GetScale() const;
 
-		};
+	protected :
+		Memory::ObjectPtr<TransformComponent> transform;
+		Scene* m_owner;
+	};
+
+	class LightNode : public SceneNode
+	{
+		GENERATE(LightNode);
+
+	public :
+		Memory::ObjectPtr<LightComponent> light;
+	};
+
+	class MeshNode : public SceneNode
+	{
+		GENERATE(MeshNode);
+
+	public :
+		Memory::ObjectPtr<MeshComponent> mesh;
+	};
+
+	class CameraNode : public ECS::Node
+	{
+		GENERATE(CameraNode);
+
+	public :
+		Memory::ObjectPtr<CameraComponent> camera;
 	};
 };
 

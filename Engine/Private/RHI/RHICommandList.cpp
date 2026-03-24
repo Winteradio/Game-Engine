@@ -26,9 +26,12 @@ namespace wtr
 			return;
 		}
 
-		for (auto& cmd : m_commands)
+		for (auto* cmd : m_commands)
 		{
-			cmd->Execute(m_system);
+			if (nullptr != cmd)
+			{
+				cmd->Execute(m_system);
+			}
 		}
 	}
 

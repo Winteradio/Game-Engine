@@ -340,7 +340,7 @@ namespace wtr
 			indexBuffer.Clear();
 			indexBuffer.Reserve(group.faces.Size() * MAX_FACE_VERTICES);
 
-			size_t vertexCount = 0;
+			uint32_t vertexCount = 0;
 			for (const auto& face : group.faces)
 			{
 				for (const auto& vertex : face.vertices)
@@ -348,7 +348,7 @@ namespace wtr
 					auto itr = vertexMap.Find(vertex);
 					if (itr == vertexMap.End())
 					{
-						vertexMap.Insert(std::make_pair(vertex, vertexCount++));
+						vertexMap.Insert(std::make_pair(vertex, vertexCount));
 
 						if (vertex.pos != ERROR_INDEX)
 						{
@@ -374,13 +374,20 @@ namespace wtr
 							const size_t index = (vertex.free > 0) ? vertex.free - 1 : totalMesh.free.Size() + vertex.free;
 							finalMesh.free.PushBack(totalMesh.free[index]);
 						}
-					}
 
-					indexBuffer.PushBack(itr->second);
+						indexBuffer.PushBack(vertexCount);
+						vertexCount++;
+					}
+					else
+					{
+						if (itr->second == 0)
+						{
+							int value = 2;
+						}
+						indexBuffer.PushBack(itr->second);
+					}
 				}
 			}
-
-
 		}
 
 		return true;

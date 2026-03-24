@@ -44,30 +44,11 @@ namespace wtr
 		}
 	}
 
-	void AssetWorker::SetExecutor(const Memory::RefPtr<RHIExecutor> executor)
-	{
-		if (executor)
-		{
-			m_refExecutor = executor;
-		}
-	}
-
 	void AssetWorker::onStart()
 	{}
 
 	void AssetWorker::onUpdate()
 	{
-		if (!m_refExecutor)
-		{
-			return;
-		}
-
-		auto cmdList = m_refExecutor->Acquire();
-		if (!cmdList)
-		{
-			return;
-		}
-
 		AssetSystem::TaskQueue taskQueue = AssetSystem::GetTask();
 		while (!taskQueue.empty())
 		{
@@ -79,97 +60,30 @@ namespace wtr
 				continue;
 			}
 
-			const eAssetState state = asset->GetState();
-			if (eAssetState::eNone == state)
+			for (auto& taskWorker : m_threads)
 			{
-				onParse(asset);
-			}
-			else if (eAssetState::eLoaded == state)
-			{
-				onCreate(asset, cmdList);
-			}
-			else if (eAssetState::eCreated == state)
-			{
-				onBind(asset, cmdList);
-			}
-			else
-			{
-				// nothing
-			}
-		}
-	}
+				if (!taskWorker || !taskWorker->IsWaited())
+				{
+					continue;
+				}
 
-	void AssetWorker::onParse(Memory::RefPtr<Asset> asset)
-	{
-		if (!asset)
-		{
-			return;
-		}
+				Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
 
-		for (auto& taskWorker : m_threads)
-		{
-			if (!taskWorker || !taskWorker->IsWaited())
-			{
-				continue;
-			}
-
-			Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
-
-			Memory::RefPtr<Task> task = Task::Make(
-				[assetRef = asset, parserRef = parser]() -> Memory::RefPtr<Asset>
+				auto taskFunc = [assetRef = asset, parserRef = parser]() -> Memory::RefPtr<Asset>
 				{
 					if (parserRef && assetRef)
 					{
 						parserRef->Parse(assetRef);
 					}
-
 					return assetRef;
-				},
-				[](Memory::RefPtr<Asset> asset)
-				{
-					if (asset)
-					{
-						AssetSystem::AddTask(asset);
-					}
-				}
-			);
+					};
 
-			taskWorker->Set(task);
+				Memory::RefPtr<Task> task = Memory::MakeRef<Task>(taskFunc);
 
-			break;
-		}
-	}
+				taskWorker->Set(task);
 
-	void AssetWorker::onCreate(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!asset || !cmdList)
-		{
-			return;
-		}
-
-		if (eAsset::eCompose == asset->type)
-		{
-			Memory::RefPtr<ComposeAsset> compose = Memory::Cast<ComposeAsset>(asset);
-			if (compose)
-			{
-				for (auto& mesh : compose->meshs)
-				{
-					
-				}
-
-				for (auto& texture : compose->textures)
-				{
-
-				}
+				break;
 			}
-		}
-	}
-
-	void AssetWorker::onBind(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!asset || !cmdList)
-		{
-			return;
 		}
 	}
 

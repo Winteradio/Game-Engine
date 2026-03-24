@@ -43,7 +43,7 @@ namespace wtr
 				size_t seed = 0;
 				auto combine = [](size_t& hash, int value)
 				{
-					hash ^= std::hash<int>{}(value)+0x9e3779b9 + (hash << 6) + (hash >> 2);
+					hash ^= std::hash<int>{}(value) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
 				};
 				combine(seed, vertex.pos);
 				combine(seed, vertex.uv);

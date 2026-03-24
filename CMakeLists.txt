@@ -78,34 +78,32 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Application.h
 	${ENGINE_PUBLIC_DIR}/Framework/Engine.h
 	${ENGINE_PUBLIC_DIR}/Framework/Window.h
+	${ENGINE_PUBLIC_DIR}/Framework/Player.h
+	${ENGINE_PUBLIC_DIR}/Framework/Task.h
+	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
+	${ENGINE_PUBLIC_DIR}/Framework/ViewController.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputHandler.h
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputStorage.h
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputTypes.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.h
-
-	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
 )
 
 set(ENGINE_FRAMEWORK_PRIVATE_FILES	
 	${ENGINE_PRIVATE_DIR}/Framework/Engine.cpp
+
 	${ENGINE_PRIVATE_DIR}/Framework/InputStorage.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/InputTypes.cpp
+
+	${ENGINE_PRIVATE_DIR}/Framework/Player.cpp
+	${ENGINE_PRIVATE_DIR}/Framework/ViewController.cpp
+
+	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h
 
 	${ENGINE_PRIVATE_DIR}/Framework/Worker.h
 	${ENGINE_PRIVATE_DIR}/Framework/Worker.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/TaskWorker.cpp
-
-	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h
-
-	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.h
-	${ENGINE_PRIVATE_DIR}/Framework/FrameContext.cpp
-
-	${ENGINE_PRIVATE_DIR}/Framework/FrameView.h
-	${ENGINE_PRIVATE_DIR}/Framework/FrameView.cpp
-	${ENGINE_PRIVATE_DIR}/Framework/SceneView.h
-	${ENGINE_PRIVATE_DIR}/Framework/SceneView.cpp
 )
 
 set(ENGINE_PLATFORM_FILES
@@ -117,6 +115,7 @@ set(ENGINE_PLATFORM_FILES
 )
 
 set(ENGINE_RENDERER_PUBLIC_FILES
+	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
 
@@ -127,17 +126,18 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
+	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderGraph.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.h
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderScene.h
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderScene.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
 
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.h
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.cpp
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MeshProxy.h
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MeshProxy.cpp
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.h
-	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
 
@@ -181,34 +181,33 @@ set(ENGINE_RHI_PRIVATE_FILES
 
 set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/World.h
-	${ENGINE_PUBLIC_DIR}/World/WorldCommands.h
-	${ENGINE_PUBLIC_DIR}/World/WorldCommandList.h
+	${ENGINE_PUBLIC_DIR}/World/WorldContext.h
+	${ENGINE_PUBLIC_DIR}/World/Commander.h
 
 	${ENGINE_PUBLIC_DIR}/World/Component.h
+	${ENGINE_PUBLIC_DIR}/World/Entity.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
-	${ENGINE_PUBLIC_DIR}/World/System.h
 	${ENGINE_PUBLIC_DIR}/World/Scene.h
+	${ENGINE_PUBLIC_DIR}/World/System.h
 )
 
 set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/World.cpp
-	${ENGINE_PRIVATE_DIR}/World/WorldCommands.cpp
-	${ENGINE_PRIVATE_DIR}/World/WorldCommandList.cpp
+	${ENGINE_PRIVATE_DIR}/World/WorldContext.cpp
 
 	${ENGINE_PRIVATE_DIR}/World/WorldWorker.h
 	${ENGINE_PRIVATE_DIR}/World/WorldWorker.cpp
 
-	${ENGINE_PRIVATE_DIR}/World/Component.cpp
-	${ENGINE_PRIVATE_DIR}/World/Node.cpp
-	${ENGINE_PRIVATE_DIR}/World/System.cpp
+	${ENGINE_PRIVATE_DIR}/World/Commander.cpp
+	${ENGINE_PRIVATE_DIR}/World/Entity.cpp
 	${ENGINE_PRIVATE_DIR}/World/Scene.cpp
+	${ENGINE_PRIVATE_DIR}/World/System.cpp
 )
 
 set(ENGINE_ASSET_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Asset/AssetSystem.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetLoader.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetFactory.h
-	${ENGINE_PUBLIC_DIR}/Asset/AssetResult.h
 	
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.cpp

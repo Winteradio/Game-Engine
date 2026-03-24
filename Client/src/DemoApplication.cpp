@@ -70,8 +70,8 @@ namespace demo
 
 		mainScene.RegisterView(mainView);
 
-		const std::string cubePath = "asset/mesh/3d/dragon.obj";
-		//const std::string cubePath = "asset/mesh/3d/cube.obj";
+		//const std::string cubePath = "asset/mesh/3d/dragon.obj";
+		const std::string cubePath = "asset/mesh/3d/cube.obj";
 		wtr::AssetSystem::Load(cubePath);
 	}
 

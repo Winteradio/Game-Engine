@@ -1,118 +1,73 @@
 #include <World/Scene.h>
 
+#include <World/Node.h>
+#include <World/Commander.h>
+
+#include <Reflection/include/Utils.h>
+
 namespace wtr
 {
 	Scene::Scene()
-		: ECS::Scene()
-	{}
-
-	Scene::Scene(const std::string& name)
-		: ECS::Scene(name)
+		: m_refCommander(nullptr)
+		, m_nodes()
 	{}
 
 	Scene::~Scene()
 	{}
 
-	void Scene::RegisterView(const ViewInfo& view)
+	void Scene::SetCommander(Memory::RefPtr<Commander> refCommander)
 	{
-		m_viewMap.Emplace(view.name, view);
+		m_refCommander = refCommander;
 	}
 
-	void Scene::RemoveView(const std::string name)
+	void Scene::Attach(Memory::ObjectPtr<SceneNode> node)
 	{
-		m_viewMap.Erase(name);
-	}
-
-	const ViewInfo& Scene::GetView(const std::string& name) const
-	{
-		auto itr = m_viewMap.Find(name);
-		if (itr != m_viewMap.End())
+		if (!m_refCommander || !node)
 		{
-			return itr->second;
-		}
-		else
-		{
-			static ViewInfo null;
-			return null;
-		}
-	}
-
-	const wtr::HashMap<std::string, ViewInfo>& Scene::GetView() const
-	{
-		return m_viewMap;
-	}
-
-	SceneContainer::SceneContainer()
-		: m_storage()
-	{}
-
-	SceneContainer::~SceneContainer()
-	{}
-
-	Scene& SceneContainer::Create(const std::string& name)
-	{
-		auto [itr, inserted] = m_storage.TryEmplace(name);
-		if (inserted)
-		{
-			itr->second = Scene(name);
+			return;
 		}
 
-		return itr->second;
+		node->SetScene(this);
+
+		m_nodes[node->GetID()] = node;
+		m_refCommander->AddNode(node);
 	}
 
-	void SceneContainer::Remove(const std::string& name)
+	void Scene::Detach(const ECS::UUID& nodeId)
 	{
-		m_storage.Erase(name);
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		auto itr = m_nodes.Find(nodeId);
+		if (itr == m_nodes.End())
+		{
+			return;
+		}
+
+		auto node = itr->second;
+		node->SetScene(nullptr);
+
+		m_nodes.Erase(itr);
+		m_refCommander->RemoveNode(node);
 	}
 
-	Scene& SceneContainer::GetScene(const std::string& name)
+	void Scene::Update(const ECS::UUID& nodeId)
 	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
+		if (!m_refCommander)
 		{
-			return itr->second;
+			return;
 		}
-		else
-		{
-			static Scene null;
-			return null;
-		}
-	}
 
-	const Scene& SceneContainer::GetScene(const std::string& name) const
-	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
+		auto itr = m_nodes.Find(nodeId);
+		if (itr == m_nodes.End())
 		{
-			return itr->second;
+			return;
 		}
-		else
-		{
-			static Scene null;
-			return null;
-		}
-	}
 
-	SceneContainer::Storage& SceneContainer::GetScene()
-	{
-		return m_storage;
-	}
+		auto node = itr->second;
 
-	const SceneContainer::Storage& SceneContainer::GetScene() const
-	{
-		return m_storage;
-	}
-
-	bool SceneContainer::HasScene(const std::string& name) const
-	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		m_refCommander->UpdateNode(node);
 	}
 }

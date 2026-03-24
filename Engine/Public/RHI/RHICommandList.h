@@ -61,8 +61,10 @@ namespace wtr
 		void Enqueue(Args&&... args)
 		{
 			RHICommandBase* command = Create<T, Args...>(std::forward<Args>(args)...);
-
-			m_commands.PushBack(command);
+			if (nullptr != command)
+			{
+				m_commands.PushBack(command);
+			}
 		}
 
 		void ExecuteAll();

@@ -6,7 +6,7 @@
 
 namespace wtr
 {
-	class CameraSystem : public ECS::TypedSystem<Node::Camera>
+	class CameraSystem : public ECS::TypedSystem<CameraNode>
 	{
 	public :
 		CameraSystem();
