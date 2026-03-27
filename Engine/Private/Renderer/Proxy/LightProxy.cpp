@@ -1,0 +1,1 @@
+#include <Renderer/Proxy/LightProxy.h>

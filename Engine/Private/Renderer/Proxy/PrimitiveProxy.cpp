@@ -11,16 +11,4 @@ namespace wtr
 	PrimitiveProxy::~PrimitiveProxy()
 	{
 	}
-
-	void PrimitiveProxy::CreateRHI(RHICommandList& commandList)
-	{
-	}
-
-	void PrimitiveProxy::UpdateRHI(RHICommandList& commandList)
-	{
-	}
-
-	void PrimitiveProxy::ReleaseRHI(RHICommandList& commandList)
-	{
-	}
 }

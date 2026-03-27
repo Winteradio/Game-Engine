@@ -1,6 +1,14 @@
-#pragma
+#ifndef __WTR_PLAYER_H__
+#define __WTR_PLAYER_H__
 
-#include <World/Entity.h>
+#include <Memory/include/Pointer/ObjectPtr.h>
+
+namespace wtr
+{
+	class Entity;
+	class TransformComponent;
+	class CameraComponent;
+};
 
 namespace wtr
 {
@@ -12,9 +20,19 @@ namespace wtr
 
 	public :
 		void SetEntity(Memory::ObjectPtr<Entity> entity);
-		Memory::ObjectPtr<Entity> GetEntity() const;
+		Memory::ObjectPtr<const Entity> GetEntity() const;
+		Memory::ObjectPtr<const TransformComponent> GetTransform() const;
+		Memory::ObjectPtr<const CameraComponent> GetCamera() const;
+
+		void Activate();
+		void Deactivate();
+
+		bool IsActive() const;
 
 	private :
-		Memory::ObjectPtr<Entity> m_entity;
+		Memory::ObjectPtr<const Entity> m_entity;
+		bool m_active;
 	};
 }
+
+#endif // __WTR_PLAYER_H__

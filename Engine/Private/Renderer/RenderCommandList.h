@@ -18,7 +18,7 @@ namespace wtr
 
 	class RenderCommandList
 	{
-	public :		
+	public :
 		RenderCommandList() = default;
 		virtual ~RenderCommandList() = default;
 

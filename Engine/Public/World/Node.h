@@ -62,6 +62,7 @@ namespace wtr
 
 	public :
 		Memory::ObjectPtr<CameraComponent> camera;
+		Memory::ObjectPtr<TransformComponent> tramsform;
 	};
 };
 

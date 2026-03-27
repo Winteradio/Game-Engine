@@ -52,13 +52,34 @@ namespace wtr
 				return Memory::ObjectPtr<T>();
 			}
 
-			Memory::ObjectPtr<ECS::Component> component = m_owner->GetComponent(GetID(), ECS::GetTypeInfo<T>());
+			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
+			Memory::ObjectPtr<ECS::Component> component = m_owner->GetComponent(GetID(), typeInfo);
 			if (component)
 			{
 				return Memory::Cast<T>(component);
 			}
 
 			return Memory::ObjectPtr<T>();
+		}
+
+		template<typename T, 
+			typename PureType = Reflection::Utils::RemoveConst_t<T>,
+			typename ResultType = const PureType>
+		Memory::ObjectPtr<ResultType> GetComponent() const
+		{
+			if (nullptr == m_owner)
+			{
+				return Memory::ObjectPtr<ResultType>();
+			}
+
+			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
+			Memory::ObjectPtr<const ECS::Component> component = m_owner->GetComponent(GetID(), typeInfo);
+			if (component)
+			{
+				return Memory::Cast<ResultType>(component);
+			}
+
+			return Memory::ObjectPtr<ResultType>();
 		}
 
 		template<typename T>
@@ -69,13 +90,34 @@ namespace wtr
 				return Memory::ObjectPtr<T>();
 			}
 
-			Memory::ObjectPtr<ECS::Node> node = m_owner->GetNode(GetID(), ECS::GetTypeInfo<T>());
+			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
+			Memory::ObjectPtr<ECS::Node> node = m_owner->GetNode(GetID(), typeInfo);
 			if (node)
 			{
 				return Memory::Cast<T>(node);
 			}
 
 			return Memory::ObjectPtr<T>();
+		}
+
+		template<typename T,
+			typename PureType = Reflection::Utils::RemoveConst_t<T>, 
+			typename ResultType = const PureType>
+		Memory::ObjectPtr<ResultType> GetNode() const
+		{
+			if (nullptr == m_owner)
+			{
+				return Memory::ObjectPtr<ResultType>();
+			}
+
+			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
+			Memory::ObjectPtr<ECS::Node> node = m_owner->GetNode(GetID(), typeInfo);
+			if (node)
+			{
+				return Memory::Cast<ResultType>(node);
+			}
+
+			return Memory::ObjectPtr<ResultType>();
 		}
 
 	private :

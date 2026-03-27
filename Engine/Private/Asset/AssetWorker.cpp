@@ -76,7 +76,7 @@ namespace wtr
 						parserRef->Parse(assetRef);
 					}
 					return assetRef;
-					};
+				};
 
 				Memory::RefPtr<Task> task = Memory::MakeRef<Task>(taskFunc);
 

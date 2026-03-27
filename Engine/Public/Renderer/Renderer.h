@@ -6,6 +6,7 @@ namespace wtr
 {
 	class RenderScene;
 	class RenderCommandList;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -17,9 +18,12 @@ namespace wtr
 		~Renderer();
 
 	public :
+		void Execute(Memory::RefPtr<RHICommandList> cmdList);
+
 		Memory::RefPtr<RenderCommandList> GetCommandList();
 
 	private :
-		Memory::RefPtr<Render
+		Memory::RefPtr<RenderScene> m_refScene;
+		Memory::RefPtr<RenderCommandList> m_refCommandList;
 	};
 };

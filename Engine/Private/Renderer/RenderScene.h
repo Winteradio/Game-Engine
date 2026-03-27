@@ -3,6 +3,7 @@
 
 #include <ECS/include/UUID/UUID.h>
 #include <Container/include/HashMap.h>
+#include <Container/include/DynamicArray.h>
 
 namespace wtr
 {
@@ -19,15 +20,17 @@ namespace wtr
 			~RenderScene();
 
 		public :
-			void AddPrimitive(PrimitiveProxy* primitive);
-			void RemovePrimitive(PrimitiveProxy* primitive);
+			void UpdateProxy(const ECS::UUID& id);
 
-			void AddLight(LightProxy* light);
-			void RemoveLight(LightProxy* light);
+			void AddPrimitive(Memory::RefPtr<PrimitiveProxy> primitive);
+			void RemovePrimitive(const ECS::UUID& id);
+
+			void AddLight(Memory::RefPtr<LightProxy> light);
+			void RemoveLight(const ECS::UUID& id);
 
 		private :
-			std::vector<PrimitiveProxy*> m_primitives;
-			std::vector<LightProxy*> m_lights;
+			wtr::HashMap<ECS::UUID, Memory::RefPtr<PrimitiveProxy>> m_primitives;
+			wtr::HashMap<ECS::UUID, Memory::RefPtr<LightProxy>> m_lights;
 	};
 };
 

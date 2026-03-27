@@ -79,6 +79,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Engine.h
 	${ENGINE_PUBLIC_DIR}/Framework/Window.h
 	${ENGINE_PUBLIC_DIR}/Framework/Player.h
+	${ENGINE_PUBLIC_DIR}/Framework/PlayerController.h
 	${ENGINE_PUBLIC_DIR}/Framework/Task.h
 	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
 	${ENGINE_PUBLIC_DIR}/Framework/ViewController.h
@@ -97,6 +98,7 @@ set(ENGINE_FRAMEWORK_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Framework/InputTypes.cpp
 
 	${ENGINE_PRIVATE_DIR}/Framework/Player.cpp
+	${ENGINE_PRIVATE_DIR}/Framework/PlayerController.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/ViewController.cpp
 
 	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h

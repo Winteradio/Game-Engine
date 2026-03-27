@@ -3,21 +3,36 @@
 
 #include <Memory/include/Pointer/ObjectPtr.h>
 #include <Memory/include/Pointer/RefPtr.h>
+#include <ECS/include/TimeStep.h>
 
 namespace wtr
 {
 	class World;
+	class WorldCommandList;
 	class ViewController;
-	class Player;
+	class PlayerController;
 };
 
 namespace wtr
 {
-	struct WorldContext
+	class WorldContext
 	{
+	public :
 		Memory::ObjectPtr<World> world;
-		Memory::RefPtr<ViewController> viewController;
-		Memory::RefPtr<Player> player;
+		Memory::RefPtr<ViewController> view;
+		Memory::RefPtr<PlayerController> player;
+
+	public :
+		WorldContext();
+		~WorldContext();
+
+	public :
+		bool Init();
+		void Prepare();
+		void Update(const ECS::TimeStep& timeStep);
+
+	private :
+		Memory::RefPtr<WorldCommandList> m_refCommandList;
 	};
 };
 

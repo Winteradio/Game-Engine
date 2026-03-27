@@ -1,20 +1,17 @@
 #ifndef __WTR_PRIMTIVEPROXY_H__
 #define __WTR_PRIMTIVEPROXY_H__
 
-#include <Renderer/Proxy/RenderProxy.h>
+#include <Renderer/Proxy/SceneProxy.h>
 
 namespace wtr
 {
-	class PrimitiveProxy : public RenderProxy
+	class PrimitiveProxy : public SceneProxy
 	{
 	public:
 		PrimitiveProxy();
 		virtual ~PrimitiveProxy();
 
 	public:
-		virtual void CreateRHI(RHICommandList& commandList) override;
-		virtual void UpdateRHI(RHICommandList& commandList) override;
-		virtual void ReleaseRHI(RHICommandList& commandList) override;
 	};
 }
 

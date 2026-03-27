@@ -9,13 +9,6 @@
 
 namespace wtr
 {
-	class Asset;
-	class AssetLoader;
-	class AssetManager;
-};
-
-namespace wtr
-{
 	class AssetWorker: public Worker
 	{
 	public :
