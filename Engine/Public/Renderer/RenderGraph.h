@@ -6,18 +6,12 @@
 
 namespace wtr
 {
-	class FrameView;
+	class RenderView;
 	class RHICommandList;
 };
 
 namespace wtr
 {
-	struct RenderDesc
-	{
-		eRenderType Type = eRenderType::eNone;
-		size_t FrameCount = 3;
-	};
-
 	class RenderGraph
 	{
 	public :
@@ -29,9 +23,7 @@ namespace wtr
 		void Add(Memory::RefPtr<PipeLine> pipeline);
 		void Remove(Memory::RefPtr<PipeLine> pipeline);
 
-		void PreDraw(Memory::RefPtr<RHICommandList> cmdList);
-		void Draw(const FrameView& frame, Memory::RefPtr<RHICommandList> cmdList);
-		void PostDraw(Memory::RefPtr<RHICommandList> cmdList);
+		void Execute(Memory::RefPtr<RHICommandList> cmdList, const RenderView& renderView);
 
 	private :
 		PipeLineGraph m_graph;

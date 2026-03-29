@@ -1,33 +1,36 @@
 #include <World/Commander.h>
 
 #include <Reflection/include/Utils.h>
-#include <Renderer/RenderScene.h>
 #include <Renderer/RenderCommandList.h>
 #include <World/Node.h>
 
 namespace wtr
 {
 	Commander::Commander()
-		: m_refScene()
-		, m_refCmdList()
+		: m_refCmdList()
 	{}
 
 	Commander::~Commander()
 	{}
-
-	void Commander::SetScene(Memory::RefPtr<RenderScene> refScene)
-	{
-		m_refScene = refScene;
-	}
 
 	void Commander::SetCommand(Memory::RefPtr<RenderCommandList> refCmdList)
 	{
 		m_refCmdList = refCmdList;
 	}
 
+	void Commander::DrawView(const FrameView& frameView)
+	{
+		if (!m_refCmdList)
+		{
+			return;
+		}
+
+		// TODO
+	}
+
 	void Commander::AddNode(Memory::ObjectPtr<SceneNode> node)
 	{
-		if (!node || !m_refScene || !m_refCmdList)
+		if (!node || !m_refCmdList)
 		{
 			return;
 		}
@@ -48,7 +51,7 @@ namespace wtr
 
 	void Commander::UpdateNode(Memory::ObjectPtr<SceneNode> node)
 	{
-		if (!node || !m_refScene || !m_refCmdList)
+		if (!node || !m_refCmdList)
 		{
 			return;
 		}
@@ -56,7 +59,7 @@ namespace wtr
 
 	void Commander::RemoveNode(Memory::ObjectPtr<SceneNode> node)
 	{
-		if (!node || !m_refScene || !m_refCmdList)
+		if (!node || !m_refCmdList)
 		{
 			return;
 		}
@@ -64,7 +67,7 @@ namespace wtr
 
 	void Commander::AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode)
 	{
-		if (!meshNode || !m_refScene || !m_refCmdList)
+		if (!meshNode || !m_refCmdList)
 		{
 			return;
 		}
@@ -74,7 +77,7 @@ namespace wtr
 
 	void Commander::AddLight(Memory::ObjectPtr<LightNode> lightNode)
 	{
-		if (!lightNode || !m_refScene || !m_refCmdList)
+		if (!lightNode || !m_refCmdList)
 		{
 			return;
 		}

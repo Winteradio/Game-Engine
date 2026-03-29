@@ -83,6 +83,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Task.h
 	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
 	${ENGINE_PUBLIC_DIR}/Framework/ViewController.h
+	${ENGINE_PUBLIC_DIR}/Framework/FrameView.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputHandler.h
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputStorage.h

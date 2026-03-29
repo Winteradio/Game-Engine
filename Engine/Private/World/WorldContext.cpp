@@ -2,6 +2,7 @@
 
 #include <World/World.h>
 #include <World/WorldCommandList.h>
+#include <World/Commander.h>
 #include <Framework/ViewController.h>
 #include <Framework/PlayerController.h>
 
@@ -12,8 +13,8 @@ namespace wtr
 {
 	WorldContext::WorldContext()
 		: world()
-		, view()
-		, player()
+		, views()
+		, players()
 		, m_refCommandList()
 	{}
 
@@ -22,41 +23,59 @@ namespace wtr
 
 	bool WorldContext::Init()
 	{
+		views = Memory::MakeRef<ViewController>();
+		if (!views)
+		{
+			LOGERROR() << "[WorldContext] Failed to create the view controller";
+			return false;
+		}
+
+		players = Memory::MakeRef<PlayerController>();
+		if (!players)
+		{
+			LOGERROR() << "[WorldContext] Failed to create the player controller";
+			return false;
+		}
+
+		commander = Memory::MakeRef<Commander>();
+		if (!commander)
+		{
+			LOGERROR() << "[WorldContext] Failed to create the commander";
+			return false;
+		}
+
 		world = Memory::MakePtr<World>();
 		if (!world)
 		{
-			LOGERROR() << "[WORLDCONTEXT] Failed to create the world";
+			LOGERROR() << "[WorldContext] Failed to create the world";
 			return false;
 		}
 
-		view = Memory::MakeRef<ViewController>();
-		if (!view)
+		if (!world->Init(commander))
 		{
-			LOGERROR() << "[WORLDCONTEXT] Failed to create the view controller";
-			return false;
-		}
-
-		player = Memory::MakeRef<PlayerController>();
-		if (!player)
-		{
-			LOGERROR() << "[WORLDCONTEXT] Failed to create the player controller";
+			LOGERROR() << "[WorldContext] Failed to initialize the world";
 			return false;
 		}
 
 		m_refCommandList = Memory::MakeRef<WorldCommandList>();
 		if (!m_refCommandList)
 		{
-			LOGERROR() << "[WORLDCONTEXT] Failed to create the world command list";
+			LOGERROR() << "[WorldContext] Failed to create the world command list";
 			return false;
 		}
 
-		LOGINFO() << "[WORLDCONTEXT] Succeed to initialize the world context";
+		LOGINFO() << "WorldContext] Succeed to initialize the world context";
 
 		return true;
 	}
 
 	void WorldContext::Prepare()
 	{
+		if (!m_refCommandList)
+		{
+			return;
+		}
+
 		// TODO
 	}
 

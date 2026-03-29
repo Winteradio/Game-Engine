@@ -53,6 +53,26 @@ namespace wtr
 		m_refCommander->RemoveNode(node);
 	}
 
+	void Scene::DetachAll()
+	{
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		for (auto& [id, sceneNode] : m_nodes)
+		{
+			if (!sceneNode)
+			{
+				continue;
+			}
+
+			m_refCommander->RemoveNode(sceneNode);
+		}
+
+		m_nodes.Clear();
+	}
+
 	void Scene::Update(const ECS::UUID& nodeId)
 	{
 		if (!m_refCommander)

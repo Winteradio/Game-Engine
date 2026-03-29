@@ -10,7 +10,7 @@ namespace wtr
 	struct MeshNode;
 	struct LightNode;
 
-	class RenderScene;
+	struct FrameView;
 	class RenderCommandList;
 };
 
@@ -23,8 +23,9 @@ namespace wtr
 		~Commander();
 
 	public :
-		void SetScene(Memory::RefPtr<RenderScene> refScene);
 		void SetCommand(Memory::RefPtr<RenderCommandList> refCmdList);
+
+		void DrawView(const FrameView& frameView);
 
 		void AddNode(Memory::ObjectPtr<SceneNode> node);
 		void UpdateNode(Memory::ObjectPtr<SceneNode> node);
@@ -38,7 +39,6 @@ namespace wtr
 		void RemoveLight(Memory::ObjectPtr<LightNode> lightNode);
 
 	private :
-		Memory::RefPtr<RenderScene> m_refScene;
 		Memory::RefPtr<RenderCommandList> m_refCmdList;
 	};
 };

@@ -1,12 +1,14 @@
 ﻿#include <Framework/Player.h>
 
+#include <Framework/ViewController.h>
 #include <World/Component.h>
 #include <World/Entity.h>
 
 namespace wtr
 {
 	Player::Player()
-		: m_entity()
+		: m_views()
+		, m_entity()
 		, m_active(true)
 	{}
 
@@ -44,6 +46,41 @@ namespace wtr
 		}
 
 		return m_entity->GetComponent<CameraComponent>();
+	}
+
+	void Player::Register(Memory::RefPtr<ViewInfo> viewInfo)
+	{
+		if (!viewInfo)
+		{
+			return;
+		}
+
+		m_views.Insert(viewInfo->GetName());
+	}
+
+	void Player::Unregister(Memory::RefPtr<ViewInfo> viewInfo)
+	{
+		if (!viewInfo)
+		{
+			return;
+		}
+
+		Unregister(viewInfo->GetName());
+	}
+
+	void Player::Unregister(const std::string& viewName)
+	{
+		m_views.Erase(viewName);
+	}
+
+	void Player::UnregisterAll()
+	{
+		m_views.Clear();
+	}
+
+	const wtr::HashSet<std::string>& Player::GetViews() const
+	{
+		return m_views;
 	}
 
 	void Player::Activate()

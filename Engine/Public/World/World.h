@@ -3,6 +3,7 @@
 
 #include <ECS/include/Container/DataRegistry.h>
 #include <ECS/include/Container/SystemRegistry.h>
+#include <World/Scene.h>
 
 namespace wtr
 {
@@ -21,7 +22,7 @@ namespace wtr
 		virtual ~World();
 
 	public :
-		void SetCommander(Memory::RefPtr<Commander> refCommander);
+		bool Init(Memory::RefPtr<Commander> refCommander);
 		void Clear();
 
 		void Update(const ECS::TimeStep& timeStep);
@@ -59,7 +60,7 @@ namespace wtr
 		}
 
 	private :
-		Memory::RefPtr<Commander> m_refCommander;
+		Scene m_scene;
 
 		PROPERTY(m_entityContainer);
 		ECS::Container<Entity> m_entityContainer;

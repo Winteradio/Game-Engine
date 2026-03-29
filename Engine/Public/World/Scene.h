@@ -24,6 +24,7 @@ namespace wtr
 		void SetCommander(Memory::RefPtr<Commander> refCommander);
 		void Attach(Memory::ObjectPtr<SceneNode> node);
 		void Detach(const ECS::UUID& nodeId);
+		void DetachAll();
 		void Update(const ECS::UUID& nodeId);
 
 	private :

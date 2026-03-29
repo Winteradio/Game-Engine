@@ -7,6 +7,7 @@ namespace wtr
 {
 	class PrimitiveProxy : public SceneProxy
 	{
+		GENERATE(PrimitiveProxy);
 	public:
 		PrimitiveProxy();
 		virtual ~PrimitiveProxy();

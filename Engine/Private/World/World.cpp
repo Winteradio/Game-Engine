@@ -3,11 +3,12 @@
 #include <World/Entity.h>
 #include <World/Commander.h>
 
+#include <Log/include/Log.h>
 namespace wtr
 {
 	World::World()
 		: ECS::Object()
-		, m_refCommander()
+		, m_scene()
 		, m_entityContainer()
 		, m_nodeContainer()
 		, m_componentContainer()
@@ -17,13 +18,23 @@ namespace wtr
 	World::~World()
 	{}
 
-	void World::SetCommander(Memory::RefPtr<SceneCommander> refCommander)
+	bool World::Init(Memory::RefPtr<Commander> refCommander)
 	{
-		m_refCommander = refCommander;
+		LOGINFO() << "[WORLD] Initialize the world";
+
+		if (!refCommander)
+		{
+			LOGERROR() << "[WORLD] Failed to set the commander, the commander is invalid";
+			return false;
+		}
+
+		m_scene.SetCommander(refCommander);
 	}
 
 	void World::Clear()
 	{
+		m_scene.DetachAll();
+		
 		m_entityContainer.Clear();
 		m_nodeContainer.Clear();
 		m_componentContainer.Clear();
@@ -33,6 +44,8 @@ namespace wtr
 	void World::Update(const ECS::TimeStep& timeStep)
 	{
 		const ECS::SystemRegistry::GraphType graph = m_systemRegistry.BuildGraph();
+
+		// TODO
 	}
 
 	Memory::ObjectPtr<Entity> World::CreateEntity()

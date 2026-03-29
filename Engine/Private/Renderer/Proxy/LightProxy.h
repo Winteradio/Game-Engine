@@ -7,6 +7,7 @@ namespace wtr
 {
     class LightProxy : public SceneProxy
     {
+        GENERATE(LightProxy);
     public :
         LightProxy();
         virtual ~LightProxy();

@@ -2,15 +2,20 @@
 #define __WTR_WORLDWORKER_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
-#include <Memory/include/Pointer/ObjectPtr.h>
 #include <ECS/include/TimeStep.h>
 #include <Framework/Worker.h>
-#include <World/World.h>
 
 namespace wtr
 {
 	class InputStorage;
-	class FrameContext;
+	class WorldContext;
+
+	class ViewController;
+	class ViewInfo;
+	class FrameView;
+
+	class Player;
+	class PlayerController;
 };
 
 namespace wtr
@@ -23,8 +28,7 @@ namespace wtr
 
 	public :
 		void SetInputStorage(const Memory::RefPtr<InputStorage> inputStorage);
-		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
-		void SetWorld(const Memory::ObjectPtr<World> world);
+		void SetWorldContext(const Memory::RefPtr<WorldContext> worldContext);
 
 	protected :
 		void onStart() override;
@@ -32,11 +36,16 @@ namespace wtr
 		void onDestroy() override;
 
 	private :
+		void UpdateView(Memory::RefPtr<PlayerController> playerController, Memory::RefPtr<ViewController> viewController);
+		FrameView MakeView(Memory::RefPtr<Player> player, Memory::RefPtr<ViewInfo> view);
+		
+	private :
 		ECS::TimeStep m_timeStep;
 
-		Memory::RefPtr<InputStorage> m_refInputStorage;
-		Memory::RefPtr<FrameContext> m_refFrameContext;
-		Memory::ObjectPtr<World> m_world;
+		Memory::RefPtr<InputStorage>	m_refInputStorage;
+		Memory::RefPtr<WorldContext>	m_refWorldContext;
+
+		wtr::DynamicArray<FrameView>	m_frameViews;
 	};
 };
 

@@ -1,10 +1,11 @@
-#pragma once
+#ifndef __WTR_FRAMEVIEW_H__
+#define __WTR_FRAMEVIEW_H__
 
 #include <Framework/Math/MathTypes.h>
 
 namespace wtr
 {
-	struct RenderView
+	struct FrameView
 	{
 		struct Viewport
 		{
@@ -27,4 +28,6 @@ namespace wtr
 		Viewport viewport;
 		Camera camera;
 	};
-}
+};
+
+#endif // __WTR_FRAMEVIEW_H__

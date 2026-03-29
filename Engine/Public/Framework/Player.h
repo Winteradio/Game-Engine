@@ -5,6 +5,7 @@
 
 namespace wtr
 {
+	class ViewInfo;
 	class Entity;
 	class TransformComponent;
 	class CameraComponent;
@@ -24,12 +25,20 @@ namespace wtr
 		Memory::ObjectPtr<const TransformComponent> GetTransform() const;
 		Memory::ObjectPtr<const CameraComponent> GetCamera() const;
 
+		void Register(Memory::RefPtr<ViewInfo> viewInfo);
+		void Unregister(Memory::RefPtr<ViewInfo> viewInfo);
+		void Unregister(const std::string& viewName);
+		void UnregisterAll();
+
+		const wtr::HashSet<std::string>& GetViews() const;
+
 		void Activate();
 		void Deactivate();
 
 		bool IsActive() const;
 
 	private :
+		wtr::HashSet<std::string> m_views;
 		Memory::ObjectPtr<const Entity> m_entity;
 		bool m_active;
 	};

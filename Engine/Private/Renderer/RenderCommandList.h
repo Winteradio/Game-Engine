@@ -7,6 +7,12 @@
 
 namespace wtr
 {
+	class RenderScene;
+	class RHICommandList;
+};
+
+namespace wtr
+{
 	struct RenderTask : Task
 	{
 		using Task::Task;
