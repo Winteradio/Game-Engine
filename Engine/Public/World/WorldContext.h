@@ -30,6 +30,7 @@ namespace wtr
 
 	public :
 		bool Init();
+		void Clear();
 		void Prepare();
 		void Update(const ECS::TimeStep& timeStep);
 

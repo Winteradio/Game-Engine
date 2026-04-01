@@ -1,9 +1,11 @@
 #ifndef __WTR_WORLD_H__
 #define __WTR_WORLD_H__
 
-#include <ECS/include/Container/DataRegistry.h>
+#include <ECS/include/Container/Registry.h>
 #include <ECS/include/Container/SystemRegistry.h>
 #include <World/Scene.h>
+#include <World/Node.h>
+#include <World/Component.h>
 
 namespace wtr
 {
@@ -37,20 +39,20 @@ namespace wtr
 
 		Memory::ObjectPtr<Entity> GetEntity(const ECS::UUID& uuid);
 		Memory::ObjectPtr<ECS::System> GetSystem(const ECS::UUID& uuid);
-		Memory::ObjectPtr<ECS::Component> GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
-		Memory::ObjectPtr<ECS::Node> GetNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
+		Memory::ObjectPtr<BaseComponent> GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
+		Memory::ObjectPtr<BaseNode> GetNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
 
 	public :
 		template<typename T, typename... Args>
-		Memory::ObjectPtr<T> CreateComponent(Args&&... args)
+		Memory::ObjectPtr<T> CreateComponent(const ECS::UUID& id, Args&&... args)
 		{
-			return m_componentContainer.Create<T>(std::forward<Args>(args)...);
+			return m_componentContainer.Create<T>(id, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>
-		Memory::ObjectPtr<T> CreateNode(Args&&... args)
+		Memory::ObjectPtr<T> CreateNode(const ECS::UUID& id, Args&&... args)
 		{
-			return m_nodeContainer.Create<T>(std::forward<Args>(args)...);
+			return m_nodeContainer.Create<T>(id, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>
@@ -62,14 +64,14 @@ namespace wtr
 	private :
 		Scene m_scene;
 
-		PROPERTY(m_entityContainer);
-		ECS::Container<Entity> m_entityContainer;
+		PROPERTY(m_entityStorage);
+		ECS::ObjectStorage<Entity> m_entityStorage;
 
 		PROPERTY(m_nodeContainer);
-		ECS::NodeRegistry m_nodeContainer;
+		ECS::Registry<BaseNode> m_nodeContainer;
 
 		PROPERTY(m_componentContainer);
-		ECS::ComponentRegistry m_componentContainer;
+		ECS::Registry<BaseComponent> m_componentContainer;
 
 		PROPERTY(m_systemRegistry);
 		ECS::SystemRegistry m_systemRegistry;

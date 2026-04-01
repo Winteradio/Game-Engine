@@ -20,17 +20,14 @@ namespace wtr
 		m_refCommander = refCommander;
 	}
 
-	void Scene::Attach(Memory::ObjectPtr<SceneNode> node)
+	void Scene::Attach(Memory::ObjectPtr<BaseNode> node)
 	{
 		if (!m_refCommander || !node)
 		{
 			return;
 		}
 
-		node->SetScene(this);
-
-		m_nodes[node->GetID()] = node;
-		m_refCommander->AddNode(node);
+		// TODO
 	}
 
 	void Scene::Detach(const ECS::UUID& nodeId)
@@ -46,11 +43,7 @@ namespace wtr
 			return;
 		}
 
-		auto node = itr->second;
-		node->SetScene(nullptr);
-
-		m_nodes.Erase(itr);
-		m_refCommander->RemoveNode(node);
+		// TODO
 	}
 
 	void Scene::DetachAll()

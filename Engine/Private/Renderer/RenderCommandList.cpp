@@ -21,7 +21,7 @@ namespace wtr
 			return;
 		}
 
-		RenderTask* oldTail = m_tail.load(std::memory_order_relaxed);
+		RenderTask* oldTail = m_tail.load(std::memory_order_release);
 
 		if (oldTail)
 		{
@@ -32,12 +32,12 @@ namespace wtr
 			m_head.store(task, std::memory_order_release);
 		}
 
-		m_tail.store(task, std::memory_order_release);
+		m_tail.store(task, std::memory_order_relaxed);
 	}
 
 	void RenderCommandList::ExecuteAll()
 	{
-		const size_t writeIndex = m_writeIndex.load(std::memory_order_acquire);
+		const size_t writeIndex = m_writeIndex.load(std::memory_order_relaxed);
 		const size_t readIndex = m_readIndex;
 		
 		m_writeIndex.store(readIndex, std::memory_order_release);
@@ -61,7 +61,7 @@ namespace wtr
 
 	RenderTask* RenderCommandList::Create(Task::Func&& func)
 	{
-		const size_t index = m_writeIndex.load(std::memory_order_relaxed);
+		const size_t index = m_writeIndex.load(std::memory_order_release);
 
 		auto& allocator = m_allocator[index];
 

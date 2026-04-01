@@ -69,6 +69,14 @@ namespace wtr
 		return true;
 	}
 
+	void WorldContext::Clear()
+	{
+		if (world)
+		{
+			world->Clear();
+		}
+	}
+
 	void WorldContext::Prepare()
 	{
 		if (!m_refCommandList)

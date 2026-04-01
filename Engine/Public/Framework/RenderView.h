@@ -1,11 +1,11 @@
-#ifndef __WTR_FRAMEVIEW_H__
-#define __WTR_FRAMEVIEW_H__
+#ifndef __WTR_RENDERVIEW_H__
+#define __WTR_RENDERVIEW_H__
 
 #include <Framework/Math/MathTypes.h>
 
 namespace wtr
 {
-	struct FrameView
+	struct RenderView
 	{
 		struct Viewport
 		{
@@ -30,4 +30,4 @@ namespace wtr
 	};
 };
 
-#endif // __WTR_FRAMEVIEW_H__
+#endif // __WTR_RENDERVIEW_H__

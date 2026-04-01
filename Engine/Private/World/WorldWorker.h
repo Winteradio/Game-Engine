@@ -1,6 +1,7 @@
 #ifndef __WTR_WORLDWORKER_H__
 #define __WTR_WORLDWORKER_H__
 
+#include <Container/include/DynamicArray.h>
 #include <Memory/include/Pointer/RefPtr.h>
 #include <ECS/include/TimeStep.h>
 #include <Framework/Worker.h>
@@ -12,7 +13,7 @@ namespace wtr
 
 	class ViewController;
 	class ViewInfo;
-	class FrameView;
+	class RenderView;
 
 	class Player;
 	class PlayerController;
@@ -37,7 +38,7 @@ namespace wtr
 
 	private :
 		void UpdateView(Memory::RefPtr<PlayerController> playerController, Memory::RefPtr<ViewController> viewController);
-		FrameView MakeView(Memory::RefPtr<Player> player, Memory::RefPtr<ViewInfo> view);
+		RenderView MakeView(Memory::RefPtr<Player> player, Memory::RefPtr<ViewInfo> view);
 		
 	private :
 		ECS::TimeStep m_timeStep;
@@ -45,7 +46,7 @@ namespace wtr
 		Memory::RefPtr<InputStorage>	m_refInputStorage;
 		Memory::RefPtr<WorldContext>	m_refWorldContext;
 
-		wtr::DynamicArray<FrameView>	m_frameViews;
+		wtr::DynamicArray<RenderView>	m_RenderViews;
 	};
 };
 

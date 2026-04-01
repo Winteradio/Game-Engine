@@ -1,7 +1,6 @@
 #include <Renderer/RenderGraph.h>
 
-#include <FrameWork/FrameView.h>
-#include <FrameWork/SceneView.h>
+#include <FrameWork/RenderView.h>
 
 #include <Log/include/Log.h>
 #include <Memory/include/Core.h>
@@ -17,31 +16,36 @@ namespace wtr
 	RenderGraph::~RenderGraph()
 	{}
 
+	bool RenderGraph::Init()
+	{
+		// TODO
+		return true;
+	}
+
 	void RenderGraph::Add(Memory::RefPtr<PipeLine> pipeLine)
 	{}
 
 	void RenderGraph::Remove(Memory::RefPtr<PipeLine> pipeLine)
 	{}
 
-	void RenderGraph::PreDraw(Memory::RefPtr<RHICommandList> cmdList)
-	{}
-
-	void RenderGraph::Draw(const FrameView& frame, Memory::RefPtr<RHICommandList> cmdList)
+	void RenderGraph::Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene>& renderScene, const RenderView& renderView)
 	{
-		static SimpleColor color;
-		static bool init = false;
-		static SceneView sceneView;
-
-		if (!init)
+		if (m_graph.IsUpdated())
 		{
-			color.Init(cmdList);
-
-			init = true;
+			if (!m_graph.Build())
+			{
+				LOGERROR() << "[RENDER GRAPH] Failed to build the render graph";
+				return;
+			}
 		}
 
-		color.Draw(sceneView, cmdList);
+		for (const auto& pipeLine : m_graph.GetSorted())
+		{
+			if (!pipeLine)
+			{
+				continue;
+			}
+			pipeLine->Draw(renderView, renderScene, cmdList);
+		}
 	}
-
-	void RenderGraph::PostDraw(Memory::RefPtr<RHICommandList> cmdList)
-	{}
 }

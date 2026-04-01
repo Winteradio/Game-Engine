@@ -83,7 +83,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Task.h
 	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
 	${ENGINE_PUBLIC_DIR}/Framework/ViewController.h
-	${ENGINE_PUBLIC_DIR}/Framework/FrameView.h
+	${ENGINE_PUBLIC_DIR}/Framework/RenderView.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputHandler.h
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputStorage.h
@@ -141,10 +141,14 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/LightProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/LightProxy.cpp
+
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
-
-	${ENGINE_PRIVATE_DIR}/Renderer/PipeLine/PipeLineGraph.h
 )
 
 set(ENGINE_RHI_PUBLIC_FILES
@@ -188,6 +192,7 @@ set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/Commander.h
 
 	${ENGINE_PUBLIC_DIR}/World/Component.h
+	${ENGINE_PUBLIC_DIR}/World/Component.cpp
 	${ENGINE_PUBLIC_DIR}/World/Entity.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
 	${ENGINE_PUBLIC_DIR}/World/Scene.h

@@ -25,7 +25,7 @@ namespace wtr
 
 	Memory::RefPtr<RHICommandList> RHIFrameExecutor::Acquire()
 	{
-		const size_t now = m_recordIndex.load(std::memory_order_relaxed);
+		const size_t now = m_recordIndex;
 		const size_t next = GetNext(now);
 
 		if (next == m_beginIndex.load(std::memory_order_acquire))
@@ -40,14 +40,14 @@ namespace wtr
 			m_cvWriting.wait(lock, checkWritable);
 		}
 
-		m_recordIndex.store(next, std::memory_order_relaxed);
+		m_recordIndex = next;
 
 		return m_listPool[now];
 	}
 
 	void RHIFrameExecutor::Submit(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		const size_t recordNow = m_recordIndex.load(std::memory_order_acquire);
+		const size_t recordNow = m_recordIndex;
 		const size_t recordPrev = GetPrev(recordNow);
 
 		if (m_listPool[recordPrev] != cmdList)
@@ -68,9 +68,8 @@ namespace wtr
 			return;
 		}
 
-		const size_t record = m_recordIndex.load(std::memory_order_acquire);
-		const size_t begin = m_beginIndex.load(std::memory_order_acquire);
-		const size_t end = m_endIndex.load(std::memory_order_relaxed);
+		const size_t begin = m_beginIndex.load(std::memory_order_relaxed);
+		const size_t end = m_endIndex.load(std::memory_order_acquire);
 		size_t now = begin;
 
 		while (now != end)

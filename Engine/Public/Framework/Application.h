@@ -1,6 +1,10 @@
 #ifndef __WTR_APPLICATION_H__
 #define __WTR_APPLICATION_H__
 
+#include <Framework/Engine.h>
+
+#include <Memory/include/Pointer/RefPtr.h>
+
 namespace wtr
 {
 	class Engine;
@@ -15,6 +19,9 @@ namespace wtr
 			virtual void onInit() = 0;
 			virtual void onRun() = 0;
 			virtual void onShutdown() = 0;
+
+		protected :
+			Memory::RefPtr<Engine> m_engine;
 	};
 };
 

@@ -1,6 +1,8 @@
-#pragma once
+#ifndef __WTR_RENDERER_H__
+#define __WTR_RENDERER_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Renderer/RenderTypes.h>
 
 namespace wtr
 {
@@ -31,7 +33,7 @@ namespace wtr
 		void Execute(Memory::RefPtr<RHICommandList> cmdList);
 		
 		void PreDraw(Memory::RefPtr<RHICommandList> cmdList);
-		void Draw(Memory::RefPtr<RHICommandList> cmdList, const RenderView& renderView);
+		void Draw(Memory::RefPtr<RHICommandList> cmdList);
 		void PostDraw(Memory::RefPtr<RHICommandList> cmdList);
 
 		Memory::RefPtr<RenderCommandList> GetCommandList();
@@ -42,3 +44,5 @@ namespace wtr
 		Memory::RefPtr<RenderCommandList> m_refCommandList;
 	};
 };
+
+#endif // __WTR_RENDERER_H__

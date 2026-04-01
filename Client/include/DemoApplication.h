@@ -9,7 +9,7 @@ namespace demo
 	{
 		public : 
 			Game();
-			~Game();
+			virtual ~Game();
 
 		public :
 			void onInit() override;
@@ -17,7 +17,9 @@ namespace demo
 			void onShutdown() override;
 
 		private :
-			wtr::Engine* engine;
+			bool InitEngine();
+			bool InitWorld();
+			bool InitScene();
 	};
 };
 

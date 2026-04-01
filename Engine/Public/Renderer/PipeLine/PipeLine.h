@@ -2,10 +2,12 @@
 #define __WTR_PIPELINE_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Reflection/include/Type/TypeMacro.h>
 
 namespace wtr
 {
-	class SceneView;
+	class RenderScene;
+	class RenderView;
 	class RHIPipeLine;
 	class RHICommandList;
 };
@@ -14,16 +16,18 @@ namespace wtr
 {
 	class PipeLine
 	{
-		public :
-			PipeLine();
-			virtual ~PipeLine();
+		GENERATE(PipeLine);
 
-		public :
-			virtual void Draw(const SceneView& scene, Memory::RefPtr<RHICommandList> commandList) = 0;
-			virtual void Init(Memory::RefPtr<RHICommandList> commandList) = 0;
+	public :
+		PipeLine();
+		virtual ~PipeLine();
 
-		protected :
-			Memory::RefPtr<RHIPipeLine> m_pipeLine;
+	public :
+		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> cmdList) = 0;
+		virtual void Init(Memory::RefPtr<RHICommandList> commandList) = 0;
+
+	protected :
+		Memory::RefPtr<RHIPipeLine> m_pipeLine;
 	};
 };
 

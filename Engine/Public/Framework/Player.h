@@ -1,13 +1,15 @@
 #ifndef __WTR_PLAYER_H__
 #define __WTR_PLAYER_H__
 
+#include <Container/include/HashSet.h>
+#include <Memory/include/Pointer/RefPtr.h>
 #include <Memory/include/Pointer/ObjectPtr.h>
 
 namespace wtr
 {
 	class ViewInfo;
 	class Entity;
-	class TransformComponent;
+	class SceneComponent;
 	class CameraComponent;
 };
 
@@ -22,7 +24,7 @@ namespace wtr
 	public :
 		void SetEntity(Memory::ObjectPtr<Entity> entity);
 		Memory::ObjectPtr<const Entity> GetEntity() const;
-		Memory::ObjectPtr<const TransformComponent> GetTransform() const;
+		Memory::ObjectPtr<const SceneComponent> GetTransform() const;
 		Memory::ObjectPtr<const CameraComponent> GetCamera() const;
 
 		void Register(Memory::RefPtr<ViewInfo> viewInfo);

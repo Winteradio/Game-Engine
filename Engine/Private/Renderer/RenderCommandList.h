@@ -25,8 +25,8 @@ namespace wtr
 	class RenderCommandList
 	{
 	public :
-		RenderCommandList() = default;
-		virtual ~RenderCommandList() = default;
+		RenderCommandList();
+		virtual ~RenderCommandList();
 
 	public :
 		void Enqueue(Task::Func&& func);

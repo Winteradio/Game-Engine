@@ -1,10 +1,14 @@
 #include <World/Entity.h>
 
+#include <World/World.h>
+
+#include <World/Component.h>
+
 namespace wtr
 {
 	Entity::Entity()
 		: ECS::Entity()
-		, m_owner(nullptr)
+		, m_owner()
 	{}
 
 	Entity::Entity(World* owner, const std::string& name)
@@ -13,24 +17,26 @@ namespace wtr
 	{}
 
 	Entity::~Entity()
+	{}
+
+	void Entity::Clear()
 	{
-		if (!m_owner)
+		if (nullptr == m_owner)
 		{
 			return;
 		}
 
-		for (const auto* typeInfo : GetComponentType())
+		for (const auto* nodeType : GetNodeType())
 		{
-			m_owner->RemoveComponent(GetID(), typeInfo);
+			m_owner->RemoveNode(GetID(), nodeType);
 		}
 
-		for (const auto* typeInfo : GetNodeType())
+		for (const auto* componentType : GetComponentType())
 		{
-			m_owner->RemoveNode(GetID(), typeInfo);
+			m_owner->RemoveComponent(GetID(), componentType);
 		}
 
 		m_owner->RemoveEntity(GetID());
-
 		m_owner = nullptr;
 	}
 }

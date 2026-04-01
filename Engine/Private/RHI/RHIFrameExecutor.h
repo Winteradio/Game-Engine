@@ -32,7 +32,7 @@ namespace wtr
 	private :
 		size_t m_frameCount;
 
-		std::atomic<size_t> m_recordIndex;
+		size_t m_recordIndex;
 		std::atomic<size_t> m_beginIndex;
 		std::atomic<size_t> m_endIndex;
 

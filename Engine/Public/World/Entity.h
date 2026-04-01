@@ -1,8 +1,9 @@
 #ifndef __WTR_ENTITY_H__
 #define __WTR_ENTITY_H__
 
+#include <Container/include/TypeTraits.h>
 #include <ECS/include/Object/Entity.h>
-#include <Memory/include/Pointer/ObjectPtr.h>
+#include <Memory/include/Core.h>
 
 #include <World/World.h>
 
@@ -11,49 +12,62 @@ namespace wtr
 	class Entity : public ECS::Entity
 	{
 	public :
-		using IDData = wtr::HashMap<size_t, ECS::UUID>;
-
 		Entity();
 		Entity(World* owner, const std::string& name = "default");
 		virtual ~Entity();
 
 	public :
+		void Clear();
+
+	public :
 		template<typename T, typename... Args>
-		void AddComponent(Args&&... args)
+		bool AddComponent(Args&&... args)
 		{
-			if (m_owner)
+			if (!m_owner)
 			{
-				Memory::ObjectPtr<T> component = m_owner->CreateComponent<T>(GetID(), std::forward<Args>(args)...);
-				if (component)
-				{
-					ECS::Entity::AddComponent<T>();
-				}
+				return false;
 			}
+
+			Memory::ObjectPtr<T> component = m_owner->CreateComponent<T>(GetID(), std::forward<Args>(args)...);
+			if (!component)
+			{
+				return false;
+			}
+
+			ECS::Entity::AddComponent<T>();
+
+			return true;
 		}
 
 		template<typename T, typename... Args>
-		void AddNode(Args&&... args)
+		bool AddNode(Args&&... args)
 		{
-			if (m_owner)
+			if (!HasAllComponents(typename T::Required{}))
 			{
-				Memory::ObjectPtr<T> node = m_owner->CreateNode<T>(GetID(), std::forward<Args>(args)...);
-				if (node)
-				{
-					ECS::Entity::AddComponent<T>();
-				}
+				return false;
 			}
+
+			Memory::ObjectPtr<T> node = CreateNode<T>(typename T::Required{});
+			if (!node)
+			{
+				return false;
+			}
+
+			ECS::Entity::AddNode<T>();
+
+			return true;
 		}
 
 		template<typename T>
 		Memory::ObjectPtr<T> GetComponent()
 		{
-			if (nullptr == m_owner)
+			if (!m_owner)
 			{
 				return Memory::ObjectPtr<T>();
 			}
 
 			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
-			Memory::ObjectPtr<ECS::Component> component = m_owner->GetComponent(GetID(), typeInfo);
+			Memory::ObjectPtr<BaseComponent> component = m_owner->GetComponent(GetID(), typeInfo);
 			if (component)
 			{
 				return Memory::Cast<T>(component);
@@ -67,31 +81,31 @@ namespace wtr
 			typename ResultType = const PureType>
 		Memory::ObjectPtr<ResultType> GetComponent() const
 		{
-			if (nullptr == m_owner)
+			if (!m_owner)
 			{
 				return Memory::ObjectPtr<ResultType>();
 			}
 
 			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
-			Memory::ObjectPtr<const ECS::Component> component = m_owner->GetComponent(GetID(), typeInfo);
+			Memory::ObjectPtr<const BaseComponent> component = m_owner->GetComponent(GetID(), typeInfo);
 			if (component)
 			{
-				return Memory::Cast<ResultType>(component);
+				return Memory::Cast<typename ResultType>(component);
 			}
 
-			return Memory::ObjectPtr<ResultType>();
+			return Memory::ObjectPtr<typename ResultType>();
 		}
 
 		template<typename T>
 		Memory::ObjectPtr<T> GetNode()
 		{
-			if (nullptr == m_owner)
+			if (!m_owner)
 			{
 				return Memory::ObjectPtr<T>();
 			}
 
 			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
-			Memory::ObjectPtr<ECS::Node> node = m_owner->GetNode(GetID(), typeInfo);
+			Memory::ObjectPtr<BaseNode> node = m_owner->GetNode(GetID(), typeInfo);
 			if (node)
 			{
 				return Memory::Cast<T>(node);
@@ -105,19 +119,38 @@ namespace wtr
 			typename ResultType = const PureType>
 		Memory::ObjectPtr<ResultType> GetNode() const
 		{
-			if (nullptr == m_owner)
+			if (!m_owner)
 			{
 				return Memory::ObjectPtr<ResultType>();
 			}
 
 			const Reflection::TypeInfo* typeInfo = Reflection::TypeInfo::Get<T>();
-			Memory::ObjectPtr<ECS::Node> node = m_owner->GetNode(GetID(), typeInfo);
+			Memory::ObjectPtr<BaseNode> node = m_owner->GetNode(GetID(), typeInfo);
 			if (node)
 			{
 				return Memory::Cast<ResultType>(node);
 			}
 
 			return Memory::ObjectPtr<ResultType>();
+		}
+
+		template<typename... Components>
+		bool HasAllComponents(TypeList<Components...>) const
+		{
+			return (... && HasComponent<Components>());
+		}
+
+	private :
+		template<typename T, typename... Components>
+		Memory::ObjectPtr<T> CreateNode(TypeList<Components...>)
+		{
+			if (!m_owner)
+			{
+				return {};
+			}
+
+			Memory::ObjectPtr<T> node = m_owner->CreateNode<T>(GetID(), GetComponent<Components>()...);
+			return node;
 		}
 
 	private :

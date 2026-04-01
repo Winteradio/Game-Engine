@@ -4,18 +4,6 @@
 
 namespace wtr
 {
-	Task::Task(std::function<void()> func)
-		: func(func)
-	{}
-
-	void Task::operator()()
-	{
-		if (func)
-		{
-			func();
-		}
-	}
-
 	TaskWorker::TaskWorker()
 		: Worker()
 		, m_mutex()

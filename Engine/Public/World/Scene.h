@@ -8,7 +8,7 @@
 
 namespace wtr
 {
-	class SceneNode;
+	class BaseNode;
 	class Commander;
 };
 
@@ -22,14 +22,14 @@ namespace wtr
 
 	public :
 		void SetCommander(Memory::RefPtr<Commander> refCommander);
-		void Attach(Memory::ObjectPtr<SceneNode> node);
+		void Attach(Memory::ObjectPtr<BaseNode> node);
 		void Detach(const ECS::UUID& nodeId);
 		void DetachAll();
 		void Update(const ECS::UUID& nodeId);
 
 	private :
 		Memory::RefPtr<Commander> m_refCommander;
-		wtr::HashMap<ECS::UUID, Memory::ObjectPtr<SceneNode>> m_nodes;
+		wtr::HashMap<ECS::UUID, Memory::ObjectPtr<BaseNode>> m_nodes;
 	};
 };
 

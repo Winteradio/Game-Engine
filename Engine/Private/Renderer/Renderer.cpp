@@ -3,7 +3,7 @@
 #include <Renderer/RenderScene.h>
 #include <Renderer/RenderCommandList.h>
 #include <Renderer/RenderGraph.h>
-#include <Renderer/RenderView.h>
+#include <Framework/RenderView.h>
 
 #include <RHI/RHICommandList.h>
 
@@ -63,6 +63,26 @@ namespace wtr
 			return;
 		}
 
-		
+		// TODO : Get the render view from the render scene
+	}
+
+	void Renderer::PreDraw(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		// TODO
+	}
+
+	void Renderer::Draw(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		// TODO
+	}
+
+	void Renderer::PostDraw(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		// TODO
+	}
+
+	Memory::RefPtr<RenderCommandList> Renderer::GetCommandList()
+	{
+		return m_refCommandList;
 	}
 }

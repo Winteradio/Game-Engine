@@ -2,14 +2,14 @@
 
 #include <World/Entity.h>
 #include <World/Commander.h>
-
 #include <Log/include/Log.h>
+
 namespace wtr
 {
 	World::World()
 		: ECS::Object()
 		, m_scene()
-		, m_entityContainer()
+		, m_entityStorage()
 		, m_nodeContainer()
 		, m_componentContainer()
 		, m_systemRegistry()
@@ -29,13 +29,22 @@ namespace wtr
 		}
 
 		m_scene.SetCommander(refCommander);
+
+		return true;
 	}
 
 	void World::Clear()
 	{
+		for (const auto& [id, entity] : m_entityStorage)
+		{
+			if (entity)
+			{
+				entity->Clear();
+			}
+		}
+
 		m_scene.DetachAll();
-		
-		m_entityContainer.Clear();
+		m_entityStorage.Clear();
 		m_nodeContainer.Clear();
 		m_componentContainer.Clear();
 		m_systemRegistry.Clear();
@@ -50,7 +59,7 @@ namespace wtr
 
 	Memory::ObjectPtr<Entity> World::CreateEntity()
 	{
-		return m_entityContainer.Emplace(this);
+		return m_entityStorage.Emplace(this);
 	}
 
 	void World::RegisterEntity(Memory::ObjectPtr<Entity> entity)
@@ -64,7 +73,9 @@ namespace wtr
 
 	void World::RemoveEntity(const ECS::UUID& uuid)
 	{
-		m_entityContainer.Erase(uuid);
+		m_scene.Detach(uuid);
+
+		m_entityStorage.Erase(uuid);
 	}
 
 	void World::RemoveSystem(const ECS::UUID& uuid)
@@ -84,7 +95,7 @@ namespace wtr
 
 	Memory::ObjectPtr<Entity> World::GetEntity(const ECS::UUID& uuid)
 	{
-		return m_entityContainer.Get(uuid);
+		return m_entityStorage.Get(uuid);
 	}
 
 	Memory::ObjectPtr<ECS::System> World::GetSystem(const ECS::UUID& uuid)
@@ -92,7 +103,7 @@ namespace wtr
 		return m_systemRegistry.Get(uuid);
 	}
 
-	Memory::ObjectPtr<ECS::Component> World::GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
+	Memory::ObjectPtr<BaseComponent> World::GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
 	{
 		auto container = m_componentContainer.GetContainer(typeinfo);
 		if (container)
@@ -101,11 +112,11 @@ namespace wtr
 		}
 		else
 		{
-			return Memory::ObjectPtr<ECS::Component>();
+			return Memory::ObjectPtr<BaseComponent>();
 		}
 	}
 
-	Memory::ObjectPtr<ECS::Node> World::GetNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
+	Memory::ObjectPtr<BaseNode> World::GetNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
 	{
 		auto container = m_nodeContainer.GetContainer(typeinfo);
 		if (container)
@@ -114,7 +125,7 @@ namespace wtr
 		}
 		else
 		{
-			return Memory::ObjectPtr<ECS::Node>();
+			return Memory::ObjectPtr<BaseNode>();
 		}
 	}
 }

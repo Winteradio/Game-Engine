@@ -18,7 +18,7 @@ namespace wtr
 		m_refCmdList = refCmdList;
 	}
 
-	void Commander::DrawView(const FrameView& frameView)
+	void Commander::DrawView(const RenderView& RenderView)
 	{
 		if (!m_refCmdList)
 		{
@@ -28,7 +28,7 @@ namespace wtr
 		// TODO
 	}
 
-	void Commander::AddNode(Memory::ObjectPtr<SceneNode> node)
+	void Commander::AddNode(Memory::ObjectPtr<BaseNode> node)
 	{
 		if (!node || !m_refCmdList)
 		{
@@ -49,7 +49,7 @@ namespace wtr
 		}
 	}
 
-	void Commander::UpdateNode(Memory::ObjectPtr<SceneNode> node)
+	void Commander::UpdateNode(Memory::ObjectPtr<BaseNode> node)
 	{
 		if (!node || !m_refCmdList)
 		{
@@ -57,7 +57,7 @@ namespace wtr
 		}
 	}
 
-	void Commander::RemoveNode(Memory::ObjectPtr<SceneNode> node)
+	void Commander::RemoveNode(Memory::ObjectPtr<BaseNode> node)
 	{
 		if (!node || !m_refCmdList)
 		{

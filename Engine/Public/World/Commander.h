@@ -6,11 +6,11 @@
 
 namespace wtr
 {
-	struct SceneNode;
-	struct MeshNode;
-	struct LightNode;
+	class BaseNode;
+	class MeshNode;
+	class LightNode;
 
-	struct FrameView;
+	struct RenderView;
 	class RenderCommandList;
 };
 
@@ -25,11 +25,11 @@ namespace wtr
 	public :
 		void SetCommand(Memory::RefPtr<RenderCommandList> refCmdList);
 
-		void DrawView(const FrameView& frameView);
+		void DrawView(const RenderView& RenderView);
 
-		void AddNode(Memory::ObjectPtr<SceneNode> node);
-		void UpdateNode(Memory::ObjectPtr<SceneNode> node);
-		void RemoveNode(Memory::ObjectPtr<SceneNode> node);
+		void AddNode(Memory::ObjectPtr<BaseNode> node);
+		void UpdateNode(Memory::ObjectPtr<BaseNode> node);
+		void RemoveNode(Memory::ObjectPtr<BaseNode> node);
 
 	private :
 		void AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode);

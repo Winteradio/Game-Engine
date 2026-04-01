@@ -12,12 +12,13 @@ namespace wtr
 {
 	class SimpleColor : public PipeLine
 	{
+		GENERATE(SimpleColor);
 	public :
 		SimpleColor();
 		virtual ~SimpleColor();
 
 	public :
-		virtual void Draw(const SceneView& scene, Memory::RefPtr<RHICommandList> commandList);
+		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> commandList) override;
 		virtual void Init(Memory::RefPtr<RHICommandList> commandList);
 
 	private :

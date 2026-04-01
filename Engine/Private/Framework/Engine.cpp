@@ -369,6 +369,12 @@ namespace wtr
 			m_inputHandler.Reset();
 		}
 
+		if (m_worldContext)
+		{
+			m_worldContext->Clear();
+			m_worldContext.Reset();
+		}
+
 		AssetSystem::Release();
 		Memory::Release();
 

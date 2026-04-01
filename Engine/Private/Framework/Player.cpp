@@ -28,14 +28,14 @@ namespace wtr
 		return m_entity;
 	}
 
-	Memory::ObjectPtr<const TransformComponent> Player::GetTransform() const
+	Memory::ObjectPtr<const SceneComponent> Player::GetTransform() const
 	{
 		if (!m_entity)
 		{
 			return {};
 		}
 
-		return m_entity->GetComponent<TransformComponent>();
+		return m_entity->GetComponent<SceneComponent>();
 	}
 
 	Memory::ObjectPtr<const CameraComponent> Player::GetCamera() const

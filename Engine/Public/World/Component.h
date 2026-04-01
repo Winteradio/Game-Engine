@@ -7,27 +7,82 @@
 
 namespace wtr
 {
-	struct TransformComponent : ECS::Component
+	class Scene;
+};
+
+namespace wtr
+{
+	class BaseComponent : public ECS::Component
 	{
-		fvec3 position = fvec3(0.f);
-		fvec3 rotation = fvec3(0.f);
-		fvec3 scale = fvec3(1.f);
+		GENERATE(BaseComponent);
+
+	public :
+		using ECS::Component::Component;
+
+		virtual ~BaseComponent() = default;
 	};
 
-	struct ColorComponent : ECS::Component
+	class SceneComponent : public BaseComponent
 	{
+		GENERATE(SceneComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		SceneComponent();
+		virtual ~SceneComponent() = default;
+
+	public:
+		void OnAttached(Scene* scene);
+		void OnDetached();
+
+		void UpdatePosition(const fvec3& position);
+		void UpdateRotation(const fvec3& rotation);
+		void UpdateScale(const fvec3& scale);
+
+		const fvec3 GetPosition() const;
+		const fvec3 GetRotation() const;
+		const fvec3 GetScale() const;
+
+	private :
+		void Update();
+
+	private :
+		fvec3 m_position;
+		fvec3 m_rotation;
+		fvec3 m_scale;
+
+		Scene* m_scene;
+	};
+
+	class ColorComponent : public BaseComponent
+	{
+		GENERATE(ColorComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~ColorComponent() = default;
+
 		float red = 1.f;
 		float blue = 1.f;
 		float green = 1.f;
 		float alpha = 1.f;
 	};
 
-	struct CameraComponent : ECS::Component
+	class CameraComponent : public BaseComponent
 	{
+		GENERATE(CameraComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~CameraComponent() = default;
+
 		float fov = 45.f;
 
-		float near = 1.f;
-		float far = 1000.f;
+		float nearPlane = 1.f;
+		float farPlane = 1000.f;
 
 		float width = 1080.f;
 		float height = 800.f;
@@ -35,14 +90,29 @@ namespace wtr
 		bool perspective = true;
 	};
 
-	struct LightComponent : ECS::Component
+	class LightComponent : public BaseComponent
 	{
+		GENERATE(LightComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~LightComponent() = default;
+
 		fvec3 direction = fvec3(0.f);
 	};
 
-	struct MeshComponent : ECS::Component
+	class MeshComponent : public BaseComponent
 	{
-		Memory::RefPtr<MeshAsset> mesh;
+		GENERATE(MeshComponent);
+
+	public :
+		using BaseComponent::BaseComponent;
+
+		MeshComponent(Memory::RefPtr<Asset> refAsset);
+		virtual ~MeshComponent() = default;
+
+		Memory::RefPtr<MeshAsset> meshAsset;
 	};
 };
 
