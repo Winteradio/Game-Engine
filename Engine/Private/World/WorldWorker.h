@@ -13,7 +13,7 @@ namespace wtr
 
 	class ViewController;
 	class ViewInfo;
-	class RenderView;
+	struct RenderView;
 
 	class Player;
 	class PlayerController;
@@ -46,7 +46,7 @@ namespace wtr
 		Memory::RefPtr<InputStorage>	m_refInputStorage;
 		Memory::RefPtr<WorldContext>	m_refWorldContext;
 
-		wtr::DynamicArray<RenderView>	m_RenderViews;
+		wtr::DynamicArray<RenderView>	m_renderViews;
 	};
 };
 

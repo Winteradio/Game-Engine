@@ -16,6 +16,7 @@
 #include <World/Component.h>
 #include <World/Node.h>
 #include <World/Entity.h>
+#include <World/Scene.h>
 
 #include <Log/include/Log.h>
 
@@ -191,6 +192,8 @@ namespace demo
 		cubeEntity->AddComponent<wtr::SceneComponent>();
 		cubeEntity->AddComponent<wtr::MeshComponent>(cubeAsset);
 		cubeEntity->AddNode<wtr::MeshNode>();
+
+		world->scene.Attach(cubeEntity->GetNode<wtr::MeshNode>());
 
 		auto meshNode = cubeEntity->GetNode<wtr::MeshNode>();
 

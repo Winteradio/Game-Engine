@@ -4,7 +4,7 @@
 #include <Framework/Player.h>
 #include <Framework/PlayerController.h>
 #include <Framework/ViewController.h>
-#include <Framework/RenderView.h>
+#include <Renderer/RenderView.h>
 #include <World/WorldContext.h>
 #include <World/World.h>
 #include <World/Commander.h>
@@ -16,7 +16,7 @@ namespace wtr
 		: m_timeStep()
 		, m_refInputStorage(nullptr)
 		, m_refWorldContext(nullptr)
-		, m_RenderViews()
+		, m_renderViews()
 	{}
 
 	WorldWorker::~WorldWorker()
@@ -64,9 +64,9 @@ namespace wtr
 
 		UpdateView(players, views);
 
-		for (const auto& RenderView : m_RenderViews)
+		for (const auto& renderView : m_renderViews)
 		{
-			commander->DrawView(RenderView);
+			commander->SetView(renderView);
 		}
 	}
 
@@ -81,7 +81,31 @@ namespace wtr
 			return;
 		}
 
-		m_RenderViews.Clear();
+		m_renderViews.Clear();
+
+		const auto& actives = playerController->GetActives();
+		for (const auto& player : actives)
+		{
+			if (!player)
+			{
+				continue;
+			}
+
+			const auto& viewList = player->GetViews();
+
+			for (const auto& viewId : viewList)
+			{
+				const auto view = viewController->Get(viewId);
+				if (!view)
+				{
+					continue;
+				}
+
+				RenderView renderView = MakeView(player, view);
+
+				m_renderViews.PushBack(renderView);
+			}
+		}
 	}
 
 	RenderView WorldWorker::MakeView(Memory::RefPtr<Player> player, Memory::RefPtr<ViewInfo> view)

@@ -8,7 +8,7 @@ namespace wtr
 {
 	World::World()
 		: ECS::Object()
-		, m_scene()
+		, scene()
 		, m_entityStorage()
 		, m_nodeContainer()
 		, m_componentContainer()
@@ -28,7 +28,7 @@ namespace wtr
 			return false;
 		}
 
-		m_scene.SetCommander(refCommander);
+		scene.SetCommander(refCommander);
 
 		return true;
 	}
@@ -43,7 +43,7 @@ namespace wtr
 			}
 		}
 
-		m_scene.DetachAll();
+		scene.DetachAll();
 		m_entityStorage.Clear();
 		m_nodeContainer.Clear();
 		m_componentContainer.Clear();
@@ -73,7 +73,7 @@ namespace wtr
 
 	void World::RemoveEntity(const ECS::UUID& uuid)
 	{
-		m_scene.Detach(uuid);
+		scene.Detach(uuid);
 
 		m_entityStorage.Erase(uuid);
 	}

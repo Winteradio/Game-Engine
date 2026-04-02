@@ -1,5 +1,7 @@
 #include <Renderer/RenderCommandList.h>
 
+#include <Renderer/Renderer.h>
+
 namespace wtr
 {
 	RenderCommandList::RenderCommandList()
@@ -13,15 +15,15 @@ namespace wtr
 	RenderCommandList::~RenderCommandList()
 	{}
 
-	void RenderCommandList::Enqueue(Task::Func&& func)
+	void RenderCommandList::Enqueue(RenderTask::Func&& func)
 	{
-		RenderTask* task = Create(std::forward<Task::Func>(func));
+		RenderTask* task = Create(std::forward<RenderTask::Func>(func));
 		if (nullptr == task)
 		{
 			return;
 		}
 
-		RenderTask* oldTail = m_tail.load(std::memory_order_release);
+		RenderTask* oldTail = m_tail.load(std::memory_order_acquire);
 
 		if (oldTail)
 		{
@@ -32,13 +34,18 @@ namespace wtr
 			m_head.store(task, std::memory_order_release);
 		}
 
-		m_tail.store(task, std::memory_order_relaxed);
+		m_tail.store(task, std::memory_order_release);
 	}
 
-	void RenderCommandList::ExecuteAll()
+	void RenderCommandList::ExecuteAll(Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if ((nullptr == renderer) || !cmdList)
+		{
+			return;
+		}
+
 		const size_t writeIndex = m_writeIndex.load(std::memory_order_relaxed);
-		const size_t readIndex = m_readIndex;
+		const size_t readIndex = (m_readIndex + 1) % MAX_ALLOCATOR_COUNT;
 		
 		m_writeIndex.store(readIndex, std::memory_order_release);
 		m_readIndex = writeIndex;
@@ -48,7 +55,7 @@ namespace wtr
 
 		while (nullptr != execute)
 		{
-			(*execute)();
+			(*execute)(renderer, cmdList);
 			execute->~RenderTask();
 			execute = execute->next;
 		}
@@ -59,9 +66,9 @@ namespace wtr
 		m_allocator[m_readIndex].Reset();
 	}
 
-	RenderTask* RenderCommandList::Create(Task::Func&& func)
+	RenderTask* RenderCommandList::Create(RenderTask::Func&& func)
 	{
-		const size_t index = m_writeIndex.load(std::memory_order_release);
+		const size_t index = m_writeIndex.load(std::memory_order_acquire);
 
 		auto& allocator = m_allocator[index];
 
@@ -71,7 +78,7 @@ namespace wtr
 			return nullptr;
 		}
 
-		RenderTask* task = new (memory) RenderTask(std::forward<Task::Func>(func));
+		RenderTask* task = new (memory) RenderTask(std::forward<RenderTask::Func>(func));
 		return task;
 	}
 }

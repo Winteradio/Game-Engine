@@ -109,6 +109,7 @@ namespace wtr
 	public :
 		using BaseComponent::BaseComponent;
 
+		MeshComponent() = default;
 		MeshComponent(Memory::RefPtr<Asset> refAsset);
 		virtual ~MeshComponent() = default;
 

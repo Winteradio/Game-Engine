@@ -1,6 +1,6 @@
 #include <Renderer/PipeLine/SimpleColor.h>
 
-#include <Framework/RenderView.h>
+#include <Renderer/RenderView.h>
 #include <Renderer/RenderScene.h>
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIDescriptions.h>
@@ -28,7 +28,7 @@ namespace wtr
 		}
 
 		static float tick = 0.0f;
-		const float diff = 0.01;
+		const float diff = 0.0001f;
 		tick += (tick >= 6.283185307f) ? -6.283185307f + diff : diff;
 
 		RHIClearState clearState = m_pipeLine->GetClearState();
@@ -46,6 +46,11 @@ namespace wtr
 	void SimpleColor::Init(Memory::RefPtr<RHICommandList> commandList)
 	{
 		if (!commandList)
+		{
+			return;
+		}
+
+		if (m_pipeLine)
 		{
 			return;
 		}

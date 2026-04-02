@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __WTR_RENDERCOMMANDLIST_H__
+#define __WTR_RENDERCOMMANDLIST_H__
 
 #include <Framework/Task.h>
 #include <Container/include/LinearArena.h>
@@ -7,13 +8,13 @@
 
 namespace wtr
 {
-	class RenderScene;
+	class Renderer;
 	class RHICommandList;
 };
 
 namespace wtr
 {
-	struct RenderTask : Task
+	struct RenderTask : Task<Renderer*, Memory::RefPtr<RHICommandList>>
 	{
 		using Task::Task;
 
@@ -29,19 +30,12 @@ namespace wtr
 		virtual ~RenderCommandList();
 
 	public :
-		void Enqueue(Task::Func&& func);
-		void ExecuteAll();
+		void Enqueue(RenderTask::Func&& func);
+		void ExecuteAll(Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList);
 		void Reset();
 
-	public :
-		template<typename... Args>
-		void Enqueue(Args&&... args)
-		{
-			Enqueue(Task::Func(std::forward<Args>(args)...));
-		}
-
 	private :
-		RenderTask* Create(Task::Func&& func);
+		RenderTask* Create(RenderTask::Func&& func);
 
 	private :
 		constexpr static size_t MAX_ALLOCATOR_COUNT = 2;
@@ -54,3 +48,5 @@ namespace wtr
 		size_t m_readIndex;
 	};
 };
+
+#endif // __WTR_RENDERCOMMANDLIST_H__

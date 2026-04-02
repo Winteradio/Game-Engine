@@ -271,12 +271,7 @@ namespace wtr
 			}
 			else
 			{
-				std::string tagString(tag);
-
-				if (!tagString.empty())
-				{
-					LOGINFO() << "[OBJ] Unknown tag: " << tagString;
-				}
+				// nothing
 			}
 
 			curr = lineEnd;

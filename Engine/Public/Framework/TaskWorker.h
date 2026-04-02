@@ -21,7 +21,7 @@ namespace wtr
 		void Wait();
 		void Notify();
 		
-		void Set(Memory::RefPtr<Task> task);
+		void Set(Memory::RefPtr<DefaultTask> task);
 		
 		bool IsWaited() const;
 		bool IsJoinable() const;
@@ -35,7 +35,7 @@ namespace wtr
 		std::atomic<bool> m_isWaited;
 		std::condition_variable m_cv;
 		std::mutex m_mutex;
-		Memory::RefPtr<Task> m_task;
+		Memory::RefPtr<DefaultTask> m_task;
 	};
 };
 

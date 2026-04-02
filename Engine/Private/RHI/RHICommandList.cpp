@@ -33,6 +33,8 @@ namespace wtr
 				cmd->Execute(m_system);
 			}
 		}
+
+		Reset();
 	}
 
 	void RHICommandList::Reset()

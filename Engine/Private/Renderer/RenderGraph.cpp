@@ -1,6 +1,6 @@
 #include <Renderer/RenderGraph.h>
 
-#include <FrameWork/RenderView.h>
+#include <Renderer/RenderView.h>
 
 #include <Log/include/Log.h>
 #include <Memory/include/Core.h>
@@ -18,15 +18,22 @@ namespace wtr
 
 	bool RenderGraph::Init()
 	{
-		// TODO
+		Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>();
+
+		Add(simpleColor);
+
 		return true;
 	}
 
 	void RenderGraph::Add(Memory::RefPtr<PipeLine> pipeLine)
-	{}
+	{
+		m_graph.Add(pipeLine);
+	}
 
 	void RenderGraph::Remove(Memory::RefPtr<PipeLine> pipeLine)
-	{}
+	{
+		m_graph.Remove(pipeLine);
+	}
 
 	void RenderGraph::Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene>& renderScene, const RenderView& renderView)
 	{
@@ -45,6 +52,8 @@ namespace wtr
 			{
 				continue;
 			}
+
+			pipeLine->Init(cmdList);
 			pipeLine->Draw(renderView, renderScene, cmdList);
 		}
 	}

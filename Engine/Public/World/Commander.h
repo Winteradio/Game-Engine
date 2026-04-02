@@ -3,10 +3,11 @@
 
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Memory/include/Pointer/ObjectPtr.h>
+#include <ECS/include/UUID/UUID.h>
 
 namespace wtr
 {
-	class BaseNode;
+	class SceneComponent;
 	class MeshNode;
 	class LightNode;
 
@@ -24,19 +25,18 @@ namespace wtr
 
 	public :
 		void SetCommand(Memory::RefPtr<RenderCommandList> refCmdList);
+		void SetView(const RenderView& renderView);
 
-		void DrawView(const RenderView& RenderView);
-
-		void AddNode(Memory::ObjectPtr<BaseNode> node);
-		void UpdateNode(Memory::ObjectPtr<BaseNode> node);
-		void RemoveNode(Memory::ObjectPtr<BaseNode> node);
-
-	private :
 		void AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode);
 		void RemovePrimitive(Memory::ObjectPtr<MeshNode> meshNode);
 
 		void AddLight(Memory::ObjectPtr<LightNode> lightNode);
 		void RemoveLight(Memory::ObjectPtr<LightNode> lightNode);
+
+		void Update(Memory::ObjectPtr<SceneComponent> sceneComponent);
+		void Remove(const ECS::UUID& entityId);
+
+		void RemoveAll();
 
 	private :
 		Memory::RefPtr<RenderCommandList> m_refCmdList;

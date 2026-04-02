@@ -83,7 +83,6 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Task.h
 	${ENGINE_PUBLIC_DIR}/Framework/TaskWorker.h
 	${ENGINE_PUBLIC_DIR}/Framework/ViewController.h
-	${ENGINE_PUBLIC_DIR}/Framework/RenderView.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputHandler.h
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputStorage.h
@@ -119,6 +118,7 @@ set(ENGINE_PLATFORM_FILES
 
 set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderView.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
 

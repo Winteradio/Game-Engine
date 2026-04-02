@@ -6,41 +6,24 @@
 
 namespace wtr
 {
+	template<typename... Args>
 	struct Task
 	{
-		using Func = std::function<void()>;
+		using Func = std::function<void(Args...)>;
 		Func func;
 
 		Task() = default;
 		Task(Func func) : func(std::move(func)) {}
 		~Task() = default;
 
-		template<typename Logic, typename Callback, typename... Args>
-		Task(Logic&& logic, Callback&& callback, Args&&... args)
-		{
-			func = [taskLogic = std::forward<Logic>(logic),
-				taskCallback = std::forward<Callback>(callback),
-				argsTuple = std::make_tuple(std::forward<Args>(args)...)]() mutable
-			{
-				if constexpr (std::is_void_v<std::invoke_result_t<Logic, Args...>>)
-				{
-					std::apply(taskLogic, std::move(argsTuple));
-					taskCallback();
-				}
-				else
-				{
-					auto result = std::apply(taskLogic, std::move(argsTuple));
-					taskCallback(result);
-				}
-			};
-		}
-
-		void operator()()
+		void operator()(Args... args)
 		{
 			if (func)
 			{
-				func();
+				func(std::forward<Args>(args)...);
 			}
 		}
 	};
+
+	using DefaultTask = Task<>;
 };

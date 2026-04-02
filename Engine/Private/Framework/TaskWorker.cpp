@@ -26,7 +26,7 @@ namespace wtr
 		m_cv.notify_all();
 	}
 
-	void TaskWorker::Set(Memory::RefPtr<Task> task)
+	void TaskWorker::Set(Memory::RefPtr<DefaultTask> task)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 

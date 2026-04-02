@@ -78,7 +78,7 @@ namespace wtr
 					return assetRef;
 				};
 
-				Memory::RefPtr<Task> task = Memory::MakeRef<Task>(taskFunc);
+				Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
 
 				taskWorker->Set(task);
 

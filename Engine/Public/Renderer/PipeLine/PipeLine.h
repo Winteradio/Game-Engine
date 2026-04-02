@@ -7,7 +7,7 @@
 namespace wtr
 {
 	class RenderScene;
-	class RenderView;
+	struct RenderView;
 	class RHIPipeLine;
 	class RHICommandList;
 };

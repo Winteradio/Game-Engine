@@ -9,7 +9,7 @@
 
 namespace wtr
 {
-	class RenderView;
+	struct RenderView;
 };
 
 namespace wtr

@@ -3,7 +3,7 @@
 #include <Renderer/RenderScene.h>
 #include <Renderer/RenderCommandList.h>
 #include <Renderer/RenderGraph.h>
-#include <Framework/RenderView.h>
+#include <Renderer/RenderView.h>
 
 #include <RHI/RHICommandList.h>
 
@@ -58,22 +58,40 @@ namespace wtr
 
 	void Renderer::Execute(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || m_refCommandList)
+		if (!cmdList || !m_refCommandList)
 		{
 			return;
 		}
 
-		// TODO : Get the render view from the render scene
+		m_renderViews.Clear();
+		m_refCommandList->ExecuteAll(this, cmdList);
+		m_refCommandList->Reset();
+	}
+
+	void Renderer::SetView(const RenderView& view)
+	{
+		m_renderViews.PushBack(view);
 	}
 
 	void Renderer::PreDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		// TODO
+		if (!m_refScene || !m_refGraph || !cmdList)
+		{
+			return;
+		}
 	}
 
 	void Renderer::Draw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		// TODO
+		if (!m_refScene || !m_refGraph || !cmdList || m_renderViews.Empty())
+		{
+			return;
+		}
+
+		for (const auto& renderView : m_renderViews)
+		{
+			m_refGraph->Execute(cmdList, m_refScene, renderView);
+		}
 	}
 
 	void Renderer::PostDraw(Memory::RefPtr<RHICommandList> cmdList)

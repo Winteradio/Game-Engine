@@ -8,8 +8,9 @@
 
 namespace wtr
 {
+	struct RenderView;
+
 	class RenderScene;
-	class RenderView;
 	class RHICommandList;
 };
 

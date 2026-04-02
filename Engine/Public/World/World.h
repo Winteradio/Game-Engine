@@ -19,6 +19,10 @@ namespace wtr
 	{
 		GENERATE(World);
 
+	public  :
+		PROPERTY(scene);
+		Scene scene;
+
 	public :
 		World();
 		virtual ~World();
@@ -62,8 +66,6 @@ namespace wtr
 		}
 
 	private :
-		Scene m_scene;
-
 		PROPERTY(m_entityStorage);
 		ECS::ObjectStorage<Entity> m_entityStorage;
 

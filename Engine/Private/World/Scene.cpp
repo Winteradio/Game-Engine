@@ -4,12 +4,13 @@
 #include <World/Commander.h>
 
 #include <Reflection/include/Utils.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
 	Scene::Scene()
 		: m_refCommander(nullptr)
-		, m_nodes()
+		, m_sceneDatas()
 	{}
 
 	Scene::~Scene()
@@ -27,23 +28,58 @@ namespace wtr
 			return;
 		}
 
-		// TODO
+		if (auto meshNode = Memory::Cast<MeshNode>(node))
+		{
+			AttachNode(meshNode, meshNode->transform);
+
+			m_refCommander->AddPrimitive(meshNode);
+		}
+		else if (auto lightNode = Memory::Cast<LightNode>(node))
+		{
+			AttachNode(lightNode, lightNode->transform);
+
+			m_refCommander->AddLight(lightNode);
+		}
+		else
+		{
+			// nothing
+		}
 	}
 
-	void Scene::Detach(const ECS::UUID& nodeId)
+	void Scene::Detach(Memory::ObjectPtr<BaseNode> node)
+	{
+		if (!m_refCommander || !node)
+		{
+			return;
+		}
+
+		if (auto meshNode = Memory::Cast<MeshNode>(node))
+		{
+			DetachNode(meshNode);
+
+			m_refCommander->RemovePrimitive(meshNode);
+		}
+		else if (auto lightNode = Memory::Cast<LightNode>(node))
+		{
+			DetachNode(lightNode);
+
+			m_refCommander->RemoveLight(lightNode);
+		}
+		else
+		{
+			// nothing
+		}
+	}
+
+	void Scene::Detach(const ECS::UUID& entityId)
 	{
 		if (!m_refCommander)
 		{
 			return;
 		}
 
-		auto itr = m_nodes.Find(nodeId);
-		if (itr == m_nodes.End())
-		{
-			return;
-		}
-
-		// TODO
+		m_refCommander->Remove(entityId);
+		m_sceneDatas.Erase(entityId);
 	}
 
 	void Scene::DetachAll()
@@ -53,34 +89,75 @@ namespace wtr
 			return;
 		}
 
-		for (auto& [id, sceneNode] : m_nodes)
-		{
-			if (!sceneNode)
-			{
-				continue;
-			}
-
-			m_refCommander->RemoveNode(sceneNode);
-		}
-
-		m_nodes.Clear();
+		m_refCommander->RemoveAll();
 	}
 
-	void Scene::Update(const ECS::UUID& nodeId)
+	void Scene::Update(const ECS::UUID& entityId)
 	{
 		if (!m_refCommander)
 		{
 			return;
 		}
 
-		auto itr = m_nodes.Find(nodeId);
-		if (itr == m_nodes.End())
+		auto itr = m_sceneDatas.Find(entityId);
+		if (itr == m_sceneDatas.End())
 		{
 			return;
 		}
 
-		auto node = itr->second;
+		auto& scenePair = itr->second;
 
-		m_refCommander->UpdateNode(node);
+		m_refCommander->Update(scenePair.transform);
+	}
+
+	void Scene::AttachNode(Memory::ObjectPtr<BaseNode> node, Memory::ObjectPtr<SceneComponent> transform)
+	{
+		if (!node || !transform)
+		{
+			return;
+		}
+
+		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
+
+		auto itr = m_sceneDatas.Find(node->GetID());
+		if (itr == m_sceneDatas.End())
+		{
+			ScenePair scenePair;
+
+			scenePair.transform = transform;
+			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
+
+			m_sceneDatas[node->GetID()] = scenePair;
+		}
+		else
+		{
+			ScenePair& scenePair = itr->second;
+
+			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
+		}
+	}
+
+	void Scene::DetachNode(Memory::ObjectPtr<BaseNode> node)
+	{
+		if (!node)
+		{
+			return;
+		}
+
+		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
+		
+		auto itr = m_sceneDatas.Find(node->GetID());
+		if (itr == m_sceneDatas.End())
+		{
+			return;
+		}
+		
+		ScenePair& scenePair = itr->second;
+		scenePair.nodeTypes.Erase(nodeType->GetTypeHash());
+		
+		if (scenePair.nodeTypes.Empty())
+		{
+			m_sceneDatas.Erase(itr);
+		}
 	}
 }
