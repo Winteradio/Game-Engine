@@ -28,7 +28,7 @@ namespace wtr
 		}
 
 		static float tick = 0.0f;
-		const float diff = 0.0001f;
+		const float diff = 0.01f;
 		tick += (tick >= 6.283185307f) ? -6.283185307f + diff : diff;
 
 		RHIClearState clearState = m_pipeLine->GetClearState();

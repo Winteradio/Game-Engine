@@ -35,6 +35,8 @@ namespace wtr
 		{
 			if (nullptr != renderer)
 			{
+				static size_t frame = 0;
+				LOGINFO() << "TEST Frame : " << frame++;
 				renderer->SetView(renderView);
 			}
 		}

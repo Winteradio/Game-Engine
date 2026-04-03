@@ -1,6 +1,7 @@
 #include <Framework/Engine.h>
 
 #include <Framework/Input/InputStorage.h>
+#include <Framework/FrameGate.h>
 
 #include <Platform/Win32/Win32Window.h>
 #include <Platform/Win32/Win32InputHandler.h>
@@ -27,10 +28,15 @@
 
 namespace wtr
 {
+	static constexpr size_t UPDATE_FRAME_GAP = 3;
+	static constexpr size_t RENDER_FRAME_GAP = 3;
+
 	Engine::Engine()
 		: m_window(nullptr)
 		, m_inputHandler(nullptr)
 		, m_inputStorage(nullptr)
+		, m_updateGate(nullptr)
+		, m_renderGate(nullptr)
 		, m_worldContext(nullptr)
 		, m_worldWorker(nullptr)
 		, m_renderer(nullptr)
@@ -55,6 +61,9 @@ namespace wtr
 		Memory::Init(4096, 100);
 
 		m_inputStorage = Memory::MakeRef<InputStorage>();
+
+		m_updateGate = Memory::MakeRef<FrameGate>(UPDATE_FRAME_GAP);
+		m_renderGate = Memory::MakeRef<FrameGate>(RENDER_FRAME_GAP);
 
 		if (!m_inputStorage)
 		{
@@ -194,7 +203,7 @@ namespace wtr
 				return false;
 			}
 
-			if (!frameExecutor->Init(renderDesc.FrameCount))
+			if (!frameExecutor->Init(RENDER_FRAME_GAP))
 			{
 				LOGERROR() << "[Engine] Failed to initialize the rhi frame executor";
 				return false;
@@ -274,6 +283,7 @@ namespace wtr
 
 			worldWorker->SetInputStorage(m_inputStorage);
 			worldWorker->SetWorldContext(m_worldContext);
+			worldWorker->SetProducer(m_updateGate);
 
 			m_worldWorker = worldWorker;
 		}
@@ -289,6 +299,8 @@ namespace wtr
 
 			renderWorker->SetExecutor(m_rhiFrameExecutor);
 			renderWorker->SetRenderer(m_renderer);
+			renderWorker->SetConsumer(m_updateGate);
+			renderWorker->SetProducer(m_renderGate);
 
 			m_renderWorker = renderWorker;
 		}
@@ -305,6 +317,7 @@ namespace wtr
 			rhiWorker->SetFrameExecutor(m_rhiFrameExecutor);
 			rhiWorker->SetTaskExecutor(m_rhiTaskExecutor);
 			rhiWorker->SetSystem(m_rhiSystem);
+			rhiWorker->SetConsumer(m_renderGate);
 			
 			m_rhiWorker = rhiWorker;
 		}
@@ -333,6 +346,16 @@ namespace wtr
 		LOGINFO() << "[Engine] Shutting down Engine";
 
 		AssetSystem::Shutdown();
+		
+		if (m_updateGate)
+		{
+			m_updateGate->NotifyAll();
+		}
+
+		if (m_renderGate)
+		{
+			m_renderGate->NotifyAll();
+		}
 
 		if (m_worldWorker)
 		{

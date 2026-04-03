@@ -5,9 +5,6 @@
 
 #include <Container/include/DynamicArray.h>
 
-#include <mutex>
-#include <condition_variable>
-
 namespace wtr
 {
 	class RHIFrameExecutor : public RHIExecutor
@@ -35,9 +32,6 @@ namespace wtr
 		size_t m_recordIndex;
 		std::atomic<size_t> m_beginIndex;
 		std::atomic<size_t> m_endIndex;
-
-		std::mutex m_mutexWriting;
-		std::condition_variable m_cvWriting;
 
 		ListPool m_listPool;
 	};

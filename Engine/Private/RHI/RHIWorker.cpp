@@ -2,6 +2,7 @@
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIExecutor.h>
+#include <Framework/FrameGate.h>
 
 namespace wtr
 {
@@ -9,6 +10,7 @@ namespace wtr
 		: m_refSystem(nullptr)
 		, m_refFrameExecutor(nullptr)
 		, m_refTaskExecutor(nullptr)
+		, m_refConsumer(nullptr)
 	{
 	}
 
@@ -18,26 +20,51 @@ namespace wtr
 
 	void RHIWorker::SetSystem(const Memory::RefPtr<RHISystem> rhiSystem)
 	{
-		m_refSystem = rhiSystem;
+		if (rhiSystem)
+		{
+			m_refSystem = rhiSystem;
+		}
 	}
 
 	void RHIWorker::SetFrameExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
-		m_refFrameExecutor = executor;
+		if (executor)
+		{
+			m_refFrameExecutor = executor;
+		}
 	}
 
 	void RHIWorker::SetTaskExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
-		m_refTaskExecutor = executor;
+		if (executor)
+		{
+			m_refTaskExecutor = executor;
+		}
+	}
+
+	void RHIWorker::SetConsumer(const Memory::RefPtr<FrameConsumer> consumer)
+	{
+		if (consumer)
+		{
+			m_refConsumer = consumer;
+		}
 	}
 
 	void RHIWorker::onStart()
 	{
-		m_refSystem->MakeCurrent();
+		if (m_refSystem)
+		{
+			m_refSystem->MakeCurrent();
+		}
 	}
 
 	void RHIWorker::onUpdate()
 	{
+		if (m_refConsumer)
+		{
+			m_refConsumer->Acquire();
+		}
+
 		if (m_refTaskExecutor)
 		{
 			m_refTaskExecutor->Execute();
@@ -51,6 +78,14 @@ namespace wtr
 
 	void RHIWorker::onDestroy()
 	{
-		m_refSystem->ReleaseCurrent();
+		if (m_refSystem)
+		{
+			m_refSystem->ReleaseCurrent();
+		}
+
+		if (m_refConsumer)
+		{
+			m_refConsumer->NotifyAll();
+		}
 	}
 }

@@ -4,6 +4,7 @@
 #include <Framework/Player.h>
 #include <Framework/PlayerController.h>
 #include <Framework/ViewController.h>
+#include <Framework/FrameGate.h>
 #include <Renderer/RenderView.h>
 #include <World/WorldContext.h>
 #include <World/World.h>
@@ -16,6 +17,7 @@ namespace wtr
 		: m_timeStep()
 		, m_refInputStorage(nullptr)
 		, m_refWorldContext(nullptr)
+		, m_refProducer(nullptr)
 		, m_renderViews()
 	{}
 
@@ -35,6 +37,14 @@ namespace wtr
 		if (worldContext)
 		{
 			m_refWorldContext = worldContext;
+		}
+	}
+
+	void WorldWorker::SetProducer(const Memory::RefPtr<FrameProducer> producer)
+	{
+		if (producer)
+		{
+			m_refProducer = producer;
 		}
 	}
 
@@ -68,10 +78,19 @@ namespace wtr
 		{
 			commander->SetView(renderView);
 		}
+
+		if (m_refProducer)
+		{
+			m_refProducer->Submit();
+		}
 	}
 
 	void WorldWorker::onDestroy()
 	{
+		if (m_refProducer)
+		{
+			m_refProducer->NotifyAll();
+		}
 	}
 
 	void WorldWorker::UpdateView(Memory::RefPtr<PlayerController> playerController, Memory::RefPtr<ViewController> viewController)

@@ -15,8 +15,6 @@ namespace wtr
 		, m_recordIndex(0)
 		, m_beginIndex(0)
 		, m_endIndex(0)
-		, m_mutexWriting()
-		, m_cvWriting()
 		, m_listPool()
 	{}
 
@@ -27,18 +25,6 @@ namespace wtr
 	{
 		const size_t now = m_recordIndex;
 		const size_t next = GetNext(now);
-
-		if (next == m_beginIndex.load(std::memory_order_acquire))
-		{
-			std::unique_lock<std::mutex> lock(m_mutexWriting);
-
-			auto checkWritable = [this, next]()
-			{
-				return next != m_beginIndex.load(std::memory_order_acquire);
-			};
-
-			m_cvWriting.wait(lock, checkWritable);
-		}
 
 		m_recordIndex = next;
 
@@ -84,7 +70,6 @@ namespace wtr
 		}
 
 		m_beginIndex.store(end, std::memory_order_release);
-		m_cvWriting.notify_all();
 	}
 
 	bool RHIFrameExecutor::Init(const size_t frameCount)

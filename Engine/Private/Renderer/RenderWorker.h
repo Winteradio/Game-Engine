@@ -9,6 +9,9 @@ namespace wtr
 {
 	class Renderer;
 	class RHIExecutor;
+
+	class FrameConsumer;
+	class FrameProducer;
 };
 
 namespace wtr
@@ -22,6 +25,8 @@ namespace wtr
 	public :
 		void SetRenderer(Memory::RefPtr<Renderer> renderer);
 		void SetExecutor(const Memory::RefPtr<RHIExecutor> executor);
+		void SetConsumer(const Memory::RefPtr<FrameConsumer> consumer);
+		void SetProducer(const Memory::RefPtr<FrameProducer> producer);
 
 	protected :
 		void onStart() override;
@@ -31,6 +36,8 @@ namespace wtr
 	private :
 		Memory::RefPtr<Renderer>	m_refRenderer;
 		Memory::RefPtr<RHIExecutor> m_refExecutor;
+		Memory::RefPtr<FrameConsumer> m_refConsumer;
+		Memory::RefPtr<FrameProducer> m_refProducer;
 	};
 };
 

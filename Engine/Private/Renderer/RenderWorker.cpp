@@ -1,5 +1,6 @@
 #include <Renderer/RenderWorker.h>
 
+#include <Framework/FrameGate.h>
 #include <Renderer/Renderer.h>
 #include <RHI/RHIExecutor.h>
 #include <RHI/RHICommandList.h>
@@ -9,6 +10,8 @@ namespace wtr
 	RenderWorker::RenderWorker()
 		: m_refRenderer(nullptr)
 		, m_refExecutor(nullptr)
+		, m_refConsumer(nullptr)
+		, m_refProducer(nullptr)
 	{}
 
 	RenderWorker::~RenderWorker()
@@ -30,15 +33,33 @@ namespace wtr
 		}
 	}
 
+	void RenderWorker::SetConsumer(const Memory::RefPtr<FrameConsumer> consumer)
+	{
+		if (consumer)
+		{
+			m_refConsumer = consumer;
+		}
+	}
+
+	void RenderWorker::SetProducer(const Memory::RefPtr<FrameProducer> producer)
+	{
+		if (producer)
+		{
+			m_refProducer = producer;
+		}
+	}
+
 	void RenderWorker::onStart()
 	{}
 
 	void RenderWorker::onUpdate()
 	{
-		if (!m_refRenderer || !m_refExecutor)
+		if (!m_refRenderer || !m_refExecutor || !m_refConsumer || !m_refProducer)
 		{
 			return;
 		}
+
+		m_refConsumer->Acquire();
 
 		auto cmdList = m_refExecutor->Acquire();
 		if (!cmdList)
@@ -55,9 +76,20 @@ namespace wtr
 		m_refRenderer->PostDraw(cmdList);
 ;
 		m_refExecutor->Submit(cmdList);
+
+		m_refProducer->Submit();
 	}
 
 	void RenderWorker::onDestroy()
 	{
+		if (m_refConsumer)
+		{
+			m_refConsumer->NotifyAll();
+		}
+
+		if (m_refProducer)
+		{
+			m_refProducer->NotifyAll();
+		}
 	}
 }

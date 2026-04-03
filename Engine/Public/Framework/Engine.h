@@ -17,6 +17,7 @@ namespace wtr
 	class RHIExecutor;
 
 	class Worker;
+	class FrameGate;
 
 	struct WindowDesc;
 	struct RenderDesc;
@@ -53,6 +54,8 @@ namespace wtr
 
 			Memory::RefPtr<InputHandler>	m_inputHandler;
 			Memory::RefPtr<InputStorage>	m_inputStorage;
+			Memory::RefPtr<FrameGate>		m_updateGate;
+			Memory::RefPtr<FrameGate>		m_renderGate;
 			
 			Memory::RefPtr<WorldContext>	m_worldContext;
 

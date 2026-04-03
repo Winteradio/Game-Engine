@@ -17,6 +17,8 @@ namespace wtr
 
 	class Player;
 	class PlayerController;
+
+	class FrameProducer;
 };
 
 namespace wtr
@@ -30,6 +32,7 @@ namespace wtr
 	public :
 		void SetInputStorage(const Memory::RefPtr<InputStorage> inputStorage);
 		void SetWorldContext(const Memory::RefPtr<WorldContext> worldContext);
+		void SetProducer(const Memory::RefPtr<FrameProducer> producer);
 
 	protected :
 		void onStart() override;
@@ -45,6 +48,7 @@ namespace wtr
 
 		Memory::RefPtr<InputStorage>	m_refInputStorage;
 		Memory::RefPtr<WorldContext>	m_refWorldContext;
+		Memory::RefPtr<FrameProducer>	m_refProducer;
 
 		wtr::DynamicArray<RenderView>	m_renderViews;
 	};

@@ -101,6 +101,9 @@ set(ENGINE_FRAMEWORK_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Framework/PlayerController.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/ViewController.cpp
 
+	${ENGINE_PRIVATE_DIR}/Framework/FrameGate.h
+	${ENGINE_PRIVATE_DIR}/Framework/FrameGate.cpp
+
 	${ENGINE_PRIVATE_DIR}/Framework/CommandList.h
 
 	${ENGINE_PRIVATE_DIR}/Framework/Worker.h
