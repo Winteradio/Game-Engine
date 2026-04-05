@@ -32,21 +32,30 @@ namespace wtr
 		}
 
 		m_refCmdList->Enqueue([renderView](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
-		{
-			if (nullptr != renderer)
 			{
-				static size_t frame = 0;
-				LOGINFO() << "TEST Frame : " << frame++;
-				renderer->SetView(renderView);
+				if (nullptr != renderer)
+				{
+					static size_t frame = 0;
+					LOGINFO() << "TEST Frame : " << frame++;
+
+					renderer->SetView(renderView);
+				}
 			}
-		}
 		);
-		// TODO
 	}
 
 	void Commander::AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode)
 	{
 		if (!meshNode || !m_refCmdList)
+		{
+			return;
+		}
+
+		auto& meshComponent = meshNode->mesh;
+		auto& materialComponent = meshNode->overrideMaterial;
+		auto& transformComponent = meshNode->transform;
+
+		if (!meshComponent || !transformComponent)
 		{
 			return;
 		}
@@ -57,10 +66,37 @@ namespace wtr
 			return;
 		}
 
-		m_refCmdList->Enqueue([primitive](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+		primitive->SetID(meshNode->GetID());
+		primitive->SetMesh(meshComponent->meshAsset);
+		primitive->UpdatePosition(transformComponent->GetPosition());
+		primitive->UpdateRotation(transformComponent->GetRotation());
+		primitive->UpdateScale(transformComponent->GetScale());
+
+		if (materialComponent)
 		{
-			LOGINFO() << "[Render] Add primitive";
-		});
+			primitive->SetMaterial(materialComponent->materialAsset);
+		}
+
+		primitive->SetID(meshNode->GetID());
+
+		m_refCmdList->Enqueue([primitive](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+			{
+				LOGINFO() << "[Render] Add primitive";
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->AddPrimitive(primitive);
+			}
+		);
 	}
 
 	void Commander::RemovePrimitive(Memory::ObjectPtr<MeshNode> meshNode)
@@ -74,7 +110,21 @@ namespace wtr
 		m_refCmdList->Enqueue([id](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
 				LOGINFO() << "[Render] Remove Primitive";
-		});
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->RemovePrimitive(id);
+			}
+		);
 	}
 
 	void Commander::AddLight(Memory::ObjectPtr<LightNode> lightNode)
@@ -84,7 +134,43 @@ namespace wtr
 			return;
 		}
 
-		//m_refCmdList->Enqueue();
+		auto& lightComponent = lightNode->light;
+		auto& transformComponent = lightNode->transform;
+		if (!lightComponent || !transformComponent)
+		{
+			return;
+		}
+
+		Memory::RefPtr<LightProxy> light = Memory::MakeRef<LightProxy>();
+		if (!light)
+		{
+			return;
+		}
+
+		light->SetID(lightNode->GetID());
+		light->UpdatePosition(transformComponent->GetPosition());
+		light->UpdateRotation(transformComponent->GetRotation());
+		light->UpdateScale(transformComponent->GetScale());
+
+		// TODO : Set light properties
+		m_refCmdList->Enqueue([light](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+			{
+				LOGINFO() << "[Render] Add primitive";
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->AddLight(light);
+			}
+		);
 	}
 
 	void Commander::RemoveLight(Memory::ObjectPtr<LightNode> lightNode)
@@ -96,9 +182,23 @@ namespace wtr
 
 		const ECS::UUID& id = lightNode->GetID();
 		m_refCmdList->Enqueue([id](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
-		{
-			LOGINFO() << "[Render] Remove Primitive";
-		});
+			{
+				LOGINFO() << "[Render] Remove Primitive";
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->RemoveLight(id);
+			}
+		);
 	}
 
 	void Commander::Update(Memory::ObjectPtr<SceneComponent> sceneComponent)
@@ -108,10 +208,29 @@ namespace wtr
 			return;
 		}
 
-		m_refCmdList->Enqueue([](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
-		{
-			LOGINFO() << "[Render] Update the scene transform";
-		});
+		const ECS::UUID& id = sceneComponent->GetID();
+		const fvec3 position = sceneComponent->GetPosition();
+		const fvec3 rotation = sceneComponent->GetRotation();
+		const fvec3 scale = sceneComponent->GetScale();
+
+		m_refCmdList->Enqueue([id, position, rotation, scale](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+			{
+				LOGINFO() << "[Render] Update the scene transform";
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->UpdateProxy(id, position, rotation, scale);
+			}
+		);
 	}
 
 	void Commander::Remove(const ECS::UUID& entityId)
@@ -120,7 +239,25 @@ namespace wtr
 		{
 			return;
 		}
-		//m_refCmdList->Enqueue();
+		
+
+		m_refCmdList->Enqueue([entityId](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+			{
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->RemoveLight(entityId);
+				renderScene->RemovePrimitive(entityId);
+			}
+		);
 	}
 
 	void Commander::RemoveAll()
@@ -131,8 +268,22 @@ namespace wtr
 		}
 
 		m_refCmdList->Enqueue([](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
-		{
-			LOGINFO() << "[Render] Remove all primitives and lights";
-		});
+			{
+				LOGINFO() << "[Render] Remove all primitives and lights";
+
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->Clear();
+			}
+		);
 	}
 }

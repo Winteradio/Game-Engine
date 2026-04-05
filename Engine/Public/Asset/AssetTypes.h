@@ -67,7 +67,6 @@ namespace wtr
 		uint32_t indexOffset = 0;
 		uint32_t indexCount = 0;
 
-		uint32_t vertexOffset = 0;
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;
 
@@ -81,15 +80,22 @@ namespace wtr
 		eVertexSemantic semantic;
 		uint8_t semanticIndex;
 
-		operator uint64_t() const
+		bool operator==(const VertexKey& other) const
 		{
-			return static_cast<uint64_t>(semantic) << 32 | static_cast<uint64_t>(semanticIndex);
+			return semantic == other.semantic && semanticIndex == other.semanticIndex;
 		}
 	};
 
 	struct RawBuffer
 	{
 		wtr::DynamicArray<uint8_t> data;
+	};
+
+	struct FormattedBuffer : RawBuffer
+	{
+		eDataType componentType;
+		uint32_t numComponents;
+		uint32_t count;
 	};
 
 	class Asset
@@ -116,8 +122,9 @@ namespace wtr
 
 	class TextureAsset : public Asset
 	{
+		GENERATE(TextureAsset);
 	public :
-		Memory::RefPtr<RawBuffer> rawBuffer;
+		Memory::RefPtr<FormattedBuffer> rawBuffer;
 		Memory::RefPtr<RHITexture> texture;
 
 		TextureAsset();
@@ -132,15 +139,9 @@ namespace wtr
 	{
 		GENERATE(MaterialAsset);
 	public:
-		Memory::RefPtr<TextureAsset> baseColor;
-		Memory::RefPtr<TextureAsset> specularMap;
-		Memory::RefPtr<TextureAsset> normalMap;
-
-		fvec3 ambientColor;
-		fvec3 diffuseColor;
-		fvec3 specularColor;
-		float shininess;
-		float opacity;
+		wtr::HashMap<eTextureSlot, Memory::RefPtr<TextureAsset>> textures;
+		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
+		wtr::HashMap<eScalarSlot, float> scalarValues;
 
 		MaterialAsset();
 		MaterialAsset(const std::string& path, const eExtension extension);
@@ -154,9 +155,9 @@ namespace wtr
 	{
 		GENERATE(MeshAsset);
 	public:
-		wtr::HashMap<VertexKey, Memory::RefPtr<RawBuffer>> rawBuffers;
+		wtr::HashMap<VertexKey, Memory::RefPtr<FormattedBuffer>> rawBuffers;
 		wtr::HashMap<VertexKey, Memory::RefPtr<RHIBuffer>> buffers;
-		Memory::RefPtr<RawBuffer> rawIndex;
+		Memory::RefPtr<FormattedBuffer> rawIndex;
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
@@ -202,4 +203,15 @@ namespace wtr
 	};
 };
 
+namespace std
+{
+	template<>
+	struct hash<wtr::VertexKey>
+	{
+		size_t operator()(const wtr::VertexKey& key) const
+		{
+			return static_cast<uint64_t>(key.semanticIndex) << 32 | static_cast<uint64_t>(key.semantic);
+		}
+	};
+};
 #endif // __WTR_ASSETTYPES_H__

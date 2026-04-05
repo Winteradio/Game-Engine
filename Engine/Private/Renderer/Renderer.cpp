@@ -79,6 +79,24 @@ namespace wtr
 		{
 			return;
 		}
+
+		auto& addable = m_refScene->GetAddable();
+		for (auto sceneProxy : addable)
+		{
+			int value = 2;
+		}
+
+		auto& removable = m_refScene->GetRemovable();
+		for (auto sceneProxy : removable)
+		{
+			int value = 2;
+		}
+
+		auto& updatable = m_refScene->GetUpdatable();
+		for (auto sceneProxy : updatable)
+		{
+			int value = 2;
+		}
 	}
 
 	void Renderer::Draw(Memory::RefPtr<RHICommandList> cmdList)
@@ -97,6 +115,16 @@ namespace wtr
 	void Renderer::PostDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		// TODO
+	}
+
+	Memory::RefPtr<RenderScene> Renderer::GetScene()
+	{
+		return m_refScene;
+	}
+
+	Memory::RefPtr<RenderGraph> Renderer::GetGraph()
+	{
+		return m_refGraph;
 	}
 
 	Memory::RefPtr<RenderCommandList> Renderer::GetCommandList()

@@ -10,19 +10,19 @@
 
 namespace wtr
 {
-	void StbImageParser::Parse(Memory::RefPtr<Asset> asset)
+	bool StbImageParser::Parse(Memory::RefPtr<Asset> asset)
 	{
 		if (!asset)
 		{
 			LOGINFO() << "[STDIMAGE] Failed to parse the image, the asset is invalid";
-			return;
+			return false;
 		}
 
 		Memory::RefPtr<TextureAsset> texture = Memory::Cast<TextureAsset>(asset);
 		if (!texture)
 		{
 			LOGINFO() << "[STDIMAGE] Failed to parse the image, the asset is not the texture asset";
-			return;
+			return false;
 		}
 
 		wtr::DynamicArray<uint8_t> imageBuffer = ReadBuffer(asset);
@@ -45,6 +45,8 @@ namespace wtr
 		}
 
 		// TODO
-		// asset->SetState(eAssetState::eLoaded);
+		texture->SetState(eAssetState::eLoaded);
+
+		return true;
 	}
 }

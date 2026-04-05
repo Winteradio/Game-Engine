@@ -5,6 +5,7 @@
 #include <Container/include/HashMap.h>
 #include <Container/include/DynamicArray.h>
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Framework/Math/MathTypes.h>
 
 namespace wtr
 {
@@ -28,7 +29,10 @@ namespace wtr
 			~RenderScene();
 
 		public :
+			void Clear();
 			void FlushPending();
+
+			void UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale);
 
 			void AddPrimitive(Memory::RefPtr<PrimitiveProxy> primitive);
 			void RemovePrimitive(const ECS::UUID& id);
@@ -40,6 +44,7 @@ namespace wtr
 
 			PendingProxy& GetAddable();
 			PendingProxy& GetRemovable();
+			PendingProxy& GetUpdatable();
 
 		private :
 			void FlushAddable();
@@ -51,6 +56,7 @@ namespace wtr
 
 			PendingProxy m_addable;
 			PendingProxy m_removable;
+			PendingProxy m_updatable;
 	};
 };
 

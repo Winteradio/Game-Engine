@@ -12,15 +12,67 @@ namespace wtr
 		, m_lights()
 		, m_addable()
 		, m_removable()
+		, m_updatable()
 	{}
 
 	RenderScene::~RenderScene()
 	{}
 
+	void RenderScene::Clear()
+	{
+		for (auto& [id, primitiveProxy] : m_primitives)
+		{
+			m_removable.PushBack(primitiveProxy);
+		}
+		
+		for (auto& [id, lightProxy] : m_lights)
+		{
+			m_removable.PushBack(lightProxy);
+		}
+
+		for (auto& proxy : m_addable)
+		{
+			m_removable.PushBack(proxy);
+		}
+
+		m_primitives.Clear();
+		m_lights.Clear();
+		m_addable.Clear();
+		m_updatable.Clear();
+	}
+
 	void RenderScene::FlushPending()
 	{
 		FlushAddable();
 		FlushRemovable();
+	}
+
+	void RenderScene::UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale)
+	{
+		auto itrPrimitive = m_primitives.Find(id);
+		if (itrPrimitive != m_primitives.End())
+		{
+			auto& primitiveProxy = itrPrimitive->second;
+			primitiveProxy->UpdatePosition(position);
+			primitiveProxy->UpdateRotation(rotation);
+			primitiveProxy->UpdateScale(scale);
+
+			m_updatable.PushBack(primitiveProxy);
+
+			return;
+		}
+
+		auto itrLight = m_lights.Find(id);
+		if (itrLight != m_lights.End())
+		{
+			auto& lightProxy = itrLight->second;
+
+			lightProxy->UpdatePosition(position);
+			lightProxy->UpdateRotation(rotation);
+			lightProxy->UpdateScale(scale);
+
+			m_updatable.PushBack(lightProxy);
+		}
 	}
 
 	void RenderScene::AddPrimitive(Memory::RefPtr<PrimitiveProxy> primitive)
@@ -30,6 +82,7 @@ namespace wtr
 			return;
 		}
 
+		primitive->SetState(eProxyState::eAdded);
 		m_addable.PushBack(primitive);
 	}
 
@@ -39,7 +92,7 @@ namespace wtr
 		if (itr != m_primitives.End())
 		{
 			auto& primitiveProxy = itr->second;
-
+			primitiveProxy->SetState(eProxyState::eRemoved);
 			m_removable.PushBack(primitiveProxy);
 			m_primitives.Erase(itr);
 		}
@@ -65,6 +118,7 @@ namespace wtr
 			return;
 		}
 
+		light->SetState(eProxyState::eAdded);
 		m_addable.PushBack(light);
 	}
 
@@ -74,7 +128,7 @@ namespace wtr
 		if (itr != m_lights.End())
 		{
 			auto& lightProxy = itr->second;
-
+			lightProxy->SetState(eProxyState::eRemoved);
 			m_removable.PushBack(lightProxy);
 			m_lights.Erase(itr);
 		}
@@ -101,6 +155,11 @@ namespace wtr
 	RenderScene::PendingProxy& RenderScene::GetRemovable()
 	{
 		return m_removable;
+	}
+
+	RenderScene::PendingProxy& RenderScene::GetUpdatable()
+	{
+		return m_updatable;
 	}
 
 	void RenderScene::FlushAddable()

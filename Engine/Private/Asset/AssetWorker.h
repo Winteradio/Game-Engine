@@ -9,6 +9,11 @@
 
 namespace wtr
 {
+	class Asset;
+};
+
+namespace wtr
+{
 	class AssetWorker: public Worker
 	{
 	public :
@@ -22,6 +27,9 @@ namespace wtr
 		void onStart() override;
 		void onUpdate() override;
 		void onDestroy() override;
+
+	private :
+		static void DispatchTask(Memory::RefPtr<Asset> asset);
 
 	private :
 		wtr::DynamicArray<Memory::RefPtr<TaskWorker>> m_threads;

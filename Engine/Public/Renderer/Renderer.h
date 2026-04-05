@@ -40,6 +40,8 @@ namespace wtr
 		void Draw(Memory::RefPtr<RHICommandList> cmdList);
 		void PostDraw(Memory::RefPtr<RHICommandList> cmdList);
 
+		Memory::RefPtr<RenderScene> GetScene();
+		Memory::RefPtr<RenderGraph> GetGraph();
 		Memory::RefPtr<RenderCommandList> GetCommandList();
 
 	private :

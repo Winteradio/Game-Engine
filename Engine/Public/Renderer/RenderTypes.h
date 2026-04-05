@@ -63,13 +63,14 @@ namespace wtr
 	enum class eVertexSemantic : uint8_t
 	{
 		eNone		= 0x00,
-		ePosition	= 0x00,
-		eNormal		= 0x01,
-		eTangent	= 0x02,
-		eColor		= 0x03,
-		eTexCoord	= 0x04,
-		eJoint 		= 0x05,
-		eWeight		= 0x06
+		ePosition	= 0x01,
+		eNormal		= 0x02,
+		eTangent	= 0x03,
+		eColor		= 0x04,
+		eTexCoord	= 0x05,
+		eJoint 		= 0x06,
+		eWeight		= 0x07,
+		eGeneric	= 0x08
 	};
 
 	enum class eBindingType : uint8_t
@@ -236,6 +237,41 @@ namespace wtr
 		eColor3			= 0x01 << 3,
 		eDepth			= 0x01 << 4,
 		eStencil		= 0x01 << 5,
+	};
+
+	enum class eTextureSlot : uint8_t
+	{
+		eNone				= 0x00,
+		eAmbient			= 0x01,
+		eDiffuse			= 0x02,
+		eSpecular			= 0x03,
+		eEmissive			= 0x04,
+		eOpacity			= 0x05,
+		eBump				= 0x06,
+		eNormal				= 0x07,
+		eRoughness			= 0x08,
+		eMetallic			= 0x09,
+		eAmbientOcclusion	= 0x10,
+		eSheen				= 0x11,
+	};
+
+	enum class eVectorSlot : uint8_t
+	{
+		eNone			= 0x00,
+		eAmbientColor	= 0x01,
+		eDiffuseColor	= 0x02,
+		eSpecularColor	= 0x03,
+		eEmissiveColor	= 0x04,
+	};
+
+	enum class eScalarSlot : uint8_t
+	{
+		eNone			= 0x00,
+		eShininess		= 0x01,
+		eOpacity		= 0x02,
+		eRefraction		= 0x03,
+		eRoughness		= 0x04,
+		eMetallic		= 0x05,
 	};
 
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)

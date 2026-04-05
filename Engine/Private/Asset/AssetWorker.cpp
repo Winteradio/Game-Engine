@@ -69,13 +69,20 @@ namespace wtr
 
 				Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
 
-				auto taskFunc = [assetRef = asset, parserRef = parser]() -> Memory::RefPtr<Asset>
+				auto taskFunc = [assetRef = asset, parserRef = parser]() -> void
 				{
-					if (parserRef && assetRef)
+					if (!parserRef || !assetRef)
 					{
-						parserRef->Parse(assetRef);
+						return;
 					}
-					return assetRef;
+
+					if (!parserRef->Parse(assetRef))
+					{
+						LOGERROR() << "[AssetWorker] Failed to parse the asset : " << assetRef->path;
+						return;
+					}
+
+					DispatchTask(assetRef);
 				};
 
 				Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
@@ -98,5 +105,54 @@ namespace wtr
 		}
 
 		m_threads.Clear();
+	}
+
+	void AssetWorker::DispatchTask(Memory::RefPtr<Asset> asset)
+	{
+		if (!asset)
+		{
+			return;
+		}
+
+		if (asset->type == eAsset::eMesh)
+		{
+			Memory::RefPtr<MeshAsset> mesh = Memory::Cast<MeshAsset>(asset);
+			if (!mesh)
+			{
+				return;
+			}
+
+			for (auto& material : mesh->materials)
+			{
+				if (!material)
+				{
+					continue;
+				}
+
+				AssetSystem::AddTask(material);
+			}
+		}
+		else if (asset->type == eAsset::eMaterial)
+		{
+			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(asset);
+			if (!material)
+			{
+				return;
+			}
+
+			for (auto& [slot, texture] : material->textures)
+			{
+				if (!texture)
+				{
+					continue;
+				}
+
+				AssetSystem::AddTask(texture);
+			}
+		}
+		else
+		{
+			// TODO
+		}
 	}
 }

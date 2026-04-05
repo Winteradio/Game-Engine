@@ -12,7 +12,7 @@ namespace wtr
 		virtual ~StbImageParser() = default;
 
 	public :
-		virtual void Parse(Memory::RefPtr<Asset> asset) override;
+		virtual bool Parse(Memory::RefPtr<Asset> asset) override;
 	};
 }
 

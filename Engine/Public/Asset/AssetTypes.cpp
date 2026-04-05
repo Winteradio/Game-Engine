@@ -87,49 +87,32 @@ namespace wtr
 
 	MaterialAsset::MaterialAsset()
 		: Asset()
-		, baseColor()
-		, specularMap()
-		, normalMap()
-		, ambientColor(1.f)
-		, diffuseColor(1.f)
-		, specularColor(0.f)
-		, shininess(32.f)
-		, opacity(1.f)
+		, textures()
+		, vectorValues()
+		, scalarValues()
 	{}
 
 	MaterialAsset::MaterialAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eMaterial)
-		, baseColor()
-		, specularMap()
-		, normalMap()
-		, ambientColor(1.f)
-		, diffuseColor(1.f)
-		, specularColor(0.f)
-		, shininess(32.f)
-		, opacity(1.f)
+		, textures()
+		, vectorValues()
+		, scalarValues()
 	{}
 
 	eResourceState MaterialAsset::GetResourceState() const
 	{
-		if (!baseColor && !specularMap && !normalMap)
+		if (textures.Empty() && vectorValues.Empty() && scalarValues.Empty())
 		{
 			return eResourceState::eReady;
 		}
 
 		eResourceState allState = eResourceState::eAll;
-		if (baseColor)
+		for (const auto& [slot, texture] : textures)
 		{
-			allState &= baseColor->GetResourceState();
-		}
-
-		if (specularMap)
-		{
-			allState &= specularMap->GetResourceState();
-		}
-
-		if (normalMap)
-		{
-			allState &= normalMap->GetResourceState();
+			if (texture)
+			{
+				allState &= texture->GetResourceState();
+			}
 		}
 
 		return allState;

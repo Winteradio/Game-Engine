@@ -115,6 +115,20 @@ namespace wtr
 
 		Memory::RefPtr<MeshAsset> meshAsset;
 	};
+	
+	class MaterialComponent : public BaseComponent
+	{
+		GENERATE(MaterialComponent);
+
+	public :
+		using BaseComponent::BaseComponent;
+
+		MaterialComponent() = default;
+		MaterialComponent(Memory::RefPtr<Asset> refAsset);
+		virtual ~MaterialComponent() = default;
+
+		Memory::RefPtr<MaterialAsset> materialAsset;
+	};
 };
 
 #endif // __WTR_COMPONENT_H__

@@ -152,6 +152,9 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
 )
 
 set(ENGINE_RHI_PUBLIC_FILES
@@ -243,6 +246,9 @@ set(ENGINE_ASSET_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Asset/AssetSystem.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetLoader.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetFactory.cpp
+
+	${ENGINE_PRIVATE_DIR}/Asset/AssetStream.h
+	${ENGINE_PRIVATE_DIR}/Asset/AssetStream.cpp
 
 	${ENGINE_PRIVATE_DIR}/Asset/AssetManager.h
 	${ENGINE_PRIVATE_DIR}/Asset/AssetManager.cpp

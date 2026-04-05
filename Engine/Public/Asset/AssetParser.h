@@ -19,7 +19,7 @@ namespace wtr
 		virtual ~AssetParser() = default;	
 
 	public :
-		virtual void Parse(Memory::RefPtr<Asset> asset) = 0;
+		virtual bool Parse(Memory::RefPtr<Asset> asset) = 0;
 
 	protected : 
 		std::stringstream ReadStream(Memory::RefPtr<Asset> asset);

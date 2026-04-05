@@ -4,10 +4,13 @@
 #include <Asset/AssetParser.h>
 #include <Framework/Math/MathTypes.h>
 #include <Container/include/HashSet.h>
+#include <Container/include/HashMap.h>
 
 namespace wtr
 {
 	class MeshAsset;
+
+	struct MeshSection;
 };
 
 namespace wtr
@@ -21,6 +24,10 @@ namespace wtr
 			wtr::DynamicArray<wtr::fvec2> uv;
 			wtr::DynamicArray<wtr::fvec3> nor;
 			wtr::DynamicArray<wtr::fvec3> free;
+
+			wtr::DynamicArray<uint32_t> index;
+
+			wtr::DynamicArray<MeshSection> groups;
 		};
 
 		struct OBJVertex
@@ -75,10 +82,11 @@ namespace wtr
 		virtual ~OBJParser() = default;
 
 	public :
-		virtual void Parse(Memory::RefPtr<Asset> asset) override;
+		virtual bool Parse(Memory::RefPtr<Asset> asset) override;
 
 	private :
 		virtual bool ParseInternal(Memory::RefPtr<MeshAsset> mesh, const OBJMesh& totalMesh, const OBJGroups& groups, const OBJMaterials& materials);
+		bool Convert(Memory::RefPtr<MeshAsset> mesh, OBJMesh&& objMesh);
 	};
 };
 

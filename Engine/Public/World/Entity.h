@@ -42,12 +42,12 @@ namespace wtr
 		template<typename T, typename... Args>
 		bool AddNode(Args&&... args)
 		{
-			if (!HasAllComponents(typename T::Required{}))
+			if (!HasAllComponents(typename T::RequiredType{}))
 			{
 				return false;
 			}
 
-			Memory::ObjectPtr<T> node = CreateNode<T>(typename T::Required{});
+			Memory::ObjectPtr<T> node = CreateNode<T>(typename T::RequiredType{}, typename T::OptionalType{});
 			if (!node)
 			{
 				return false;
@@ -141,15 +141,15 @@ namespace wtr
 		}
 
 	private :
-		template<typename T, typename... Components>
-		Memory::ObjectPtr<T> CreateNode(TypeList<Components...>)
+		template<typename T, typename... RequiredList, typename... OptionalList>
+		Memory::ObjectPtr<T> CreateNode(TypeList<RequiredList...>, TypeList<OptionalList...>)
 		{
 			if (!m_owner)
 			{
 				return {};
 			}
 
-			Memory::ObjectPtr<T> node = m_owner->CreateNode<T>(GetID(), GetComponent<Components>()...);
+			Memory::ObjectPtr<T> node = m_owner->CreateNode<T>(GetID(), GetComponent<RequiredList>()..., GetComponent<typename RemoveOptional<OptionalList>::Type>()...);
 			return node;
 		}
 

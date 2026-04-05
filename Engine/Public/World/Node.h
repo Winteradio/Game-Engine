@@ -9,6 +9,62 @@
 
 namespace wtr
 {
+	template<typename T>
+	struct Optional
+	{};
+
+	template<typename T>
+	struct RemoveOptional
+	{
+		using Type = T;
+	};
+
+	template<typename T>
+	struct RemoveOptional<Optional<T>>
+	{
+		using Type = T;
+	};
+
+	template<typename T>
+	struct IsOptional : std::false_type
+	{};
+
+	template<typename T>
+	struct IsOptional<Optional<T>> : std::true_type
+	{};
+
+	template<typename ComponentList, typename ...>
+	struct RequiredList
+	{
+		using Type = ComponentList;
+	};
+
+	template<typename... Components, typename Head, typename... Tail>
+	struct RequiredList<TypeList<Components...>, Head, Tail...>
+	{
+		using Type = std::conditional_t<
+			!IsOptional<Head>::value,
+			typename RequiredList<TypeList<Components..., Head>, Tail...>::Type,
+			typename RequiredList<TypeList<Components...>, Tail...>::Type
+		>;
+	};
+
+	template<typename ComponentList, typename ...>
+	struct OptionalList
+	{
+		using Type = ComponentList;
+	};
+
+	template<typename... Components, typename Head, typename... Tail>
+	struct OptionalList<TypeList<Components...>, Head, Tail...>
+	{
+		using Type = std::conditional_t<
+			IsOptional<Head>::value,
+			typename OptionalList<TypeList<Components..., Head>, Tail...>::Type,
+			typename OptionalList<TypeList<Components...>, Tail...>::Type
+		>;
+	};
+
 	class BaseNode : public ECS::Node
 	{
 		GENERATE(BaseNode);
@@ -24,9 +80,10 @@ namespace wtr
 	{
 		GENERATE(Node);
 	public :
-		using Required = TypeList<Components...>;
+		using RequiredType = typename RequiredList<TypeList<>, Components...>::Type;
+		using OptionalType = typename OptionalList<TypeList<>, Components...>::Type;
 
-		explicit Node(Memory::ObjectPtr<Components>...) {}
+		explicit Node(Memory::ObjectPtr<typename RemoveOptional<Components>::Type>...) {}
 		virtual ~Node() = default;
 	};
 
@@ -48,19 +105,21 @@ namespace wtr
 		virtual ~LightNode() = default;
 	};
 
-	class MeshNode : public Node<SceneComponent, MeshComponent>
+	class MeshNode : public Node<SceneComponent, MeshComponent, Optional<MaterialComponent>>
 	{
 		GENERATE(MeshNode);
 
 	public :
 		Memory::ObjectPtr<SceneComponent> transform;
 		Memory::ObjectPtr<MeshComponent> mesh;
+		Memory::ObjectPtr<MaterialComponent> overrideMaterial;
 
 	public :
-		MeshNode(Memory::ObjectPtr<SceneComponent> transform, Memory::ObjectPtr<MeshComponent> mesh)
-			: Node(transform, mesh)
+		MeshNode(Memory::ObjectPtr<SceneComponent> transform, Memory::ObjectPtr<MeshComponent> mesh, Memory::ObjectPtr<MaterialComponent> material = nullptr)
+			: Node(transform, mesh, material)
 			, transform(transform)
 			, mesh(mesh)
+			, overrideMaterial(material)
 		{}
 		virtual ~MeshNode() = default;
 	};

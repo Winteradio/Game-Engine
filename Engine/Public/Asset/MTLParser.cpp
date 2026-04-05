@@ -2,55 +2,164 @@
 
 #include <Log/include/Log.h>
 #include <Asset/AssetTypes.h>
-#include <Framework/Math/MathTypes.h>
+#include <Asset/AssetFactory.h>
+#include <Asset/AssetStream.h>
 #include <Memory/include/Core.h>
-
-#include <sstream>
 
 namespace wtr
 {
-	struct OBJMesh
+	namespace
 	{
-		wtr::DynamicArray<wtr::fvec3> pos;
-		wtr::DynamicArray<wtr::fvec2> uv;
-		wtr::DynamicArray<wtr::fvec3> nor;
-	};
+		const wtr::HashMap<std::string_view, eTextureSlot> TEXTURE_TAG_MAP =
+		{
+			{ "map_Ka", eTextureSlot::eAmbient },
+			{ "map_Kd", eTextureSlot::eDiffuse },
+			{ "map_Ks", eTextureSlot::eSpecular },
+			{ "map_Ke", eTextureSlot::eEmissive },
+			{ "map_d", eTextureSlot::eOpacity },
+			{ "map_bump", eTextureSlot::eBump },
+			{ "bump", eTextureSlot::eBump },
+			{ "norm", eTextureSlot::eNormal },
+			{ "map_Pr", eTextureSlot::eRoughness },
+			{ "map_Pm", eTextureSlot::eMetallic },
+			{ "map_Ps", eTextureSlot::eSpecular },
+			{ "map_ao", eTextureSlot::eAmbientOcclusion }
+		};
 
-	struct OBJVertex
-	{
-		wtr::fvec3 pos;
-		wtr::fvec2 uv;
-		wtr::fvec3 nor;
-	};
+		const wtr::HashMap<std::string_view, eVectorSlot> VECTOR_TAG_MAP =
+		{
+			{ "Ka", eVectorSlot::eAmbientColor },
+			{ "Kd", eVectorSlot::eDiffuseColor },
+			{ "Ks", eVectorSlot::eSpecularColor },
+			{ "Ke", eVectorSlot::eEmissiveColor }
+		};
 
-	void MTLParser::Parse(Memory::RefPtr<Asset> asset)
+		const wtr::HashMap<std::string_view, eScalarSlot> SCALAR_TAG_MAP =
+		{
+			{ "Ns", eScalarSlot::eShininess },
+			{ "Ni", eScalarSlot::eRefraction },
+			{ "d", eScalarSlot::eOpacity },
+			{ "Tr", eScalarSlot::eOpacity },
+			{ "Pr", eScalarSlot::eRoughness },
+			{ "Pm", eScalarSlot::eMetallic }
+		};
+	}
+
+	bool MTLParser::Parse(Memory::RefPtr<Asset> asset)
 	{
 		if (!asset)
 		{
-			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is invalid";
-			return;
+			LOGINFO() << "[MTL] Failed to parse the mtl file, the asset is invalid";
+			return false;
 		}
 
-		Memory::RefPtr<ComposeAsset> compose = Memory::Cast<ComposeAsset>(asset);
-		if (!compose)
+		Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(asset);
+		if (!material)
 		{
-			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is not the compose asset";
-			return;
+			LOGINFO() << "[MTL] Failed to parse the mtl file, the asset is not the material asset";
+			return false;
 		}
 
-		std::stringstream fileStream = ReadStream(asset);
-
-		std::string line;
-		while (std::getline(fileStream, line))
+		wtr::DynamicArray<uint8_t> fileBuffer = ReadBuffer(asset);
+		if (fileBuffer.Empty())
 		{
-			std::stringstream lineStream(line);
+			material->SetState(eAssetState::eError);
+			LOGINFO() << "[MTL] Failed to read the mtl file : " << asset->path;
 
-			std::string tag;
+			return false;
+		}
+
+		const uint8_t* curr = fileBuffer.Data();
+		const uint8_t* end = curr + fileBuffer.Size();
+
+		while (curr != end)
+		{
+			const uint8_t* lineEnd = curr;
+			while (lineEnd != end && *lineEnd != '\n' && *lineEnd != '\r')
+			{
+				lineEnd++;
+			}
+
+			std::string_view line(reinterpret_cast<const char*>(curr), static_cast<size_t>(lineEnd - curr));
+
+			if (curr < end && *curr == '\r' || *curr == '\n')
+			{
+				curr++;
+				continue;
+			}
+
+			AssetStream lineStream(line);
+
+			std::string_view tag;
 			lineStream >> tag;
+
+			auto itrTexture = TEXTURE_TAG_MAP.Find(tag);
+			if (itrTexture != TEXTURE_TAG_MAP.End())
+			{
+				std::string texturePath;
+				lineStream >> texturePath;
+
+				texturePath = GetPath(asset) + "/" + texturePath;
+
+				Memory::RefPtr<TextureAsset> texture = Memory::Cast<TextureAsset>(AssetFactory::Create(texturePath));
+				if (texture)
+				{
+					material->textures[itrTexture->second] = std::move(texture);
+				}
+				else
+				{
+					LOGINFO() << "[MTL] Failed to load the texture : " << texturePath;
+				}
+
+				curr = lineEnd;
+				continue;
+			}
+
+			auto itrVector = VECTOR_TAG_MAP.Find(tag);
+			if (itrVector != VECTOR_TAG_MAP.End())
+			{
+				fvec3 color;
+				lineStream >> color.x >> color.y >> color.z;
+				material->vectorValues[itrVector->second] = color;
+
+				curr = lineEnd;
+				continue;
+			}
+
+			auto itrScalar = SCALAR_TAG_MAP.Find(tag);
+			if (itrScalar != SCALAR_TAG_MAP.End())
+			{
+				float coefficient;
+				lineStream >> coefficient;
+				if (tag == "Tr")
+				{
+					coefficient = 1.0f - coefficient;
+				}
+				material->scalarValues[itrScalar->second] = coefficient;
+				curr = lineEnd;
+				continue;
+			}
+
+			if (tag == "newmtl")
+			{
+				std::string materialName;
+				lineStream >> materialName;
+
+				material->name = materialName;
+			}
+			else
+			{
+				if (tag != "#" && !tag.empty())
+				{
+					LOGINFO() << "[MTL] Unsupported tag in the mtl file : " << std::string(tag);
+				}
+			}
+
+			curr = lineEnd;
 		}
 
+		material->SetState(eAssetState::eLoaded);
 
-
-		asset->SetState(eAssetState::eLoaded);
+		return true;
 	}
 }

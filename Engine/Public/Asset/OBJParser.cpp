@@ -3,134 +3,22 @@
 #include <Log/include/Log.h>
 #include <Asset/AssetTypes.h>
 #include <Asset/AssetFactory.h>
+#include <Asset/AssetStream.h>
 #include <Memory/include/Core.h>
 
-#include <sstream>
-#include <charconv>
+#include <type_traits>
 
 namespace wtr
 {
-	class StringStream
-	{
-	public :
-		StringStream(const std::string_view& str)
-			: m_view(str)
-		{}
-
-		template<typename T>
-		StringStream& operator>>(T& out)
-		{
-			Skip();
-
-			if (Empty())
-			{
-				return *this;
-			}
-
-			auto [ptr, ec] = std::from_chars(m_view.data(), m_view.data() + m_view.size(), out);
-
-			if (ec == std::errc{}) {
-				m_view.remove_prefix(ptr - m_view.data());
-			}
-			return *this;
-		}
-
-		template<>
-		StringStream& operator>><std::string>(std::string& out)
-		{
-			Skip();
-
-			if (Empty())
-			{
-				return *this;
-			}
-
-			std::string_view view;
-			*this >> view;
-
-			if (!view.empty()) {
-				out = view;
-			}
-			else {
-				out.clear();
-			}
-
-			return *this;
-		}
-
-		template<>
-		StringStream& operator>><std::string_view>(std::string_view& out)
-		{
-			Skip();
-
-			if (Empty())
-			{
-				return *this;
-			}
-
-			size_t delimiter = m_view.find_first_of(" \t\n\r");
-			if (delimiter == std::string_view::npos) {
-				out = m_view;
-				m_view.remove_prefix(m_view.size());
-			}
-			else {
-				out = m_view.substr(0, delimiter);
-				m_view.remove_prefix(delimiter);
-			}
-			return *this;
-		}
-
-		bool Skip(char target)
-		{
-			if (Empty())
-			{
-				return false;
-			}
-
-			if (m_view[0] == target)
-			{
-				m_view.remove_prefix(1);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		bool Empty() const
-		{
-			return m_view.empty();
-		}
-
-	private :
-		void Skip()
-		{
-			const size_t first = m_view.find_first_not_of(" \t\r\n");
-			if (first != std::string_view::npos)
-			{
-				m_view.remove_prefix(first);
-			}
-			else
-			{
-				m_view.remove_prefix(m_view.size());
-				m_view = {};
-			}
-		}
-
-	private :
-		std::string_view m_view;
-	};
-
 	constexpr size_t MAX_FACE_VERTICES = 3;
 	constexpr int ERROR_INDEX = 0;
 
-	void OBJParser::Parse(Memory::RefPtr<Asset> asset)
+	bool OBJParser::Parse(Memory::RefPtr<Asset> asset)
 	{
 		if (!asset)
 		{
 			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is invalid";
-			return;
+			return false;
 		}
 
 		Memory::RefPtr<MeshAsset> mesh = Memory::Cast<MeshAsset>(asset);
@@ -138,7 +26,7 @@ namespace wtr
 		{
 			mesh->SetState(eAssetState::eError);
 			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is not the mesh asset";
-			return;
+			return false;
 		}
 
 		wtr::DynamicArray<uint8_t> fileBuffer = ReadBuffer(asset);
@@ -146,6 +34,8 @@ namespace wtr
 		{
 			mesh->SetState(eAssetState::eError);
 			LOGINFO() << "[OBJ] Failed to read the obj file : " << asset->path;
+
+			return false;
 		}
 
 		OBJMesh objTotalMesh;
@@ -171,7 +61,7 @@ namespace wtr
 				continue;
 			}
 
-			StringStream lineStream(line);
+			AssetStream lineStream(line);
 			
 			std::string_view tag;
 			lineStream >> tag;
@@ -243,7 +133,7 @@ namespace wtr
 				do
 				{
 					lineStream >> faceView;
-					StringStream faceStream(faceView);
+					AssetStream faceStream(faceView);
 
 					OBJVertex vertex { ERROR_INDEX, ERROR_INDEX, ERROR_INDEX, ERROR_INDEX };
 
@@ -264,14 +154,17 @@ namespace wtr
 					mesh->SetState(eAssetState::eError);
 
 					LOGINFO() << "[OBJ] The face has more than 3 vertices, which is not supported : " << std::string(line);
-					return;
+					return false;
 				}
 
 				group.faces.EmplaceBack(std::move(face));
 			}
 			else
 			{
-				// nothing
+				if (tag != "#" && !tag.empty())
+				{
+					LOGINFO() << "[OBJ] Unsupported tag in the obj file : " << std::string(tag);
+				}
 			}
 
 			curr = lineEnd;
@@ -280,11 +173,16 @@ namespace wtr
 		if (ParseInternal(mesh, objTotalMesh, objGroups, objMaterials))
 		{
 			mesh->SetState(eAssetState::eLoaded);
+			LOGINFO() << "[OBJ] Successfully parsed the obj file : " << mesh->path;
+
+			return true;
 		}
 		else
 		{
 			mesh->SetState(eAssetState::eError);
 			LOGERROR() << "[OBJ] Failed to parser the obj file : " << mesh->path;
+
+			return false;
 		}
 	}
 
@@ -318,22 +216,26 @@ namespace wtr
 			}
 		}
 
+		wtr::HashMap<OBJVertex, uint32_t, OBJVertexHash> vertexMap;
+		vertexMap.Reserve(totalMesh.pos.Size());
+
 		OBJMesh finalMesh;
 		finalMesh.pos.Reserve(totalMesh.pos.Size());
 		finalMesh.uv.Reserve(totalMesh.uv.Size());
 		finalMesh.nor.Reserve(totalMesh.nor.Size());
 		finalMesh.free.Reserve(totalMesh.free.Size());
+		finalMesh.groups.Resize(groups.Size());
 
-		wtr::DynamicArray<uint32_t> indexBuffer;
-
-		wtr::HashMap<OBJVertex, uint32_t, OBJVertexHash> vertexMap;
-		vertexMap.Reserve(totalMesh.pos.Size());
-
-		for (const auto& group : groups)
+		for (size_t index = 0; index < groups.Size(); index++)
 		{
+			const auto& group = groups[index];
+
 			vertexMap.Clear();
-			indexBuffer.Clear();
-			indexBuffer.Reserve(group.faces.Size() * MAX_FACE_VERTICES);
+			finalMesh.index.Reserve(finalMesh.index.Size() + group.faces.Size() * MAX_FACE_VERTICES);
+
+			auto& section = finalMesh.groups[index];
+			section.indexOffset = static_cast<uint32_t>(finalMesh.index.Size());
+			section.name = group.name;
 
 			uint32_t vertexCount = 0;
 			for (const auto& face : group.faces)
@@ -370,19 +272,111 @@ namespace wtr
 							finalMesh.free.PushBack(totalMesh.free[index]);
 						}
 
-						indexBuffer.PushBack(vertexCount);
+						finalMesh.index.PushBack(vertexCount);
 						vertexCount++;
 					}
 					else
 					{
-						if (itr->second == 0)
-						{
-							int value = 2;
-						}
-						indexBuffer.PushBack(itr->second);
+						finalMesh.index.PushBack(itr->second);
 					}
+
+					section.minVertexIndex = std::min(section.minVertexIndex, finalMesh.index.Back());
+					section.maxVertexIndex = std::max(section.maxVertexIndex, finalMesh.index.Back());
+					section.indexCount++;
 				}
 			}
+		}
+
+		return Convert(mesh, std::move(finalMesh));
+	}
+
+	bool OBJParser::Convert(Memory::RefPtr<MeshAsset> mesh, OBJMesh&& objMesh)
+	{
+		if (!mesh)
+		{
+			LOGERROR() << "[OBJ] Failed to convert the obj mesh, the mesh asset is invalid";
+			return false;
+		}
+
+		auto& rawBuffers = mesh->rawBuffers;
+
+		if (!objMesh.pos.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> posBuffer = Memory::MakeRef<FormattedBuffer>();
+
+			posBuffer->componentType = eDataType::eFloat;
+			posBuffer->numComponents = decltype(objMesh.pos)::ValueType::length();
+			posBuffer->count = static_cast<uint32_t>(objMesh.pos.Size());
+			posBuffer->data.Resize(objMesh.pos.Size() * sizeof(decltype(objMesh.pos)::ValueType));
+
+			std::memmove(posBuffer->data.Data(), objMesh.pos.Data(), posBuffer->data.Size());
+
+			VertexKey posKey{ eVertexSemantic::ePosition, 0 };
+			rawBuffers[posKey] = posBuffer;
+		}
+
+		if (!objMesh.nor.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> norBuffer = Memory::MakeRef<FormattedBuffer>();
+
+			norBuffer->componentType = eDataType::eFloat;
+			norBuffer->numComponents = decltype(objMesh.nor)::ValueType::length();
+			norBuffer->count = static_cast<uint32_t>(objMesh.nor.Size());
+			norBuffer->data.Resize(objMesh.nor.Size() * sizeof(decltype(objMesh.nor)::ValueType));
+
+			std::memmove(norBuffer->data.Data(), objMesh.nor.Data(), norBuffer->data.Size());
+
+			VertexKey norKey{ eVertexSemantic::eNormal, 0 };
+			rawBuffers[norKey] = norBuffer;
+		}
+
+		if (!objMesh.uv.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> uvBuffer = Memory::MakeRef<FormattedBuffer>();
+
+			uvBuffer->componentType = eDataType::eFloat;
+			uvBuffer->numComponents = decltype(objMesh.uv)::ValueType::length();
+			uvBuffer->count = static_cast<uint32_t>(objMesh.uv.Size());
+			uvBuffer->data.Resize(objMesh.uv.Size() * sizeof(decltype(objMesh.uv)::ValueType));
+
+			std::memmove(uvBuffer->data.Data(), objMesh.uv.Data(), uvBuffer->data.Size());
+
+			VertexKey uvKey{ eVertexSemantic::eTexCoord, 0 };
+			rawBuffers[uvKey] = uvBuffer;
+		}
+
+		if (!objMesh.free.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> freeBuffer = Memory::MakeRef<FormattedBuffer>();
+
+			freeBuffer->componentType = eDataType::eFloat;
+			freeBuffer->numComponents = decltype(objMesh.free)::ValueType::length();
+			freeBuffer->count = static_cast<uint32_t>(objMesh.free.Size());
+			freeBuffer->data.Resize(objMesh.free.Size() * sizeof(decltype(objMesh.free)::ValueType));
+
+			std::memmove(freeBuffer->data.Data(), objMesh.free.Data(), freeBuffer->data.Size());
+			VertexKey freeKey{ eVertexSemantic::eGeneric, 0 };
+
+			rawBuffers[freeKey] = freeBuffer;
+		}
+
+		if (!objMesh.index.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> indexBuffer = Memory::MakeRef<FormattedBuffer>();
+
+			indexBuffer->componentType = eDataType::eUInt;
+			indexBuffer->numComponents = 1;
+			indexBuffer->count = static_cast<uint32_t>(objMesh.index.Size());
+			indexBuffer->data.Resize(objMesh.index.Size() * sizeof(decltype(objMesh.index)::ValueType));
+
+			std::memmove(indexBuffer->data.Data(), objMesh.index.Data(), indexBuffer->data.Size());
+
+			mesh->rawIndex = indexBuffer;
+		}
+
+		if (!objMesh.groups.Empty())
+		{
+			mesh->sections = std::move(objMesh.groups);
 		}
 
 		return true;

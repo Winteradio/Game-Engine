@@ -83,4 +83,19 @@ namespace wtr
 			meshAsset = refMesh;
 		}
 	}
+
+	MaterialComponent::MaterialComponent(Memory::RefPtr<Asset> refAsset)
+		: materialAsset(nullptr)
+	{
+		if (!refAsset)
+		{
+			return;
+		}
+
+		auto refMaterial = Memory::Cast<MaterialAsset>(refAsset);
+		if (refMaterial)
+		{
+			materialAsset = refMaterial;
+		}
+	}
 }
