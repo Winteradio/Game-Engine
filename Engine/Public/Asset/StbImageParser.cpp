@@ -45,7 +45,6 @@ namespace wtr
 		}
 
 		// TODO
-		texture->SetState(eAssetState::eLoaded);
 
 		return true;
 	}

@@ -39,7 +39,6 @@ namespace wtr
 		}
 
 		rawBuffer->data = std::move(fileBuffer);
-		shader->SetState(eAssetState::eLoaded);
 
 		LOGINFO() << "[GLSL] Succeed to parse the glsl file : " << asset->path;
 

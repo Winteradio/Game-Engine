@@ -122,7 +122,7 @@ namespace wtr
 				return;
 			}
 
-			for (auto& material : mesh->materials)
+			for (auto& [name, material] : mesh->materials)
 			{
 				if (!material)
 				{

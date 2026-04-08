@@ -2,6 +2,7 @@
 #define __WTR_RENDERSCENE_H__
 
 #include <ECS/include/UUID/UUID.h>
+#include <Container/include/HashSet.h>
 #include <Container/include/HashMap.h>
 #include <Container/include/DynamicArray.h>
 #include <Memory/include/Pointer/RefPtr.h>
@@ -12,6 +13,10 @@ namespace wtr
 	class SceneProxy;
 	class PrimitiveProxy;
 	class LightProxy;
+
+	class MeshBatch;
+	struct MeshBatchKey;
+	struct MeshBatchHasher;
 };
 
 namespace wtr
@@ -21,14 +26,18 @@ namespace wtr
 		public :
 			template<typename T>
 			using ProxyContainer = wtr::HashMap<ECS::UUID, Memory::RefPtr<T>>;
+
+			using MeshBatchContainer = wtr::HashMap<MeshBatchKey, Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
-			using PendingProxy = wtr::DynamicArray<Memory::RefPtr<SceneProxy>>;
+			using PendingPrimitive = wtr::DynamicArray<Memory::RefPtr<PrimitiveProxy>>;
+			using PendingBatch = wtr::HashSet<Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
 		public:
 			RenderScene();
 			~RenderScene();
 
 		public :
+			void RemoveAll();
 			void Clear();
 			void FlushPending();
 
@@ -42,21 +51,33 @@ namespace wtr
 			void RemoveLight(const ECS::UUID& id);
 			Memory::RefPtr<LightProxy> GetLight(const ECS::UUID& id);
 
-			PendingProxy& GetAddable();
-			PendingProxy& GetRemovable();
-			PendingProxy& GetUpdatable();
+			Memory::RefPtr<MeshBatch> GetMeshBatch(const MeshBatchKey& key);
+			const MeshBatchContainer& GetMeshBatches() const;
+
+			PendingBatch& GetAddable();
+			PendingBatch& GetRemovable();
+			PendingBatch& GetUpdatable();
 
 		private :
+			void FlushPrimitive();
 			void FlushAddable();
+			void FlushUpdatable();
 			void FlushRemovable();
+			
+			void AddBatch(Memory::RefPtr<PrimitiveProxy> primitive);
+			void UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive);
+			void RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive);
 
 		private :
 			ProxyContainer<PrimitiveProxy> m_primitives;
 			ProxyContainer<LightProxy> m_lights;
 
-			PendingProxy m_addable;
-			PendingProxy m_removable;
-			PendingProxy m_updatable;
+			MeshBatchContainer m_meshBatches;
+
+			PendingPrimitive m_pendingPrimitives;
+			PendingBatch m_addable;
+			PendingBatch m_removable;
+			PendingBatch m_updatable;
 	};
 };
 

@@ -135,6 +135,8 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderGraph.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderResource.h
+
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderCommandList.cpp
 
@@ -203,6 +205,8 @@ set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/Node.h
 	${ENGINE_PUBLIC_DIR}/World/Scene.h
 	${ENGINE_PUBLIC_DIR}/World/System.h
+
+	${ENGINE_PUBLIC_DIR}/World/GraphBuilder.h
 )
 
 set(ENGINE_WORLD_PRIVATE_FILES
@@ -216,6 +220,8 @@ set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/Entity.cpp
 	${ENGINE_PRIVATE_DIR}/World/Scene.cpp
 	${ENGINE_PRIVATE_DIR}/World/System.cpp
+
+	${ENGINE_PRIVATE_DIR}/World/GraphBuilder.cpp
 )
 
 set(ENGINE_ASSET_PUBLIC_FILES

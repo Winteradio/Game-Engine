@@ -78,7 +78,7 @@ namespace wtr
 			return {};
 		}
 
-		return std::filesystem::path(asset->path).filename().string();
+		return std::filesystem::path(asset->path).stem().string();
 	}
 
 	std::string AssetParser::GetExtension(Memory::RefPtr<Asset> asset)
@@ -89,13 +89,5 @@ namespace wtr
 		}
 
 		return std::filesystem::path(asset->path).extension().string();
-	}
-
-	void AssetParser::Done(Memory::RefPtr<Asset> asset)
-	{
-		if (asset)
-		{
-			asset->SetState(eAssetState::eLoaded);
-		}
 	}
 }

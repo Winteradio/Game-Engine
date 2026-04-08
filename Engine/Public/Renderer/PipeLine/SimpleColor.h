@@ -5,7 +5,7 @@
 
 namespace wtr
 {
-	class RHIShader;
+	class ShaderAsset;
 };
 
 namespace wtr
@@ -20,10 +20,11 @@ namespace wtr
 	public :
 		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> commandList) override;
 		virtual void Init(Memory::RefPtr<RHICommandList> commandList);
+		virtual eResourceState GetResourceState() const override;
 
 	private :
-		Memory::RefPtr<RHIShader> m_vertexShader;
-		Memory::RefPtr<RHIShader> m_pixelShader;
+		Memory::RefPtr<ShaderAsset> m_vertexShader;
+		Memory::RefPtr<ShaderAsset> m_pixelShader;
 	};
 };
 

@@ -8,6 +8,7 @@
 
 namespace wtr
 {
+	struct MeshDrawCommand;
 	struct RenderView;
 
 	class RenderScene;
@@ -50,19 +51,36 @@ namespace wtr
 	{
 	public :
 		using GraphType = ECS::Graph<Memory::RefPtr<PipeLine>, PipeLineString, PipeLineHasher>;
+		using PendingPipeLine = wtr::HashSet<Memory::RefPtr<PipeLine>, PipeLineHasher>;
 
 		RenderGraph();
 		~RenderGraph();
 
 	public :
 		bool Init();
+		void FlushPending();
+
 		void Add(Memory::RefPtr<PipeLine> pipeline);
 		void Remove(Memory::RefPtr<PipeLine> pipeline);
 
-		void Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene>& renderScene, const RenderView& renderView);
+		void Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene> renderScene, const RenderView& renderView);
+
+		Memory::RefPtr<PipeLine> GetPipeLine(const ECS::UUID& id) const;
+
+		PendingPipeLine& GetAddable();
+		PendingPipeLine& GetRemovable();
+
+	private :
+		void FlushAddable();
+		void FlushRemovable();
 
 	private :
 		GraphType m_graph;
+
+		PendingPipeLine m_addable;
+		PendingPipeLine m_removable;
+
+		wtr::DynamicArray<Memory::RefPtr<MeshDrawCommand>> m_drawCommands;
 	};
 };
 

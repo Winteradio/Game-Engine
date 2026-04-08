@@ -24,7 +24,6 @@ namespace wtr
 		Memory::RefPtr<MeshAsset> mesh = Memory::Cast<MeshAsset>(asset);
 		if (!mesh)
 		{
-			mesh->SetState(eAssetState::eError);
 			LOGINFO() << "[OBJ] Failed to parse the obj file, the asset is not the mesh asset";
 			return false;
 		}
@@ -32,7 +31,6 @@ namespace wtr
 		wtr::DynamicArray<uint8_t> fileBuffer = ReadBuffer(asset);
 		if (fileBuffer.Empty())
 		{
-			mesh->SetState(eAssetState::eError);
 			LOGINFO() << "[OBJ] Failed to read the obj file : " << asset->path;
 
 			return false;
@@ -151,8 +149,6 @@ namespace wtr
 
 				if (face.vertices.Size() > 3)
 				{
-					mesh->SetState(eAssetState::eError);
-
 					LOGINFO() << "[OBJ] The face has more than 3 vertices, which is not supported : " << std::string(line);
 					return false;
 				}
@@ -172,14 +168,12 @@ namespace wtr
 
 		if (ParseInternal(mesh, objTotalMesh, objGroups, objMaterials))
 		{
-			mesh->SetState(eAssetState::eLoaded);
-			LOGINFO() << "[OBJ] Successfully parsed the obj file : " << mesh->path;
+			LOGINFO() << "[OBJ] Succeed to parsed the obj file : " << mesh->path;
 
 			return true;
 		}
 		else
 		{
-			mesh->SetState(eAssetState::eError);
 			LOGERROR() << "[OBJ] Failed to parser the obj file : " << mesh->path;
 
 			return false;
@@ -212,7 +206,8 @@ namespace wtr
 			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(AssetFactory::Create(path));
 			if (material)
 			{
-				mesh->materials.EmplaceBack(std::move(material));
+				material->name = GetName(material);
+				mesh->materials[material->name] = material;
 			}
 		}
 
@@ -236,6 +231,7 @@ namespace wtr
 			auto& section = finalMesh.groups[index];
 			section.indexOffset = static_cast<uint32_t>(finalMesh.index.Size());
 			section.name = group.name;
+			section.materialName = group.material;
 
 			uint32_t vertexCount = 0;
 			for (const auto& face : group.faces)

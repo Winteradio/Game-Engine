@@ -27,7 +27,6 @@ namespace wtr
 		std::string GetPath(Memory::RefPtr<Asset> asset);
 		std::string GetName(Memory::RefPtr<Asset> asset);
 		std::string GetExtension(Memory::RefPtr<Asset> asset);
-		void Done(Memory::RefPtr<Asset> asset);
 	};
 };
 

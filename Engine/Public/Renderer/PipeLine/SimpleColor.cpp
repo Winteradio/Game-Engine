@@ -1,5 +1,6 @@
 #include <Renderer/PipeLine/SimpleColor.h>
 
+#include <Asset/AssetTypes.h>
 #include <Renderer/RenderView.h>
 #include <Renderer/RenderScene.h>
 #include <RHI/RHICommandList.h>
@@ -67,5 +68,15 @@ namespace wtr
 		desc.rasterizer.fillMode = ePrimitiveMode::eFill;
 
 		m_pipeLine = commandList->CreatePipeLine(desc);
+	}
+
+	eResourceState SimpleColor::GetResourceState() const
+	{
+		if (!m_pipeLine || !m_vertexShader || !m_pixelShader)
+		{
+			return eResourceState::eNone;
+		}
+
+		return m_pipeLine->GetState();
 	}
 };

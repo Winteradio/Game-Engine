@@ -4,6 +4,8 @@
 #include <Renderer/RenderCommandList.h>
 #include <Renderer/RenderGraph.h>
 #include <Renderer/RenderView.h>
+#include <Renderer/MeshBatch.h>
+#include <Renderer/PipeLine/PipeLine.h>
 
 #include <RHI/RHICommandList.h>
 
@@ -75,28 +77,8 @@ namespace wtr
 
 	void Renderer::PreDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!m_refScene || !m_refGraph || !cmdList)
-		{
-			return;
-		}
-
-		auto& addable = m_refScene->GetAddable();
-		for (auto sceneProxy : addable)
-		{
-			int value = 2;
-		}
-
-		auto& removable = m_refScene->GetRemovable();
-		for (auto sceneProxy : removable)
-		{
-			int value = 2;
-		}
-
-		auto& updatable = m_refScene->GetUpdatable();
-		for (auto sceneProxy : updatable)
-		{
-			int value = 2;
-		}
+		PrepareMeshBatch(cmdList);
+		PreparePipeLine(cmdList);
 	}
 
 	void Renderer::Draw(Memory::RefPtr<RHICommandList> cmdList)
@@ -114,7 +96,15 @@ namespace wtr
 
 	void Renderer::PostDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		// TODO
+		if (m_refScene)
+		{
+			m_refScene->FlushPending();
+		}
+
+		if (m_refGraph)
+		{
+			m_refGraph->FlushPending();
+		}
 	}
 
 	Memory::RefPtr<RenderScene> Renderer::GetScene()
@@ -130,5 +120,80 @@ namespace wtr
 	Memory::RefPtr<RenderCommandList> Renderer::GetCommandList()
 	{
 		return m_refCommandList;
+	}
+
+	void Renderer::PrepareMeshBatch(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!m_refScene || !cmdList)
+		{
+			return;
+		}
+		
+		auto& addable = m_refScene->GetAddable();
+		for (auto& meshBatch : addable)
+		{
+			if (!meshBatch)
+			{
+				continue;
+			}
+
+			meshBatch->Upload(cmdList);
+		}
+
+		auto& removable = m_refScene->GetRemovable();
+		for (auto& meshBatch : removable)
+		{
+			if (!meshBatch)
+			{
+				continue;
+			}
+
+			meshBatch->Unload(cmdList);
+		}
+
+		auto& updatable = m_refScene->GetUpdatable();
+		for (auto& meshBatch : updatable)
+		{
+			if (!meshBatch)
+			{
+				continue;
+			}
+
+			meshBatch->Sync(cmdList);
+		}
+
+		m_refScene->FlushPending();
+	}
+
+	void Renderer::PreparePipeLine(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!m_refGraph || !cmdList)
+		{
+			return;
+		}
+
+		auto& addable = m_refGraph->GetAddable();
+		for (auto& pipeLine : addable)
+		{
+			if (!pipeLine)
+			{
+				continue;
+			}
+
+			pipeLine->Init(cmdList);
+		}
+
+		auto& removable = m_refGraph->GetRemovable();
+		for (auto& pipeLine : removable)
+		{
+			if (!pipeLine)
+			{
+				continue;
+			}
+
+			// TODO : PipeLine GPU Resource Release
+		}
+
+		m_refGraph->FlushPending();
 	}
 }

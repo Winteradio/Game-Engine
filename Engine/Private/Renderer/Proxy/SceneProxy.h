@@ -11,9 +11,7 @@ namespace wtr
 	enum eProxyState : uint8_t
 	{
 		eNone		= 0x00,
-		eAdded		= 0x01,
-		eReady		= 0x02,
-		eRemoved	= 0x03,
+		eReady		= 0x01,
 		eError		= 0xFF,
 	};
 

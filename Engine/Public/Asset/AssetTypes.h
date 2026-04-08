@@ -47,11 +47,11 @@ namespace wtr
 	enum class eAssetState : uint8_t
 	{
 		eNone		= 0x00,
-		eLoaded		= 0x01,
-		eCreated	= 0x02,
-		eReady		= 0x04,
-		eAll		= 0x0F,
-		eError		= 0x10
+		eError		= 0x01,
+		eLoaded		= 0x10,
+		eCreated	= 0x20,
+		eReady		= 0x40,
+		eAll		= 0xF0
 	};
 
 	eAssetState operator|(const eAssetState lhs, const eAssetState rhs);
@@ -70,8 +70,7 @@ namespace wtr
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;
 
-		uint64_t materialIndex = 0;
-
+		std::string materialName;
 		std::string name;
 	};
 
@@ -107,16 +106,12 @@ namespace wtr
 		const std::string path;
 		const eExtension extension;
 		const eAsset type;
-		mutable std::atomic<eAssetState> state;
 
 		Asset();
 		Asset(const std::string& path, const eExtension extension, const eAsset type);
 		virtual ~Asset() = default;
 
 	public :
-		virtual void SetState(const eAssetState state);
-		
-		virtual eAssetState GetState() const;
 		virtual eResourceState GetResourceState() const;
 	};
 
@@ -161,7 +156,7 @@ namespace wtr
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
-		wtr::DynamicArray<Memory::RefPtr<MaterialAsset>> materials;
+		wtr::HashMap<std::string, Memory::RefPtr<MaterialAsset>> materials;
 
 		MeshAsset();
 		MeshAsset(const std::string& path, const eExtension extension);

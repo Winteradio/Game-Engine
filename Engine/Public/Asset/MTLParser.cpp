@@ -63,7 +63,6 @@ namespace wtr
 		wtr::DynamicArray<uint8_t> fileBuffer = ReadBuffer(asset);
 		if (fileBuffer.Empty())
 		{
-			material->SetState(eAssetState::eError);
 			LOGINFO() << "[MTL] Failed to read the mtl file : " << asset->path;
 
 			return false;
@@ -158,7 +157,7 @@ namespace wtr
 			curr = lineEnd;
 		}
 
-		material->SetState(eAssetState::eLoaded);
+		LOGINFO() << "[MTL] Succeed to parsed the mtl file : " << material->path;
 
 		return true;
 	}

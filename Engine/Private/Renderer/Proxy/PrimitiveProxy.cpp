@@ -24,7 +24,7 @@ namespace wtr
 		}
 	}
 
-	void PrimitiveProxy::SetMaterial(Memory::RefPtr<MaterialAsset> refMaterial)
+	void PrimitiveProxy::SetOverrideMaterial(Memory::RefPtr<MaterialAsset> refMaterial)
 	{
 		if (refMaterial)
 		{
@@ -42,12 +42,12 @@ namespace wtr
 		return m_refMesh;
 	}
 
-	Memory::RefPtr<MaterialAsset> PrimitiveProxy::GetMaterial()
+	Memory::RefPtr<MaterialAsset> PrimitiveProxy::GetOverrideMaterial()
 	{
 		return m_refOverrideMaterial;
 	}
 
-	Memory::RefPtr<const MaterialAsset> PrimitiveProxy::GetMaterial() const
+	Memory::RefPtr<const MaterialAsset> PrimitiveProxy::GetOverrideMaterial() const
 	{
 		return m_refOverrideMaterial;
 	}

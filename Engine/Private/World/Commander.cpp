@@ -35,9 +35,6 @@ namespace wtr
 			{
 				if (nullptr != renderer)
 				{
-					static size_t frame = 0;
-					LOGINFO() << "TEST Frame : " << frame++;
-
 					renderer->SetView(renderView);
 				}
 			}
@@ -74,15 +71,13 @@ namespace wtr
 
 		if (materialComponent)
 		{
-			primitive->SetMaterial(materialComponent->materialAsset);
+			primitive->SetOverrideMaterial(materialComponent->materialAsset);
 		}
 
 		primitive->SetID(meshNode->GetID());
 
 		m_refCmdList->Enqueue([primitive](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				LOGINFO() << "[Render] Add primitive";
-
 				if (nullptr == renderer)
 				{
 					return;
@@ -155,8 +150,6 @@ namespace wtr
 		// TODO : Set light properties
 		m_refCmdList->Enqueue([light](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				LOGINFO() << "[Render] Add primitive";
-
 				if (nullptr == renderer)
 				{
 					return;

@@ -45,6 +45,10 @@ namespace wtr
 		Memory::RefPtr<RenderCommandList> GetCommandList();
 
 	private :
+		void PrepareMeshBatch(Memory::RefPtr<RHICommandList> cmdList);
+		void PreparePipeLine(Memory::RefPtr<RHICommandList> cmdList);
+
+	private :
 		Memory::RefPtr<RenderScene> m_refScene;
 		Memory::RefPtr<RenderGraph> m_refGraph;
 		Memory::RefPtr<RenderCommandList> m_refCommandList;

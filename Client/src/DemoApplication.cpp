@@ -136,6 +136,8 @@ namespace demo
 		cameraEntity->AddComponent<wtr::CameraComponent>();
 		cameraEntity->AddNode<wtr::CameraNode>();
 
+		LOGINFO() << "[Game] Camera Entity ID : " << cameraEntity->GetID().ToString();
+
 		auto cameraPlayer = players->Create(cameraEntity);
 		if (!cameraPlayer)
 		{
@@ -195,7 +197,7 @@ namespace demo
 
 		world->scene.Attach(cubeEntity->GetNode<wtr::MeshNode>());
 
-		auto meshNode = cubeEntity->GetNode<wtr::MeshNode>();
+		LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
 
 		return true;
 	}
