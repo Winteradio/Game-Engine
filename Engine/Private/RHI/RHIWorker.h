@@ -30,7 +30,7 @@ namespace wtr
 	public :
 		void onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
 		Memory::RefPtr<RHISystem> m_refSystem;

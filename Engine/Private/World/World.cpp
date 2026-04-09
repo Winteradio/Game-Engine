@@ -20,11 +20,11 @@ namespace wtr
 
 	bool World::Init(Memory::RefPtr<Commander> refCommander)
 	{
-		LOGINFO() << "[WORLD] Initialize the world";
+		LOGINFO() << "[World] Initialize the world";
 
 		if (!refCommander)
 		{
-			LOGERROR() << "[WORLD] Failed to set the commander, the commander is invalid";
+			LOGERROR() << "[World] Failed to set the commander, the commander is invalid";
 			return false;
 		}
 

@@ -10,6 +10,8 @@
 namespace wtr
 {
 	class Asset;
+	class RHIExecutor;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -22,17 +24,25 @@ namespace wtr
 
 	public :
 		void SetTaskThread(const size_t count);
+		void SetTaskExecutor(Memory::RefPtr<RHIExecutor> taskExecutor);
 
 	protected :
 		void onStart() override;
 		void onUpdate() override;
 		void onDestroy() override;
+		void onNotify() override;
 
 	private :
-		static void DispatchTask(Memory::RefPtr<Asset> asset);
+		void onProcess(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+		void onParse(Memory::RefPtr<Asset> asset);
+		void onLoad(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+		void onUnload(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+
+		static void onDispatch(Memory::RefPtr<Asset> asset);
 
 	private :
 		wtr::DynamicArray<Memory::RefPtr<TaskWorker>> m_threads;
+		Memory::RefPtr<RHIExecutor> m_refTaskExecutor;
 	};
 };
 

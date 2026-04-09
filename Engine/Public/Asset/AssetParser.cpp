@@ -51,14 +51,14 @@ namespace wtr
 		const std::streamsize bufferSize = file.tellg();
 		file.seekg(0, std::ios::beg);
 
-		wtr::DynamicArray<uint8_t> rawBuffer(bufferSize);
-		if (!file.read(reinterpret_cast<char*>(rawBuffer.Data()), bufferSize))
+		wtr::DynamicArray<uint8_t> rawData(bufferSize);
+		if (!file.read(reinterpret_cast<char*>(rawData.Data()), bufferSize))
 		{
 			LOGINFO() << "[PARSE] Failed to copy the file raw buffer : " << path;
 			return {};
 		}
 
-		return rawBuffer;
+		return rawData;
 	}
 
 	std::string AssetParser::GetPath(Memory::RefPtr<Asset> asset)

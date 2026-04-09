@@ -57,6 +57,15 @@ namespace wtr
 	void AssetSystem::Unload(const std::string& path)
 	{
 		AssetCore& core = GetCore();
+
+		Memory::RefPtr<Asset> asset = core.manager.GetAsset(path);
+		if (asset)
+		{
+			asset->SetState(eAssetState::eExpried);
+
+			AddTask(asset);
+		}
+		
 		core.manager.RemoveAsset(path);
 	}
 
@@ -67,10 +76,10 @@ namespace wtr
 		core.cvTask.notify_all();
 	}
 
-	void AssetSystem::Release()
+	void AssetSystem::Release(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		AssetCore& core = GetCore();
-		core.manager.Release();
+		core.manager.Release(cmdList);
 	}
 
 	AssetSystem::TaskQueue AssetSystem::GetTask()
@@ -83,7 +92,10 @@ namespace wtr
 		}
 
 		TaskQueue tasks;
-		std::swap(tasks, core.taskQueue);
+		{
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			std::swap(tasks, core.taskQueue);
+		}
 
 		return tasks;
 	}

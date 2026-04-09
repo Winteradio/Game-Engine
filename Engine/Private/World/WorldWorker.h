@@ -37,7 +37,7 @@ namespace wtr
 	protected :
 		void onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
 		void UpdateView(Memory::RefPtr<PlayerController> playerController, Memory::RefPtr<ViewController> viewController);

@@ -1,12 +1,27 @@
 #ifndef __WTR_RHIDESCRIPTIONS_H__
 #define __WTR_RHIDESCRIPTIONS_H__
 
+#include <Memory/include/Pointer/RefPtr.h>
+#include <Container/include/DynamicArray.h>
 #include <Renderer/RenderTypes.h>
 #include <RHI/RHIStates.h>
 #include <cstdint>
 
 namespace wtr
 {
+	class RawBuffer;
+	class FormattedBuffer;
+	class RHIShader;
+}
+
+namespace wtr
+{
+	template<typename T>
+	struct RHICreateDesc
+	{
+		Memory::RefPtr<T> rawBuffer;
+	};
+
 	struct RHIVertexAttribute
 	{
 		uint16_t location			= 0;	// vertex attribute binding location
@@ -42,8 +57,9 @@ namespace wtr
 		uint32_t	stride = 0;
 	};
 
-	struct RHIBufferCreateDesc : RHIBufferDesc
-	{};
+	struct RHIBufferCreateDesc : RHIBufferDesc, RHICreateDesc<FormattedBuffer>
+	{
+	};
 
 	struct RHITextureDesc : RHIDesc<eResourceType::eTexture>
 	{
@@ -56,8 +72,9 @@ namespace wtr
 		eTextureUsage 	usage = eTextureUsage::eNone;
 	};
 
-	struct RHITextureCreateDesc : RHITextureDesc
-	{};
+	struct RHITextureCreateDesc : RHITextureDesc, RHICreateDesc<FormattedBuffer>
+	{
+	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
 	{
@@ -89,6 +106,12 @@ namespace wtr
 
 	struct RHIGeometryShaderDesc : RHIShaderDesc<eShaderType::eGeometry>
 	{
+
+	};
+
+	struct RHIHullShaderDesc : RHIShaderDesc<eShaderType::eHull>
+	{
+
 	};
 
 	struct RHIPixelShaderDesc : RHIShaderDesc<eShaderType::ePixel>
@@ -99,19 +122,23 @@ namespace wtr
 	{
 	};
 
-	struct RHIVertexShaderCreateDesc : RHIVertexShaderDesc
+	struct RHIVertexShaderCreateDesc : RHIVertexShaderDesc, RHICreateDesc<RawBuffer>
 	{
 	};
 
-	struct RHIGeometryShaderCreateDesc : RHIGeometryShaderDesc
+	struct RHIGeometryShaderCreateDesc : RHIGeometryShaderDesc, RHICreateDesc<RawBuffer>
 	{
 	};
 
-	struct RHIPixelShaderCreateDesc : RHIPixelShaderDesc
+	struct RHIHullShaderCreateDesc : RHIHullShaderDesc , RHICreateDesc<RawBuffer>
 	{
 	};
 
-	struct RHIComputeShaderCreateDesc : RHIComputeShaderDesc
+	struct RHIPixelShaderCreateDesc : RHIPixelShaderDesc, RHICreateDesc<RawBuffer>
+	{
+	};
+
+	struct RHIComputeShaderCreateDesc : RHIComputeShaderDesc, RHICreateDesc<RawBuffer>
 	{
 	};
 
@@ -126,7 +153,13 @@ namespace wtr
 	};
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
-	{};
+	{
+		Memory::RefPtr<RHIShader> vertexShader;
+		Memory::RefPtr<RHIShader> geometryShader;
+		Memory::RefPtr<RHIShader> hullShader;
+		Memory::RefPtr<RHIShader> computeShader;
+		Memory::RefPtr<RHIShader> pixelShader;
+	};
 };
 
 

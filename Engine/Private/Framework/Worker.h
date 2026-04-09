@@ -30,9 +30,10 @@ namespace wtr
 		void Stop();
 
 	protected :
-		virtual void onStart() = 0;
-		virtual void onUpdate() = 0;
-		virtual void onDestroy() = 0;
+		virtual void onStart();
+		virtual void onUpdate();
+		virtual void onDestroy();
+		virtual void onNotify();
 
 	private :
 		void Run();

@@ -11,6 +11,7 @@
 namespace wtr
 {
 	class Asset;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -22,7 +23,7 @@ namespace wtr
 		~AssetManager() = default;
 
 	public :
-		void Release();
+		void Release(Memory::RefPtr<RHICommandList> cmdmList);
 		void AddAsset(const std::string& path, Memory::RefPtr<Asset> asset);
 		void RemoveAsset(const std::string& path);
 		bool HasAsset(const std::string& path) const;

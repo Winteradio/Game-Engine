@@ -21,9 +21,9 @@ namespace wtr
 
 	public:
 		virtual bool Init() = 0;
-		virtual void Upload(Memory::RefPtr<RHICommandList> cmdList) = 0;
-		virtual void Unload(Memory::RefPtr<RHICommandList> cmdList) = 0;
-		virtual void Sync(Memory::RefPtr<RHICommandList> cmdList) = 0;
+		virtual void Upload(Memory::RefPtr<RHICommandList> cmdList) {};
+		virtual void Unload(Memory::RefPtr<RHICommandList> cmdList) {};
+		virtual void Sync(Memory::RefPtr<RHICommandList> cmdList) {};
 		virtual eResourceState GetResourceState() const = 0;
 	};
 };

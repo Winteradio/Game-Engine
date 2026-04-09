@@ -5,6 +5,11 @@
 
 namespace wtr
 {
+	enum class eShaderType : uint8_t;
+};
+
+namespace wtr
+{
 	class GLSLParser : public AssetParser
 	{
 	public :
@@ -13,6 +18,9 @@ namespace wtr
 
 	public :
 		virtual bool Parse(Memory::RefPtr<Asset> asset) override;
+
+	private :
+		eShaderType GetShaderType(const std::string& name) const;
 	};
 };
 

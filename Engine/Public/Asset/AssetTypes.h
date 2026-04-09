@@ -40,7 +40,6 @@ namespace wtr
 		eMaterial	= 0x02,
 		eTexture	= 0x03,
 		eShader		= 0x04,
-		eCompose	= 0x05,
 		eEnd,
 	};
 
@@ -49,9 +48,7 @@ namespace wtr
 		eNone		= 0x00,
 		eError		= 0x01,
 		eLoaded		= 0x10,
-		eCreated	= 0x20,
-		eReady		= 0x40,
-		eAll		= 0xF0
+		eExpried	= 0x20
 	};
 
 	eAssetState operator|(const eAssetState lhs, const eAssetState rhs);
@@ -85,18 +82,6 @@ namespace wtr
 		}
 	};
 
-	struct RawBuffer
-	{
-		wtr::DynamicArray<uint8_t> data;
-	};
-
-	struct FormattedBuffer : RawBuffer
-	{
-		eDataType componentType;
-		uint32_t numComponents;
-		uint32_t count;
-	};
-
 	class Asset
 	{
 		GENERATE(Asset);
@@ -113,6 +98,13 @@ namespace wtr
 
 	public :
 		virtual eResourceState GetResourceState() const;
+
+	public :
+		void SetState(const eAssetState state);
+		const eAssetState GetState() const;
+
+	private :
+		std::atomic<eAssetState> m_state;
 	};
 
 	class TextureAsset : public Asset
@@ -121,6 +113,13 @@ namespace wtr
 	public :
 		Memory::RefPtr<FormattedBuffer> rawBuffer;
 		Memory::RefPtr<RHITexture> texture;
+
+		uint32_t width;
+		uint32_t height;
+		uint32_t depth;
+		uint32_t mipLevels;
+		uint32_t sampleCount;
+		ePixelFormat pixelFormat;
 
 		TextureAsset();
 		TextureAsset(const std::string& path, const eExtension extension);
@@ -179,22 +178,10 @@ namespace wtr
 
 	public:
 		virtual eResourceState GetResourceState() const override;
-	};
-
-	class ComposeAsset : public Asset
-	{
-		GENERATE(ComposeAsset);
-	public :
-		wtr::DynamicArray<Memory::RefPtr<MeshAsset>> meshs;
-		wtr::DynamicArray<Memory::RefPtr<MaterialAsset>> materials;
-		wtr::DynamicArray<Memory::RefPtr<TextureAsset>> textures;
-
-		ComposeAsset();
-		ComposeAsset(const std::string& path, const eExtension extension);
-		virtual ~ComposeAsset() = default;
-
-	public:
-		virtual eResourceState GetResourceState() const override;
+		void SetShaderType(const eShaderType shaderType);
+		eShaderType GetShaderType() const;
+	private :
+		eShaderType m_shaderType;
 	};
 };
 

@@ -1,6 +1,7 @@
 #include <Asset/AssetManager.h>
 
 #include <Asset/AssetTypes.h>
+#include <Asset/AssetCommander.h>
 
 namespace wtr
 {
@@ -9,11 +10,19 @@ namespace wtr
 		, m_mutex()
 	{}
 
-	void AssetManager::Release()
+	void AssetManager::Release(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 
-		m_assetMap.Clear();
+		for (auto& [path, asset] : m_assetMap)
+		{
+			if (asset)
+			{
+				asset->SetState(eAssetState::eExpried);
+			}
+
+			AssetCommander::Unload(asset, cmdList);
+		}
 	}
 
 	void AssetManager::AddAsset(const std::string& path, Memory::RefPtr<Asset> asset)

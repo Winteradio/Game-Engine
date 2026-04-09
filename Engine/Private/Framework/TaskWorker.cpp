@@ -71,7 +71,7 @@ namespace wtr
 		}
 	}
 
-	void TaskWorker::onDestroy()
+	void TaskWorker::onNotify()
 	{
 		if (m_task)
 		{

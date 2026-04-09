@@ -17,6 +17,8 @@ namespace wtr
 	class MeshBatch;
 	struct MeshBatchKey;
 	struct MeshBatchHasher;
+
+	class RHICommandList;
 };
 
 namespace wtr
@@ -38,8 +40,7 @@ namespace wtr
 
 		public :
 			void RemoveAll();
-			void Clear();
-			void FlushPending();
+			void Flush(Memory::RefPtr<RHICommandList> cmdList);
 
 			void UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale);
 
@@ -54,15 +55,13 @@ namespace wtr
 			Memory::RefPtr<MeshBatch> GetMeshBatch(const MeshBatchKey& key);
 			const MeshBatchContainer& GetMeshBatches() const;
 
-			PendingBatch& GetAddable();
-			PendingBatch& GetRemovable();
-			PendingBatch& GetUpdatable();
-
 		private :
+			void Clear();
+
 			void FlushPrimitive();
-			void FlushAddable();
-			void FlushUpdatable();
-			void FlushRemovable();
+			void FlushAddable(Memory::RefPtr<RHICommandList> cmdList);
+			void FlushUpdatable(Memory::RefPtr<RHICommandList> cmdList);
+			void FlushRemovable(Memory::RefPtr<RHICommandList> cmdList);
 			
 			void AddBatch(Memory::RefPtr<PrimitiveProxy> primitive);
 			void UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive);

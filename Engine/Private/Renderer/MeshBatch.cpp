@@ -42,15 +42,101 @@ namespace wtr
 
 	void MeshBatch::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!m_refDrawCommand || !m_refMesh || cmdList)
+		if (!m_refDrawCommand || !cmdList)
 		{
 			return;
+		}
+		
+		if (m_refMesh)
+		{
+			for (const auto& [vertexKey, rawBuffer] : m_refMesh->rawBuffers)
+			{
+				if (!rawBuffer || rawBuffer->data.Empty())
+				{
+					continue;
+				}
+
+				RHIBufferCreateDesc bufferDesc;
+				bufferDesc.rawBuffer = rawBuffer;
+				bufferDesc.bufferType = eBufferType::eVertex;
+				bufferDesc.accessType = eDataAccess::eStatic;
+				bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
+				bufferDesc.stride = rawBuffer->numComponents * GetDataTypeSize(rawBuffer->componentType);
+
+				Memory::RefPtr<RHIBuffer> vertexBuffer = cmdList->CreateBuffer(bufferDesc);
+				if (vertexBuffer)
+				{
+					m_refMesh->buffers[vertexKey] = vertexBuffer;
+				}
+			}
+
+			if (m_refMesh->rawIndex && !m_refMesh->rawIndex->data.Empty())
+			{
+				RHIBufferCreateDesc bufferDesc;
+				bufferDesc.rawBuffer = m_refMesh->rawIndex;
+				bufferDesc.bufferType = eBufferType::eIndex;
+				bufferDesc.accessType = eDataAccess::eStatic;
+				bufferDesc.size = static_cast<uint32_t>(m_refMesh->rawIndex->data.Size());
+				bufferDesc.stride = GetDataTypeSize(m_refMesh->rawIndex->componentType);
+
+				Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(bufferDesc);
+				if (indexBuffer)
+				{
+					m_refMesh->index = indexBuffer;
+				}
+			}
+
+			m_refDrawCommand->indexBuffer = m_refMesh->index;
+			m_refDrawCommand->vertexBuffers = m_refMesh->buffers;
+		}
+
+		if (m_refMaterial)
+		{
+			for (const auto& [textureSlot, refTexture] : m_refMaterial->textures)
+			{
+				if (!refTexture)
+				{
+					continue;
+				}
+
+				RHITextureCreateDesc textureDesc;
+				textureDesc.rawBuffer = refTexture->rawBuffer;
+				textureDesc.width = refTexture->width;
+				textureDesc.height = refTexture->height;
+				textureDesc.depth = refTexture->depth;
+				textureDesc.mipLevels = refTexture->mipLevels;
+				textureDesc.sampleCount = refTexture->sampleCount;
+				textureDesc.format = refTexture->pixelFormat;
+
+				Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(textureDesc);
+				if (texture)
+				{
+					m_refMaterial->textures[textureSlot]->texture = texture;
+					m_refDrawCommand->textureSlots[textureSlot] = texture;
+				}
+			}
+		}
+
+		if (!m_transformBuffer && !m_transforms.Empty())
+		{
+			Memory::RefPtr<FormattedBuffer> rawBuffer = Memory::MakeRef<FormattedBuffer>();
+			rawBuffer->data.Resize(m_transforms.Size() * sizeof(fmat4));
+			std::copy(m_transforms.Data(), m_transforms.Data() + m_transforms.Size(), reinterpret_cast<fmat4*>(rawBuffer->data.Data()));
+
+			RHIBufferCreateDesc bufferDesc;
+			bufferDesc.rawBuffer = rawBuffer;
+			bufferDesc.bufferType = eBufferType::eVertex;
+			bufferDesc.accessType = eDataAccess::eDynamic;
+			bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
+			bufferDesc.stride = rawBuffer->numComponents * GetDataTypeSize(rawBuffer->componentType);
+
+			m_transformBuffer = cmdList->CreateBuffer(bufferDesc);
 		}
 	}
 
 	void MeshBatch::Unload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!m_refDrawCommand || !m_transformBuffer || !m_refMesh)
+		if (!cmdList)
 		{
 			return;
 		}
@@ -58,9 +144,24 @@ namespace wtr
 
 	void MeshBatch::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!m_refDrawCommand || !m_transformBuffer || !m_refMesh)
+		if (!cmdList)
 		{
 			return;
+		}
+
+		if (m_refMesh)
+		{
+
+		}
+
+		if (m_refMaterial)
+		{
+
+		}
+
+		if (m_transformBuffer)
+		{
+
 		}
 	}
 
@@ -201,6 +302,23 @@ namespace wtr
 		key.meshSection = m_sectionIndex;
 
 		return key;
+	}
+
+	const std::string MeshBatch::ToString() const
+	{
+		std::string data;
+
+		if (m_refMesh)
+		{
+			data += "Mesh : " + m_refMesh->name + " / Section : " + std::to_string(m_sectionIndex) + " ";
+		}
+
+		if (m_refMaterial)
+		{
+			data += "Material : " + m_refMaterial->name + " ";
+		}
+
+		return data;
 	}
 
 	void MeshBatch::UpdateTransformData()

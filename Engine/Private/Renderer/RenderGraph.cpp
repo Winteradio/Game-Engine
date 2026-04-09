@@ -28,21 +28,26 @@ namespace wtr
 		return true;
 	}
 
-	void RenderGraph::FlushPending()
+	void RenderGraph::Flush(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		FlushAddable();
-		FlushRemovable();
+		FlushAddable(cmdList);
+		FlushRemovable(cmdList);
 	}
 
-	void RenderGraph::FlushAddable()
+	void RenderGraph::FlushAddable(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_addable.begin();
 		while (itr == m_addable.end())
 		{
 			auto& pipeLine = *itr;
 			if (!pipeLine)
 			{
-				LOGINFO() << "[RENDER GRAPH] Failed to add the pipeline, cause the pipeline is invalid";
+				LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is invalid";
 				itr = m_addable.Erase(itr);
 				continue;
 			}
@@ -56,7 +61,7 @@ namespace wtr
 			}
 			else if (pipeLine->GetResourceState() == eResourceState::eError)
 			{
-				LOGINFO() << "[RENDER GRAPH] Failed to add the pipeline, cause the pipeline is in error state";
+				LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is in error state";
 				itr = m_addable.Erase(itr);
 
 				continue;
@@ -68,15 +73,20 @@ namespace wtr
 		}
 	}
 
-	void RenderGraph::FlushRemovable()
+	void RenderGraph::FlushRemovable(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_removable.begin();
 		while (itr != m_removable.end())
 		{
 			auto& pipeLine = *itr;
 			if (!pipeLine)
 			{
-				LOGINFO() << "[RENDER GRAPH] Failed to remove the pipeline, cause the pipeline is invalid";
+				LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is invalid";
 				itr = m_removable.Erase(itr);
 				continue;
 			}
@@ -90,7 +100,7 @@ namespace wtr
 			}
 			else if (pipeLine->GetResourceState() == eResourceState::eError)
 			{
-				LOGINFO() << "[RENDER GRAPH] Failed to remove the pipeline, cause the pipeline is in error state";
+				LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is in error state";
 				itr = m_removable.Erase(itr);
 
 				m_graph.Remove(pipeLine);
@@ -108,33 +118,33 @@ namespace wtr
 	{
 		if (!pipeLine)
 		{
-			LOGINFO() << "[RENDER GRAPH] Failed to add the pipeline, cause the pipeline is invalid";
+			LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is invalid";
 			return;
 		}
 
 		m_addable.Insert(pipeLine);
 
-		LOGINFO() << "[RENDER GRAPH] Add the pipeline, ID : " << PipeLineString()(pipeLine);
+		LOGINFO() << "[Render Graph] Add the pipeline, ID : " << PipeLineString()(pipeLine);
 	}
 
 	void RenderGraph::Remove(Memory::RefPtr<PipeLine> pipeLine)
 	{
 		if (!pipeLine)
 		{
-			LOGINFO() << "[RENDER GRAPH] Failed to remove the pipeline, cause the pipeline is invalid";
+			LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is invalid";
 			return;
 		}
 
 		m_removable.Insert(pipeLine);
 
-		LOGINFO() << "[RENDER GRAPH] Remove the pipeline, ID : " << PipeLineString()(pipeLine);
+		LOGINFO() << "[Render Graph] Remove the pipeline, ID : " << PipeLineString()(pipeLine);
 	}
 
 	void RenderGraph::Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene> renderScene, const RenderView& renderView)
 	{
 		if (!cmdList || !renderScene)
 		{
-			LOGERROR() << "[RENDER GRAPH] Failed to execute the render graph, cause the command list or render scene is invalid";
+			LOGERROR() << "[Render Graph] Failed to execute the render graph, cause the command list or render scene is invalid";
 			return;
 		}
 
@@ -144,7 +154,7 @@ namespace wtr
 		{
 			if (!m_graph.Build())
 			{
-				LOGERROR() << "[RENDER GRAPH] Failed to build the render graph";
+				LOGERROR() << "[Render Graph] Failed to build the render graph";
 				return;
 			}
 		}

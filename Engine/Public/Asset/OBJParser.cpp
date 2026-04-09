@@ -203,7 +203,14 @@ namespace wtr
 		for (const auto& fileName : materials)
 		{
 			const std::string path = GetPath(mesh) + "/" + fileName;
-			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(AssetFactory::Create(path));
+			Memory::RefPtr<Asset> asset = AssetFactory::Create(path);
+			if (!asset)
+			{
+				LOGINFO() << "[OBJ] Failed to load the material file : " << path;
+				continue;
+			}
+
+			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(asset);
 			if (material)
 			{
 				material->name = GetName(material);

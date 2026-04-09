@@ -134,6 +134,7 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderGraph.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderTypes.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderResource.h
 
@@ -252,6 +253,9 @@ set(ENGINE_ASSET_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Asset/AssetSystem.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetLoader.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetFactory.cpp
+
+	${ENGINE_PRIVATE_DIR}/Asset/AssetCommander.h
+	${ENGINE_PRIVATE_DIR}/Asset/AssetCommander.cpp
 
 	${ENGINE_PRIVATE_DIR}/Asset/AssetStream.h
 	${ENGINE_PRIVATE_DIR}/Asset/AssetStream.cpp

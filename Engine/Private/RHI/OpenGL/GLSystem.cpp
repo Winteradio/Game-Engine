@@ -8,6 +8,8 @@
 #include <RHI/RHIResources.h>
 #include <RHI/OpenGL/GLResources.h>
 
+#define __GL_DEBUG__
+
 namespace wtr
 {
 	GLSystem::GLSystem()
@@ -29,6 +31,18 @@ namespace wtr
 			LOGERROR() << "[GL] Failed to initialize the OpenGL, cause failed to initialize the WGL";
 			return false;
 		}
+
+#ifdef __GL_DEBUG__
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(
+			[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+			{
+				LOGERROR() << "[GL] Error : " << message;
+			},
+			nullptr
+		);
+
+#endif
 
 		return true;
 	}
@@ -320,6 +334,13 @@ namespace wtr
 		return refGeometryShader;
 	}
 
+	Memory::RefPtr<RHIHullShader> GLSystem::CreateHullShader(const RHIHullShaderDesc desc)
+	{
+		Memory::RefPtr<RHIHullShader> refHullShader = Memory::MakeRef<GLHullShader>(desc);
+	
+		return refHullShader;
+	}
+
 	Memory::RefPtr<RHIPixelShader> GLSystem::CreatePixelShader(const RHIPixelShaderDesc desc)
 	{
 		Memory::RefPtr<RHIPixelShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
@@ -342,10 +363,45 @@ namespace wtr
 	}
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
-	{}
+	{
+		if (!info.rawBuffer || info.rawBuffer->data.Empty() || !buffer)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetDataAccess(info.accessType);
+		const uint32_t dataType = GetDataType(info.rawBuffer->componentType);
+		const uint32_t dataSize = info.rawBuffer->data.Size();
+		const uint32_t stride = info.stride;
+		const uint32_t componentCount = info.rawBuffer->numComponents;
+
+		uint32_t bufferID = GL_NONE;
+		glGenBuffers(1, &bufferID);
+
+		if (bufferID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate buffer";
+			return;
+		}
+
+		glBindBuffer(bufferType, bufferID);
+		glBufferSubData(bufferType, 0, dataSize, info.rawBuffer->data.Data());
+		glBindBuffer(bufferType, GL_NONE);
+
+		glBuffer->SetID(bufferID);
+		glBuffer->SetState(eResourceState::eReady);
+	}
 
 	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
-	{}
+	{
+	}
 
 	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
 	{}
@@ -354,6 +410,9 @@ namespace wtr
 	{}
 
 	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader)
+	{}
+
+	void GLSystem::InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader)
 	{}
 
 	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader)
@@ -372,7 +431,24 @@ namespace wtr
 	{}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
-	{}
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferID = glBuffer->GetID();
+		glDeleteBuffers(1, &bufferID);
+
+		glBuffer->SetID(GL_NONE);
+		glBuffer->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
 	{}

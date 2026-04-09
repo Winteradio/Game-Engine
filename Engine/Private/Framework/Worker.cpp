@@ -3,12 +3,14 @@
 namespace wtr
 {
 	Worker::Worker()
-		: m_isRunning{false}
+		: m_isRunning{ false }
 		, m_thread()
-	{}
+	{
+	}
 
 	Worker::~Worker()
-	{}
+	{
+	}
 
 	Worker::Worker(Worker&& other) noexcept
 		: m_isRunning(other.m_isRunning.load(std::memory_order_relaxed))
@@ -49,7 +51,7 @@ namespace wtr
 
 		m_isRunning = false;
 
-		onDestroy();
+		onNotify();
 
 		if (m_thread.joinable())
 		{
@@ -65,5 +67,19 @@ namespace wtr
 		{
 			onUpdate();
 		}
+
+		onDestroy();
 	}
+
+	void Worker::onStart()
+	{}
+
+	void Worker::onUpdate()
+	{}
+
+	void Worker::onDestroy()
+	{}
+
+	void Worker::onNotify()
+	{}
 }

@@ -4,16 +4,19 @@
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Reflection/include/Type/TypeMacro.h>
 #include <ECS/include/Object/Data.h>
+#include <Container/include/HashMap.h>
 
 namespace wtr
 {
 	class RenderScene;
 	struct RenderView;
 
+	class RHIShader;
 	class RHIPipeLine;
 	class RHICommandList;
 
 	enum class eResourceState : uint8_t;
+	enum class eShaderType : uint8_t;
 };
 
 namespace wtr
@@ -33,6 +36,7 @@ namespace wtr
 
 	protected :
 		Memory::RefPtr<RHIPipeLine> m_pipeLine;
+
 	};
 };
 

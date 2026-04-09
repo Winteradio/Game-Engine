@@ -29,7 +29,7 @@ namespace wtr
 	protected :
 		void onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
 		std::atomic<bool> m_isWaited;

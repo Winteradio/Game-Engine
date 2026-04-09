@@ -48,6 +48,7 @@ namespace wtr
 		, path()
 		, extension(eExtension::eNone)
 		, type(eAsset::eNone)
+		, m_state(eAssetState::eNone)
 	{}
 
 	Asset::Asset(const std::string& path, const eExtension extension, const eAsset type)
@@ -56,7 +57,18 @@ namespace wtr
 		, path(path)
 		, extension(extension)
 		, type(type)
+		, m_state(eAssetState::eNone)
 	{}
+
+	void Asset::SetState(const eAssetState state)
+	{
+		m_state.store(state, std::memory_order_release);
+	}
+
+	const eAssetState Asset::GetState() const
+	{
+		return m_state.load(std::memory_order_acquire);
+	}
 
 	eResourceState Asset::GetResourceState() const
 	{
@@ -105,12 +117,24 @@ namespace wtr
 		: Asset()
 		, rawBuffer()
 		, texture()
+		, width(0)
+		, height(0)
+		, depth(0)
+		, mipLevels(0)
+		, sampleCount(0)
+		, pixelFormat(ePixelFormat::eNone)
 	{}
 
 	TextureAsset::TextureAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eTexture)
 		, rawBuffer()
 		, texture()
+		, width(0)
+		, height(0)
+		, depth(0)
+		, mipLevels(0)
+		, sampleCount(0)
+		, pixelFormat(ePixelFormat::eNone)
 	{}
 
 	eResourceState TextureAsset::GetResourceState() const
@@ -202,6 +226,16 @@ namespace wtr
 		, rawBuffer()
 	{}
 
+	void ShaderAsset::SetShaderType(const eShaderType shaderType)
+	{
+		m_shaderType = shaderType;
+	}
+
+	eShaderType ShaderAsset::GetShaderType() const
+	{
+		return m_shaderType;
+	}
+
 	eResourceState ShaderAsset::GetResourceState() const
 	{
 		eResourceState rawState = eResourceState::eNone;
@@ -217,51 +251,5 @@ namespace wtr
 		eResourceState shaderState = shader ? shader->GetState() : eResourceState::eNone;
 
 		return rawState | shaderState;
-	}
-
-	ComposeAsset::ComposeAsset()
-		: Asset()
-	{
-	}
-
-	ComposeAsset::ComposeAsset(const std::string& path, const eExtension extension)
-		: Asset(path, extension, eAsset::eCompose)
-	{
-	}
-
-	eResourceState ComposeAsset::GetResourceState() const
-	{
-		if (meshs.Empty() && materials.Empty() && textures.Empty())
-		{
-			return eResourceState::eNone;
-		}
-
-		eResourceState allState = eResourceState::eAll;
-		for (const auto& mesh : meshs)
-		{
-			if (mesh)
-			{
-				allState &= mesh->GetResourceState();
-			}
-		}
-
-		for (const auto& material : materials)
-		{
-			if (material)
-			{
-				allState &= material->GetResourceState();
-			}
-		}
-
-		for (const auto& texture : textures)
-		{
-			if (texture)
-			{
-				allState &= texture->GetResourceState();
-			}
-		}
-
-
-		return allState;
 	}
 }

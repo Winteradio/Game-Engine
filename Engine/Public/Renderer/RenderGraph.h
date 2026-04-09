@@ -58,7 +58,7 @@ namespace wtr
 
 	public :
 		bool Init();
-		void FlushPending();
+		void Flush(Memory::RefPtr<RHICommandList> cmdList);
 
 		void Add(Memory::RefPtr<PipeLine> pipeline);
 		void Remove(Memory::RefPtr<PipeLine> pipeline);
@@ -71,8 +71,8 @@ namespace wtr
 		PendingPipeLine& GetRemovable();
 
 	private :
-		void FlushAddable();
-		void FlushRemovable();
+		void FlushAddable(Memory::RefPtr<RHICommandList> cmdList);
+		void FlushRemovable(Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
 		GraphType m_graph;

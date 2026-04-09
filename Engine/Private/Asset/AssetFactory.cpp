@@ -13,7 +13,7 @@ namespace wtr
 	{
 		{ eExtension::eNone, eAsset::eNone },
 		{ eExtension::eOBJ, eAsset::eMesh },
-		{ eExtension::eFBX, eAsset::eCompose },
+		{ eExtension::eFBX, eAsset::eNone },
 		{ eExtension::ePNG, eAsset::eTexture },
 		{ eExtension::eJPG, eAsset::eTexture },
 		{ eExtension::eBMP, eAsset::eTexture },
@@ -48,10 +48,6 @@ namespace wtr
 
 		case eAsset::eShader:
 			asset = Memory::MakeRef<ShaderAsset>(path, extension);
-			break;
-
-		case eAsset::eCompose:
-			asset = Memory::MakeRef<ComposeAsset>(path, extension);
 			break;
 
 		default :

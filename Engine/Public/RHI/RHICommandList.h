@@ -17,6 +17,7 @@ namespace wtr
 	class RHIShader;
 	class RHIVertexShader;
 	class RHIGeometryShader;
+	class RHIHullShader;
 	class RHIPixelShader;
 	class RHIComputeShader;
 	class RHIPipeLine;
@@ -26,6 +27,7 @@ namespace wtr
 	struct RHISamplerDesc;
 	struct RHIVertexShaderDesc;
 	struct RHIGeometryShaderDesc;
+	struct RHIHullShaderDesc;
 	struct RHIPixelShaderDesc;
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
@@ -35,6 +37,7 @@ namespace wtr
 	struct RHISamplerCreateDesc;
 	struct RHIVertexShaderCreateDesc;
 	struct RHIGeometryShaderCreateDesc;
+	struct RHIHullShaderCreateDesc;
 	struct RHIPixelShaderCreateDesc;
 	struct RHIComputeShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
@@ -89,6 +92,7 @@ namespace wtr
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerCreateDesc info);
 		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderCreateDesc info);
 		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderCreateDesc info);
+		Memory::RefPtr<RHIHullShader> CreateHullShader(const RHIHullShaderCreateDesc info);
 		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderCreateDesc info);
 		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateDesc info);
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateDesc info);

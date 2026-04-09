@@ -76,7 +76,7 @@ namespace wtr
 		}
 	}
 
-	void RHIWorker::onDestroy()
+	void RHIWorker::onNotify()
 	{
 		if (m_refSystem)
 		{

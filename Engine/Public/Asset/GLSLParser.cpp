@@ -29,6 +29,9 @@ namespace wtr
 			return false;
 		}
 
+		const eShaderType shaderType = GetShaderType(shader->name);
+		shader->SetShaderType(shaderType);
+
 		shader->rawBuffer = Memory::MakeRef<RawBuffer>();
 
 		auto& rawBuffer = shader->rawBuffer;
@@ -43,5 +46,40 @@ namespace wtr
 		LOGINFO() << "[GLSL] Succeed to parse the glsl file : " << asset->path;
 
 		return true;
+	}
+
+	eShaderType GLSLParser::GetShaderType(const std::string& name) const
+	{
+		const size_t dosPos = name.find_last_of('.');
+		if (dosPos == std::string::npos || dosPos == name.size() - 1)
+		{
+			return eShaderType::eNone;
+		}
+
+		const std::string extension = name.substr(dosPos + 1);
+		if (extension == "vs")
+		{
+			return eShaderType::eVertex;
+		}
+		else if (extension == "gs")
+		{
+			return eShaderType::eGeometry;
+		}
+		else if (extension == "hs")
+		{
+			return eShaderType::eHull;
+		}
+		else if (extension == "ps")
+		{
+			return eShaderType::ePixel;
+		}
+		else if (extension == "cs")
+		{
+			return eShaderType::eCompute;
+		}
+		else
+		{
+			return eShaderType::eNone;
+		}
 	}
 }

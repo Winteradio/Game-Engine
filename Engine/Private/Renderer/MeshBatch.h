@@ -61,6 +61,7 @@ namespace wtr
 		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
 
 		const MeshBatchKey GetKey() const;
+		const std::string ToString() const;
 
 	private :
 		void UpdateTransformData();

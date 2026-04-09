@@ -77,6 +77,10 @@ namespace wtr
 			return eResourceState::eNone;
 		}
 
-		return m_pipeLine->GetState();
+		eResourceState allState = m_pipeLine->GetState();
+
+		allState |= m_vertexShader->GetResourceState() | m_pixelShader->GetResourceState();
+
+		return allState;
 	}
 };

@@ -1,11 +1,12 @@
 #include <Asset/AssetWorker.h>
 
 #include <Memory/include/Core.h>
+#include <Asset/AssetCommander.h>
 #include <Asset/AssetSystem.h>
 #include <Asset/AssetTypes.h>
 #include <Asset/AssetParser.h>
-#include <RHI/RHIResources.h>
-#include <RHI/RHITaskExecutor.h>
+#include <RHI/RHIExecutor.h>
+#include <RHI/RHICommandList.h>
 
 #include <Log/include/Log.h>
 
@@ -44,11 +45,23 @@ namespace wtr
 		}
 	}
 
+	void AssetWorker::SetTaskExecutor(Memory::RefPtr<RHIExecutor> taskExecutor)
+	{
+		m_refTaskExecutor = taskExecutor;
+	}
+
 	void AssetWorker::onStart()
 	{}
 
 	void AssetWorker::onUpdate()
 	{
+		if (!m_refTaskExecutor)
+		{
+			return;
+		}
+
+		Memory::RefPtr<RHICommandList> cmdList = m_refTaskExecutor->Acquire();
+
 		AssetSystem::TaskQueue taskQueue = AssetSystem::GetTask();
 		while (!taskQueue.empty())
 		{
@@ -60,41 +73,31 @@ namespace wtr
 				continue;
 			}
 
-			for (auto& taskWorker : m_threads)
-			{
-				if (!taskWorker || !taskWorker->IsWaited())
-				{
-					continue;
-				}
-
-				Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
-
-				auto taskFunc = [assetRef = asset, parserRef = parser]() -> void
-				{
-					if (!parserRef || !assetRef)
-					{
-						return;
-					}
-
-					if (!parserRef->Parse(assetRef))
-					{
-						LOGERROR() << "[AssetWorker] Failed to parse the asset : " << assetRef->path;
-						return;
-					}
-
-					DispatchTask(assetRef);
-				};
-
-				Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
-
-				taskWorker->Set(task);
-
-				break;
-			}
+			onProcess(asset, cmdList);
 		}
+
+		m_refTaskExecutor->Submit(cmdList);
 	}
 
 	void AssetWorker::onDestroy()
+	{
+		if (!m_refTaskExecutor)
+		{
+			return;
+		}
+
+		Memory::RefPtr<RHICommandList> cmdList = m_refTaskExecutor->Acquire();
+		if (!cmdList)
+		{
+			return;
+		}
+
+		AssetSystem::Release(cmdList);
+
+		m_refTaskExecutor->Submit(cmdList);
+	}
+
+	void AssetWorker::onNotify()
 	{
 		for (auto& threadRef : m_threads)
 		{
@@ -107,52 +110,148 @@ namespace wtr
 		m_threads.Clear();
 	}
 
-	void AssetWorker::DispatchTask(Memory::RefPtr<Asset> asset)
+	void AssetWorker::onProcess(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!asset || !cmdList)
+		{
+			return;
+		}
+
+		const eAssetState assetState = asset->GetState();
+		if (assetState == eAssetState::eNone)
+		{
+			onParse(asset);
+		}
+		else if (assetState == eAssetState::eLoaded)
+		{
+			onLoad(asset, cmdList);
+		}
+		else if (assetState == eAssetState::eExpried)
+		{
+			onUnload(asset, cmdList);
+		}
+		else
+		{
+			LOGERROR() << "[AssetWorker] The invalid asset state : " << static_cast<uint32_t>(assetState);
+			return;
+		}
+	}
+
+	void AssetWorker::onParse(Memory::RefPtr<Asset> asset)
 	{
 		if (!asset)
 		{
 			return;
 		}
 
+		for (auto& taskWorker : m_threads)
+		{
+			if (!taskWorker || !taskWorker->IsWaited())
+			{
+				continue;
+			}
+
+			Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
+
+			auto taskFunc = [assetRef = asset, parserRef = parser]() -> void
+				{
+					if (!parserRef || !assetRef)
+					{
+						return;
+					}
+
+					if (!parserRef->Parse(assetRef))
+					{
+						LOGERROR() << "[AssetWorker] Failed to parse the asset : " << assetRef->path;
+						return;
+					}
+					assetRef->SetState(eAssetState::eLoaded);
+
+					onDispatch(assetRef);
+				};
+
+			Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
+
+			taskWorker->Set(task);
+
+			break;
+		}
+	}
+
+	void AssetWorker::onLoad(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!asset || !cmdList)
+		{
+			return;
+		}
+
+		AssetCommander::Load(asset, cmdList);
+	}
+
+	void AssetWorker::onUnload(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!asset || !cmdList)
+		{
+			return;
+		}
+
+		AssetCommander::Unload(asset, cmdList);
+	}
+
+	void AssetWorker::onDispatch(Memory::RefPtr<Asset> asset)
+	{
+		if (!asset)
+		{
+			return;
+		}
+
+		if (asset->GetState() != eAssetState::eLoaded)
+		{
+			LOGERROR() << "[AssetWorker] The asset's state is not ready, name : " << asset->name << " path : " << asset->path;
+			return;
+		}
+
+		AssetSystem::AddTask(asset);
+
 		if (asset->type == eAsset::eMesh)
 		{
-			Memory::RefPtr<MeshAsset> mesh = Memory::Cast<MeshAsset>(asset);
-			if (!mesh)
+			Memory::RefPtr<MeshAsset> meshAsset = Memory::Cast<MeshAsset>(asset);
+			if (!meshAsset)
 			{
 				return;
 			}
 
-			for (auto& [name, material] : mesh->materials)
+			for (const auto& [name, materialAsset] : meshAsset->materials)
 			{
-				if (!material)
+				if (!materialAsset)
 				{
 					continue;
 				}
 
-				AssetSystem::AddTask(material);
+				AssetSystem::AddTask(materialAsset);
 			}
 		}
 		else if (asset->type == eAsset::eMaterial)
 		{
-			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(asset);
-			if (!material)
+			Memory::RefPtr<MaterialAsset> materialAsset = Memory::Cast<MaterialAsset>(asset);
+			if (!materialAsset)
 			{
 				return;
 			}
 
-			for (auto& [slot, texture] : material->textures)
+			for (const auto& [textureSlot, textureAsset] : materialAsset->textures)
 			{
-				if (!texture)
+				if (!textureAsset)
 				{
 					continue;
 				}
 
-				AssetSystem::AddTask(texture);
+				AssetSystem::AddTask(textureAsset);
 			}
 		}
 		else
 		{
-			// TODO
+			return;
 		}
 	}
 }

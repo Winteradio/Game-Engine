@@ -24,36 +24,36 @@ namespace wtr
 
 	bool Renderer::Init()
 	{
-		LOGINFO() << "[RENDERER] Initialize the renderer";
+		LOGINFO() << "[Renderer] Initialize the renderer";
 
 		m_refScene = Memory::MakeRef<RenderScene>();
 		if (!m_refScene)
 		{
-			LOGERROR() << "[RENDERER] Failed to create the render scene";
+			LOGERROR() << "[Renderer] Failed to create the render scene";
 			return false;
 		}
 
 		m_refGraph = Memory::MakeRef<RenderGraph>();
 		if (!m_refGraph)
 		{
-			LOGERROR() << "[RENDERER] Failed to create the render graph";
+			LOGERROR() << "[Renderer] Failed to create the render graph";
 			return false;
 		}
 
 		if (!m_refGraph->Init())
 		{
-			LOGERROR() << "[RENDERER] Failed to initialize the render graph";
+			LOGERROR() << "[Renderer] Failed to initialize the render graph";
 			return false;
 		}
 
 		m_refCommandList = Memory::MakeRef<RenderCommandList>();
 		if (!m_refCommandList)
 		{
-			LOGERROR() << "[RENDERER] Failed to create the render command list";
+			LOGERROR() << "[Renderer] Failed to create the render command list";
 			return false;
 		}
 
-		LOGINFO() << "[RENDERER] Succeed to initialize the renderer";
+		LOGINFO() << "[Renderer] Succeed to initialize the renderer";
 
 		return true;
 	}
@@ -77,8 +77,15 @@ namespace wtr
 
 	void Renderer::PreDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		PrepareMeshBatch(cmdList);
-		PreparePipeLine(cmdList);
+		if (m_refScene)
+		{
+			m_refScene->Flush(cmdList);
+		}
+
+		if (m_refGraph)
+		{
+			m_refGraph->Flush(cmdList);
+		}
 	}
 
 	void Renderer::Draw(Memory::RefPtr<RHICommandList> cmdList)
@@ -96,15 +103,6 @@ namespace wtr
 
 	void Renderer::PostDraw(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (m_refScene)
-		{
-			m_refScene->FlushPending();
-		}
-
-		if (m_refGraph)
-		{
-			m_refGraph->FlushPending();
-		}
 	}
 
 	Memory::RefPtr<RenderScene> Renderer::GetScene()
@@ -120,80 +118,5 @@ namespace wtr
 	Memory::RefPtr<RenderCommandList> Renderer::GetCommandList()
 	{
 		return m_refCommandList;
-	}
-
-	void Renderer::PrepareMeshBatch(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!m_refScene || !cmdList)
-		{
-			return;
-		}
-		
-		auto& addable = m_refScene->GetAddable();
-		for (auto& meshBatch : addable)
-		{
-			if (!meshBatch)
-			{
-				continue;
-			}
-
-			meshBatch->Upload(cmdList);
-		}
-
-		auto& removable = m_refScene->GetRemovable();
-		for (auto& meshBatch : removable)
-		{
-			if (!meshBatch)
-			{
-				continue;
-			}
-
-			meshBatch->Unload(cmdList);
-		}
-
-		auto& updatable = m_refScene->GetUpdatable();
-		for (auto& meshBatch : updatable)
-		{
-			if (!meshBatch)
-			{
-				continue;
-			}
-
-			meshBatch->Sync(cmdList);
-		}
-
-		m_refScene->FlushPending();
-	}
-
-	void Renderer::PreparePipeLine(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!m_refGraph || !cmdList)
-		{
-			return;
-		}
-
-		auto& addable = m_refGraph->GetAddable();
-		for (auto& pipeLine : addable)
-		{
-			if (!pipeLine)
-			{
-				continue;
-			}
-
-			pipeLine->Init(cmdList);
-		}
-
-		auto& removable = m_refGraph->GetRemovable();
-		for (auto& pipeLine : removable)
-		{
-			if (!pipeLine)
-			{
-				continue;
-			}
-
-			// TODO : PipeLine GPU Resource Release
-		}
-
-		m_refGraph->FlushPending();
 	}
 }

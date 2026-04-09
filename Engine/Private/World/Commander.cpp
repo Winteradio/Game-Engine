@@ -275,7 +275,7 @@ namespace wtr
 					return;
 				}
 
-				renderScene->Clear();
+				renderScene->RemoveAll();
 			}
 		);
 	}

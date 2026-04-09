@@ -193,6 +193,20 @@ namespace wtr
 		}
 	}
 
+	RHICommandInitializeHullShader::RHICommandInitializeHullShader(const RHIHullShaderCreateDesc info, const Memory::RefPtr<RHIHullShader> shader)
+		: m_info(info)
+		, m_shader(shader)
+	{
+	}
+
+	void RHICommandInitializeHullShader::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_shader)
+		{
+			system->InitializeHullShader(m_info, m_shader);
+		}
+	}
+
 	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIPixelShaderCreateDesc info, const Memory::RefPtr<RHIPixelShader> shader)
 		: m_info(info)
 		, m_shader(shader)

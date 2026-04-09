@@ -163,6 +163,20 @@ namespace wtr
 		return refShader;
 	}
 
+	Memory::RefPtr<RHIHullShader> RHICommandList::CreateHullShader(const RHIHullShaderCreateDesc info)
+	{
+		if (!m_system)
+		{
+			return nullptr;
+		}
+
+		Memory::RefPtr<RHIHullShader> refShader = m_system->CreateHullShader(info);
+		
+		Enqueue<RHICommandInitializeHullShader>(info, refShader);
+		
+		return refShader;
+	}
+
 	Memory::RefPtr<RHIPixelShader> RHICommandList::CreatePixelShader(const RHIPixelShaderCreateDesc info)
 	{
 		if (!m_system)

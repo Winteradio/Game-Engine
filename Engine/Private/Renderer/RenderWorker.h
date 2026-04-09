@@ -31,7 +31,7 @@ namespace wtr
 	protected :
 		void onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
 		Memory::RefPtr<Renderer>	m_refRenderer;

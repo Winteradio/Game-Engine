@@ -33,7 +33,8 @@ namespace wtr
 			virtual ~RHIResource() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
+			void* GetRawBuffer();
+			const void* GetRawBuffer() const;
 			
 			void SetState(const eResourceState eState);
 			const eResourceState GetState() const;
@@ -49,8 +50,6 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const eBufferType GetType() const;
 			const eDataAccess GetAccessType() const;
 			const uint32_t GetSize() const;
@@ -67,8 +66,6 @@ namespace wtr
 			virtual ~RHITexture() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const uint32_t GetWidth() const;
 			const uint32_t GetHeight() const;
 			const uint32_t GetDepth() const;
@@ -88,8 +85,6 @@ namespace wtr
 			virtual ~RHISampler() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const eFilterMode GetMinFilter() const;
 			const eFilterMode GetMagFilter() const;
 			const eFilterMode GetMipFilter() const;
@@ -114,9 +109,6 @@ namespace wtr
 			RHIVertexShader(const RHIVertexShaderDesc& desc);
 			virtual ~RHIVertexShader() = default;
 
-		public :
-			virtual const void* GetRawBuffer() const;
-
 		private :
 			RHIVertexShaderDesc m_dsec;
 	};
@@ -127,11 +119,18 @@ namespace wtr
 			RHIGeometryShader(const RHIGeometryShaderDesc& desc);
 			virtual ~RHIGeometryShader() = default;
 
-		public :
-			virtual const void* GetRawBuffer() const;
-
 		private :
 			RHIGeometryShaderDesc m_desc;
+	};
+
+	class RHIHullShader : public RHIShader
+	{
+	public:
+		RHIHullShader(const RHIHullShaderDesc& desc);
+		virtual ~RHIHullShader() = default;
+
+	private:
+		RHIHullShaderDesc m_desc;
 	};
 
 	class RHIPixelShader : public RHIShader
@@ -139,9 +138,6 @@ namespace wtr
 		public :
 			RHIPixelShader(const RHIPixelShaderDesc& desc);
 			virtual ~RHIPixelShader() = default;
-
-		public :
-			virtual const void* GetRawBuffer() const;
 
 		private :
 			RHIPixelShaderDesc m_desc;
@@ -152,9 +148,6 @@ namespace wtr
 		public :
 			RHIComputeShader(const RHIComputeShaderDesc& desc);
 			virtual ~RHIComputeShader() = default;
-
-		public :
-			virtual const void* GetRawBuffer() const;
 
 		private :
 			RHIComputeShaderDesc m_desc;
@@ -167,8 +160,6 @@ namespace wtr
 			virtual ~RHIPipeLine() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const RHIClearState GetClearState() const;
 			const RHIColorState GetColorState() const;
 			const RHIDepthState GetDepthState() const;

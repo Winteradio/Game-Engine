@@ -80,7 +80,7 @@ namespace wtr
 		m_refProducer->Submit();
 	}
 
-	void RenderWorker::onDestroy()
+	void RenderWorker::onNotify()
 	{
 		if (m_refConsumer)
 		{

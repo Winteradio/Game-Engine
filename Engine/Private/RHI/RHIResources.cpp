@@ -40,9 +40,14 @@ namespace wtr
 		return lhs;
 	}
 
+	void* RHIResource::GetRawBuffer()
+	{
+		return reinterpret_cast<void*>(this);
+	}
+
 	const void* RHIResource::GetRawBuffer() const
 	{
-		return nullptr;
+		return reinterpret_cast<const void*>(this);
 	}
 
 	void RHIResource::SetState(const eResourceState eState)
@@ -58,11 +63,6 @@ namespace wtr
 	RHIBuffer::RHIBuffer(const RHIBufferDesc& desc)
 		: m_desc(desc)
 	{}
-
-	const void* RHIBuffer::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
 
 	const eBufferType RHIBuffer::GetType() const
 	{
@@ -87,11 +87,6 @@ namespace wtr
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
 	{}
-
-	const void* RHITexture::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
 
 	const uint32_t RHITexture::GetWidth() const
 	{
@@ -132,11 +127,6 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const void* RHISampler::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
 	const eFilterMode RHISampler::GetMinFilter() const
 	{
 		return m_desc.minFilter;
@@ -171,46 +161,25 @@ namespace wtr
 		: m_dsec(desc)
 	{}
 
-	const void* RHIVertexShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
 	RHIGeometryShader::RHIGeometryShader(const RHIGeometryShaderDesc& desc)
 		: m_desc(desc)
 	{}
 
-	const void* RHIGeometryShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
+	RHIHullShader::RHIHullShader(const RHIHullShaderDesc& desc)
+		: m_desc(desc)
+	{}
 
 	RHIPixelShader::RHIPixelShader(const RHIPixelShaderDesc& desc)
 		: m_desc(desc)
 	{}
 
-	const void* RHIPixelShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
 	RHIComputeShader::RHIComputeShader(const RHIComputeShaderDesc& desc)
 		: m_desc(desc)
 	{}
 
-	const void* RHIComputeShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
 	{}
-
-	const void* RHIPipeLine::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
 
 	const RHIClearState RHIPipeLine::GetClearState() const
 	{

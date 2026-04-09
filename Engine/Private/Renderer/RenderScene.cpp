@@ -4,6 +4,7 @@
 #include <Renderer/Proxy/LightProxy.h>
 #include <Renderer/MeshBatch.h>
 #include <RHI/RHIResources.h>
+#include <RHI/RHICommandList.h>
 #include <Asset/AssetTypes.h>
 
 #include <Memory/include/Core.h>
@@ -22,13 +23,12 @@ namespace wtr
 	{}
 
 	RenderScene::~RenderScene()
-	{}
+	{
+		Clear();
+	}
 
 	void RenderScene::RemoveAll()
 	{
-		m_primitives.Clear();
-		m_lights.Clear();
-
 		for (auto meshBatch : m_addable)
 		{
 			m_removable.Insert(meshBatch);
@@ -39,8 +39,15 @@ namespace wtr
 			m_removable.Insert(meshBatch);
 		}
 
+		m_primitives.Clear();
+		m_lights.Clear();
+
+		m_pendingPrimitives.Clear();
+
 		m_addable.Clear();
 		m_updatable.Clear();
+
+		m_meshBatches.Clear();
 	}
 
 	void RenderScene::Clear()
@@ -48,17 +55,18 @@ namespace wtr
 		m_primitives.Clear();
 		m_lights.Clear();
 		m_meshBatches.Clear();
+		m_pendingPrimitives.Clear();
 		m_addable.Clear();
 		m_updatable.Clear();
 		m_removable.Clear();
 	}
 
-	void RenderScene::FlushPending()
+	void RenderScene::Flush(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		FlushPrimitive();
-		FlushAddable();
-		FlushUpdatable();
-		FlushRemovable();
+		FlushAddable(cmdList);
+		FlushUpdatable(cmdList);
+		FlushRemovable(cmdList);
 	}
 
 	void RenderScene::UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale)
@@ -180,21 +188,6 @@ namespace wtr
 		return m_meshBatches;
 	}
 
-	RenderScene::PendingBatch& RenderScene::GetAddable()
-	{
-		return m_addable;
-	}
-
-	RenderScene::PendingBatch& RenderScene::GetRemovable()
-	{
-		return m_removable;
-	}
-
-	RenderScene::PendingBatch& RenderScene::GetUpdatable()
-	{
-		return m_updatable;
-	}
-
 	void RenderScene::FlushPrimitive()
 	{
 		auto itr = m_pendingPrimitives.begin();
@@ -223,8 +216,13 @@ namespace wtr
 		}
 	}
 
-	void RenderScene::FlushAddable()
+	void RenderScene::FlushAddable(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_addable.begin();
 		while (itr != m_addable.end())
 		{
@@ -237,17 +235,27 @@ namespace wtr
 				continue;
 			}
 
-			if (meshBatch->GetResourceState() == eResourceState::eReady)
+			const eResourceState state = meshBatch->GetResourceState();
+			if (state == eResourceState::eLoaded)
 			{
-				LOGINFO() << "[RENDER SCENE] Add the mesh batch, cause the mesh batch is in ready state";
-				m_meshBatches[meshBatch->GetKey()] = meshBatch;
+				meshBatch->Upload(cmdList);
+				m_meshBatches[meshBatch->GetKey()] = meshBatch;	
 				itr = m_addable.Erase(itr);
+
 				continue;
 			}
-			else if (meshBatch->GetResourceState() == eResourceState::eError)
+			else if (state == eResourceState::eReady)
 			{
-				LOGINFO() << "[RENDER SCENE] Failed to add the mesh batch, cause the mesh batch is in error state";
+				m_meshBatches[meshBatch->GetKey()] = meshBatch;
 				itr = m_addable.Erase(itr);
+
+				continue;
+			}
+			else if (state == eResourceState::eError)
+			{
+				LOGINFO() << "[RENDER SCENE] Failed to add the mesh batch, the mesh batch is in error state, ID : " << meshBatch->ToString();
+				itr = m_addable.Erase(itr);
+
 				continue;
 			}
 			else
@@ -257,8 +265,13 @@ namespace wtr
 		}
 	}
 
-	void RenderScene::FlushUpdatable()
+	void RenderScene::FlushUpdatable(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_updatable.begin();
 		while (itr != m_updatable.end())
 		{
@@ -270,27 +283,27 @@ namespace wtr
 				continue;
 			}
 
-			if (meshBatch->GetResourceState() == eResourceState::eReady)
+			const eResourceState state = meshBatch->GetResourceState();
+			if (state == eResourceState::eDirty)
 			{
-				LOGINFO() << "[RENDER SCENE] Update the mesh batch, cause the mesh batch is in ready state";
-				itr = m_updatable.Erase(itr);
-				continue;
-			}
-			else if (meshBatch->GetResourceState() == eResourceState::eError)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to update the mesh batch, cause the mesh batch is in error state";
-				itr = m_updatable.Erase(itr);
-				continue;
+				meshBatch->Sync(cmdList);
 			}
 			else
 			{
-				itr++;
+				LOGINFO() << "[RENDER SCENE] Failed to update the mesh batch, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << meshBatch->ToString();
 			}
+
+			itr = m_updatable.Erase(itr);
 		}
 	}
 
-	void RenderScene::FlushRemovable()
+	void RenderScene::FlushRemovable(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_removable.begin();
 		while (itr != m_removable.end())
 		{
@@ -298,33 +311,21 @@ namespace wtr
 			if (!meshBatch)
 			{
 				LOGINFO() << "[RENDER SCENE] Failed to remove the mesh batch, cause the mesh batch is invalid";
-
 				itr = m_removable.Erase(itr);
 				continue;
 			}
 
-			if (meshBatch->GetResourceState() == eResourceState::eNone)
+			const eResourceState state = meshBatch->GetResourceState();
+			if (state >= eResourceState::eLoaded)
 			{
-				LOGINFO() << "[RENDER SCENE] Remove the mesh batch, the mesh batch is in none state";
-
-				itr = m_removable.Erase(itr);
-				m_meshBatches.Erase(meshBatch->GetKey());
-
-				continue;
-			}
-			else if (meshBatch->GetResourceState() == eResourceState::eError)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to remove the mesh batch, cause the mesh batch is in error state";
-
-				itr = m_removable.Erase(itr);
-				m_meshBatches.Erase(meshBatch->GetKey());
-
-				continue;
+				meshBatch->Unload(cmdList);
 			}
 			else
 			{
-				itr++;
+				LOGINFO() << "[RENDER SCENE] Failed to remove the mesh batch, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << meshBatch->ToString();
 			}
+
+			itr = m_removable.Erase(itr);
 		}
 	}
 

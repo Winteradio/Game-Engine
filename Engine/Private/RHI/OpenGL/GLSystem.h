@@ -36,6 +36,7 @@ namespace wtr
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc desc) override;
 		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc desc) override;
 		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc desc) override;
+		Memory::RefPtr<RHIHullShader> CreateHullShader(const RHIHullShaderDesc desc) override;
 		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc desc) override;
 		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
@@ -45,6 +46,7 @@ namespace wtr
 		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
 		void InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader);
 		void InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader);
+		void InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader);
 		void InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader);
 		void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader);
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);

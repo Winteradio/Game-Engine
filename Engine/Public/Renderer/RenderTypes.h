@@ -1,6 +1,8 @@
 #ifndef __WTR_RENDERTYPES_H__
 #define __WTR_RENDERTYPES_H__
 
+#include <Container/include/DynamicArray.h>
+#include <Memory/include/Pointer/RefPtr.h>
 #include <cstdint>
 
 namespace wtr
@@ -274,6 +276,18 @@ namespace wtr
 		eMetallic		= 0x05,
 	};
 
+	struct RawBuffer
+	{
+		wtr::DynamicArray<uint8_t> data;
+	};
+
+	struct FormattedBuffer : RawBuffer
+	{
+		eDataType componentType;
+		uint32_t numComponents;
+		uint32_t count;
+	};
+
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
@@ -303,6 +317,8 @@ namespace wtr
 	{
 		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
+
+	size_t GetDataTypeSize(const eDataType dataType);
 };
 
 

@@ -12,6 +12,7 @@ namespace wtr
 	class RHIShader;
 	class RHIVertexShader;
 	class RHIGeometryShader;
+	class RHIHullShader;
 	class RHIPixelShader;
 	class RHIComputeShader;
 	class RHIPipeLine;
@@ -21,6 +22,7 @@ namespace wtr
 	struct RHISamplerDesc;
 	struct RHIVertexShaderDesc;
 	struct RHIGeometryShaderDesc;
+	struct RHIHullShaderDesc;
 	struct RHIPixelShaderDesc;
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
@@ -30,6 +32,7 @@ namespace wtr
 	struct RHISamplerCreateDesc;
 	struct RHIVertexShaderCreateDesc;
 	struct RHIGeometryShaderCreateDesc;
+	struct RHIHullShaderCreateDesc;
 	struct RHIPixelShaderCreateDesc;
 	struct RHIComputeShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
@@ -88,6 +91,7 @@ namespace wtr
 		virtual Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc desc) = 0;
 		virtual Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc desc) = 0;
+		virtual Memory::RefPtr<RHIHullShader> CreateHullShader(const RHIHullShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) = 0;
@@ -97,6 +101,7 @@ namespace wtr
 		virtual void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler) = 0;
 		virtual void InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader) = 0;
 		virtual void InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader) = 0;
+		virtual void InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader) = 0;
 		virtual void InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader) = 0;
 		virtual void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader) = 0;
 		virtual void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;

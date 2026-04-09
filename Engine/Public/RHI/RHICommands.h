@@ -15,6 +15,7 @@ namespace wtr
 	class RHIShader;
 	class RHIVertexShader;
 	class RHIGeometryShader;
+	class RHIHullShader;
 	class RHIPixelShader;
 	class RHIComputeShader;
 	class RHIPipeLine;
@@ -251,6 +252,20 @@ namespace wtr
 	private :
 		const RHIGeometryShaderCreateDesc m_info;
 		const Memory::RefPtr<RHIGeometryShader> m_shader;
+	};
+
+	class RHICommandInitializeHullShader : public RHICommand<RHICommandInitializeHullShader>
+	{
+	public:
+		RHICommandInitializeHullShader(const RHIHullShaderCreateDesc info, const Memory::RefPtr<RHIHullShader> shader);
+		~RHICommandInitializeHullShader() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const RHIHullShaderCreateDesc m_info;
+		const Memory::RefPtr<RHIHullShader> m_shader;
 	};
 
 	class RHICommandInitializePixelShader : public RHICommand<RHICommandInitializePixelShader>

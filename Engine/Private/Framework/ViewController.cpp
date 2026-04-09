@@ -63,7 +63,7 @@ namespace wtr
 		Memory::RefPtr<ViewInfo> viewInfo = Memory::MakeRef<ViewInfo>();
 		if (!viewInfo)
 		{
-			LOGERROR() << "[VIEWCONTROLLER] Failed to create the view info(" << name << ")";
+			LOGERROR() << "[ViewController] Failed to create the view info(" << name << ")";
 			return {};
 		}
 

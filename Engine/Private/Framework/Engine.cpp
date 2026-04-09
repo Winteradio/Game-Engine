@@ -332,6 +332,7 @@ namespace wtr
 			}
 
 			assetWorker->SetTaskThread(4);
+			assetWorker->SetTaskExecutor(m_rhiTaskExecutor);
 
 			m_assetWorker = assetWorker;
 		}
@@ -346,7 +347,13 @@ namespace wtr
 		LOGINFO() << "[Engine] Shutting down Engine";
 
 		AssetSystem::Shutdown();
-		
+
+		if (m_worldContext)
+		{
+			m_worldContext->Clear();
+			m_worldContext.Reset();
+		}
+
 		if (m_updateGate)
 		{
 			m_updateGate->NotifyAll();
@@ -392,13 +399,6 @@ namespace wtr
 			m_inputHandler.Reset();
 		}
 
-		if (m_worldContext)
-		{
-			m_worldContext->Clear();
-			m_worldContext.Reset();
-		}
-
-		AssetSystem::Release();
 		Memory::Release();
 
 		LOGINFO() << "[Engine] Engine shut down successfully";

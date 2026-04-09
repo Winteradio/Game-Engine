@@ -11,6 +11,7 @@ namespace wtr
 	class Asset;
 	class AssetParser;
 	class AssetWorker;
+	class RHICommandList;
 };
 
 namespace wtr
@@ -24,14 +25,15 @@ namespace wtr
 	public :
 		using TaskQueue = std::queue<Memory::RefPtr<Asset>>;
 
+		// TODO : 유저단에서 임의의 Asset을 생성하여 데이터를 넣을 수 있도록
 		static Memory::RefPtr<Asset> Load(const std::string& path);
 		static void Unload(const std::string& path);
 		static void Shutdown();
-		static void Release();
 
 	private :
 		static TaskQueue GetTask();
 		static void AddTask(Memory::RefPtr<Asset> asset);
+		static void Release(Memory::RefPtr<RHICommandList> cmdList);
 
 		static Memory::RefPtr<AssetParser> GetParser(const std::string& path);
 

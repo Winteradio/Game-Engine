@@ -85,7 +85,7 @@ namespace wtr
 		}
 	}
 
-	void WorldWorker::onDestroy()
+	void WorldWorker::onNotify()
 	{
 		if (m_refProducer)
 		{
