@@ -59,6 +59,19 @@ namespace wtr
 			RHIBufferDesc m_desc;
 	};
 
+	class RHIVertexLayout : public RHIResource
+	{
+		public :
+			RHIVertexLayout(const RHIVertexLayoutDesc& desc);
+			virtual ~RHIVertexLayout() = default;
+
+		public :
+			const size_t GetNumAttributes() const;
+
+		protected :
+			RHIVertexLayoutDesc m_desc;
+	};
+
 	class RHITexture : public RHIResource
 	{
 		public :

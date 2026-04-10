@@ -306,6 +306,13 @@ namespace wtr
 		return refBuffer;
 	}
 
+	Memory::RefPtr<RHIVertexLayout> GLSystem::CreateVertexLayout(const RHIVertexLayoutDesc desc)
+	{
+		Memory::RefPtr<RHIVertexLayout> refVertexLayout = Memory::MakeRef<GLVertexLayout>(desc);
+	
+		return refVertexLayout;
+	}
+
 	Memory::RefPtr<RHITexture> GLSystem::CreateTexture(const RHITextureDesc desc)
 	{
 		Memory::RefPtr<RHITexture> refTexture = Memory::MakeRef<GLTexture>(desc);
@@ -399,6 +406,77 @@ namespace wtr
 		glBuffer->SetState(eResourceState::eReady);
 	}
 
+	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		if (!info.vertexStreams.Empty() && !info.indexBuffer || !layout)
+		{
+			return;
+		}
+
+		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout)
+		{
+			return;
+		}
+
+		uint32_t vertexLayoutID = GL_NONE;
+		glGenVertexArrays(1, &vertexLayoutID);
+
+		if (vertexLayoutID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate vertex layout buffer";
+			return;
+		}
+
+		glBindVertexArray(vertexLayoutID);
+		for (const auto& [vertexKey, vertexStream] : info.vertexStreams)
+		{
+			const uint32_t location = vertexStream.attribute.location;
+			const uint64_t offset = static_cast<uint64_t>(vertexStream.attribute.offset);
+			const uint32_t normalized = vertexStream.attribute.normalized ? GL_TRUE : GL_FALSE;
+			const uint32_t integer = vertexStream.attribute.integer ? GL_TRUE : GL_FALSE;
+			const uint32_t divisor = vertexStream.attribute.divisor;
+			const uint32_t numComponents = vertexStream.attribute.numComponents;
+			const uint32_t componentType = GetDataType(vertexStream.attribute.componentType);
+			const uint32_t componentSize = GetDataTypeSize(vertexStream.attribute.componentType);
+			const uint32_t stride = componentType * componentSize;
+
+			const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(vertexStream.buffer->GetRawBuffer());
+			if (!glBuffer)
+			{
+				LOGERROR() << "[GL] Failed to get vertex stream buffer";
+				continue;
+			}
+
+			glBindBuffer(GL_ARRAY_BUFFER, glBuffer->GetID());
+			glEnableVertexAttribArray(location);
+
+			if (integer == GL_TRUE)
+			{
+				glVertexAttribIPointer(location, numComponents, componentType, stride, reinterpret_cast<void*>(offset));
+			}
+			else
+			{
+				glVertexAttribPointer(location, numComponents, componentType, normalized, stride, reinterpret_cast<void*>(offset));
+			}
+
+			glVertexAttribDivisor(location, vertexStream.attribute.divisor);
+		}
+
+		const GLBuffer* glIndexBuffer = reinterpret_cast<const GLBuffer*>(info.indexBuffer->GetRawBuffer());
+		if (glIndexBuffer)
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndexBuffer->GetID());
+		}
+
+		glBindVertexArray(GL_NONE);
+		glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
+
+		glVertexLayout->SetID(vertexLayoutID);
+		glVertexLayout->SetState(eResourceState::eReady);
+	}
+
 	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 	}
@@ -450,6 +528,26 @@ namespace wtr
 		glBuffer->SetState(eResourceState::eNone);
 	}
 
+	void GLSystem::RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		if (!layout)
+		{
+			return;
+		}
+	
+		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout)
+		{
+			return;
+		}
+		
+		const uint32_t bufferID = glVertexLayout->GetID();
+		glDeleteVertexArrays(1, &bufferID);
+		
+		glVertexLayout->SetID(GL_NONE);
+		glVertexLayout->SetState(eResourceState::eNone);
+	}
+
 	void GLSystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
 	{}
 
@@ -462,8 +560,87 @@ namespace wtr
 	void GLSystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
 	{}
 
-	void GLSystem::DrawIndexPrimitive()
-	{}
+	void GLSystem::SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		if (!layout)
+		{
+			return;
+		}
+
+		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout)
+		{
+			return;
+		}
+
+		glBindVertexArray(glVertexLayout->GetID());
+	}
+
+	void GLSystem::UnsetVertexLayout()
+	{
+		glBindVertexArray(GL_NONE);
+	}
+
+	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
+	{
+		if (info.indexCount == 0 || info.instanceCount == 0)
+		{
+			return;
+		}
+
+		const uint32_t drawMode = GetDrawMode(info.drawMode);
+		const uint32_t indexType = GetDataType(info.indexType);
+
+		const bool instancing = info.instanceCount > 1;
+		const bool baseVertex = info.baseVertex != 0;
+
+		if (baseVertex)
+		{
+			if (instancing)
+			{
+				glDrawElementsInstancedBaseVertex(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount,
+					info.baseVertex
+				);
+			}
+			else
+			{
+				glDrawElementsInstanced(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount
+				);
+			}
+		}
+		else
+		{
+			if (instancing)
+			{
+				glDrawElementsInstanced(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount
+				);
+			}
+			else
+			{
+				glDrawElements(
+					drawMode, 
+					info.indexCount, 
+					indexType, 
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset))
+				);
+			}
+		}
+	}
 
 	const uint32_t GLSystem::GetBufferType(const eBufferType buffer) const
 	{

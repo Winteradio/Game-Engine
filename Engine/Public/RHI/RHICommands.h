@@ -10,6 +10,7 @@ namespace wtr
 {
 	class RHISystem;
 	class RHIBuffer;
+	class RHIVertexLayout;
 	class RHITexture;
 	class RHISampler;
 	class RHIShader;
@@ -198,6 +199,20 @@ namespace wtr
 		const Memory::RefPtr<RHIBuffer> m_buffer;
 	};
 
+	class RHICommandInitializeVertexLayout : public RHICommand<RHICommandInitializeVertexLayout>
+	{
+	public :
+		RHICommandInitializeVertexLayout(const RHIVertexLayoutCreateDesc info, const Memory::RefPtr<RHIVertexLayout> layout);
+		~RHICommandInitializeVertexLayout() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const RHIVertexLayoutCreateDesc m_info;
+		const Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
 	class RHICommandInitializeTexture : public RHICommand<RHICommandInitializeTexture>
 	{
 	public :
@@ -351,6 +366,19 @@ namespace wtr
 		const Memory::RefPtr<RHIBuffer> m_buffer;
 	};
 
+	class RHICommandRemoveVertexLayout : public RHICommand<RHICommandRemoveVertexLayout>
+	{
+	public:
+		RHICommandRemoveVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout);
+		~RHICommandRemoveVertexLayout() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
 	class RHICommandRemoveTexture : public RHICommand<RHICommandRemoveTexture>
 	{
 	public :
@@ -406,11 +434,14 @@ namespace wtr
 	class RHICommandDrawIndexPrimitive : public RHICommand<RHICommandDrawIndexPrimitive>
 	{
 	public :
-		RHICommandDrawIndexPrimitive() = default;
+		RHICommandDrawIndexPrimitive(const RHIDrawIndexDesc info);
 		~RHICommandDrawIndexPrimitive() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const RHIDrawIndexDesc m_info;
 	};
 };
 

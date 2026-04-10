@@ -26,6 +26,14 @@ namespace wtr
 	GLBuffer::~GLBuffer()
 	{}
 
+	GLVertexLayout::GLVertexLayout(const RHIVertexLayoutDesc& desc)
+		: RHIVertexLayout(desc)
+		, GLResource()
+	{}
+
+	GLVertexLayout::~GLVertexLayout()
+	{}
+
 	GLTexture::GLTexture(const RHITextureDesc& desc)
 		: RHITexture(desc)
 		, GLResource() {}

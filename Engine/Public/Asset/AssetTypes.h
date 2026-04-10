@@ -71,17 +71,6 @@ namespace wtr
 		std::string name;
 	};
 
-	struct VertexKey
-	{
-		eVertexSemantic semantic;
-		uint8_t semanticIndex;
-
-		bool operator==(const VertexKey& other) const
-		{
-			return semantic == other.semantic && semanticIndex == other.semanticIndex;
-		}
-	};
-
 	class Asset
 	{
 		GENERATE(Asset);
@@ -185,15 +174,4 @@ namespace wtr
 	};
 };
 
-namespace std
-{
-	template<>
-	struct hash<wtr::VertexKey>
-	{
-		size_t operator()(const wtr::VertexKey& key) const
-		{
-			return static_cast<uint64_t>(key.semanticIndex) << 32 | static_cast<uint64_t>(key.semantic);
-		}
-	};
-};
 #endif // __WTR_ASSETTYPES_H__

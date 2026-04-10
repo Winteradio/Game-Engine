@@ -26,6 +26,13 @@ namespace wtr
 			virtual ~GLBuffer();
 	};
 
+	class GLVertexLayout : public RHIVertexLayout, public GLResource
+	{
+		public :
+			GLVertexLayout(const RHIVertexLayoutDesc& desc);
+			virtual ~GLVertexLayout();
+	};
+
 	class GLTexture : public RHITexture, public GLResource
 	{
 		public :

@@ -25,9 +25,8 @@ namespace wtr
 		eTexture	= 0x02,
 		eSampler	= 0x03,
 		eShader		= 0x04,
-		eState		= 0x05,
-		ePipeLine	= 0x06,
-		eView		= 0x07
+		ePipeLine	= 0x05,
+		eLayout		= 0x06,
 	};
 
 	enum class eBufferType : uint8_t
@@ -288,6 +287,17 @@ namespace wtr
 		uint32_t count;
 	};
 
+	struct VertexKey
+	{
+		eVertexSemantic semantic;
+		uint8_t semanticIndex;
+
+		bool operator==(const VertexKey& other) const
+		{
+			return semantic == other.semantic && semanticIndex == other.semanticIndex;
+		}
+	};
+
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
@@ -321,5 +331,16 @@ namespace wtr
 	size_t GetDataTypeSize(const eDataType dataType);
 };
 
+namespace std
+{
+	template<>
+	struct hash<wtr::VertexKey>
+	{
+		size_t operator()(const wtr::VertexKey& key) const
+		{
+			return static_cast<uint64_t>(key.semanticIndex) << 32 | static_cast<uint64_t>(key.semantic);
+		}
+	};
+};
 
 #endif // __WTR_RENDERTYPES_H__N

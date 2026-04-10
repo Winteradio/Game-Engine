@@ -236,7 +236,7 @@ namespace wtr
 			finalMesh.index.Reserve(finalMesh.index.Size() + group.faces.Size() * MAX_FACE_VERTICES);
 
 			auto& section = finalMesh.groups[index];
-			section.indexOffset = static_cast<uint32_t>(finalMesh.index.Size());
+			section.indexOffset = static_cast<uint32_t>(finalMesh.index.Size() * sizeof(decltype(finalMesh.index)::ValueType));
 			section.name = group.name;
 			section.materialName = group.material;
 

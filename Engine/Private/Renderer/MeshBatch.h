@@ -70,6 +70,7 @@ namespace wtr
 		wtr::HashMap<ECS::UUID, fmat4> m_transformIds;
 		wtr::DynamicArray<fmat4> m_transforms;
 		Memory::RefPtr<RHIBuffer> m_transformBuffer;
+		Memory::RefPtr<RHIVertexLayout> m_vertexLayout;
 
 		Memory::RefPtr<MeshDrawCommand> m_refDrawCommand;
 		

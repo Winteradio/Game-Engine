@@ -32,6 +32,7 @@ namespace wtr
 		void SetRasterizerState(const RHIRasterizerState& state);
 
 		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc desc) override;
+		Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutDesc desc) override;
 		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc desc) override;
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc desc) override;
 		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc desc) override;
@@ -42,6 +43,7 @@ namespace wtr
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
 		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
 		void InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader);
@@ -55,12 +57,15 @@ namespace wtr
 		void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) override;
+		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture) override;
 		void RemoveSampler(Memory::RefPtr<RHISampler> sampler) override;
 		void RemoveShader(Memory::RefPtr<RHIShader> shader) override;
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
 
-		void DrawIndexPrimitive() override;
+		void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
+		void UnsetVertexLayout() override;
+		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
 	private :
 		const uint32_t GetBufferType(const eBufferType buffer) const;

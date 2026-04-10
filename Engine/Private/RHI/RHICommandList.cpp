@@ -107,6 +107,20 @@ namespace wtr
 		return refBuffer;
 	}
 
+	Memory::RefPtr<RHIVertexLayout> RHICommandList::CreateVertexLayout(const RHIVertexLayoutCreateDesc info)
+	{
+		if (!m_system)
+		{
+			return nullptr;
+		}
+		
+		Memory::RefPtr<RHIVertexLayout> refVertexLayout = m_system->CreateVertexLayout(info);
+	
+		Enqueue<RHICommandInitializeVertexLayout>(info, refVertexLayout);
+		
+		return refVertexLayout;
+	}
+
 	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateDesc info)
 	{
 		if (!m_system)
@@ -254,8 +268,8 @@ namespace wtr
 		Enqueue<RHICommandRemovePipeLine>(pipeline);
 	}
 
-	void RHICommandList::DrawIndexPrimitive()
+	void RHICommandList::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
-		Enqueue<RHICommandDrawIndexPrimitive>();
+		Enqueue<RHICommandDrawIndexPrimitive>(info);
 	}
 }

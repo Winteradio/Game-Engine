@@ -84,6 +84,15 @@ namespace wtr
 		return m_desc.stride;
 	}
 
+	RHIVertexLayout::RHIVertexLayout(const RHIVertexLayoutDesc& desc)
+		: m_desc(desc)
+	{}
+
+	const size_t RHIVertexLayout::GetNumAttributes() const
+	{
+		return m_desc.vertexStreams.Size();
+	}
+
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
 	{}

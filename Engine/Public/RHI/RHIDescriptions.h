@@ -3,6 +3,7 @@
 
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Container/include/DynamicArray.h>
+#include <Container/include/HashMap.h>
 #include <Renderer/RenderTypes.h>
 #include <RHI/RHIStates.h>
 #include <cstdint>
@@ -11,28 +12,24 @@ namespace wtr
 {
 	class RawBuffer;
 	class FormattedBuffer;
+
+	class RHIBuffer;
 	class RHIShader;
 }
 
 namespace wtr
 {
-	template<typename T>
-	struct RHICreateDesc
-	{
-		Memory::RefPtr<T> rawBuffer;
-	};
-
 	struct RHIVertexAttribute
 	{
-		uint16_t location			= 0;	// vertex attribute binding location
-		uint16_t offset				= 0;	// byte offset in stream
-		bool  normalized 			= 1;	// normalize fixed-point data
-		bool  integer   			= 0;	// treat as integer input
-		uint8_t  divisor     		= 0;	// instancing divisor
-		uint8_t  numComponents		= 0;	// number of components (1-4)
-		eDataType  componentType 	= eDataType::eNone;			// enum: eDataType
-		eVertexSemantic semantic 	= eVertexSemantic::eNone;	// bit value for the semantic (e.g. TEXCOORD)
-		uint8_t  semanticIndex 		= 0;	// e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
+		uint16_t location = 0;	// vertex attribute binding location
+		uint16_t offset = 0;	// byte offset in stream
+		bool  normalized = 1;	// normalize fixed-point data
+		bool  integer = 0;	// treat as integer input
+		uint8_t  divisor = 0;	// instancing divisor
+		uint8_t  numComponents = 0;	// number of components (1-4)
+		eDataType  componentType = eDataType::eNone;			// enum: eDataType
+		eVertexSemantic semantic = eVertexSemantic::eNone;	// bit value for the semantic (e.g. TEXCOORD)
+		uint8_t  semanticIndex = 0;	// e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
 	};
 
 	struct RHIResourceBinding
@@ -48,6 +45,12 @@ namespace wtr
 		const eResourceType type = Type;
 	};
 
+	template<typename T>
+	struct RHICreateDesc
+	{
+		Memory::RefPtr<T> rawBuffer;
+	};
+
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
 	{
 		eBufferType bufferType = eBufferType::eNone;
@@ -58,6 +61,22 @@ namespace wtr
 	};
 
 	struct RHIBufferCreateDesc : RHIBufferDesc, RHICreateDesc<FormattedBuffer>
+	{
+	};
+
+	struct RHIVertexStream
+	{
+		Memory::RefPtr<const RHIBuffer> buffer;
+		RHIVertexAttribute attribute;
+	};
+
+	struct RHIVertexLayoutDesc : RHIDesc<eResourceType::eLayout>
+	{
+		wtr::HashMap<VertexKey, RHIVertexStream> vertexStreams;
+		Memory::RefPtr<const RHIBuffer> indexBuffer;
+	};
+
+	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
 	{
 	};
 
@@ -154,11 +173,22 @@ namespace wtr
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
 	{
-		Memory::RefPtr<RHIShader> vertexShader;
-		Memory::RefPtr<RHIShader> geometryShader;
-		Memory::RefPtr<RHIShader> hullShader;
-		Memory::RefPtr<RHIShader> computeShader;
-		Memory::RefPtr<RHIShader> pixelShader;
+		Memory::RefPtr<const RHIShader> vertexShader;
+		Memory::RefPtr<const RHIShader> geometryShader;
+		Memory::RefPtr<const RHIShader> hullShader;
+		Memory::RefPtr<const RHIShader> computeShader;
+		Memory::RefPtr<const RHIShader> pixelShader;
+	};
+
+	struct RHIDrawIndexDesc : RHIDesc<eResourceType::eLayout>
+	{
+		eDrawMode drawMode = eDrawMode::eNone;
+		eDataType indexType = eDataType::eNone;
+
+		uint32_t indexCount = 0;
+		uint32_t indexOffset = 0;
+		uint32_t baseVertex = 0;
+		uint32_t instanceCount = 1;
 	};
 };
 

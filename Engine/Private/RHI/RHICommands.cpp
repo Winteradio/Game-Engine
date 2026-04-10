@@ -141,6 +141,19 @@ namespace wtr
 		}
 	}
 
+	RHICommandInitializeVertexLayout::RHICommandInitializeVertexLayout(const RHIVertexLayoutCreateDesc info, const Memory::RefPtr<RHIVertexLayout> layout)
+		: m_info(info)
+		, m_layout(layout)
+	{}
+
+	void RHICommandInitializeVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_layout)
+		{
+			system->InitializeVertexLayout(m_info, m_layout);
+		}
+	}
+
 	RHICommandInitializeTexture::RHICommandInitializeTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
 		: m_info(info)
 		, m_texture(texture)
@@ -284,6 +297,18 @@ namespace wtr
 		}
 	}
 
+	RHICommandRemoveVertexLayout::RHICommandRemoveVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout)
+		: m_layout(layout)
+	{}
+
+	void RHICommandRemoveVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_layout)
+		{
+			system->RemoveVertexLayout(m_layout);
+		}
+	}
+
 	RHICommandRemoveTexture::RHICommandRemoveTexture(const Memory::RefPtr<RHITexture> texture)
 		: m_texture(texture)
 	{}
@@ -332,11 +357,15 @@ namespace wtr
 		}
 	}
 
+	RHICommandDrawIndexPrimitive::RHICommandDrawIndexPrimitive(const RHIDrawIndexDesc info)
+		: m_info(info)
+	{}
+
 	void RHICommandDrawIndexPrimitive::Execute(Memory::RefPtr<RHISystem> system)
 	{
 		if (system)
 		{
-			system->DrawIndexPrimitive();
+			system->DrawIndexPrimitive(m_info);
 		}
 	}
 
