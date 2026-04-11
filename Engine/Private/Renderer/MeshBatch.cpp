@@ -8,8 +8,7 @@
 namespace wtr
 {
 	MeshBatch::MeshBatch()
-		: m_transformIds()
-		, m_transforms()
+		: m_transformInfos()
 		, m_transformBuffer()
 		, m_refDrawCommand()
 		, m_refMesh()
@@ -28,7 +27,7 @@ namespace wtr
 		{
 			constexpr uint32_t numComponents = 16;
 
-			const uint32_t count = static_cast<uint32_t>(m_transforms.Size());
+			const uint32_t count = static_cast<uint32_t>(m_transformInfos.Size());
 			const eDataType componentType = eDataType::eFloat;
 			const eBufferType bufferType = eBufferType::eStorage;
 			const eDataAccess accessType = eDataAccess::eDynamic;
@@ -41,7 +40,25 @@ namespace wtr
 			bufferDesc.count = count;
 			bufferDesc.size = count * numComponents * GetDataTypeSize(componentType);
 			bufferDesc.stride = numComponents * GetDataTypeSize(componentType);
-			bufferDesc.data = static_cast<const void*>(m_transforms.Data());
+
+			fmat4* transformData = reinterpret_cast<fmat4*>(cmdList->Alloc<fmat4>(bufferDesc.size));
+			if (!transformData)
+			{
+				return;
+			}
+
+			size_t index = 0;
+			auto itr = m_transformInfos.begin();
+			while (itr != m_transformInfos.end())
+			{
+				transformData[index] = itr->second.transform;
+				itr->second.dirty = false;
+
+				++index;
+				++itr;
+			}
+
+			bufferDesc.data = static_cast<const void*>(transformData);
 
 			m_transformBuffer = cmdList->CreateBuffer(bufferDesc);
 		}
@@ -133,8 +150,7 @@ namespace wtr
 			cmdList->RemoveBuffer(m_transformBuffer);
 
 			m_transformBuffer.Reset();
-			m_transformIds.Clear();
-			m_transforms.Clear();
+			m_transformInfos.Clear();
 		}
 
 		if (m_vertexLayout)
@@ -152,32 +168,56 @@ namespace wtr
 			return;
 		}
 
-		if (m_transformBuffer)
+		if (!m_transformBuffer)
 		{
-			RHIBufferUpdateDesc updateDesc;
-			updateDesc.bufferType = m_transformBuffer->GetBufferType();
-			updateDesc.accessType = m_transformBuffer->GetAccessType();
-			updateDesc.componentType = m_transformBuffer->GetComponentType();
-			updateDesc.numComponents = m_transformBuffer->GetNumComponents();
-			updateDesc.count = static_cast<uint32_t>(m_transforms.Size());
-			updateDesc.size = updateDesc.count * updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
-			updateDesc.stride = updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
+			return;
+		}
 
-			// TODO : Partial Update
-			updateDesc.data = m_transforms.Data();
-			updateDesc.dataOffset = 0;
-			updateDesc.dataSize = updateDesc.size;
+		RHIBufferUpdateDesc updateDesc;
+		updateDesc.bufferType = m_transformBuffer->GetBufferType();
+		updateDesc.accessType = m_transformBuffer->GetAccessType();
+		updateDesc.componentType = m_transformBuffer->GetComponentType();
+		updateDesc.numComponents = m_transformBuffer->GetNumComponents();
+		updateDesc.count = static_cast<uint32_t>(m_transformInfos.Size());
+		updateDesc.size = updateDesc.count * updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
+		updateDesc.stride = updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
 
-			const bool needResize = m_transformBuffer->GetCount() < m_transforms.Size();
-			if (needResize)
-			{
-				cmdList->ResizeBuffer(updateDesc, m_transformBuffer);
-			}
-			else
-			{
-				cmdList->UpdateBuffer(updateDesc, m_transformBuffer);
-			}
-			
+		fmat4* transformData = reinterpret_cast<fmat4*>(cmdList->Alloc<fmat4>(updateDesc.size));
+		if (!transformData)
+		{
+			return;
+		}
+
+		size_t minDirtyIndex = std::numeric_limits<size_t>::max();
+		size_t maxDirtyIndex = 0;
+
+		size_t index = 0;
+		auto itr = m_transformInfos.begin();
+		while (itr != m_transformInfos.end())
+		{
+			minDirtyIndex = std::min(minDirtyIndex, index);
+			maxDirtyIndex = std::max(maxDirtyIndex, index);
+
+			transformData[index] = itr->second.transform;
+			itr->second.dirty = false;
+
+			++index;
+			++itr;
+		}
+
+		// TODO : Partial Update
+		updateDesc.data = static_cast<const void*>(transformData + minDirtyIndex);
+		updateDesc.dataOffset = minDirtyIndex * updateDesc.stride;
+		updateDesc.dataSize = (maxDirtyIndex - minDirtyIndex + 1) * updateDesc.stride;
+
+		const bool needResize = m_transformBuffer->GetCount() < m_transformInfos.Size();
+		if (needResize)
+		{
+			cmdList->ResizeBuffer(updateDesc, m_transformBuffer);
+		}
+		else
+		{
+			cmdList->UpdateBuffer(updateDesc, m_transformBuffer);
 		}
 	}
 
@@ -209,8 +249,7 @@ namespace wtr
 
 	void MeshBatch::Clear()
 	{
-		m_transformIds.Clear();
-		m_transforms.Clear();
+		m_transformInfos.Clear();
 		m_transformBuffer.Reset();
 
 		m_refDrawCommand.Reset();
@@ -243,51 +282,44 @@ namespace wtr
 
 	void MeshBatch::AddTransform(const ECS::UUID& id, const fmat4& transform)
 	{
-		auto itr = m_transformIds.Find(id);
-		if (itr != m_transformIds.end())
+		auto itr = m_transformInfos.Find(id);
+		if (itr == m_transformInfos.end())
 		{
-			UpdateTransform(id, transform);
-		}
-		else
-		{
-			m_transformIds[id] = transform;
-
-			UpdateTransformData();
+			m_transformInfos[id] = { transform, true };
 		}
 	}
 
 	void MeshBatch::UpdateTransform(const ECS::UUID& id, const fmat4& transform)
 	{
-		auto itr = m_transformIds.Find(id);
-		if (itr == m_transformIds.end())
+		auto itr = m_transformInfos.Find(id);
+		if (itr == m_transformInfos.end())
 		{
 			return;
 		}
 
-		if (itr->second == transform)
+		if (itr->second.transform == transform)
 		{
 			return;
 		}
 
-		itr->second = transform;
-
-		UpdateTransformData();
+		itr->second.transform = transform;
+		itr->second.dirty = true;
 	}
 
 	void MeshBatch::RemoveTransform(const ECS::UUID& id)
 	{
-		auto itr = m_transformIds.Find(id);
-		if (itr != m_transformIds.End())
+		auto itr = m_transformInfos.Find(id);
+		if (itr == m_transformInfos.end())
 		{
-			m_transformIds.Erase(itr);
-
-			UpdateTransformData();
+			return;
 		}
+
+		m_transformInfos.Erase(itr);
 	}
 
 	const size_t MeshBatch::GetInstanceCount() const
 	{
-		return m_transformIds.Size();
+		return m_transformInfos.Size();
 	}
 
 	Memory::RefPtr<const MeshDrawCommand> MeshBatch::GetDrawCommand() const
@@ -320,16 +352,5 @@ namespace wtr
 		}
 
 		return data;
-	}
-
-	void MeshBatch::UpdateTransformData()
-	{
-		m_transforms.Clear();
-		m_transforms.Reserve(m_transformIds.Size());
-
-		for (const auto& [id, transform] : m_transformIds)
-		{
-			m_transforms.PushBack(transform);
-		}
 	}
 }

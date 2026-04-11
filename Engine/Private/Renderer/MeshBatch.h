@@ -21,6 +21,7 @@ namespace wtr
 	struct VertexKey;
 	struct MeshBatchKey;
 	struct MeshDrawCommand;
+	struct TransformInfo;
 
 	class MeshAsset;
 	class MaterialAsset;
@@ -61,11 +62,7 @@ namespace wtr
 		const std::string ToString() const;
 
 	private :
-		void UpdateTransformData();
-
-	private :
-		wtr::HashMap<ECS::UUID, fmat4> m_transformIds;
-		wtr::DynamicArray<fmat4> m_transforms;
+		wtr::HashMap<ECS::UUID, TransformInfo> m_transformInfos;
 		Memory::RefPtr<RHIBuffer> m_transformBuffer;
 		Memory::RefPtr<RHIVertexLayout> m_vertexLayout;
 
@@ -135,6 +132,12 @@ namespace wtr
 
 			return operator()(refMeshBatch->GetKey());
 		}
+	};
+
+	struct TransformInfo
+	{
+		fmat4 transform = fmat4(1.0);
+		bool dirty = true;
 	};
 };
 

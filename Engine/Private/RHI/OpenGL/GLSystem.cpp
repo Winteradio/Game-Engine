@@ -477,28 +477,67 @@ namespace wtr
 
 	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
+		if (!texture)
+		{
+			return;
+		}
 	}
 
 	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
-	{}
+	{
+		if (!sampler)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
-	{}
+	{
+		if (!pipeline)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
@@ -632,10 +671,42 @@ namespace wtr
 	}
 
 	void GLSystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
-	{}
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture)
+		{
+			return;
+		}
+
+		const uint32_t textureID = glTexture->GetID();
+		glDeleteTextures(1, &textureID);
+		glTexture->SetID(GL_NONE);
+		glTexture->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveSampler(Memory::RefPtr<RHISampler> sampler)
-	{}
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler)
+		{
+			return;
+		}
+
+		const uint32_t samplerID = glSampler->GetID();
+		glDeleteSamplers(1, &samplerID);
+		glSampler->SetID(GL_NONE);
+		glSampler->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveShader(Memory::RefPtr<RHIShader> shader)
 	{

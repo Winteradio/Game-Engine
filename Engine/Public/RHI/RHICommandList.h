@@ -77,6 +77,12 @@ namespace wtr
 			}
 		}
 
+		template<typename T>
+		void* Alloc(const size_t memorySize)
+		{
+			return m_allocator.Allocate(memorySize, alignof(T));
+		}
+
 		void ExecuteAll();
 		void Reset();
 		void SetFrame(const size_t frame);
