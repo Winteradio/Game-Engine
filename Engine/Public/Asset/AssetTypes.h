@@ -122,7 +122,7 @@ namespace wtr
 	{
 		GENERATE(MaterialAsset);
 	public:
-		wtr::HashMap<eTextureSlot, Memory::RefPtr<TextureAsset>> textures;
+		wtr::HashMap<eTextureSlot, Memory::RefPtr<const TextureAsset>> textures;
 		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
 		wtr::HashMap<eScalarSlot, float> scalarValues;
 
@@ -144,7 +144,7 @@ namespace wtr
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
-		wtr::HashMap<std::string, Memory::RefPtr<MaterialAsset>> materials;
+		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
 
 		MeshAsset();
 		MeshAsset(const std::string& path, const eExtension extension);

@@ -10,9 +10,6 @@
 
 namespace wtr
 {
-	class RawBuffer;
-	class FormattedBuffer;
-
 	class RHIBuffer;
 	class RHIShader;
 }
@@ -45,23 +42,35 @@ namespace wtr
 		const eResourceType type = Type;
 	};
 
-	template<typename T>
+	template<typename Desc>
 	struct RHICreateDesc
 	{
-		Memory::RefPtr<T> rawBuffer;
+		Desc desc;
 	};
 
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
 	{
 		eBufferType bufferType = eBufferType::eNone;
 		eDataAccess	accessType = eDataAccess::eNone;
+		eDataType	componentType = eDataType::eNone;
 
+		uint32_t	numComponents = 0;
+		uint32_t	count = 0;
 		uint32_t	size = 0;
 		uint32_t	stride = 0;
 	};
 
-	struct RHIBufferCreateDesc : RHIBufferDesc, RHICreateDesc<FormattedBuffer>
+	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
+		const void* data = nullptr;
+	};
+
+	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
+	{
+		uint32_t dataOffset = 0;
+		uint32_t dataSize = 0;
+
+		eMapAccess mapAccess = eMapAccess::eNone;
 	};
 
 	struct RHIVertexStream
@@ -89,10 +98,28 @@ namespace wtr
 		uint32_t		sampleCount = 1;
 		ePixelFormat	format = ePixelFormat::eNone;
 		eTextureUsage 	usage = eTextureUsage::eNone;
+		eTextureType	textureType = eTextureType::eNone;
 	};
 
-	struct RHITextureCreateDesc : RHITextureDesc, RHICreateDesc<FormattedBuffer>
+	struct RHITextureCreateDesc : RHITextureDesc
 	{
+		const void* data = nullptr;
+	};
+
+	struct RHITextureUpdateDesc : RHITextureCreateDesc
+	{
+		const void* data = nullptr;
+
+		uint32_t xOffset = 0;
+		uint32_t yOffset = 0;
+		uint32_t zOffset = 0;
+		
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint32_t depth = 0;
+		
+		uint32_t mipLevel = 0;
+		uint32_t arrayLayer = 0;
 	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
@@ -141,24 +168,29 @@ namespace wtr
 	{
 	};
 
-	struct RHIVertexShaderCreateDesc : RHIVertexShaderDesc, RHICreateDesc<RawBuffer>
+	struct RHIVertexShaderCreateDesc : RHIVertexShaderDesc
 	{
+		const void* data = nullptr;
 	};
 
-	struct RHIGeometryShaderCreateDesc : RHIGeometryShaderDesc, RHICreateDesc<RawBuffer>
+	struct RHIGeometryShaderCreateDesc : RHIGeometryShaderDesc
 	{
+		const void* data = nullptr;
 	};
 
-	struct RHIHullShaderCreateDesc : RHIHullShaderDesc , RHICreateDesc<RawBuffer>
+	struct RHIHullShaderCreateDesc : RHIHullShaderDesc
 	{
+		const void* data = nullptr;
 	};
 
-	struct RHIPixelShaderCreateDesc : RHIPixelShaderDesc, RHICreateDesc<RawBuffer>
+	struct RHIPixelShaderCreateDesc : RHIPixelShaderDesc
 	{
+		const void* data = nullptr;
 	};
 
-	struct RHIComputeShaderCreateDesc : RHIComputeShaderDesc, RHICreateDesc<RawBuffer>
+	struct RHIComputeShaderCreateDesc : RHIComputeShaderDesc
 	{
+		const void* data = nullptr;
 	};
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
@@ -189,6 +221,13 @@ namespace wtr
 		uint32_t indexOffset = 0;
 		uint32_t baseVertex = 0;
 		uint32_t instanceCount = 1;
+	};
+
+	struct RHIDispatchDesc : RHIDesc<eResourceType::ePipeLine>
+	{
+		uint32_t groupX = 0;
+		uint32_t groupY = 0;
+		uint32_t groupZ = 0;
 	};
 };
 

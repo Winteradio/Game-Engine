@@ -117,7 +117,7 @@ namespace wtr
 					return;
 				}
 
-				renderScene->RemovePrimitive(id);
+				renderScene->RemovePrimitive(id, cmdList);
 			}
 		);
 	}
@@ -201,12 +201,14 @@ namespace wtr
 			return;
 		}
 
-		const ECS::UUID& id = sceneComponent->GetID();
-		const fvec3 position = sceneComponent->GetPosition();
-		const fvec3 rotation = sceneComponent->GetRotation();
-		const fvec3 scale = sceneComponent->GetScale();
+		const UpdateProxyInfo updateInfo = {
+			sceneComponent->GetID(),
+			sceneComponent->GetPosition(),
+			sceneComponent->GetRotation(),
+			sceneComponent->GetScale()
+		};
 
-		m_refCmdList->Enqueue([id, position, rotation, scale](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+		m_refCmdList->Enqueue([updateInfo](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
 				LOGINFO() << "[Render] Update the scene transform";
 
@@ -221,7 +223,7 @@ namespace wtr
 					return;
 				}
 
-				renderScene->UpdateProxy(id, position, rotation, scale);
+				renderScene->UpdateProxy(updateInfo, cmdList);
 			}
 		);
 	}
@@ -248,7 +250,7 @@ namespace wtr
 				}
 
 				renderScene->RemoveLight(entityId);
-				renderScene->RemovePrimitive(entityId);
+				renderScene->RemovePrimitive(entityId, cmdList);
 			}
 		);
 	}
@@ -275,7 +277,7 @@ namespace wtr
 					return;
 				}
 
-				renderScene->RemoveAll();
+				renderScene->RemoveAll(cmdList);
 			}
 		);
 	}

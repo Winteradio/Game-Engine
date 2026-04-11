@@ -53,8 +53,11 @@ namespace wtr
 		void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader);
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);
 
-		void UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
-		void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
+		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
+		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
+
+		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
+		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) override;
 		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
@@ -63,14 +66,27 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader) override;
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
 
+		void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) override;
 		void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
-		void UnsetVertexLayout() override;
+		void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) override;
+		void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) override;
+		void SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
+
+		void UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) override;
+		void UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
+		void UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) override;
+		void UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) override;
+		void UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
+
+		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
 	private :
 		const uint32_t GetBufferType(const eBufferType buffer) const;
 		const uint32_t GetDataAccess(const eDataAccess access) const;
 		const uint32_t GetDataType(const eDataType data) const;
+		const uint32_t GetMapAccess(const eMapAccess access) const;
+		const uint32_t GetTextureType(const eTextureType texture) const;
 		const uint32_t GetPixelFormat(const ePixelFormat pixel) const;
 		const uint32_t GetFilterMode(const eFilterMode filter) const;
 		const uint32_t GetWrapMode(const eWrapMode wrap) const;

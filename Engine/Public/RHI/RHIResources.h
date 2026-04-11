@@ -50,8 +50,11 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			const eBufferType GetType() const;
+			const eBufferType GetBufferType() const;
 			const eDataAccess GetAccessType() const;
+			const eDataType GetComponentType() const;
+			const uint32_t GetNumComponents() const;
+			const uint32_t GetCount() const;
 			const uint32_t GetSize() const;
 			const uint32_t GetStride() const;
 
@@ -86,6 +89,7 @@ namespace wtr
 			const uint32_t GetSampleCount() const;
 			const ePixelFormat GetPixelFormat() const;
 			const eTextureUsage GetTextureUsage() const;
+			const eTextureType GetTextureType() const;
 
 		protected :
 			RHITextureDesc m_desc;
@@ -116,7 +120,7 @@ namespace wtr
 			virtual ~RHIShader() = default;
 	};
 
-	class RHIVertexShader : public RHIShader
+	class RHIVertexShader : virtual public RHIShader
 	{
 		public : 
 			RHIVertexShader(const RHIVertexShaderDesc& desc);
@@ -126,7 +130,7 @@ namespace wtr
 			RHIVertexShaderDesc m_dsec;
 	};
 
-	class RHIGeometryShader : public RHIShader
+	class RHIGeometryShader : virtual public RHIShader
 	{
 		public :
 			RHIGeometryShader(const RHIGeometryShaderDesc& desc);
@@ -136,7 +140,7 @@ namespace wtr
 			RHIGeometryShaderDesc m_desc;
 	};
 
-	class RHIHullShader : public RHIShader
+	class RHIHullShader : virtual public RHIShader
 	{
 	public:
 		RHIHullShader(const RHIHullShaderDesc& desc);
@@ -146,7 +150,7 @@ namespace wtr
 		RHIHullShaderDesc m_desc;
 	};
 
-	class RHIPixelShader : public RHIShader
+	class RHIPixelShader : virtual public RHIShader
 	{
 		public :
 			RHIPixelShader(const RHIPixelShaderDesc& desc);
@@ -156,7 +160,7 @@ namespace wtr
 			RHIPixelShaderDesc m_desc;
 	};
 
-	class RHIComputeShader : public RHIShader
+	class RHIComputeShader : virtual public RHIShader
 	{
 		public :
 			RHIComputeShader(const RHIComputeShaderDesc& desc);

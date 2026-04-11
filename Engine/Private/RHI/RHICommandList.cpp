@@ -233,19 +233,34 @@ namespace wtr
 		return refPipeLine;
 	}
 
-	void RHICommandList::UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void RHICommandList::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		Enqueue<RHICommandUpdateBuffer>(info, buffer);
 	}
 
-	void RHICommandList::UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void RHICommandList::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		Enqueue<RHICommandUpdateTexture>(info, texture);
+	}
+
+	void RHICommandList::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		Enqueue<RHICommandResizeBuffer>(info, buffer);
+	}
+
+	void RHICommandList::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		Enqueue<RHICommandResizeTexture>(info, texture);
 	}
 
 	void RHICommandList::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
 	{
 		Enqueue<RHICommandRemoveBuffer>(buffer);
+	}
+
+	void RHICommandList::RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		Enqueue<RHICommandRemoveVertexLayout>(layout);
 	}
 
 	void RHICommandList::RemoveTexture(Memory::RefPtr<RHITexture> texture)
@@ -266,6 +281,56 @@ namespace wtr
 	void RHICommandList::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
 	{
 		Enqueue<RHICommandRemovePipeLine>(pipeline);
+	}
+
+	void RHICommandList::SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	{
+		Enqueue<RHICommandSetBuffer>(buffer, slot);
+	}
+
+	void RHICommandList::SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		Enqueue<RHICommandSetVertexLayout>(layout);
+	}
+
+	void RHICommandList::SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	{
+		Enqueue<RHICommandSetTexture>(texture, slot);
+	}
+
+	void RHICommandList::SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	{
+		Enqueue<RHICommandSetSampler>(sampler, slot);
+	}
+
+	void RHICommandList::SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		Enqueue<RHICommandSetPipeLine>(pipeline);
+	}
+
+	void RHICommandList::UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	{
+		Enqueue<RHICommandUnsetBuffer>(buffer, slot);
+	}
+
+	void RHICommandList::UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		Enqueue<RHICommandUnsetVertexLayout>(layout);
+	}
+
+	void RHICommandList::UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	{
+		Enqueue<RHICommandUnsetTexture>(texture, slot);
+	}
+
+	void RHICommandList::UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	{
+		Enqueue<RHICommandUnsetSampler>(sampler, slot);
+	}
+
+	void RHICommandList::UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		Enqueue<RHICommandUnsetPipeLine>(pipeline);
 	}
 
 	void RHICommandList::DrawIndexPrimitive(const RHIDrawIndexDesc info)

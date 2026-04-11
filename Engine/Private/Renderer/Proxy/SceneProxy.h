@@ -8,13 +8,6 @@
 #include <cstdint>
 namespace wtr
 {
-	enum eProxyState : uint8_t
-	{
-		eNone		= 0x00,
-		eReady		= 0x01,
-		eError		= 0xFF,
-	};
-
 	class SceneProxy : public ECS::Object
 	{
 		GENERATE(SceneProxy);
@@ -23,22 +16,27 @@ namespace wtr
 		virtual ~SceneProxy();
 
 	public :
-		void SetState(const eProxyState state);
 		void UpdatePosition(const fvec3 position);
 		void UpdateRotation(const fvec3 rotation);
 		void UpdateScale(const fvec3 scale);
 
-		eProxyState GetState() const;
 		const fvec3 GetPosition() const;
 		const fvec3 GetRotation() const;
 		const fvec3 GetScale() const;
+		const fmat4 GetTransform() const;
 
 	private :
 		fvec3 m_position;
 		fvec3 m_rotation;
 		fvec3 m_scale;
+	};
 
-		eProxyState m_state;
+	struct UpdateProxyInfo
+	{
+		const ECS::UUID id;
+		const fvec3 position;
+		const fvec3 rotation;
+		const fvec3 scale;
 	};
 };
 

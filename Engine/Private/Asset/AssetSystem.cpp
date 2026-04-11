@@ -42,7 +42,8 @@ namespace wtr
 			return asset;
 		}
 
-		const std::string assetPath = core.assetPath + path;
+		const std::filesystem::path inputPath(path);
+		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 		asset = AssetFactory::Create(assetPath);
 		if (asset)
 		{

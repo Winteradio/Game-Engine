@@ -18,13 +18,16 @@ namespace wtr
 		virtual ~SimpleColor();
 
 	public :
-		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> commandList) override;
-		virtual void Init(Memory::RefPtr<RHICommandList> commandList);
+		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> cmdList) override;
+		virtual void Init();
+		virtual void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
+		virtual void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
 		virtual eResourceState GetResourceState() const override;
+		virtual eResourceState GetShaderState() const override;
 
 	private :
-		Memory::RefPtr<ShaderAsset> m_vertexShader;
-		Memory::RefPtr<ShaderAsset> m_pixelShader;
+		Memory::RefPtr<const ShaderAsset> m_vertexShader;
+		Memory::RefPtr<const ShaderAsset> m_pixelShader;
 	};
 };
 

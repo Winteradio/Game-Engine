@@ -2,8 +2,9 @@
 
 #include <Log/include/Log.h>
 #include <Asset/AssetTypes.h>
-#include <Asset/AssetFactory.h>
 #include <Asset/AssetStream.h>
+#include <Asset/AssetSystem.h>
+#include <Asset/AssetUtils.h>
 #include <Memory/include/Core.h>
 
 #include <type_traits>
@@ -66,7 +67,7 @@ namespace wtr
 
 			if (tag == "mtllib")
 			{
-				std::string mtlPath = GetPath(asset) + "/";
+				std::string mtlPath = AssetUtils::GetPath(asset->path) + "/";
 				lineStream >> mtlPath;
 
 				objMaterials.Insert(mtlPath);
@@ -202,18 +203,17 @@ namespace wtr
 
 		for (const auto& fileName : materials)
 		{
-			const std::string path = GetPath(mesh) + "/" + fileName;
-			Memory::RefPtr<Asset> asset = AssetFactory::Create(path);
+			const std::string path = AssetUtils::GetPath(mesh->path) + "/" + fileName;
+			Memory::RefPtr<const Asset> asset = AssetSystem::Load(path);
 			if (!asset)
 			{
 				LOGINFO() << "[OBJ] Failed to load the material file : " << path;
 				continue;
 			}
 
-			Memory::RefPtr<MaterialAsset> material = Memory::Cast<MaterialAsset>(asset);
+			Memory::RefPtr<const MaterialAsset> material = Memory::Cast<const MaterialAsset>(asset);
 			if (material)
 			{
-				material->name = GetName(material);
 				mesh->materials[material->name] = material;
 			}
 		}
@@ -307,13 +307,14 @@ namespace wtr
 		{
 			Memory::RefPtr<FormattedBuffer> posBuffer = Memory::MakeRef<FormattedBuffer>();
 
-			posBuffer->componentType = eDataType::eFloat;
-			posBuffer->numComponents = decltype(objMesh.pos)::ValueType::length();
-			posBuffer->count = static_cast<uint32_t>(objMesh.pos.Size());
 			posBuffer->data.Resize(objMesh.pos.Size() * sizeof(decltype(objMesh.pos)::ValueType));
 
 			std::memmove(posBuffer->data.Data(), objMesh.pos.Data(), posBuffer->data.Size());
 
+			posBuffer->desc.pointer = posBuffer->data.Data();
+			posBuffer->desc.componentType = eDataType::eFloat;
+			posBuffer->desc.numComponents = decltype(objMesh.pos)::ValueType::length();
+			posBuffer->desc.count = static_cast<uint32_t>(objMesh.pos.Size());
 			VertexKey posKey{ eVertexSemantic::ePosition, 0 };
 			rawBuffers[posKey] = posBuffer;
 		}
@@ -322,12 +323,14 @@ namespace wtr
 		{
 			Memory::RefPtr<FormattedBuffer> norBuffer = Memory::MakeRef<FormattedBuffer>();
 
-			norBuffer->componentType = eDataType::eFloat;
-			norBuffer->numComponents = decltype(objMesh.nor)::ValueType::length();
-			norBuffer->count = static_cast<uint32_t>(objMesh.nor.Size());
 			norBuffer->data.Resize(objMesh.nor.Size() * sizeof(decltype(objMesh.nor)::ValueType));
 
 			std::memmove(norBuffer->data.Data(), objMesh.nor.Data(), norBuffer->data.Size());
+
+			norBuffer->desc.pointer = norBuffer->data.Data();
+			norBuffer->desc.componentType = eDataType::eFloat;
+			norBuffer->desc.numComponents = decltype(objMesh.nor)::ValueType::length();
+			norBuffer->desc.count = static_cast<uint32_t>(objMesh.nor.Size());
 
 			VertexKey norKey{ eVertexSemantic::eNormal, 0 };
 			rawBuffers[norKey] = norBuffer;
@@ -337,12 +340,14 @@ namespace wtr
 		{
 			Memory::RefPtr<FormattedBuffer> uvBuffer = Memory::MakeRef<FormattedBuffer>();
 
-			uvBuffer->componentType = eDataType::eFloat;
-			uvBuffer->numComponents = decltype(objMesh.uv)::ValueType::length();
-			uvBuffer->count = static_cast<uint32_t>(objMesh.uv.Size());
 			uvBuffer->data.Resize(objMesh.uv.Size() * sizeof(decltype(objMesh.uv)::ValueType));
 
 			std::memmove(uvBuffer->data.Data(), objMesh.uv.Data(), uvBuffer->data.Size());
+
+			uvBuffer->desc.pointer = uvBuffer->data.Data();
+			uvBuffer->desc.componentType = eDataType::eFloat;
+			uvBuffer->desc.numComponents = decltype(objMesh.uv)::ValueType::length();
+			uvBuffer->desc.count = static_cast<uint32_t>(objMesh.uv.Size());
 
 			VertexKey uvKey{ eVertexSemantic::eTexCoord, 0 };
 			rawBuffers[uvKey] = uvBuffer;
@@ -352,12 +357,15 @@ namespace wtr
 		{
 			Memory::RefPtr<FormattedBuffer> freeBuffer = Memory::MakeRef<FormattedBuffer>();
 
-			freeBuffer->componentType = eDataType::eFloat;
-			freeBuffer->numComponents = decltype(objMesh.free)::ValueType::length();
-			freeBuffer->count = static_cast<uint32_t>(objMesh.free.Size());
 			freeBuffer->data.Resize(objMesh.free.Size() * sizeof(decltype(objMesh.free)::ValueType));
 
 			std::memmove(freeBuffer->data.Data(), objMesh.free.Data(), freeBuffer->data.Size());
+
+			freeBuffer->desc.pointer = freeBuffer->data.Data();
+			freeBuffer->desc.componentType = eDataType::eFloat;
+			freeBuffer->desc.numComponents = decltype(objMesh.free)::ValueType::length();
+			freeBuffer->desc.count = static_cast<uint32_t>(objMesh.free.Size());
+
 			VertexKey freeKey{ eVertexSemantic::eGeneric, 0 };
 
 			rawBuffers[freeKey] = freeBuffer;
@@ -367,12 +375,13 @@ namespace wtr
 		{
 			Memory::RefPtr<FormattedBuffer> indexBuffer = Memory::MakeRef<FormattedBuffer>();
 
-			indexBuffer->componentType = eDataType::eUInt;
-			indexBuffer->numComponents = 1;
-			indexBuffer->count = static_cast<uint32_t>(objMesh.index.Size());
 			indexBuffer->data.Resize(objMesh.index.Size() * sizeof(decltype(objMesh.index)::ValueType));
 
 			std::memmove(indexBuffer->data.Data(), objMesh.index.Data(), indexBuffer->data.Size());
+
+			indexBuffer->desc.componentType = eDataType::eUInt;
+			indexBuffer->desc.numComponents = 1;
+			indexBuffer->desc.count = static_cast<uint32_t>(objMesh.index.Size());
 
 			mesh->rawIndex = indexBuffer;
 		}

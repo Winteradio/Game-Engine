@@ -46,6 +46,9 @@ namespace wtr
 	struct RHIComputeShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
 
+	struct RHIBufferUpdateDesc;
+	struct RHITextureUpdateDesc;
+
 	struct RHIColorState;
 	struct RHIDepthState;
 	struct RHIStencilState;
@@ -102,8 +105,11 @@ namespace wtr
 		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateDesc info);
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateDesc info);
 
-		void UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
-		void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
+		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture);
+
+		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer);
 		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
@@ -112,6 +118,19 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> shader);
 
+		void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
+		void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
+		void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot);
+		void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
+		void SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+
+		void UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
+		void UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
+		void UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot);
+		void UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
+		void UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+
+		void DispatchCompute(const RHIDispatchDesc info);
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info);
 
 	private :

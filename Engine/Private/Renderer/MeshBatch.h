@@ -26,6 +26,7 @@ namespace wtr
 	class MaterialAsset;
 
 	class RHIBuffer;
+	class RHIVertexLayout;
 	class RHITexture;
 };
 
@@ -38,7 +39,6 @@ namespace wtr
 		virtual ~MeshBatch() = default;
 
 	public :
-		bool Init() override;
 		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
@@ -47,17 +47,14 @@ namespace wtr
 	public :
 		void Clear();
 
-		void SetMesh(Memory::RefPtr<MeshAsset> refMesh, const size_t meshSection);
-		void SetMaterial(Memory::RefPtr<MaterialAsset> refMaterial);
+		void SetMesh(Memory::RefPtr<const MeshAsset> refMesh, const size_t meshSection);
+		void SetMaterial(Memory::RefPtr<const MaterialAsset> refMaterial);
 
 		void AddTransform(const ECS::UUID& id, const fmat4& transform);
 		void UpdateTransform(const ECS::UUID& id, const fmat4& transform);
 		void RemoveTransform(const ECS::UUID& id);
 
-		const wtr::DynamicArray<fmat4>& GetTransforms() const;
-		Memory::RefPtr<RHIBuffer> GetTransformBuffer();
-		Memory::RefPtr<MeshAsset> GetMesh();
-		Memory::RefPtr<MaterialAsset> GetMaterial();
+		const size_t GetInstanceCount() const;
 		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
 
 		const MeshBatchKey GetKey() const;
@@ -74,23 +71,22 @@ namespace wtr
 
 		Memory::RefPtr<MeshDrawCommand> m_refDrawCommand;
 		
-		Memory::RefPtr<MeshAsset> m_refMesh;
-		Memory::RefPtr<MaterialAsset> m_refMaterial;
+		Memory::RefPtr<const MeshAsset> m_refMesh;
+		Memory::RefPtr<const MaterialAsset> m_refMaterial;
 		size_t m_sectionIndex;
 	};
 
 	struct MeshDrawCommand
 	{
 		// Mesh
-		wtr::HashMap<VertexKey, Memory::RefPtr<RHIBuffer>> vertexBuffers;
-		Memory::RefPtr<RHIBuffer> indexBuffer;
+		Memory::RefPtr<const RHIVertexLayout> vertexLayout;
 		uint32_t indexOffset = 0;
 		uint32_t indexCount = 0;
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;
 
 		// Material
-		wtr::HashMap<eTextureSlot, Memory::RefPtr<RHITexture>> textureSlots;
+		wtr::HashMap<eTextureSlot, Memory::RefPtr<const RHITexture>> textureSlots;
 		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
 		wtr::HashMap<eScalarSlot, float> scalarValues;
 

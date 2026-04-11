@@ -64,7 +64,7 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const eBufferType RHIBuffer::GetType() const
+	const eBufferType RHIBuffer::GetBufferType() const
 	{
 		return m_desc.bufferType;
 	}
@@ -72,6 +72,21 @@ namespace wtr
 	const eDataAccess RHIBuffer::GetAccessType() const
 	{
 		return m_desc.accessType;
+	}
+
+	const eDataType RHIBuffer::GetComponentType() const
+	{
+		return m_desc.componentType;
+	}
+
+	const uint32_t RHIBuffer::GetNumComponents() const
+	{
+		return m_desc.numComponents;
+	}
+
+	const uint32_t RHIBuffer::GetCount() const
+	{
+		return m_desc.count;
 	}
 
 	const uint32_t RHIBuffer::GetSize() const
@@ -130,6 +145,11 @@ namespace wtr
 	const eTextureUsage RHITexture::GetTextureUsage() const
 	{
 		return m_desc.usage;
+	}
+
+	const eTextureType RHITexture::GetTextureType() const
+	{
+		return m_desc.textureType;
 	}
 
 	RHISampler::RHISampler(const RHISamplerDesc& desc)

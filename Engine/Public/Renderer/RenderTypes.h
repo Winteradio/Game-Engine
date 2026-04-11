@@ -61,6 +61,17 @@ namespace wtr
 		eDouble = 0x08
 	};
 
+	enum class eMapAccess : uint8_t
+	{
+		eNone				= 0x00,
+		eRead				= 0x01 << 0,
+		eWrite				= 0x01 << 1,
+		eInvalidateRange	= 0x01 << 2,
+		eInvalidateBuffer	= 0x01 << 3,
+		eFlushExplicit		= 0x01 << 4,
+		eUnsynchronized		= 0x01 << 5,
+	};
+
 	enum class eVertexSemantic : uint8_t
 	{
 		eNone		= 0x00,
@@ -82,6 +93,20 @@ namespace wtr
 		eStorageBuffer 	= 0x03,
 		eSampler		= 0x04,
 		eTexture		= 0x05,
+	};
+
+	enum class eTextureType : uint8_t
+	{
+		eNone 						= 0x00,
+		eTexture1D					= 0x01,
+		eTexture2D					= 0x02,
+		eTexture3D					= 0x03,
+		eTextureCube				= 0x04,
+		eTexture1DArray				= 0x05,
+		eTexture2DArray				= 0x06,
+		eTextureCubeArray			= 0x07,
+		eTextureMultisample			= 0x08,
+		eTextureMultisampleArray	= 0x09
 	};
 
 	enum class ePixelFormat : uint8_t
@@ -195,10 +220,10 @@ namespace wtr
 		eZero			= 0x00,
 		eKeep			= 0x01,
 		eReplace		= 0x02,
-		eInc_Clamp	= 0x03,
-		eInc_Wrap 	= 0x04,
-		eDec_Clamp = 0x05,
-		eDec_Wrap 	= 0x06,
+		eInc_Clamp		= 0x03,
+		eInc_Wrap 		= 0x04,
+		eDec_Clamp 		= 0x05,
+		eDec_Wrap 		= 0x06,
 		eInvert			= 0x07,
 	};
 
@@ -240,6 +265,24 @@ namespace wtr
 		eStencil		= 0x01 << 5,
 	};
 
+	enum class eBarrierFlag : uint16_t
+	{
+		eNone			= 0x00,
+		eVertexBuffer	= 0x01 << 0,
+		eIndexBuffer	= 0x01 << 1,
+		eConstBuffer	= 0x01 << 2,
+		eStorageBuffer	= 0x01 << 3,
+		eBufferUpdate	= 0x01 << 4,
+
+		eTextureFetch	= 0x01 << 5,
+		eTextureUpdate	= 0x01 << 6,
+
+		eImageRead		= 0x01 << 7,
+		eImageWrite		= 0x01 << 8,
+
+		eFrameBuffer	= 0x01 << 9,
+	};
+
 	enum class eTextureSlot : uint8_t
 	{
 		eNone				= 0x00,
@@ -275,17 +318,27 @@ namespace wtr
 		eMetallic		= 0x05,
 	};
 
-	struct RawBuffer
+	struct RawDataDesc
 	{
-		wtr::DynamicArray<uint8_t> data;
+		const void* pointer;
 	};
 
-	struct FormattedBuffer : RawBuffer
+	struct FormattedDataDesc : RawDataDesc
 	{
 		eDataType componentType;
 		uint32_t numComponents;
 		uint32_t count;
 	};
+
+	template<typename Desc>
+	struct BufferContainer
+	{
+		wtr::DynamicArray<uint8_t> data;
+		Desc desc;
+	};
+
+	using RawBuffer = BufferContainer<RawDataDesc>;
+	using FormattedBuffer = BufferContainer<FormattedDataDesc>;
 
 	struct VertexKey
 	{
@@ -297,6 +350,16 @@ namespace wtr
 			return semantic == other.semantic && semanticIndex == other.semanticIndex;
 		}
 	};
+
+	inline eMapAccess operator|(eMapAccess a, eMapAccess b)
+	{
+		return static_cast<eMapAccess>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+
+	inline eMapAccess operator&(eMapAccess a, eMapAccess b)
+	{
+		return static_cast<eMapAccess>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
 
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
@@ -328,7 +391,10 @@ namespace wtr
 		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
+	bool IsIntegerDataType(const eDataType dataType);
+
 	size_t GetDataTypeSize(const eDataType dataType);
+	size_t GetVertexLocation(const VertexKey& vertexKey);
 };
 
 namespace std

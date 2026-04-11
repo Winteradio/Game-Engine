@@ -50,7 +50,6 @@ namespace wtr
 
 	GLVertexShader::GLVertexShader(const RHIVertexShaderDesc& desc)
 		: RHIVertexShader(desc)
-		, GLResource() 
 	{}
 
 	GLVertexShader::~GLVertexShader()
@@ -58,7 +57,6 @@ namespace wtr
 
 	GLGeometryShader::GLGeometryShader(const RHIGeometryShaderDesc& desc)
 		: RHIGeometryShader(desc)
-		, GLResource()
 	{}
 
 	GLGeometryShader::~GLGeometryShader()
@@ -66,7 +64,6 @@ namespace wtr
 
 	GLHullShader::GLHullShader(const RHIHullShaderDesc& desc)
 		: RHIHullShader(desc)
-		, GLResource()
 	{}
 
 	GLHullShader::~GLHullShader()
@@ -74,7 +71,6 @@ namespace wtr
 
 	GLPixelShader::GLPixelShader(const RHIPixelShaderDesc& desc)
 		: RHIPixelShader(desc)
-		, GLResource()
 	{}
 
 	GLPixelShader::~GLPixelShader()
@@ -82,7 +78,6 @@ namespace wtr
 
 	GLComputeShader::GLComputeShader(const RHIComputeShaderDesc& desc)
 		: RHIComputeShader(desc)
-		, GLResource()
 	{}
 
 	GLComputeShader::~GLComputeShader()

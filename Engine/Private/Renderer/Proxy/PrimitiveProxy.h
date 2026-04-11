@@ -22,18 +22,15 @@ namespace wtr
 		virtual ~PrimitiveProxy();
 
 	public :
-		void SetMesh(Memory::RefPtr<MeshAsset> refMesh);
-		void SetOverrideMaterial(Memory::RefPtr<MaterialAsset> refMaterial);
+		void SetMesh(Memory::RefPtr<const MeshAsset> refMesh);
+		void SetOverrideMaterial(Memory::RefPtr<const MaterialAsset> refMaterial);
 
-		Memory::RefPtr<MeshAsset> GetMesh();
 		Memory::RefPtr<const MeshAsset> GetMesh() const;
-
-		Memory::RefPtr<MaterialAsset> GetOverrideMaterial();
 		Memory::RefPtr<const MaterialAsset> GetOverrideMaterial() const;
 
 	private :
-		Memory::RefPtr<MeshAsset> m_refMesh;
-		Memory::RefPtr<MaterialAsset> m_refOverrideMaterial;
+		Memory::RefPtr<const MeshAsset> m_refMesh;
+		Memory::RefPtr<const MaterialAsset> m_refOverrideMaterial;
 	};
 }
 

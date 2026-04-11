@@ -1,6 +1,7 @@
 #include <Asset/AssetFactory.h>
 
 #include <Asset/AssetTypes.h>
+#include <Asset/AssetUtils.h>
 #include <Container/include/StaticArray.h>
 #include <Memory/include/Core.h>
 #include <string>
@@ -53,6 +54,8 @@ namespace wtr
 		default :
 			break;
 		}
+
+		asset->name = AssetUtils::GetName(path);
 
 		return asset;
 	}

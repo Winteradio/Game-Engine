@@ -15,8 +15,10 @@ namespace wtr
 #define _USING_GLM_
 #ifdef _USING_GLM_
 
-	using F32QUAT = glm::f32quat;
-	using F64QUAT = glm::f64quat;
+	using f32quat = glm::f32quat;
+	using fquat = glm::fquat;
+	using f64quat = glm::f64quat;
+	using dquat = glm::dquat;
 
 	using fvec2 = glm::f32vec2;
 	using fvec3 = glm::f32vec3;

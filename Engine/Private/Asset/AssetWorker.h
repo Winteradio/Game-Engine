@@ -38,8 +38,6 @@ namespace wtr
 		void onLoad(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
 		void onUnload(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
 
-		static void onDispatch(Memory::RefPtr<Asset> asset);
-
 	private :
 		wtr::DynamicArray<Memory::RefPtr<TaskWorker>> m_threads;
 		Memory::RefPtr<RHIExecutor> m_refTaskExecutor;

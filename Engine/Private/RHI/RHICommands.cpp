@@ -259,7 +259,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUpdateBuffer::RHICommandUpdateBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
+	RHICommandUpdateBuffer::RHICommandUpdateBuffer(const RHIBufferUpdateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
 		: m_info(info)
 		, m_buffer(buffer)
 	{}
@@ -272,7 +272,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUpdateTexture::RHICommandUpdateTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
+	RHICommandUpdateTexture::RHICommandUpdateTexture(const RHITextureUpdateDesc info, const Memory::RefPtr<RHITexture> texture)
 		: m_info(info)
 		, m_texture(texture)
 	{}
@@ -282,6 +282,34 @@ namespace wtr
 		if (system && m_texture)
 		{
 			system->UpdateTexture(m_info, m_texture);
+		}
+	}
+
+	RHICommandResizeBuffer::RHICommandResizeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
+		: m_info(info)
+		, m_buffer(buffer)
+	{
+	}
+
+	void RHICommandResizeBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_buffer)
+		{
+			system->ResizeBuffer(m_info, m_buffer);
+		}
+	}
+
+	RHICommandResizeTexture::RHICommandResizeTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
+		: m_info(info)
+		, m_texture(texture)
+	{
+	}
+
+	void RHICommandResizeTexture::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_texture)
+		{
+			system->ResizeTexture(m_info, m_texture);
 		}
 	}
 
@@ -354,6 +382,155 @@ namespace wtr
 		if (system && m_pipeline)
 		{
 			system->RemovePipeLine(m_pipeline);
+		}
+	}
+
+	RHICommandSetBuffer::RHICommandSetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+		: m_buffer(buffer)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandSetBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_buffer)
+		{
+			system->SetBuffer(m_buffer, m_slot);
+		}
+	}
+
+	RHICommandSetVertexLayout::RHICommandSetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+		: m_layout(layout)
+	{
+	}
+
+	void RHICommandSetVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_layout)
+		{
+			system->SetVertexLayout(m_layout);
+		}
+	}
+
+	RHICommandSetTexture::RHICommandSetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+		: m_texture(texture)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandSetTexture::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_texture)
+		{
+			system->SetTexture(m_texture, m_slot);
+		}
+	}
+
+	RHICommandSetSampler::RHICommandSetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+		: m_sampler(sampler)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandSetSampler::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_sampler)
+		{
+			system->SetSampler(m_sampler, m_slot);
+		}
+	}
+
+	RHICommandSetPipeLine::RHICommandSetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+		: m_pipeline(pipeline)
+	{
+	}
+
+	void RHICommandSetPipeLine::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_pipeline)
+		{
+			system->SetPipeLine(m_pipeline);
+		}
+	}
+
+	RHICommandUnsetBuffer::RHICommandUnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+		: m_buffer(buffer)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandUnsetBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_buffer)
+		{
+			system->UnsetBuffer(m_buffer, m_slot);
+		}
+	}
+
+	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+		: m_layout(layout)
+	{
+	}
+
+	void RHICommandUnsetVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_layout)
+		{
+			system->UnsetVertexLayout(m_layout);
+		}
+	}
+
+	RHICommandUnsetTexture::RHICommandUnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+		: m_texture(texture)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandUnsetTexture::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_texture)
+		{
+			system->UnsetTexture(m_texture, m_slot);
+		}
+	}
+
+	RHICommandUnsetSampler::RHICommandUnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+		: m_sampler(sampler)
+		, m_slot(slot)
+	{
+	}
+
+	void RHICommandUnsetSampler::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_sampler)
+		{
+			system->UnsetSampler(m_sampler, m_slot);
+		}
+	}
+
+	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+		: m_pipeline(pipeline)
+	{
+	}
+
+	void RHICommandUnsetPipeLine::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_pipeline)
+		{
+			system->UnsetPipeLine(m_pipeline);
+		}
+	}
+
+	RHICommandDispatchCompute::RHICommandDispatchCompute(const RHIDispatchDesc info)
+		: m_info(info)
+	{
+	}
+
+	void RHICommandDispatchCompute::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->DispatchCompute(m_info);
 		}
 	}
 

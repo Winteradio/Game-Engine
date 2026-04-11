@@ -229,6 +229,7 @@ set(ENGINE_ASSET_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Asset/AssetSystem.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetLoader.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetFactory.h
+	${ENGINE_PUBLIC_DIR}/Asset/AssetUtils.h
 	
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.h
 	${ENGINE_PUBLIC_DIR}/Asset/AssetTypes.cpp
@@ -253,6 +254,7 @@ set(ENGINE_ASSET_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Asset/AssetSystem.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetLoader.cpp
 	${ENGINE_PRIVATE_DIR}/Asset/AssetFactory.cpp
+	${ENGINE_PRIVATE_DIR}/Asset/AssetUtils.cpp
 
 	${ENGINE_PRIVATE_DIR}/Asset/AssetCommander.h
 	${ENGINE_PRIVATE_DIR}/Asset/AssetCommander.cpp

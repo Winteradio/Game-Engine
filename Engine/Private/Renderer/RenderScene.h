@@ -13,6 +13,7 @@ namespace wtr
 	class SceneProxy;
 	class PrimitiveProxy;
 	class LightProxy;
+	struct UpdateProxyInfo;
 
 	class MeshBatch;
 	struct MeshBatchKey;
@@ -32,40 +33,34 @@ namespace wtr
 			using MeshBatchContainer = wtr::HashMap<MeshBatchKey, Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
 			using PendingPrimitive = wtr::DynamicArray<Memory::RefPtr<PrimitiveProxy>>;
-			using PendingBatch = wtr::HashSet<Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
 		public:
 			RenderScene();
 			~RenderScene();
 
 		public :
-			void RemoveAll();
+			void RemoveAll(Memory::RefPtr<RHICommandList> cmdList);
 			void Flush(Memory::RefPtr<RHICommandList> cmdList);
 
-			void UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale);
+			void UpdateProxy(const UpdateProxyInfo& updateInfo, Memory::RefPtr<RHICommandList> cmdList);
 
 			void AddPrimitive(Memory::RefPtr<PrimitiveProxy> primitive);
-			void RemovePrimitive(const ECS::UUID& id);
-			Memory::RefPtr<PrimitiveProxy> GetPrimitive(const ECS::UUID& id);
+			void RemovePrimitive(const ECS::UUID& id, Memory::RefPtr<RHICommandList> cmdList);
 
 			void AddLight(Memory::RefPtr<LightProxy> light);
 			void RemoveLight(const ECS::UUID& id);
-			Memory::RefPtr<LightProxy> GetLight(const ECS::UUID& id);
 
 			Memory::RefPtr<MeshBatch> GetMeshBatch(const MeshBatchKey& key);
 			const MeshBatchContainer& GetMeshBatches() const;
 
 		private :
 			void Clear();
-
-			void FlushPrimitive();
-			void FlushAddable(Memory::RefPtr<RHICommandList> cmdList);
-			void FlushUpdatable(Memory::RefPtr<RHICommandList> cmdList);
-			void FlushRemovable(Memory::RefPtr<RHICommandList> cmdList);
 			
-			void AddBatch(Memory::RefPtr<PrimitiveProxy> primitive);
-			void UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive);
-			void RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive);
+			void AddBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
+			void UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
+			void RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
+
+			const MeshBatchKey GetMeshBatchKey(Memory::RefPtr<PrimitiveProxy> primitive, const size_t sectionIndex);
 
 		private :
 			ProxyContainer<PrimitiveProxy> m_primitives;
@@ -74,9 +69,6 @@ namespace wtr
 			MeshBatchContainer m_meshBatches;
 
 			PendingPrimitive m_pendingPrimitives;
-			PendingBatch m_addable;
-			PendingBatch m_removable;
-			PendingBatch m_updatable;
 	};
 };
 

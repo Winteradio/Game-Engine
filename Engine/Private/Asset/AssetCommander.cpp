@@ -89,12 +89,17 @@ namespace wtr
 				continue;
 			}
 
+			const auto& desc = rawBuffer->desc;
+
 			RHIBufferCreateDesc bufferDesc;
-			bufferDesc.rawBuffer = rawBuffer;
 			bufferDesc.bufferType = eBufferType::eVertex;
 			bufferDesc.accessType = eDataAccess::eStatic;
+			bufferDesc.componentType = desc.componentType;
+			bufferDesc.numComponents = desc.numComponents;
+			bufferDesc.count = desc.count;
 			bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
-			bufferDesc.stride = rawBuffer->numComponents * GetDataTypeSize(rawBuffer->componentType);
+			bufferDesc.stride = desc.numComponents * GetDataTypeSize(desc.componentType);
+			bufferDesc.data = rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIBuffer> vertexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (vertexBuffer)
@@ -105,12 +110,17 @@ namespace wtr
 
 		if (meshAsset->rawIndex && !meshAsset->rawIndex->data.Empty())
 		{
+			const auto& desc = meshAsset->rawIndex->desc;
+
 			RHIBufferCreateDesc bufferDesc;
-			bufferDesc.rawBuffer = meshAsset->rawIndex;
 			bufferDesc.bufferType = eBufferType::eIndex;
 			bufferDesc.accessType = eDataAccess::eStatic;
+			bufferDesc.componentType = desc.componentType;
+			bufferDesc.numComponents = desc.numComponents;
+			bufferDesc.count = desc.count;
 			bufferDesc.size = static_cast<uint32_t>(meshAsset->rawIndex->data.Size());
-			bufferDesc.stride = meshAsset->rawIndex->numComponents * GetDataTypeSize(meshAsset->rawIndex->componentType);
+			bufferDesc.stride = desc.numComponents * GetDataTypeSize(desc.componentType);
+			bufferDesc.data = meshAsset->rawIndex->data.Data();
 
 			Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (indexBuffer)
@@ -132,7 +142,7 @@ namespace wtr
 
 	void AssetCommander::onLoad(Memory::RefPtr<ShaderAsset> shaderAsset, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!shaderAsset || !cmdList)
+		if (!cmdList || !shaderAsset || !shaderAsset->rawBuffer || shaderAsset->rawBuffer->data.Empty())
 		{
 			return;
 		}
@@ -146,7 +156,7 @@ namespace wtr
 		{
 			RHIVertexShaderCreateDesc shaderDesc;
 			shaderDesc.shaderType = eShaderType::eVertex;
-			shaderDesc.rawBuffer = shaderAsset->rawBuffer;
+			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIVertexShader> vertexShader = cmdList->CreateVertexShader(shaderDesc);
 			if (vertexShader)
@@ -158,7 +168,7 @@ namespace wtr
 		{
 			RHIGeometryShaderCreateDesc shaderDesc;
 			shaderDesc.shaderType = eShaderType::eGeometry;
-			shaderDesc.rawBuffer = shaderAsset->rawBuffer;
+			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIGeometryShader> geometryShader = cmdList->CreateGeometryShader(shaderDesc);
 			if (geometryShader)
@@ -170,7 +180,7 @@ namespace wtr
 		{
 			RHIHullShaderCreateDesc shaderDesc;
 			shaderDesc.shaderType = eShaderType::eHull;
-			shaderDesc.rawBuffer = shaderAsset->rawBuffer;
+			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIHullShader> hullShader = cmdList->CreateHullShader(shaderDesc);
 			if (hullShader)
@@ -182,7 +192,7 @@ namespace wtr
 		{
 			RHIPixelShaderCreateDesc shaderDesc;
 			shaderDesc.shaderType = eShaderType::ePixel;
-			shaderDesc.rawBuffer = shaderAsset->rawBuffer;
+			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIPixelShader> pixelShader = cmdList->CreatePixelShader(shaderDesc);
 			if (pixelShader)
@@ -194,7 +204,7 @@ namespace wtr
 		{
 			RHIComputeShaderCreateDesc shaderDesc;
 			shaderDesc.shaderType = eShaderType::eCompute;
-			shaderDesc.rawBuffer = shaderAsset->rawBuffer;
+			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
 			Memory::RefPtr<RHIComputeShader> computeShader = cmdList->CreateComputeShader(shaderDesc);
 			if (computeShader)

@@ -167,7 +167,7 @@ namespace wtr
 					}
 					assetRef->SetState(eAssetState::eLoaded);
 
-					onDispatch(assetRef);
+					AssetSystem::AddTask(assetRef);
 				};
 
 			Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
@@ -196,62 +196,5 @@ namespace wtr
 		}
 
 		AssetCommander::Unload(asset, cmdList);
-	}
-
-	void AssetWorker::onDispatch(Memory::RefPtr<Asset> asset)
-	{
-		if (!asset)
-		{
-			return;
-		}
-
-		if (asset->GetState() != eAssetState::eLoaded)
-		{
-			LOGERROR() << "[AssetWorker] The asset's state is not ready, name : " << asset->name << " path : " << asset->path;
-			return;
-		}
-
-		AssetSystem::AddTask(asset);
-
-		if (asset->type == eAsset::eMesh)
-		{
-			Memory::RefPtr<MeshAsset> meshAsset = Memory::Cast<MeshAsset>(asset);
-			if (!meshAsset)
-			{
-				return;
-			}
-
-			for (const auto& [name, materialAsset] : meshAsset->materials)
-			{
-				if (!materialAsset)
-				{
-					continue;
-				}
-
-				AssetSystem::AddTask(materialAsset);
-			}
-		}
-		else if (asset->type == eAsset::eMaterial)
-		{
-			Memory::RefPtr<MaterialAsset> materialAsset = Memory::Cast<MaterialAsset>(asset);
-			if (!materialAsset)
-			{
-				return;
-			}
-
-			for (const auto& [textureSlot, textureAsset] : materialAsset->textures)
-			{
-				if (!textureAsset)
-				{
-					continue;
-				}
-
-				AssetSystem::AddTask(textureAsset);
-			}
-		}
-		else
-		{
-			return;
-		}
 	}
 }

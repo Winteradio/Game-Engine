@@ -1,6 +1,7 @@
 #include <Renderer/PipeLine/SimpleColor.h>
 
 #include <Asset/AssetTypes.h>
+#include <Asset/AssetSystem.h>
 #include <Renderer/RenderView.h>
 #include <Renderer/RenderScene.h>
 #include <RHI/RHICommandList.h>
@@ -9,6 +10,7 @@
 #include <RHI/RHIStates.h>
 
 #include <Log/include/Log.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
@@ -44,14 +46,34 @@ namespace wtr
 		// TODO
 	}
 
-	void SimpleColor::Init(Memory::RefPtr<RHICommandList> commandList)
+	void SimpleColor::Init()
 	{
-		if (!commandList)
+		const std::string vertexShader = "asset/shader/SimpleColor.vs.glsl";
+		const std::string pixelShader = "asset/shader/SimpleColor.ps.glsl";
+
+		m_vertexShader = Memory::Cast<const ShaderAsset>(AssetSystem::Load(vertexShader));
+		if (!m_vertexShader)
+		{
+			LOGERROR() << "[SimpleColor] Failed to initialize the simple color pipeline, cause failed to load the vertex shader, path : " << vertexShader;
+			return;
+		}
+
+		m_pixelShader = Memory::Cast<const ShaderAsset>(AssetSystem::Load(pixelShader));
+		if (!m_pixelShader)
+		{
+			LOGERROR() << "[SimpleColor] Failed to initialize the simple color pipeline, cause failed to load the pixel shader, path : " << pixelShader;
+			return;
+		}
+	}
+
+	void SimpleColor::Upload(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
 		{
 			return;
 		}
 
-		if (m_pipeLine)
+		if (!m_vertexShader || !m_vertexShader->shader || !m_pixelShader || !m_pixelShader->shader)
 		{
 			return;
 		}
@@ -66,8 +88,32 @@ namespace wtr
 		desc.rasterizer.cullFace = eCullFace::eBack;
 		desc.rasterizer.frontFace = eFrontFace::eCCW;
 		desc.rasterizer.fillMode = ePrimitiveMode::eFill;
+		desc.vertexShader = m_vertexShader->shader;
+		desc.pixelShader = m_pixelShader->shader;
 
-		m_pipeLine = commandList->CreatePipeLine(desc);
+		m_pipeLine = cmdList->CreatePipeLine(desc);
+		if (!m_pipeLine)
+		{
+			LOGERROR() << "[SimpleColor] Failed to upload the simple color pipeline, cause failed to create the pipeline";
+			return;
+		}
+	}
+
+	void SimpleColor::Unload(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
+		if (m_pipeLine)
+		{
+			cmdList->RemovePipeLine(m_pipeLine);
+			m_pipeLine = nullptr;
+		}
+
+		m_vertexShader = nullptr;
+		m_pixelShader = nullptr;
 	}
 
 	eResourceState SimpleColor::GetResourceState() const
@@ -77,10 +123,19 @@ namespace wtr
 			return eResourceState::eNone;
 		}
 
-		eResourceState allState = m_pipeLine->GetState();
+		const eResourceState allState = m_pipeLine->GetState() & m_vertexShader->GetResourceState() & m_pixelShader->GetResourceState();
 
-		allState |= m_vertexShader->GetResourceState() | m_pixelShader->GetResourceState();
+		return allState;
+	}
 
+	eResourceState SimpleColor::GetShaderState() const
+	{
+		if (!m_vertexShader || !m_pixelShader)
+		{
+			return eResourceState::eNone;
+		}
+
+		const eResourceState allState = m_vertexShader->GetResourceState() & m_pixelShader->GetResourceState();
 		return allState;
 	}
 };

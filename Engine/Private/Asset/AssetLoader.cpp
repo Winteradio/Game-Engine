@@ -5,6 +5,7 @@
 #include <Asset/OBJParser.h>
 #include <Asset/MTLParser.h>
 #include <Asset/StbImageParser.h>
+#include <Asset/GLSLParser.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -20,6 +21,7 @@ namespace wtr
 	{
 		m_parserMap[eExtension::eOBJ] = Memory::MakeRef<OBJParser>();
 		m_parserMap[eExtension::eMTL] = Memory::MakeRef<MTLParser>();
+		m_parserMap[eExtension::eGLSL] = Memory::MakeRef<GLSLParser>();
 
 		auto imageParser = Memory::MakeRef<StbImageParser>();
 		m_parserMap[eExtension::eJPG] = imageParser;

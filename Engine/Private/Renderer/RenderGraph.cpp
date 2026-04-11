@@ -22,6 +22,10 @@ namespace wtr
 	bool RenderGraph::Init()
 	{
 		Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>();
+		if (simpleColor)
+		{
+			simpleColor->Init();
+		}
 
 		Add(simpleColor);
 
@@ -42,7 +46,7 @@ namespace wtr
 		}
 
 		auto itr = m_addable.begin();
-		while (itr == m_addable.end())
+		while (itr != m_addable.end())
 		{
 			auto& pipeLine = *itr;
 			if (!pipeLine)
@@ -52,14 +56,17 @@ namespace wtr
 				continue;
 			}
 
-			if (pipeLine->GetResourceState() == eResourceState::eReady)
+			const eResourceState state = pipeLine->GetShaderState();
+			if (state == eResourceState::eReady)
 			{
 				itr = m_addable.Erase(itr);
 				m_graph.Add(pipeLine);
 
+				pipeLine->Upload(cmdList);
+
 				continue;
 			}
-			else if (pipeLine->GetResourceState() == eResourceState::eError)
+			else if (state == eResourceState::eError)
 			{
 				LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is in error state";
 				itr = m_addable.Erase(itr);
@@ -91,26 +98,17 @@ namespace wtr
 				continue;
 			}
 
-
-			if (pipeLine->GetResourceState() == eResourceState::eNone)
+			const eResourceState state = pipeLine->GetResourceState();
+			if (state >= eResourceState::eNone)
 			{
-				itr = m_removable.Erase(itr);
-				m_graph.Remove(pipeLine);
-				continue;
-			}
-			else if (pipeLine->GetResourceState() == eResourceState::eError)
-			{
-				LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is in error state";
-				itr = m_removable.Erase(itr);
-
-				m_graph.Remove(pipeLine);
-
-				continue;
+				pipeLine->Unload(cmdList);
 			}
 			else
 			{
-				itr++;
+				LOGINFO() << "[Render Graph] Failed to remove the pipeline, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << pipeLine->GetID().ToString();
 			}
+
+			itr = m_removable.Erase(itr);
 		}
 	}
 
@@ -136,6 +134,7 @@ namespace wtr
 		}
 
 		m_removable.Insert(pipeLine);
+		m_graph.Remove(pipeLine);
 
 		LOGINFO() << "[Render Graph] Remove the pipeline, ID : " << PipeLineString()(pipeLine);
 	}
@@ -161,12 +160,11 @@ namespace wtr
 
 		for (const auto& pipeLine : m_graph.GetSorted())
 		{
-			if (!pipeLine || pipeLine->GetResourceState() == eResourceState::eReady)
+			if (!pipeLine || pipeLine->GetResourceState() != eResourceState::eReady)
 			{
 				continue;
 			}
 
-			pipeLine->Init(cmdList);
 			pipeLine->Draw(renderView, renderScene, cmdList);
 		}
 	}

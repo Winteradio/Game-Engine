@@ -371,7 +371,7 @@ namespace wtr
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!info.rawBuffer || info.rawBuffer->data.Empty() || !buffer)
+		if (!buffer || !info.data)
 		{
 			return;
 		}
@@ -384,11 +384,9 @@ namespace wtr
 
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetDataAccess(info.accessType);
-		const uint32_t dataType = GetDataType(info.rawBuffer->componentType);
-		const uint32_t dataSize = info.rawBuffer->data.Size();
-		const uint32_t stride = info.stride;
-		const uint32_t componentCount = info.rawBuffer->numComponents;
-
+		const uint32_t dataType = GetDataType(info.componentType);
+		const uint32_t dataSize = info.size;
+		
 		uint32_t bufferID = GL_NONE;
 		glGenBuffers(1, &bufferID);
 
@@ -399,7 +397,7 @@ namespace wtr
 		}
 
 		glBindBuffer(bufferType, bufferID);
-		glBufferSubData(bufferType, 0, dataSize, info.rawBuffer->data.Data());
+		glBufferSubData(bufferType, 0, dataSize, info.data);
 		glBindBuffer(bufferType, GL_NONE);
 
 		glBuffer->SetID(bufferID);
@@ -502,11 +500,96 @@ namespace wtr
 	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
 	{}
 
-	void GLSystem::UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
-	{}
+	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!buffer)
+		{
+			return;
+		}
 
-	void GLSystem::UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
-	{}
+		if (!info.data)
+		{
+			LOGERROR() << "[GL] Failed to update buffer, cause the data pointer is null";
+			return;
+		}
+
+		if ((info.dataOffset + info.dataSize) > buffer->GetSize())
+		{
+			LOGERROR() << "[GL] Buffer size is smaller than the data size, resizing the buffer";
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetMapAccess(info.mapAccess);
+		const bool useMapBuffer = accessType != GL_NONE;
+		glBindBuffer(bufferType, glBuffer->GetID());
+
+		if (useMapBuffer)
+		{
+			void* mappedBuffer = glMapBufferRange(bufferType, info.dataOffset, info.dataSize, accessType);
+			if (mappedBuffer)
+			{
+				std::memcpy(mappedBuffer, info.data, info.dataSize);
+			}
+			else
+			{
+				LOGERROR() << "[GL] Failed to map buffer for update";
+			}
+
+			glUnmapBuffer(bufferType);
+		}
+		else
+		{
+			glBufferSubData(bufferType, info.dataOffset, info.dataSize, info.data);
+		}
+
+		glBindBuffer(bufferType, GL_NONE);
+	}
+
+	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			return;
+		}
+	}
+
+	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer || (glBuffer->GetID() == GL_NONE))
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetDataAccess(info.accessType);
+		const uint32_t dataType = GetDataType(info.componentType);
+		const uint32_t dataSize = info.size;
+
+		glBindBuffer(bufferType, glBuffer->GetID());
+		glBufferData(bufferType, dataSize, info.data, accessType);
+		glBindBuffer(bufferType, GL_NONE);
+	}
+
+	void GLSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			return;
+		}
+	}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
 	{
@@ -555,10 +638,57 @@ namespace wtr
 	{}
 
 	void GLSystem::RemoveShader(Memory::RefPtr<RHIShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+
+		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
+		if (!glShader)
+		{
+			return;
+		}
+		glDeleteShader(glShader->GetID());
+		glShader->SetID(GL_NONE);
+		glShader->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
-	{}
+	{
+		if (!pipeline)
+		{
+			return;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine)
+		{
+			return;
+		}
+
+		glDeleteProgram(glPipeLine->GetID());
+		glPipeLine->SetID(GL_NONE);
+		glPipeLine->SetState(eResourceState::eNone);
+	}
+
+	void GLSystem::SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+	
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
+
+		glBindBufferBase(bufferType, slot, glBuffer->GetID());
+	}
 
 	void GLSystem::SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
 	{
@@ -576,9 +706,102 @@ namespace wtr
 		glBindVertexArray(glVertexLayout->GetID());
 	}
 
-	void GLSystem::UnsetVertexLayout()
+	void GLSystem::SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture)
+		{
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(textureType, glTexture->GetID());
+	}
+
+	void GLSystem::SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler)
+		{
+			return;
+		}
+
+		glBindSampler(slot, glSampler->GetID());
+	}
+
+	void GLSystem::SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine)
+		{
+			return;
+		}
+
+		glUseProgram(glPipeLine->GetID());
+	}
+
+	void GLSystem::UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
+		glBindBufferBase(bufferType, slot, GL_NONE);
+	}
+
+	void GLSystem::UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		glBindVertexArray(GL_NONE);
+	}
+
+	void GLSystem::UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(textureType, GL_NONE);
+	}
+
+	void GLSystem::UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		glBindSampler(slot, GL_NONE);
+	}
+
+	void GLSystem::UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		glUseProgram(GL_NONE);
+	}
+
+	void GLSystem::DispatchCompute(const RHIDispatchDesc info)
+	{
+		glDispatchCompute(info.groupX, info.groupY, info.groupZ);
 	}
 
 	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
@@ -719,6 +942,82 @@ namespace wtr
 		else if (eDataType::eDouble == data)
 		{
 			return GL_DOUBLE;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetMapAccess(const eMapAccess access) const
+	{
+		GLbitfield accessFlags = GL_NONE;
+
+		if (eMapAccess::eRead == (access & eMapAccess::eRead))
+		{
+			accessFlags |= GL_MAP_READ_BIT;
+		}
+
+		if (eMapAccess::eWrite == (access & eMapAccess::eWrite))
+		{
+			accessFlags |= GL_MAP_WRITE_BIT;
+		}
+
+		if (eMapAccess::eInvalidateRange == (access & eMapAccess::eInvalidateRange))
+		{
+			accessFlags |= GL_MAP_INVALIDATE_RANGE_BIT;
+		}
+
+		if (eMapAccess::eInvalidateBuffer == (access & eMapAccess::eInvalidateBuffer))
+		{
+			accessFlags |= GL_MAP_INVALIDATE_BUFFER_BIT;
+		}
+
+		if (eMapAccess::eFlushExplicit == (access & eMapAccess::eFlushExplicit))
+		{
+			accessFlags |= GL_MAP_FLUSH_EXPLICIT_BIT;
+		}
+
+		return accessFlags;
+	}
+
+	const uint32_t GLSystem::GetTextureType(const eTextureType type) const
+	{
+		if (eTextureType::eTexture1D == type)
+		{
+			return GL_TEXTURE_1D;
+		}
+		else if (eTextureType::eTexture2D == type)
+		{
+			return GL_TEXTURE_2D;
+		}
+		else if (eTextureType::eTexture3D == type)
+		{
+			return GL_TEXTURE_3D;
+		}
+		else if (eTextureType::eTextureCube == type)
+		{
+			return GL_TEXTURE_CUBE_MAP;
+		}
+		else if (eTextureType::eTexture1DArray == type)
+		{
+			return GL_TEXTURE_1D_ARRAY;
+		}
+		else if (eTextureType::eTexture2DArray == type)
+		{
+			return GL_TEXTURE_2D_ARRAY;
+		}
+		else if (eTextureType::eTextureCubeArray == type)
+		{
+			return GL_TEXTURE_CUBE_MAP_ARRAY;
+		}
+		else if (eTextureType::eTextureMultisample == type)
+		{
+			return GL_TEXTURE_2D_MULTISAMPLE;
+		}
+		else if (eTextureType::eTextureMultisampleArray == type)
+		{
+			return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 		}
 		else
 		{

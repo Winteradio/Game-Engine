@@ -17,9 +17,7 @@ namespace wtr
 		: m_primitives()
 		, m_lights()
 		, m_meshBatches()
-		, m_addable()
-		, m_removable()
-		, m_updatable()
+		, m_pendingPrimitives()
 	{}
 
 	RenderScene::~RenderScene()
@@ -27,25 +25,20 @@ namespace wtr
 		Clear();
 	}
 
-	void RenderScene::RemoveAll()
+	void RenderScene::RemoveAll(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		for (auto meshBatch : m_addable)
-		{
-			m_removable.Insert(meshBatch);
-		}
-
-		for (auto& [batchKey, meshBatch] : m_meshBatches)
-		{
-			m_removable.Insert(meshBatch);
-		}
-
 		m_primitives.Clear();
 		m_lights.Clear();
 
 		m_pendingPrimitives.Clear();
 
-		m_addable.Clear();
-		m_updatable.Clear();
+		for (const auto& [batchKey, meshBatch] : m_meshBatches)
+		{
+			if (meshBatch)
+			{
+				meshBatch->Unload(cmdList);
+			}
+		}
 
 		m_meshBatches.Clear();
 	}
@@ -56,42 +49,61 @@ namespace wtr
 		m_lights.Clear();
 		m_meshBatches.Clear();
 		m_pendingPrimitives.Clear();
-		m_addable.Clear();
-		m_updatable.Clear();
-		m_removable.Clear();
 	}
 
 	void RenderScene::Flush(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		FlushPrimitive();
-		FlushAddable(cmdList);
-		FlushUpdatable(cmdList);
-		FlushRemovable(cmdList);
+		auto itr = m_pendingPrimitives.begin();
+		while (itr != m_pendingPrimitives.end())
+		{
+			auto& primitive = *itr;
+			if (!primitive || !primitive->GetMesh())
+			{
+				LOGINFO() << "[RENDER SCENE] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
+				itr = m_pendingPrimitives.Erase(itr);
+				continue;
+			}
+
+			auto mesh = primitive->GetMesh();
+			if (mesh->GetState() >= eAssetState::eLoaded)
+			{
+				AddBatch(primitive, cmdList);
+
+				itr = m_pendingPrimitives.Erase(itr);
+				continue;
+			}
+			else
+			{
+				itr++;
+			}
+		}
 	}
 
-	void RenderScene::UpdateProxy(const ECS::UUID& id, const fvec3 position, const fvec3 rotation, const fvec3 scale)
+	void RenderScene::UpdateProxy(const UpdateProxyInfo& updateInfo, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		auto itrPrimitive = m_primitives.Find(id);
-		if (itrPrimitive != m_primitives.End())
+		if (!cmdList)
 		{
-			auto& primitiveProxy = itrPrimitive->second;
-			primitiveProxy->UpdatePosition(position);
-			primitiveProxy->UpdateRotation(rotation);
-			primitiveProxy->UpdateScale(scale);
-
-			UpdateBatch(primitiveProxy);
-
 			return;
 		}
 
-		auto itrLight = m_lights.Find(id);
+		auto itrPrimitive = m_primitives.Find(updateInfo.id);
+		if (itrPrimitive != m_primitives.End())
+		{
+			auto& primitiveProxy = itrPrimitive->second;
+			primitiveProxy->UpdatePosition(updateInfo.position);
+			primitiveProxy->UpdateRotation(updateInfo.rotation);
+			primitiveProxy->UpdateScale(updateInfo.scale);
+
+			UpdateBatch(primitiveProxy, cmdList);
+		}
+
+		auto itrLight = m_lights.Find(updateInfo.id);
 		if (itrLight != m_lights.End())
 		{
 			auto& lightProxy = itrLight->second;
-
-			lightProxy->UpdatePosition(position);
-			lightProxy->UpdateRotation(rotation);
-			lightProxy->UpdateScale(scale);
+			lightProxy->UpdatePosition(updateInfo.position);
+			lightProxy->UpdateRotation(updateInfo.rotation);
+			lightProxy->UpdateScale(updateInfo.scale);
 		}
 	}
 
@@ -107,29 +119,16 @@ namespace wtr
 		LOGINFO() << "[RenderScene] Add the primitive proxy, ID : " << primitive->GetID().ToString();
 	}
 
-	void RenderScene::RemovePrimitive(const ECS::UUID& id)
+	void RenderScene::RemovePrimitive(const ECS::UUID& id, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		auto itr = m_primitives.Find(id);
 		if (itr != m_primitives.End())
 		{
 			auto& primitiveProxy = itr->second;
 
-			RemoveBatch(primitiveProxy);
+			RemoveBatch(primitiveProxy, cmdList);
 
 			LOGINFO() << "[RenderScene] Remove the primitive proxy, ID : " << id.ToString();
-		}
-	}
-
-	Memory::RefPtr<PrimitiveProxy> RenderScene::GetPrimitive(const ECS::UUID& id)
-	{
-		auto itr = m_primitives.Find(id);
-		if (itr != m_primitives.End())
-		{
-			return itr->second;
-		}
-		else
-		{
-			return {};
 		}
 	}
 
@@ -157,19 +156,6 @@ namespace wtr
 		}
 	}
 
-	Memory::RefPtr<LightProxy> RenderScene::GetLight(const ECS::UUID& id)
-	{
-		auto itr = m_lights.Find(id);
-		if (itr != m_lights.End())
-		{
-			return itr->second;
-		}
-		else
-		{
-			return {};
-		}
-	}
-
 	Memory::RefPtr<MeshBatch> RenderScene::GetMeshBatch(const MeshBatchKey& key)
 	{
 		auto itr = m_meshBatches.Find(key);
@@ -188,191 +174,41 @@ namespace wtr
 		return m_meshBatches;
 	}
 
-	void RenderScene::FlushPrimitive()
+	void RenderScene::AddBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		auto itr = m_pendingPrimitives.begin();
-		while (itr != m_pendingPrimitives.end())
-		{
-			auto& primitive = *itr;
-			if (!primitive || !primitive->GetMesh())
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
-				itr = m_pendingPrimitives.Erase(itr);
-				continue;
-			}
-
-			auto mesh = primitive->GetMesh();
-			if (mesh->GetResourceState() >= eResourceState::eLoaded)
-			{
-				AddBatch(primitive);
-
-				itr = m_pendingPrimitives.Erase(itr);
-				continue;
-			}
-			else
-			{
-				itr++;
-			}
-		}
-	}
-
-	void RenderScene::FlushAddable(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
-		{
-			return;
-		}
-
-		auto itr = m_addable.begin();
-		while (itr != m_addable.end())
-		{
-			auto& meshBatch = *itr;
-			if (!meshBatch)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to add the mesh batch, cause the mesh batch is invalid";
-
-				itr = m_addable.Erase(itr);
-				continue;
-			}
-
-			const eResourceState state = meshBatch->GetResourceState();
-			if (state == eResourceState::eLoaded)
-			{
-				meshBatch->Upload(cmdList);
-				m_meshBatches[meshBatch->GetKey()] = meshBatch;	
-				itr = m_addable.Erase(itr);
-
-				continue;
-			}
-			else if (state == eResourceState::eReady)
-			{
-				m_meshBatches[meshBatch->GetKey()] = meshBatch;
-				itr = m_addable.Erase(itr);
-
-				continue;
-			}
-			else if (state == eResourceState::eError)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to add the mesh batch, the mesh batch is in error state, ID : " << meshBatch->ToString();
-				itr = m_addable.Erase(itr);
-
-				continue;
-			}
-			else
-			{
-				itr++;
-			}
-		}
-	}
-
-	void RenderScene::FlushUpdatable(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
-		{
-			return;
-		}
-
-		auto itr = m_updatable.begin();
-		while (itr != m_updatable.end())
-		{
-			auto& meshBatch = *itr;
-			if (!meshBatch)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to update the mesh batch, cause the mesh batch is invalid";
-				itr = m_updatable.Erase(itr);
-				continue;
-			}
-
-			const eResourceState state = meshBatch->GetResourceState();
-			if (state == eResourceState::eDirty)
-			{
-				meshBatch->Sync(cmdList);
-			}
-			else
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to update the mesh batch, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << meshBatch->ToString();
-			}
-
-			itr = m_updatable.Erase(itr);
-		}
-	}
-
-	void RenderScene::FlushRemovable(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
-		{
-			return;
-		}
-
-		auto itr = m_removable.begin();
-		while (itr != m_removable.end())
-		{
-			auto& meshBatch = *itr;
-			if (!meshBatch)
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to remove the mesh batch, cause the mesh batch is invalid";
-				itr = m_removable.Erase(itr);
-				continue;
-			}
-
-			const eResourceState state = meshBatch->GetResourceState();
-			if (state >= eResourceState::eLoaded)
-			{
-				meshBatch->Unload(cmdList);
-			}
-			else
-			{
-				LOGINFO() << "[RENDER SCENE] Failed to remove the mesh batch, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << meshBatch->ToString();
-			}
-
-			itr = m_removable.Erase(itr);
-		}
-	}
-
-	void RenderScene::AddBatch(Memory::RefPtr<PrimitiveProxy> primitive)
-	{
-		if (!primitive)
+		if (!primitive || !cmdList)
 		{
 			return;
 		}
 		
 		auto meshAsset = primitive->GetMesh();
-		if (!meshAsset || meshAsset->sections.Empty())
+		if (!meshAsset)
 		{
 			LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 			return;
 		}
 
+		auto overrideMaterial = primitive->GetOverrideMaterial();
+
 		const size_t endIndex = meshAsset->sections.Size();
 		for (size_t index = 0; index < endIndex; index++)
 		{
-			auto& section = meshAsset->sections[index];
-			if (section.minVertexIndex >= section.maxVertexIndex)
-			{
-				LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh section's vertext index range is invalid, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-				return;
-			}
-
-			Memory::RefPtr<MaterialAsset> materialAsset = primitive->GetOverrideMaterial();
-			if (!materialAsset)
-			{
-				auto itr = meshAsset->materials.Find(section.materialName);
-				if (itr != meshAsset->materials.End())
-				{
-					materialAsset = itr->second;
-				}
-			}
-
-			MeshBatchKey batchKey;
-			batchKey.meshId = meshAsset->id;
-			batchKey.materialId = materialAsset ? materialAsset->id : ECS::UUID::Null();
-			batchKey.meshSection = index;
-
+			const MeshBatchKey batchKey = GetMeshBatchKey(primitive, index);
 			if (GetMeshBatch(batchKey))
 			{
 				LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh batch with the same key already exists, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
 
 				continue;
+			}
+			
+			Memory::RefPtr<const MaterialAsset> materialAsset;
+			if (!overrideMaterial)
+			{
+				auto itr = meshAsset->materials.Find(meshAsset->sections[index].materialName);
+				if (itr != meshAsset->materials.End())
+				{
+					materialAsset = itr->second;
+				}
 			}
 
 			Memory::RefPtr<MeshBatch> meshBatch = Memory::MakeRef<MeshBatch>();
@@ -384,20 +220,17 @@ namespace wtr
 
 			meshBatch->SetMesh(meshAsset, index);
 			meshBatch->SetMaterial(materialAsset);
-			if (!meshBatch->Init())
-			{
-				LOGINFO() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-				continue;
-			}
+			meshBatch->AddTransform(primitive->GetID(), primitive->GetTransform());
 
-			m_addable.Insert(meshBatch);
+			meshBatch->Upload(cmdList);
+
 			LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
 		}
 	}
 	
-	void RenderScene::UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive)
+	void RenderScene::UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!primitive)
+		if (!primitive || !cmdList)
 		{
 			return;
 		}
@@ -412,81 +245,95 @@ namespace wtr
 		const size_t endIndex = meshAsset->sections.Size();
 		for (size_t index = 0; index < endIndex; index++)
 		{
-			auto& section = meshAsset->sections[index];
-			if (section.minVertexIndex >= section.maxVertexIndex)
-			{
-				LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh section's vertext index range is invalid, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-				return;
-			}
-
-			Memory::RefPtr<MaterialAsset> materialAsset = nullptr;
-			auto itr = meshAsset->materials.Find(section.materialName);
-			if (itr != meshAsset->materials.End())
-			{
-				materialAsset = itr->second;
-			}
-
-			MeshBatchKey batchKey;
-			batchKey.meshId = meshAsset->id;
-			batchKey.materialId = materialAsset ? materialAsset->id : ECS::UUID::Null();
-			batchKey.meshSection = index;
+			const MeshBatchKey batchKey = GetMeshBatchKey(primitive, index);
 
 			Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
-			if (meshBatch)
+			if (!meshBatch)
 			{
-				wtr::fmat4 transform = wtr::fmat4(1.0f);
-				transform *= glm::translate(transform, primitive->GetPosition());
-
-				// TODO : Make the angle by quaternion to avoid gimble lock
-				meshBatch->UpdateTransform(primitive->GetID(), transform);
-
-				m_updatable.Insert(meshBatch);
+				continue;
 			}
+
+			meshBatch->UpdateTransform(primitive->GetID(), primitive->GetTransform());
+			meshBatch->Sync(cmdList);
 		}
 	}
 
-	void RenderScene::RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive)
+	void RenderScene::RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!primitive)
+		if (!primitive || !cmdList)
 		{
 			return;
 		}
+		
 		auto meshAsset = primitive->GetMesh();
 		if (!meshAsset || meshAsset->sections.Empty())
 		{
 			LOGINFO() << "[RenderScene] Failed to remove the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 			return;
 		}
+
 		const size_t endIndex = meshAsset->sections.Size();
 		for (size_t index = 0; index < endIndex; index++)
 		{
-			auto& section = meshAsset->sections[index];
-			if (section.minVertexIndex >= section.maxVertexIndex)
+			const MeshBatchKey batchKey = GetMeshBatchKey(primitive, index);
+
+			Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
+			if (!meshBatch)
 			{
-				LOGINFO() << "[RenderScene] Failed to remove the batch, cause the mesh section's vertext index range is invalid, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-				return;
+				continue;
 			}
 
-			Memory::RefPtr<MaterialAsset> materialAsset = nullptr;
+			meshBatch->RemoveTransform(primitive->GetID());
+
+			if (meshBatch->GetInstanceCount() > 0)
+			{
+				meshBatch->Sync(cmdList);
+			}
+			else
+			{
+				meshBatch->Unload(cmdList);
+				m_meshBatches.Erase(batchKey);
+
+				LOGINFO() << "[RenderScene] Remove the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+			}
+		}
+	}
+
+	const MeshBatchKey RenderScene::GetMeshBatchKey(Memory::RefPtr<PrimitiveProxy> primitive, const size_t sectionIndex)
+	{
+		if (!primitive)
+		{
+			return {};
+		}
+
+		auto meshAsset = primitive->GetMesh();
+		if (!meshAsset)
+		{
+			return {};
+		}
+
+		if (meshAsset->sections.Empty() || sectionIndex >= meshAsset->sections.Size())
+		{
+			return {};
+		}
+
+		const MeshSection& section = meshAsset->sections[sectionIndex];
+
+		Memory::RefPtr<const MaterialAsset> materialAsset = primitive->GetOverrideMaterial();
+		if (!materialAsset)
+		{
 			auto itr = meshAsset->materials.Find(section.materialName);
 			if (itr != meshAsset->materials.End())
 			{
 				materialAsset = itr->second;
 			}
-
-			MeshBatchKey batchKey;
-			batchKey.meshId = meshAsset->id;
-			batchKey.materialId = materialAsset ? materialAsset->id : ECS::UUID::Null();
-			batchKey.meshSection = index;
-
-			Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
-			if (meshBatch)
-			{
-				m_meshBatches.Erase(batchKey);
-				m_removable.Insert(meshBatch);
-
-				LOGINFO() << "[RenderScene] Remove the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-			}
 		}
+
+		MeshBatchKey batchKey;
+		batchKey.meshId = meshAsset->id;
+		batchKey.materialId = materialAsset ? materialAsset->id : ECS::UUID::Null();
+		batchKey.meshSection = sectionIndex;
+
+		return batchKey;
 	}
 }

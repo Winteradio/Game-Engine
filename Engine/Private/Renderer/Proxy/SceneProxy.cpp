@@ -3,19 +3,13 @@
 namespace wtr
 {
     SceneProxy::SceneProxy()
-        : m_state(eProxyState::eNone)
-        , m_position(0.f)
+        : m_position(0.f)
         , m_rotation(0.f)
         , m_scale(1.f)
     {}
 
     SceneProxy::~SceneProxy()
     {}
-
-    void SceneProxy::SetState(const eProxyState state)
-    {
-        m_state = state;
-    }
 
     void SceneProxy::UpdatePosition(const fvec3 position)
     {
@@ -32,11 +26,6 @@ namespace wtr
         m_scale = scale;
     }
 
-    eProxyState SceneProxy::GetState() const
-    {
-        return m_state;
-    }
-
     const fvec3 SceneProxy::GetPosition() const
     {
         return m_position;
@@ -50,5 +39,17 @@ namespace wtr
     const fvec3 SceneProxy::GetScale() const
     {
         return m_scale;
+    }
+
+    const fmat4 SceneProxy::GetTransform() const
+    {
+		const fmat4 translation = glm::translate(fmat4(1.f), m_position);
+
+        const fquat quaternion = glm::quat(m_rotation);
+		const fmat4 rotation = glm::toMat4(quaternion);
+		const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
+
+		const fmat4 transform = translation * rotation * scale;
+        return transform;
     }
 }

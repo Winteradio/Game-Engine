@@ -47,35 +47,42 @@ namespace wtr
 			virtual ~GLSampler();
 	};
 
-	class GLVertexShader : public RHIVertexShader, public GLResource
+	class GLShader : virtual public RHIShader, public GLResource
+	{
+		public :
+			GLShader() = default;
+			virtual ~GLShader() = default;
+	};
+
+	class GLVertexShader : virtual public RHIVertexShader, virtual public GLShader
 	{
 		public :
 			GLVertexShader(const RHIVertexShaderDesc& desc);
 			virtual ~GLVertexShader();
 	};
 
-	class GLGeometryShader : public RHIGeometryShader, public GLResource
+	class GLGeometryShader : virtual public RHIGeometryShader, virtual public GLShader
 	{
 		public :
 			GLGeometryShader(const RHIGeometryShaderDesc& desc);
 			virtual ~GLGeometryShader();
 	};
 
-	class GLHullShader : public RHIHullShader, public GLResource
+	class GLHullShader : virtual public RHIHullShader, virtual public GLShader
 	{
 		public :
 			GLHullShader(const RHIHullShaderDesc& desc);
 			virtual ~GLHullShader();
 	};
 
-	class GLPixelShader : public RHIPixelShader, public GLResource
+	class GLPixelShader : virtual public RHIPixelShader, virtual public GLShader
 	{
 		public :
 			GLPixelShader(const RHIPixelShaderDesc& desc);
 			virtual ~GLPixelShader();
 	};
 
-	class GLComputeShader : public RHIComputeShader, public GLResource
+	class GLComputeShader : virtual public RHIComputeShader, virtual public GLShader
 	{
 		public :
 			GLComputeShader(const RHIComputeShaderDesc& desc);

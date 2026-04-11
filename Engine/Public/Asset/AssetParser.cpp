@@ -60,34 +60,4 @@ namespace wtr
 
 		return rawData;
 	}
-
-	std::string AssetParser::GetPath(Memory::RefPtr<Asset> asset)
-	{
-		if (!asset)
-		{
-			return {};
-		}
-
-		return std::filesystem::path(asset->path).parent_path().string();
-	}
-
-	std::string AssetParser::GetName(Memory::RefPtr<Asset> asset)
-	{
-		if (!asset)
-		{
-			return {};
-		}
-
-		return std::filesystem::path(asset->path).stem().string();
-	}
-
-	std::string AssetParser::GetExtension(Memory::RefPtr<Asset> asset)
-	{
-		if (!asset)
-		{
-			return {};
-		}
-
-		return std::filesystem::path(asset->path).extension().string();
-	}
 }

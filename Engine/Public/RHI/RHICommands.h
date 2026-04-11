@@ -328,8 +328,36 @@ namespace wtr
 	class RHICommandUpdateBuffer : public RHICommand<RHICommandUpdateBuffer>
 	{
 	public :
-		RHICommandUpdateBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer);
+		RHICommandUpdateBuffer(const RHIBufferUpdateDesc info, const Memory::RefPtr<RHIBuffer> buffer);
 		~RHICommandUpdateBuffer() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const RHIBufferUpdateDesc m_info;
+		const Memory::RefPtr<RHIBuffer> m_buffer;
+	};
+
+	class RHICommandUpdateTexture : public RHICommand<RHICommandUpdateTexture>
+	{
+	public :
+		RHICommandUpdateTexture(const RHITextureUpdateDesc info, const Memory::RefPtr<RHITexture> texture);
+		~RHICommandUpdateTexture() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const RHITextureUpdateDesc m_info;
+		const Memory::RefPtr<RHITexture> m_texture;
+	};
+
+	class RHICommandResizeBuffer : public RHICommand<RHICommandResizeBuffer>
+	{
+	public :
+		RHICommandResizeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer);
+		~RHICommandResizeBuffer() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
@@ -339,16 +367,16 @@ namespace wtr
 		const Memory::RefPtr<RHIBuffer> m_buffer;
 	};
 
-	class RHICommandUpdateTexture : public RHICommand<RHICommandUpdateTexture>
+	class RHICommandResizeTexture : public RHICommand<RHICommandResizeTexture>
 	{
 	public :
-		RHICommandUpdateTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture);
-		~RHICommandUpdateTexture() = default;
+		RHICommandResizeTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture);
+		~RHICommandResizeTexture() = default;
 
-	public :
+	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
-	private :
+	private:
 		const RHITextureCreateDesc m_info;
 		const Memory::RefPtr<RHITexture> m_texture;
 	};
@@ -429,6 +457,155 @@ namespace wtr
 
 	private :
 		const Memory::RefPtr<RHIPipeLine> m_pipeline;
+	};
+
+	class RHICommandSetBuffer : public RHICommand<RHICommandSetBuffer>
+	{
+	public :
+		RHICommandSetBuffer(const Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
+		~RHICommandSetBuffer() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIBuffer> m_buffer;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandSetVertexLayout : public RHICommand<RHICommandSetVertexLayout>
+	{
+	public:
+		RHICommandSetVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout);
+		~RHICommandSetVertexLayout() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
+	class RHICommandSetTexture : public RHICommand<RHICommandSetTexture>
+	{
+	public :
+		RHICommandSetTexture(const Memory::RefPtr<RHITexture> texture, const uint32_t slot);
+		~RHICommandSetTexture() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHITexture> m_texture;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandSetSampler : public RHICommand<RHICommandSetSampler>
+	{
+	public :
+		RHICommandSetSampler(const Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
+		~RHICommandSetSampler() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHISampler> m_sampler;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandSetPipeLine : public RHICommand<RHICommandSetPipeLine>
+	{
+	public :
+		RHICommandSetPipeLine(const Memory::RefPtr<RHIPipeLine> pipeline);
+		~RHICommandSetPipeLine() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<RHIPipeLine> m_pipeline;
+	};
+
+	class RHICommandUnsetBuffer : public RHICommand<RHICommandUnsetBuffer>
+	{
+	public :
+		RHICommandUnsetBuffer(const Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
+		~RHICommandUnsetBuffer() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIBuffer> m_buffer;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandUnsetVertexLayout : public RHICommand<RHICommandUnsetVertexLayout>
+	{
+	public:
+		RHICommandUnsetVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout);
+		~RHICommandUnsetVertexLayout() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
+	class RHICommandUnsetTexture : public RHICommand<RHICommandUnsetTexture>
+	{
+	public :
+		RHICommandUnsetTexture(const Memory::RefPtr<RHITexture> texture, const uint32_t slot);
+		~RHICommandUnsetTexture() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<RHITexture> m_texture;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandUnsetSampler : public RHICommand<RHICommandUnsetSampler>
+	{
+	public :
+		RHICommandUnsetSampler(const Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
+		~RHICommandUnsetSampler() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHISampler> m_sampler;
+		const uint32_t m_slot;
+	};
+
+	class RHICommandUnsetPipeLine : public RHICommand<RHICommandUnsetPipeLine>
+	{
+	public :
+		RHICommandUnsetPipeLine(const Memory::RefPtr<RHIPipeLine> pipeline);
+		~RHICommandUnsetPipeLine() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<RHIPipeLine> m_pipeline;
+	};
+
+	class RHICommandDispatchCompute : public RHICommand<RHICommandDispatchCompute>
+	{
+	public :
+		RHICommandDispatchCompute(const RHIDispatchDesc info);
+		~RHICommandDispatchCompute() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const RHIDispatchDesc m_info;
 	};
 
 	class RHICommandDrawIndexPrimitive : public RHICommand<RHICommandDrawIndexPrimitive>

@@ -5,6 +5,7 @@
 #include <Reflection/include/Type/TypeMacro.h>
 #include <ECS/include/Object/Data.h>
 #include <Container/include/HashMap.h>
+#include <Renderer/RenderResource.h>
 
 namespace wtr
 {
@@ -21,7 +22,7 @@ namespace wtr
 
 namespace wtr
 {
-	class PipeLine : public ECS::Object
+	class PipeLine : public ECS::Object, public RenderResource
 	{
 		GENERATE(PipeLine);
 
@@ -31,8 +32,9 @@ namespace wtr
 
 	public :
 		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> cmdList) = 0;
-		virtual void Init(Memory::RefPtr<RHICommandList> commandList) = 0;
-		virtual eResourceState GetResourceState() const = 0;
+		virtual void Init() = 0;
+
+		virtual eResourceState GetShaderState() const = 0;
 
 	protected :
 		Memory::RefPtr<RHIPipeLine> m_pipeLine;

@@ -2,8 +2,9 @@
 
 #include <Log/include/Log.h>
 #include <Asset/AssetTypes.h>
-#include <Asset/AssetFactory.h>
 #include <Asset/AssetStream.h>
+#include <Asset/AssetSystem.h>
+#include <Asset/AssetUtils.h>
 #include <Memory/include/Core.h>
 
 namespace wtr
@@ -98,9 +99,15 @@ namespace wtr
 				std::string texturePath;
 				lineStream >> texturePath;
 
-				texturePath = GetPath(asset) + "/" + texturePath;
+				texturePath = AssetUtils::GetPath(asset->path) + "/" + texturePath;
 
-				Memory::RefPtr<TextureAsset> texture = Memory::Cast<TextureAsset>(AssetFactory::Create(texturePath));
+				Memory::RefPtr<const Asset> asset = AssetSystem::Load(texturePath);
+				if (!asset)
+				{
+					LOGINFO() << "[MTL] Failed to load the texture : " << texturePath;
+				}
+
+				Memory::RefPtr<const TextureAsset> texture = Memory::Cast<const TextureAsset>(asset);
 				if (texture)
 				{
 					material->textures[itrTexture->second] = std::move(texture);

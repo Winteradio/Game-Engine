@@ -29,6 +29,7 @@ namespace wtr
 	struct RHIComputeShaderDesc;
 	struct RHIPipeLineDesc;
 	struct RHIDrawIndexDesc;
+	struct RHIDispatchDesc;
 
 	struct RHIBufferCreateDesc;
 	struct RHIVertexLayoutCreateDesc;
@@ -41,6 +42,9 @@ namespace wtr
 	struct RHIComputeShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
 
+	struct RHIBufferUpdateDesc;
+	struct RHITextureUpdateDesc;
+
 	struct RHIColorState;
 	struct RHIDepthState;
 	struct RHIStencilState;
@@ -51,6 +55,8 @@ namespace wtr
 	enum class eBufferType : uint8_t;
 	enum class eDataAccess : uint8_t;
 	enum class eDataType : uint8_t;
+	enum class eMapAccess : uint8_t;
+	enum class eTextureType : uint8_t;
 	enum class ePixelFormat : uint8_t;
 	enum class eFilterMode : uint8_t;
 	enum class eWrapMode : uint8_t;
@@ -112,8 +118,11 @@ namespace wtr
 		virtual void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader) = 0;
 		virtual void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 
-		virtual void UpdateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void UpdateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
+
+		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
 
 		virtual void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) = 0;
@@ -122,14 +131,26 @@ namespace wtr
 		virtual void RemoveShader(Memory::RefPtr<RHIShader> shader) = 0;
 		virtual void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 
+		virtual void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) = 0;
 		virtual void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) = 0;
-		virtual void UnsetVertexLayout() = 0;
+		virtual void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) = 0;
+		virtual void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) = 0;
+		virtual void SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
+
+		virtual void UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) = 0;
+		virtual void UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) = 0;
+		virtual void UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) = 0;
+		virtual void UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) = 0;
+		virtual void UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
+
+		virtual void DispatchCompute(const RHIDispatchDesc info) = 0;
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;
 
 	protected :
 		virtual const uint32_t GetBufferType(const eBufferType buffer) const = 0;
 		virtual const uint32_t GetDataAccess(const eDataAccess access) const = 0;
 		virtual const uint32_t GetDataType(const eDataType data) const = 0;
+		virtual const uint32_t GetMapAccess(const eMapAccess access) const = 0;
 		virtual const uint32_t GetPixelFormat(const ePixelFormat pixel) const = 0;
 		virtual const uint32_t GetFilterMode(const eFilterMode filter) const = 0;
 		virtual const uint32_t GetWrapMode(const eWrapMode wrap) const = 0;

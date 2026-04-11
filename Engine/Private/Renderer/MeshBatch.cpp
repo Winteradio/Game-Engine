@@ -17,120 +17,107 @@ namespace wtr
 		, m_sectionIndex(0)
 	{}
 
-	bool MeshBatch::Init()
-	{
-		if (!m_refMesh || m_refMesh->rawBuffers.Empty() || m_refMesh->sections.Size() <= m_sectionIndex)
-		{
-			return false;
-		}
-
-		auto& meshSection = m_refMesh->sections[m_sectionIndex];
-
-		m_refDrawCommand = Memory::MakeRef<MeshDrawCommand>();
-		if (!m_refDrawCommand)
-		{
-			return false;
-		}
-
-		m_refDrawCommand->indexOffset = meshSection.indexOffset;
-		m_refDrawCommand->indexCount = meshSection.indexCount;
-		m_refDrawCommand->minVertexIndex = meshSection.minVertexIndex;
-		m_refDrawCommand->maxVertexIndex = meshSection.maxVertexIndex;
-
-		return true;
-	}
-
 	void MeshBatch::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!m_refDrawCommand || !cmdList)
+		if (!cmdList)
 		{
 			return;
 		}
-		
-		if (m_refMesh)
+
+		if (!m_transformBuffer)
 		{
-			for (const auto& [vertexKey, rawBuffer] : m_refMesh->rawBuffers)
-			{
-				if (!rawBuffer || rawBuffer->data.Empty())
-				{
-					continue;
-				}
+			constexpr uint32_t numComponents = 16;
 
-				RHIBufferCreateDesc bufferDesc;
-				bufferDesc.rawBuffer = rawBuffer;
-				bufferDesc.bufferType = eBufferType::eVertex;
-				bufferDesc.accessType = eDataAccess::eStatic;
-				bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
-				bufferDesc.stride = rawBuffer->numComponents * GetDataTypeSize(rawBuffer->componentType);
-
-				Memory::RefPtr<RHIBuffer> vertexBuffer = cmdList->CreateBuffer(bufferDesc);
-				if (vertexBuffer)
-				{
-					m_refMesh->buffers[vertexKey] = vertexBuffer;
-				}
-			}
-
-			if (m_refMesh->rawIndex && !m_refMesh->rawIndex->data.Empty())
-			{
-				RHIBufferCreateDesc bufferDesc;
-				bufferDesc.rawBuffer = m_refMesh->rawIndex;
-				bufferDesc.bufferType = eBufferType::eIndex;
-				bufferDesc.accessType = eDataAccess::eStatic;
-				bufferDesc.size = static_cast<uint32_t>(m_refMesh->rawIndex->data.Size());
-				bufferDesc.stride = GetDataTypeSize(m_refMesh->rawIndex->componentType);
-
-				Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(bufferDesc);
-				if (indexBuffer)
-				{
-					m_refMesh->index = indexBuffer;
-				}
-			}
-
-			m_refDrawCommand->indexBuffer = m_refMesh->index;
-			m_refDrawCommand->vertexBuffers = m_refMesh->buffers;
-		}
-
-		if (m_refMaterial)
-		{
-			for (const auto& [textureSlot, refTexture] : m_refMaterial->textures)
-			{
-				if (!refTexture)
-				{
-					continue;
-				}
-
-				RHITextureCreateDesc textureDesc;
-				textureDesc.rawBuffer = refTexture->rawBuffer;
-				textureDesc.width = refTexture->width;
-				textureDesc.height = refTexture->height;
-				textureDesc.depth = refTexture->depth;
-				textureDesc.mipLevels = refTexture->mipLevels;
-				textureDesc.sampleCount = refTexture->sampleCount;
-				textureDesc.format = refTexture->pixelFormat;
-
-				Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(textureDesc);
-				if (texture)
-				{
-					m_refMaterial->textures[textureSlot]->texture = texture;
-					m_refDrawCommand->textureSlots[textureSlot] = texture;
-				}
-			}
-		}
-
-		if (!m_transformBuffer && !m_transforms.Empty())
-		{
-			Memory::RefPtr<FormattedBuffer> rawBuffer = Memory::MakeRef<FormattedBuffer>();
-			rawBuffer->data.Resize(m_transforms.Size() * sizeof(fmat4));
-			std::copy(m_transforms.Data(), m_transforms.Data() + m_transforms.Size(), reinterpret_cast<fmat4*>(rawBuffer->data.Data()));
+			const uint32_t count = static_cast<uint32_t>(m_transforms.Size());
+			const eDataType componentType = eDataType::eFloat;
+			const eBufferType bufferType = eBufferType::eStorage;
+			const eDataAccess accessType = eDataAccess::eDynamic;
 
 			RHIBufferCreateDesc bufferDesc;
-			bufferDesc.rawBuffer = rawBuffer;
-			bufferDesc.bufferType = eBufferType::eVertex;
-			bufferDesc.accessType = eDataAccess::eDynamic;
-			bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
-			bufferDesc.stride = rawBuffer->numComponents * GetDataTypeSize(rawBuffer->componentType);
+			bufferDesc.bufferType = bufferType;
+			bufferDesc.accessType = accessType;
+			bufferDesc.componentType = componentType;
+			bufferDesc.numComponents = numComponents;
+			bufferDesc.count = count;
+			bufferDesc.size = count * numComponents * GetDataTypeSize(componentType);
+			bufferDesc.stride = numComponents * GetDataTypeSize(componentType);
+			bufferDesc.data = static_cast<const void*>(m_transforms.Data());
 
 			m_transformBuffer = cmdList->CreateBuffer(bufferDesc);
+		}
+
+		if (!m_vertexLayout && m_refMesh)
+		{
+			const MeshSection& meshSection = m_refMesh->sections[m_sectionIndex];
+
+			RHIVertexLayoutCreateDesc layoutDesc;
+			layoutDesc.indexBuffer = m_refMesh->index;
+
+			for (const auto& [vertexKey, buffer] : m_refMesh->buffers)
+			{
+				if (!buffer)
+				{
+					continue;
+				}
+
+				const eDataType componentType = buffer->GetComponentType();
+				const uint32_t componentSize = GetDataTypeSize(componentType);
+				const uint32_t numComponents = buffer->GetNumComponents();
+
+				const uint32_t vertexLocation = GetVertexLocation(vertexKey);
+
+				const bool integer = IsIntegerDataType(componentType);
+
+				RHIVertexAttribute attribute;
+				attribute.location = vertexLocation;
+				attribute.offset = meshSection.minVertexIndex * vertexLocation;
+				attribute.normalized = false; // Assuming non-normalized data
+				attribute.integer = integer;
+				attribute.divisor = 0; // Assuming per-vertex data
+				attribute.numComponents = numComponents;
+				attribute.componentType = componentType;
+				attribute.semantic = vertexKey.semantic;
+				attribute.semanticIndex = vertexKey.semanticIndex;
+
+				layoutDesc.vertexStreams[vertexKey] = { buffer, attribute };
+			}
+
+			layoutDesc.indexBuffer = m_refMesh->index;
+
+			m_vertexLayout = cmdList->CreateVertexLayout(layoutDesc);
+		}
+
+		if (m_transformBuffer && m_vertexLayout)
+		{
+			m_refDrawCommand = Memory::MakeRef<MeshDrawCommand>();
+			if (!m_refDrawCommand)
+			{
+				return;
+			}
+
+			m_refDrawCommand->vertexLayout = m_vertexLayout;
+			m_refDrawCommand->indexOffset = m_refMesh->sections[m_sectionIndex].indexOffset;
+			m_refDrawCommand->indexCount = m_refMesh->sections[m_sectionIndex].indexCount;
+			m_refDrawCommand->minVertexIndex = m_refMesh->sections[m_sectionIndex].minVertexIndex;
+			m_refDrawCommand->maxVertexIndex = m_refMesh->sections[m_sectionIndex].maxVertexIndex;
+
+			if (m_refMaterial)
+			{
+				for (const auto& [slot, textureAsset] : m_refMaterial->textures)
+				{
+					if (!textureAsset)
+					{
+						continue;
+					}
+
+					m_refDrawCommand->textureSlots[slot] = textureAsset->texture;
+				}
+
+				m_refDrawCommand->vectorValues = m_refMaterial->vectorValues;
+				m_refDrawCommand->scalarValues = m_refMaterial->scalarValues;
+			}
+
+			m_refDrawCommand->instanceBuffer = m_transformBuffer;
 		}
 	}
 
@@ -139,6 +126,22 @@ namespace wtr
 		if (!cmdList)
 		{
 			return;
+		}
+
+		if (m_transformBuffer)
+		{
+			cmdList->RemoveBuffer(m_transformBuffer);
+
+			m_transformBuffer.Reset();
+			m_transformIds.Clear();
+			m_transforms.Clear();
+		}
+
+		if (m_vertexLayout)
+		{
+			cmdList->RemoveVertexLayout(m_vertexLayout);
+
+			m_vertexLayout.Reset();
 		}
 	}
 
@@ -149,19 +152,32 @@ namespace wtr
 			return;
 		}
 
-		if (m_refMesh)
-		{
-
-		}
-
-		if (m_refMaterial)
-		{
-
-		}
-
 		if (m_transformBuffer)
 		{
+			RHIBufferUpdateDesc updateDesc;
+			updateDesc.bufferType = m_transformBuffer->GetBufferType();
+			updateDesc.accessType = m_transformBuffer->GetAccessType();
+			updateDesc.componentType = m_transformBuffer->GetComponentType();
+			updateDesc.numComponents = m_transformBuffer->GetNumComponents();
+			updateDesc.count = static_cast<uint32_t>(m_transforms.Size());
+			updateDesc.size = updateDesc.count * updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
+			updateDesc.stride = updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
 
+			// TODO : Partial Update
+			updateDesc.data = m_transforms.Data();
+			updateDesc.dataOffset = 0;
+			updateDesc.dataSize = updateDesc.size;
+
+			const bool needResize = m_transformBuffer->GetCount() < m_transforms.Size();
+			if (needResize)
+			{
+				cmdList->ResizeBuffer(updateDesc, m_transformBuffer);
+			}
+			else
+			{
+				cmdList->UpdateBuffer(updateDesc, m_transformBuffer);
+			}
+			
 		}
 	}
 
@@ -204,7 +220,7 @@ namespace wtr
 		m_sectionIndex = 0;
 	}
 
-	void MeshBatch::SetMesh(Memory::RefPtr<MeshAsset> refMesh, const size_t meshSection)
+	void MeshBatch::SetMesh(Memory::RefPtr<const MeshAsset> refMesh, const size_t meshSection)
 	{
 		if (!refMesh || refMesh->sections.Size() <= meshSection)
 		{
@@ -215,7 +231,7 @@ namespace wtr
 		m_sectionIndex = meshSection;
 	}
 
-	void MeshBatch::SetMaterial(Memory::RefPtr<MaterialAsset> refMaterial)
+	void MeshBatch::SetMaterial(Memory::RefPtr<const MaterialAsset> refMaterial)
 	{
 		if (!refMaterial)
 		{
@@ -269,24 +285,9 @@ namespace wtr
 		}
 	}
 
-	const wtr::DynamicArray<fmat4>& MeshBatch::GetTransforms() const
+	const size_t MeshBatch::GetInstanceCount() const
 	{
-		return m_transforms;
-	}
-
-	Memory::RefPtr<RHIBuffer> MeshBatch::GetTransformBuffer()
-	{
-		return m_transformBuffer;
-	}
-
-	Memory::RefPtr<MeshAsset> MeshBatch::GetMesh()
-	{
-		return m_refMesh;
-	}
-
-	Memory::RefPtr<MaterialAsset> MeshBatch::GetMaterial()
-	{
-		return m_refMaterial;
+		return m_transformIds.Size();
 	}
 
 	Memory::RefPtr<const MeshDrawCommand> MeshBatch::GetDrawCommand() const
@@ -323,11 +324,6 @@ namespace wtr
 
 	void MeshBatch::UpdateTransformData()
 	{
-		if (!m_refDrawCommand || !m_transformBuffer)
-		{
-			return;
-		}
-
 		m_transforms.Clear();
 		m_transforms.Reserve(m_transformIds.Size());
 
@@ -335,8 +331,5 @@ namespace wtr
 		{
 			m_transforms.PushBack(transform);
 		}
-
-		m_refDrawCommand->instanceCount = static_cast<uint32_t>(m_transforms.Size());
-		m_transformBuffer->SetState(eResourceState::eLoaded);
 	}
 }

@@ -24,9 +24,6 @@ namespace wtr
 	protected : 
 		std::stringstream ReadStream(Memory::RefPtr<Asset> asset);
 		wtr::DynamicArray<uint8_t> ReadBuffer(Memory::RefPtr<Asset> asset);
-		std::string GetPath(Memory::RefPtr<Asset> asset);
-		std::string GetName(Memory::RefPtr<Asset> asset);
-		std::string GetExtension(Memory::RefPtr<Asset> asset);
 	};
 };
 
