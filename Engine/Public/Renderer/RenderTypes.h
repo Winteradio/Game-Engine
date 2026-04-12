@@ -111,15 +111,26 @@ namespace wtr
 
 	enum class ePixelFormat : uint8_t
 	{
-		eNone			= 0x00,
-		eR8				= 0x01,
-		eR8G8			= 0x02,
-		eR8G8B8			= 0x03,
-		eR8G8B8A8		= 0x04,
-		eR8G8B8A8_SRGB	= 0x05,
+		eNone				= 0x00,
+		eR8_UNorm			= 0x01,
+		eR8G8_UNorm			= 0x02,
+		eR8G8B8_UNorm		= 0x03,
+		eR8G8B8A8_UNorm		= 0x04,
+		eR8G8B8A8_sRGB		= 0x05,
 		
-		eD24_S8			= 0x06,
-		eD32			= 0x07
+		eR16_Float			= 0x06,
+		eR16G16_Float		= 0x07,
+		eR16G16B16_Float	= 0x08,
+		eR16G16B16A16_Float = 0x09,
+		
+		eR32_Float			= 0x10,
+		eR32G32_Float		= 0x11,
+		eR32G32B32_Float	= 0x12,
+		eR32G32B32A32_Float = 0x13,
+
+		eD24_S8				= 0x14,
+		eD32				= 0x15
+		// TODO : Not yet the compressed pixel format
 	};
 
 	enum class eTextureUsage : uint8_t

@@ -25,6 +25,7 @@ namespace wtr
 		
 		bool IsWaited() const;
 		bool IsJoinable() const;
+		bool IsTasking() const;
 
 	protected :
 		void onStart() override;

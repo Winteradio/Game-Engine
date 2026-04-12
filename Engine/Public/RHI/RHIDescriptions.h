@@ -29,6 +29,24 @@ namespace wtr
 		uint8_t  semanticIndex = 0;	// e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
 	};
 
+	struct RHIVertexStream
+	{
+		Memory::RefPtr<const RHIBuffer> buffer;
+		RHIVertexAttribute attribute;
+	};
+
+	struct RHITextureMipMap
+	{
+		const void* data = nullptr;
+		uint32_t dataSize = 0;
+		uint32_t level = 0;
+	};
+
+	struct RHITextureFace
+	{
+		wtr::DynamicArray<RHITextureMipMap> mipMaps;
+	};
+
 	struct RHIResourceBinding
 	{
 		uint16_t location 	= 0; // resource binding location
@@ -72,12 +90,6 @@ namespace wtr
 		eMapAccess mapAccess = eMapAccess::eNone;
 	};
 
-	struct RHIVertexStream
-	{
-		Memory::RefPtr<const RHIBuffer> buffer;
-		RHIVertexAttribute attribute;
-	};
-
 	struct RHIVertexLayoutDesc : RHIDesc<eResourceType::eLayout>
 	{
 		wtr::HashMap<VertexKey, RHIVertexStream> vertexStreams;
@@ -105,13 +117,11 @@ namespace wtr
 
 	struct RHITextureCreateDesc : RHITextureDesc
 	{
-		const void* data = nullptr;
+		wtr::DynamicArray<RHITextureFace> faces;
 	};
 
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
-		const void* data = nullptr;
-
 		uint32_t xOffset = 0;
 		uint32_t yOffset = 0;
 		uint32_t zOffset = 0;
@@ -121,7 +131,6 @@ namespace wtr
 		uint32_t depth = 0;
 		
 		uint32_t mipLevel = 0;
-		uint32_t arrayLayer = 0;
 	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>

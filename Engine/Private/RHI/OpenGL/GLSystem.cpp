@@ -8,6 +8,8 @@
 #include <RHI/RHIResources.h>
 #include <RHI/OpenGL/GLResources.h>
 
+#include <cmath>
+
 #define __GL_DEBUG__
 
 namespace wtr
@@ -25,8 +27,18 @@ namespace wtr
 		{ GL_UNIFORM, eBindingType::eNone }
 	};
 
+	const GLenum TEXTURE_CUBEMAP_FACES[] =
+	{
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	};
+
 	constexpr size_t MAX_GL_MESSAGE_LENGTH = 512;
-	char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
+	thread_local char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
 
 	GLSystem::GLSystem()
 		: m_context()
@@ -50,6 +62,7 @@ namespace wtr
 
 #ifdef __GL_DEBUG__
 		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(
 			[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 			{
@@ -338,7 +351,7 @@ namespace wtr
 
 	Memory::RefPtr<RHISampler> GLSystem::CreateSampler(const RHISamplerDesc desc)
 	{
-		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<RHISampler>(desc);
+		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<GLSampler>(desc);
 
 		return refSampler;
 	}
@@ -387,7 +400,7 @@ namespace wtr
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !info.data)
+		if (!buffer || !info.data || info.size == 0)
 		{
 			return;
 		}
@@ -513,31 +526,44 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t pixelFormat = GetPixelFormat(info.format);
-		const uint32_t dataType = GetDataType(info.dataType);
+		const uint32_t textureDimension = GetTextureDimension(info.textureType);
 
-		glBindTexture(textureType, textureID);
-		if (info.compressed)
+		bool Initialized = false;
+		if (textureDimension == 1)
 		{
-			glCompressedTexImage2D(textureType, 0, pixelFormat, info.width, info.height, 0, static_cast<GLsizei>(info.dataType), info.data);
+			Initialized = InitializeTexture1D(info, textureID);
+		}
+		else if (textureDimension == 2)
+		{
+			Initialized = InitializeTexture2D(info, textureID);
+		}
+		else if (textureDimension == 3)
+		{
+			Initialized = InitializeTexture3D(info, textureID);
+		}
+		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
+		{
+			Initialized = InitializeTextureMulti(info, textureID);
 		}
 		else
 		{
-			glTexImage2D(textureType, 0, pixelFormat, info.width, info.height, 0, pixelFormat, dataType, info.data);
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
 		}
-
-		if (info.generateMips)
+		
+		if (!Initialized)
 		{
-			glGenerateMipmap(textureType);
+			LOGERROR() << "[GL] Failed to initialize texture";
+			
+			glDeleteTextures(1, &textureID);
+			
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
 		}
 		else
 		{
-			glTexParameteri(textureType, GL_TEXTURE_BASE_LEVEL, 0);
-			glTexParameteri(textureType, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexture->SetID(textureID);
+			glTexture->SetState(eResourceState::eReady);
 		}
-
-		glTexture->SetID(textureID);
-		glTexture->SetState(eResourceState::eReady);
 	}
 
 	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
@@ -561,6 +587,12 @@ namespace wtr
 			return;
 		}
 
+		glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GetFilterMode(info.minFilter));
+		glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, GetFilterMode(info.magFilter));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, GetWrapMode(info.wrapS));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, GetWrapMode(info.wrapT));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, GetWrapMode(info.wrapR));
+
 		glSampler->SetID(samplerID);
 		glSampler->SetState(eResourceState::eReady);
 	}
@@ -581,14 +613,14 @@ namespace wtr
 		const char* shaderSource = reinterpret_cast<const char*>(info.data);
 		if (!shaderSource)
 		{
-			LOGERROR() << "[GL] Failed to get vertex shader source code";
+			LOGERROR() << "[GL] Failed to get shader source code, the shader type : " << static_cast<uint32_t>(info.shaderType);
 			return;
 		}
 
 		const uint32_t shaderType = GetShaderType(shader->GetShaderType());
 		if (shaderType == GL_NONE)
 		{
-			LOGERROR() << "[GL] Unrecognized shader type: " << static_cast<uint32_t>(shader->GetShaderType());
+			LOGERROR() << "[GL] Unrecognized shader type: " << static_cast<uint32_t>(shaderType);
 			return;
 		}
 
@@ -710,7 +742,7 @@ namespace wtr
 			if (nameLength == GL_NONE || attributeName.empty())
 			{
 				LOGWARN() << "[GL] Failed to get vertex attribute name for index: " << index;
-				return false;
+				continue;
 			}
 
 			if (attributeName.substr(0, 3) == "gl_")
@@ -722,14 +754,13 @@ namespace wtr
 			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
 			{
 				LOGWARN() << "[GL] Unrecognized vertex attribute: " << attributeName;
-				return false;
+				continue;
 			}
-
-			GLint location = -1;
-			const GLenum locationProp = { GL_LOCATION };
 
 			const uint32_t expectedLocation = GetVertexLocation(vertexKey);
 
+			GLint location = -1;
+			const GLenum locationProp = { GL_LOCATION };
 			glGetProgramResourceiv(programID, GL_PROGRAM_INPUT, index, 1, &locationProp, 1, nullptr, &location);
 
 			if (static_cast<uint32_t>(location) != expectedLocation)
@@ -824,6 +855,246 @@ namespace wtr
 		return true;
 	}
 
+	bool GLSystem::InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE || info.faces.Size() != 1)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		auto& face = info.faces.Front();
+		for (const auto& mipMap : face.mipMaps)
+		{
+			const uint32_t width = max(1, info.width >> mipMap.level);
+			const uint32_t height = max(1, info.height >> mipMap.level);
+			const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+			if (info.compressed)
+			{
+				glCompressedTexImage1D(textureType, mipMap.level, internalFormat, width, 0, mipMap.dataSize, mipMap.data);
+			}
+			else
+			{
+				glTexImage1D(textureType, mipMap.level, internalFormat, width, 0, baseFormat, pixelDataType, mipMap.data);
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP;
+
+		if (cubeMap)
+		{
+			constexpr size_t faceCount = 6;
+			if (info.faces.Size() != faceCount)
+			{
+				return false;
+			}
+
+			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+			{
+				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
+				{
+					const uint32_t width = max(1, info.width >> mipMap.level);
+					const uint32_t height = max(1, info.height >> mipMap.level);
+					const uint32_t depth = max(1, info.depth >> mipMap.level);
+					if (info.compressed)
+					{
+						glCompressedTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+					}
+					else
+					{
+						glTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (info.faces.Size() != 1)
+			{
+				return false;
+			}
+
+			auto& face = info.faces.Front();
+			for (const auto& mipMap : face.mipMaps)
+			{
+				const uint32_t width = max(1, info.width >> mipMap.level);
+				const uint32_t height = max(1, info.height >> mipMap.level);
+				const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+				if (info.compressed)
+				{
+					glCompressedTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+				}
+				else
+				{
+					glTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP_ARRAY;
+
+		if (cubeMap)
+		{
+			constexpr size_t faceCount = 6;
+			if (info.faces.Size() != faceCount)
+			{
+				return false;
+			}
+
+			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+			{
+				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
+				{
+					const uint32_t width = max(1, info.width >> mipMap.level);
+					const uint32_t height = max(1, info.height >> mipMap.level);
+					const uint32_t depth = max(1, info.depth >> mipMap.level);
+					if (info.compressed)
+					{
+						glCompressedTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+					}
+					else
+					{
+						glTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (info.faces.Size() != 1)
+			{
+				return false;
+			}
+
+			auto& face = info.faces.Front();
+			for (const auto& mipMap : face.mipMaps)
+			{
+				const uint32_t width = max(1, info.width >> mipMap.level);
+				const uint32_t height = max(1, info.height >> mipMap.level);
+				const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+				if (info.compressed)
+				{
+					glCompressedTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+				}
+				else
+				{
+					glTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer)
@@ -912,6 +1183,48 @@ namespace wtr
 		if (!texture)
 		{
 			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || (glTexture->GetID() == GL_NONE))
+		{
+			return;
+		}
+
+		const uint32_t textureID = glTexture->GetID();
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+
+		bool Initialized = false;
+		if (textureDimension == 1)
+		{
+			Initialized = InitializeTexture1D(info, textureID);
+		}
+		else if (textureDimension == 2)
+		{
+			Initialized = InitializeTexture2D(info, textureID);
+		}
+		else if (textureDimension == 3)
+		{
+			Initialized = InitializeTexture3D(info, textureID);
+		}
+		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
+		{
+			Initialized = InitializeTextureMulti(info, textureID);
+		}
+		else
+		{
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+		}
+
+		if (!Initialized)
+		{
+			LOGERROR() << "[GL] Failed to resize texture";
+
+			glDeleteTextures(1, &textureID);
+
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
 		}
 	}
 
@@ -1219,11 +1532,12 @@ namespace wtr
 			}
 			else
 			{
-				glDrawElements(
+				glDrawElementsBaseVertex(
 					drawMode, 
 					info.indexCount, 
 					indexType, 
-					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset))
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)), 
+					info.baseVertex
 				);
 			}
 		}
@@ -1389,27 +1703,188 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetPixelFormat(const ePixelFormat pixel) const
+	const uint32_t GLSystem::GetTextureDimension(const eTextureType texture) const
+	{
+		if (eTextureType::eNone == texture ||
+			eTextureType::eTextureMultisample == texture ||
+			eTextureType::eTextureMultisampleArray == texture)
+		{
+			return 0;
+		}
+		else if (eTextureType::eTexture1D == texture)
+		{
+			return 1;
+		}
+		else if (eTextureType::eTexture1DArray == texture ||
+			eTextureType::eTexture2D == texture ||
+			eTextureType::eTextureCube == texture)
+		{
+			return 2;
+		}
+		else if (eTextureType::eTexture2DArray == texture ||
+			eTextureType::eTexture3D == texture ||
+			eTextureType::eTextureCubeArray == texture)
+		{
+			return 3;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	const uint32_t GLSystem::GetInternalFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
 			return GL_NONE;
 		}
-		else if (ePixelFormat::eR8 == pixel)
+		else if (ePixelFormat::eR8_UNorm == pixel)
 		{
 			return GL_R8;
 		}
-		else if (ePixelFormat::eR8G8 == pixel)
+		else if (ePixelFormat::eR8G8_UNorm == pixel)
 		{
 			return GL_RG8;
 		}
-		else if (ePixelFormat::eR8G8B8 == pixel)
+		else if (ePixelFormat::eR8G8B8_UNorm == pixel)
 		{
 			return GL_RGB8;
 		}
-		else if (ePixelFormat::eR8G8B8A8 == pixel)
+		else if (ePixelFormat::eR8G8B8A8_UNorm == pixel)
 		{
 			return GL_RGBA8;
+		}
+		else if (ePixelFormat::eR8G8B8A8_sRGB == pixel)
+		{
+			return GL_SRGB8_ALPHA8;
+		}
+		else if (ePixelFormat::eR16_Float == pixel)
+		{
+			return GL_R16F;
+		}
+		else if (ePixelFormat::eR16G16_Float == pixel)
+		{
+			return GL_RG16F;
+		}
+		else if (ePixelFormat::eR16G16B16_Float == pixel)
+		{
+			return GL_RGB16F;
+		}
+		else if (ePixelFormat::eR16G16B16A16_Float == pixel)
+		{
+			return GL_RGBA16F;
+		}
+		else if (ePixelFormat::eR32_Float == pixel)
+		{
+			return GL_R32F;
+		}
+		else if (ePixelFormat::eR32G32_Float == pixel)
+		{
+			return GL_RG32F;
+		}
+		else if (ePixelFormat::eR32G32B32_Float == pixel)
+		{
+			return GL_RGB32F;
+		}
+		else if (ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_RGBA32F;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_DEPTH24_STENCIL8;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_DEPTH_COMPONENT32F;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetBaseFormat(const ePixelFormat pixel) const
+	{
+		if (ePixelFormat::eNone == pixel)
+		{
+			return GL_NONE;
+		}
+		else if (ePixelFormat::eR8_UNorm == pixel ||
+			ePixelFormat::eR16_Float == pixel ||
+			ePixelFormat::eR32_Float == pixel)
+		{
+			return GL_RED;
+		}
+		else if (ePixelFormat::eR8G8_UNorm == pixel ||
+			ePixelFormat::eR16G16_Float == pixel ||
+			ePixelFormat::eR32G32_Float == pixel)
+		{
+			return GL_RG;
+		}
+		else if (ePixelFormat::eR8G8B8_UNorm == pixel ||
+			ePixelFormat::eR16G16B16_Float == pixel ||
+			ePixelFormat::eR32G32B32_Float == pixel)
+		{
+			return GL_RGB;
+		}
+		else if (ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_sRGB == pixel ||
+			ePixelFormat::eR16G16B16A16_Float == pixel ||
+			ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_RGBA;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_DEPTH_STENCIL;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_DEPTH_COMPONENT;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetPixelDataType(const ePixelFormat pixel) const
+	{
+		if (ePixelFormat::eNone == pixel)
+		{
+			return GL_NONE;
+		}
+		else if (ePixelFormat::eR8_UNorm == pixel ||
+			ePixelFormat::eR8G8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_sRGB == pixel)
+		{
+			return GL_UNSIGNED_BYTE;
+		}
+		else if (ePixelFormat::eR16_Float == pixel ||
+			ePixelFormat::eR16G16_Float == pixel ||
+			ePixelFormat::eR16G16B16_Float == pixel ||
+			ePixelFormat::eR16G16B16A16_Float == pixel)
+		{
+			return GL_HALF_FLOAT;
+		}
+		else if (ePixelFormat::eR32_Float == pixel ||
+			ePixelFormat::eR32G32_Float == pixel ||
+			ePixelFormat::eR32G32B32_Float == pixel ||
+			ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_FLOAT;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_UNSIGNED_INT_24_8;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_FLOAT;
 		}
 		else
 		{

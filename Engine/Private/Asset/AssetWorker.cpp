@@ -86,6 +86,21 @@ namespace wtr
 			return;
 		}
 
+		bool processing = true;
+		while (processing)
+		{
+			processing = false;
+
+			for (auto& taskWorker : m_threads)
+			{
+				if (taskWorker && taskWorker->IsTasking())
+				{
+					processing = true;
+					break;
+				}
+			}
+		}
+
 		Memory::RefPtr<RHICommandList> cmdList = m_refTaskExecutor->Acquire();
 		if (!cmdList)
 		{
@@ -95,6 +110,7 @@ namespace wtr
 		AssetSystem::Release(cmdList);
 
 		m_refTaskExecutor->Submit(cmdList);
+		m_threads.Clear();
 	}
 
 	void AssetWorker::onNotify()
@@ -106,8 +122,6 @@ namespace wtr
 				threadRef->Stop();
 			}
 		}
-
-		m_threads.Clear();
 	}
 
 	void AssetWorker::onProcess(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)

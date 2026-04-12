@@ -45,6 +45,11 @@ namespace wtr
 		return m_thread.joinable();
 	}
 
+	bool TaskWorker::IsTasking() const
+	{
+		return m_task != nullptr;
+	}
+
 	void TaskWorker::onStart()
 	{
 		LOGINFO() << "[Worker] The task worker started" << " Thread ID: " << std::hash<std::thread::id>()(m_thread.get_id());
@@ -73,11 +78,6 @@ namespace wtr
 
 	void TaskWorker::onNotify()
 	{
-		if (m_task)
-		{
-			m_task.Reset();
-		}
-
 		Notify();
 
 		LOGINFO() << "[Worker] The task worker destroyed" << " Thread ID: " << std::hash<std::thread::id>()(m_thread.get_id());

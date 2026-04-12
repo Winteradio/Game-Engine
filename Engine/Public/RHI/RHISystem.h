@@ -136,7 +136,8 @@ namespace wtr
 		virtual const uint32_t GetDataAccess(const eDataAccess access) const = 0;
 		virtual const uint32_t GetDataType(const eDataType data) const = 0;
 		virtual const uint32_t GetMapAccess(const eMapAccess access) const = 0;
-		virtual const uint32_t GetPixelFormat(const ePixelFormat pixel) const = 0;
+		virtual const uint32_t GetTextureType(const eTextureType type) const = 0;
+		virtual const uint32_t GetTextureDimension(const eTextureType type) const = 0;
 		virtual const uint32_t GetFilterMode(const eFilterMode filter) const = 0;
 		virtual const uint32_t GetWrapMode(const eWrapMode wrap) const = 0;
 		virtual const uint32_t GetCullFace(const eCullFace mode) const = 0;
@@ -147,6 +148,7 @@ namespace wtr
 		virtual const uint32_t GetStencilOp(const eStencilOp op) const = 0;
 		virtual const uint32_t GetBlendFunc(const eBlendFunc func) const = 0;
 		virtual const uint32_t GetBlendOp(const eBlendOp op) const = 0;
+		virtual const uint32_t GetShaderType(const eShaderType type) const = 0;
 	};
 };
 

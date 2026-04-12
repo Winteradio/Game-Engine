@@ -188,7 +188,7 @@ namespace demo
 			return false;
 		}
 
-		const std::string cubePath = "asset/mesh/3d/cube.obj";
+		const std::string cubePath = "asset/mesh/3d/dragon.obj";
 		Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
 
 		cubeEntity->AddComponent<wtr::SceneComponent>();

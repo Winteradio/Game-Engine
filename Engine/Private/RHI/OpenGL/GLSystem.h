@@ -81,23 +81,43 @@ namespace wtr
 		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
 		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
 
-		const uint32_t GetBufferType(const eBufferType buffer) const;
-		const uint32_t GetDataAccess(const eDataAccess access) const;
-		const uint32_t GetDataType(const eDataType data) const;
-		const uint32_t GetMapAccess(const eMapAccess access) const;
-		const uint32_t GetTextureType(const eTextureType texture) const;
-		const uint32_t GetPixelFormat(const ePixelFormat pixel) const;
-		const uint32_t GetFilterMode(const eFilterMode filter) const;
-		const uint32_t GetWrapMode(const eWrapMode wrap) const;
-		const uint32_t GetCullFace(const eCullFace face) const;
-		const uint32_t GetFrontFace(const eFrontFace face) const;
-		const uint32_t GetDrawMode(const eDrawMode mode) const;
-		const uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const;
-		const uint32_t GetCompareFunc(const eCompareFunc func) const;
-		const uint32_t GetStencilOp(const eStencilOp op) const;
-		const uint32_t GetBlendFunc(const eBlendFunc func) const;
-		const uint32_t GetBlendOp(const eBlendOp op) const;
-		const uint32_t GetShaderType(const eShaderType type) const;
+		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID);
+
+		bool UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID);
+		bool UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID);
+		bool UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID);
+
+		const uint32_t GetBufferType(const eBufferType buffer) const override;
+		const uint32_t GetDataAccess(const eDataAccess access) const override;
+		const uint32_t GetDataType(const eDataType data) const override;
+		const uint32_t GetMapAccess(const eMapAccess access) const override;
+
+		const uint32_t GetTextureType(const eTextureType texture) const override;
+		const uint32_t GetTextureDimension(const eTextureType texture) const override;
+		const uint32_t GetInternalFormat(const ePixelFormat pixel) const;
+		const uint32_t GetBaseFormat(const ePixelFormat pixel) const;
+		const uint32_t GetPixelDataType(const ePixelFormat pixel) const;
+		
+		const uint32_t GetFilterMode(const eFilterMode filter) const override;
+		const uint32_t GetWrapMode(const eWrapMode wrap) const override;
+		
+		const uint32_t GetCullFace(const eCullFace face) const override;
+		const uint32_t GetFrontFace(const eFrontFace face) const override;
+		
+		const uint32_t GetDrawMode(const eDrawMode mode) const override;
+		const uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const override;
+		
+		const uint32_t GetCompareFunc(const eCompareFunc func) const override;
+		
+		const uint32_t GetStencilOp(const eStencilOp op) const override;
+		
+		const uint32_t GetBlendFunc(const eBlendFunc func) const override;
+		const uint32_t GetBlendOp(const eBlendOp op) const override;
+		
+		const uint32_t GetShaderType(const eShaderType type) const override;
 
 		bool IsSampler(const int32_t type) const;
 
