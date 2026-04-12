@@ -16,22 +16,13 @@ namespace wtr
 	class RHITexture;
 	class RHISampler;
 	class RHIShader;
-	class RHIVertexShader;
-	class RHIGeometryShader;
-	class RHIHullShader;
-	class RHIPixelShader;
-	class RHIComputeShader;
 	class RHIPipeLine;
 
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
 	struct RHITextureDesc;
 	struct RHISamplerDesc;
-	struct RHIVertexShaderDesc;
-	struct RHIGeometryShaderDesc;
-	struct RHIHullShaderDesc;
-	struct RHIPixelShaderDesc;
-	struct RHIComputeShaderDesc;
+	struct RHIShaderDesc;
 	struct RHIPipeLineDesc;
 	struct RHIDrawIndexDesc;
 
@@ -39,11 +30,7 @@ namespace wtr
 	struct RHIVertexLayoutCreateDesc;
 	struct RHITextureCreateDesc;
 	struct RHISamplerCreateDesc;
-	struct RHIVertexShaderCreateDesc;
-	struct RHIGeometryShaderCreateDesc;
-	struct RHIHullShaderCreateDesc;
-	struct RHIPixelShaderCreateDesc;
-	struct RHIComputeShaderCreateDesc;
+	struct RHIShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
 
 	struct RHIBufferUpdateDesc;
@@ -104,11 +91,11 @@ namespace wtr
 		Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutCreateDesc info);
 		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureCreateDesc info);
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerCreateDesc info);
-		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderCreateDesc info);
-		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderCreateDesc info);
-		Memory::RefPtr<RHIHullShader> CreateHullShader(const RHIHullShaderCreateDesc info);
-		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderCreateDesc info);
-		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderCreateDesc info);
+		Memory::RefPtr<RHIShader> CreateVertexShader(const RHIShaderCreateDesc info);
+		Memory::RefPtr<RHIShader> CreateGeometryShader(const RHIShaderCreateDesc info);
+		Memory::RefPtr<RHIShader> CreateHullShader(const RHIShaderCreateDesc info);
+		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderCreateDesc info);
+		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderCreateDesc info);
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateDesc info);
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer);
@@ -124,18 +111,17 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> shader);
 
-		void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
-		void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
-		void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot);
-		void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
-		void SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
+		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
+		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
+		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
+		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
 
-		void UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot);
-		void UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
-		void UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot);
-		void UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot);
-		void UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
-
+		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
+		void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
+		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
+		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
+		void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
 		void DispatchCompute(const RHIDispatchDesc info);
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info);
 

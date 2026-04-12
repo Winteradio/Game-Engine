@@ -48,36 +48,42 @@ namespace wtr
 	GLSampler::~GLSampler()
 	{}
 
-	GLVertexShader::GLVertexShader(const RHIVertexShaderDesc& desc)
-		: RHIVertexShader(desc)
+	GLShader::GLShader(const RHIShaderDesc& desc)
+		: RHIShader(desc)
+		, GLResource()
+	{
+	}
+
+	GLVertexShader::GLVertexShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
 	{}
 
 	GLVertexShader::~GLVertexShader()
 	{}
 
-	GLGeometryShader::GLGeometryShader(const RHIGeometryShaderDesc& desc)
-		: RHIGeometryShader(desc)
+	GLGeometryShader::GLGeometryShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
 	{}
 
 	GLGeometryShader::~GLGeometryShader()
 	{}
 
-	GLHullShader::GLHullShader(const RHIHullShaderDesc& desc)
-		: RHIHullShader(desc)
+	GLHullShader::GLHullShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
 	{}
 
 	GLHullShader::~GLHullShader()
 	{}
 
-	GLPixelShader::GLPixelShader(const RHIPixelShaderDesc& desc)
-		: RHIPixelShader(desc)
+	GLPixelShader::GLPixelShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
 	{}
 
 	GLPixelShader::~GLPixelShader()
 	{}
 
-	GLComputeShader::GLComputeShader(const RHIComputeShaderDesc& desc)
-		: RHIComputeShader(desc)
+	GLComputeShader::GLComputeShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
 	{}
 
 	GLComputeShader::~GLComputeShader()

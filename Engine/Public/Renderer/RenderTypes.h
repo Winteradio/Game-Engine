@@ -4,6 +4,7 @@
 #include <Container/include/DynamicArray.h>
 #include <Memory/include/Pointer/RefPtr.h>
 #include <cstdint>
+#include <string>
 
 namespace wtr
 {
@@ -92,7 +93,6 @@ namespace wtr
 		eUniformBuffer	= 0x02,
 		eStorageBuffer 	= 0x03,
 		eSampler		= 0x04,
-		eTexture		= 0x05,
 	};
 
 	enum class eTextureType : uint8_t
@@ -395,6 +395,7 @@ namespace wtr
 
 	size_t GetDataTypeSize(const eDataType dataType);
 	size_t GetVertexLocation(const VertexKey& vertexKey);
+	const VertexKey GetVertexKey(const std::string& attributeName);
 };
 
 namespace std

@@ -225,6 +225,8 @@ namespace wtr
 			meshBatch->Upload(cmdList);
 
 			LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+
+			m_meshBatches.Insert(std::make_pair(batchKey, meshBatch));
 		}
 	}
 	

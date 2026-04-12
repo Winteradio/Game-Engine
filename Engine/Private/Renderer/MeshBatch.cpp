@@ -134,6 +134,7 @@ namespace wtr
 				m_refDrawCommand->scalarValues = m_refMaterial->scalarValues;
 			}
 
+			m_refDrawCommand->instanceCount = static_cast<uint32_t>(m_transformInfos.Size());
 			m_refDrawCommand->instanceBuffer = m_transformBuffer;
 		}
 	}

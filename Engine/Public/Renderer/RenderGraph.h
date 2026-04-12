@@ -80,7 +80,7 @@ namespace wtr
 		PendingPipeLine m_addable;
 		PendingPipeLine m_removable;
 
-		wtr::DynamicArray<Memory::RefPtr<MeshDrawCommand>> m_drawCommands;
+		wtr::DynamicArray<Memory::RefPtr<const MeshDrawCommand>> m_drawCommands;
 	};
 };
 

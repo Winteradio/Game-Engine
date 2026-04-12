@@ -142,71 +142,61 @@ namespace wtr
 
 	void AssetCommander::onLoad(Memory::RefPtr<ShaderAsset> shaderAsset, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !shaderAsset || !shaderAsset->rawBuffer || shaderAsset->rawBuffer->data.Empty())
+		if (!cmdList || !shaderAsset)
 		{
 			return;
 		}
 
-		const eShaderType shaderType = shaderAsset->GetShaderType();
-		if (shaderType == eShaderType::eNone)
+		auto& rawBuffer = shaderAsset->rawBuffer;
+		if (!rawBuffer || rawBuffer->data.Empty())
 		{
 			return;
 		}
-		else if (shaderType == eShaderType::eVertex)
-		{
-			RHIVertexShaderCreateDesc shaderDesc;
-			shaderDesc.shaderType = eShaderType::eVertex;
-			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
 
-			Memory::RefPtr<RHIVertexShader> vertexShader = cmdList->CreateVertexShader(shaderDesc);
+		RHIShaderCreateDesc shaderDesc;
+		shaderDesc.shaderType = shaderAsset->GetShaderType();
+		shaderDesc.data = shaderAsset->rawBuffer->data.Data();
+		shaderDesc.dataSize = static_cast<uint32_t>(shaderAsset->rawBuffer->data.Size());
+
+		if (shaderDesc.shaderType == eShaderType::eNone)
+		{
+			return;
+		}
+		else if (shaderDesc.shaderType == eShaderType::eVertex)
+		{
+			Memory::RefPtr<RHIShader> vertexShader = cmdList->CreateVertexShader(shaderDesc);
 			if (vertexShader)
 			{
 				shaderAsset->shader = vertexShader;
 			}
 		}
-		else if (shaderType == eShaderType::eGeometry)
+		else if (shaderDesc.shaderType == eShaderType::eGeometry)
 		{
-			RHIGeometryShaderCreateDesc shaderDesc;
-			shaderDesc.shaderType = eShaderType::eGeometry;
-			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
-
-			Memory::RefPtr<RHIGeometryShader> geometryShader = cmdList->CreateGeometryShader(shaderDesc);
+			Memory::RefPtr<RHIShader> geometryShader = cmdList->CreateGeometryShader(shaderDesc);
 			if (geometryShader)
 			{
 				shaderAsset->shader = geometryShader;
 			}
 		}
-		else if (shaderType == eShaderType::eHull)
+		else if (shaderDesc.shaderType == eShaderType::eHull)
 		{
-			RHIHullShaderCreateDesc shaderDesc;
-			shaderDesc.shaderType = eShaderType::eHull;
-			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
-
-			Memory::RefPtr<RHIHullShader> hullShader = cmdList->CreateHullShader(shaderDesc);
+			Memory::RefPtr<RHIShader> hullShader = cmdList->CreateHullShader(shaderDesc);
 			if (hullShader)
 			{
 				shaderAsset->shader = hullShader;
 			}
 		}
-		else if (shaderType == eShaderType::ePixel)
+		else if (shaderDesc.shaderType == eShaderType::ePixel)
 		{
-			RHIPixelShaderCreateDesc shaderDesc;
-			shaderDesc.shaderType = eShaderType::ePixel;
-			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
-
-			Memory::RefPtr<RHIPixelShader> pixelShader = cmdList->CreatePixelShader(shaderDesc);
+			Memory::RefPtr<RHIShader> pixelShader = cmdList->CreatePixelShader(shaderDesc);
 			if (pixelShader)
 			{
 				shaderAsset->shader = pixelShader;
 			}
 		}
-		else if (shaderType == eShaderType::eCompute)
+		else if (shaderDesc.shaderType == eShaderType::eCompute)
 		{
-			RHIComputeShaderCreateDesc shaderDesc;
-			shaderDesc.shaderType = eShaderType::eCompute;
-			shaderDesc.data = shaderAsset->rawBuffer->data.Data();
-
-			Memory::RefPtr<RHIComputeShader> computeShader = cmdList->CreateComputeShader(shaderDesc);
+			Memory::RefPtr<RHIShader> computeShader = cmdList->CreateComputeShader(shaderDesc);
 			if (computeShader)
 			{
 				shaderAsset->shader = computeShader;

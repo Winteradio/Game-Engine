@@ -32,7 +32,7 @@ namespace wtr
 	void FrameGate::Acquire()
 	{
 		const int32_t frameDiff = m_frameDiff.load(std::memory_order_acquire);
-		if (frameDiff < 0)
+		if (frameDiff <= 0)
 		{
 			std::unique_lock<std::mutex> lock(m_mutex);
 			m_cvConsumer.wait(lock, [this]()

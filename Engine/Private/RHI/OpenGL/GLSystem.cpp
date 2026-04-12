@@ -12,6 +12,22 @@
 
 namespace wtr
 {
+	struct BufferDesc
+	{
+		GLenum enumType;
+		eBindingType bindingType;
+	};
+
+	const BufferDesc BUFFER_BINDINGS[] =
+	{
+		{ GL_UNIFORM_BLOCK, eBindingType::eUniformBuffer },
+		{ GL_SHADER_STORAGE_BLOCK, eBindingType::eStorageBuffer },
+		{ GL_UNIFORM, eBindingType::eNone }
+	};
+
+	constexpr size_t MAX_GL_MESSAGE_LENGTH = 512;
+	char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
+
 	GLSystem::GLSystem()
 		: m_context()
 		, m_colorState()
@@ -327,37 +343,37 @@ namespace wtr
 		return refSampler;
 	}
 
-	Memory::RefPtr<RHIVertexShader> GLSystem::CreateVertexShader(const RHIVertexShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLSystem::CreateVertexShader(const RHIShaderDesc desc)
 	{
-		Memory::RefPtr<RHIVertexShader> refVertexShader = Memory::MakeRef<GLVertexShader>(desc);
+		Memory::RefPtr<RHIShader> refVertexShader = Memory::MakeRef<GLVertexShader>(desc);
 
 		return refVertexShader;
 	}
 
-	Memory::RefPtr<RHIGeometryShader> GLSystem::CreateGeometryShader(const RHIGeometryShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLSystem::CreateGeometryShader(const RHIShaderDesc desc)
 	{
-		Memory::RefPtr<RHIGeometryShader> refGeometryShader = Memory::MakeRef<GLGeometryShader>(desc);
+		Memory::RefPtr<RHIShader> refGeometryShader = Memory::MakeRef<GLGeometryShader>(desc);
 
 		return refGeometryShader;
 	}
 
-	Memory::RefPtr<RHIHullShader> GLSystem::CreateHullShader(const RHIHullShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLSystem::CreateHullShader(const RHIShaderDesc desc)
 	{
-		Memory::RefPtr<RHIHullShader> refHullShader = Memory::MakeRef<GLHullShader>(desc);
+		Memory::RefPtr<RHIShader> refHullShader = Memory::MakeRef<GLHullShader>(desc);
 	
 		return refHullShader;
 	}
 
-	Memory::RefPtr<RHIPixelShader> GLSystem::CreatePixelShader(const RHIPixelShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLSystem::CreatePixelShader(const RHIShaderDesc desc)
 	{
-		Memory::RefPtr<RHIPixelShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
+		Memory::RefPtr<RHIShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
 
 		return refPixelShader;
 	}
 
-	Memory::RefPtr<RHIComputeShader> GLSystem::CreateComputeShader(const RHIComputeShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLSystem::CreateComputeShader(const RHIShaderDesc desc)
 	{
-		Memory::RefPtr<RHIComputeShader> refComputeShader = Memory::MakeRef<GLComputeShader>(desc);
+		Memory::RefPtr<RHIShader> refComputeShader = Memory::MakeRef<GLComputeShader>(desc);
 
 		return refComputeShader;
 	}
@@ -397,7 +413,7 @@ namespace wtr
 		}
 
 		glBindBuffer(bufferType, bufferID);
-		glBufferSubData(bufferType, 0, dataSize, info.data);
+		glBufferData(bufferType, dataSize, info.data, accessType);
 		glBindBuffer(bufferType, GL_NONE);
 
 		glBuffer->SetID(bufferID);
@@ -437,7 +453,7 @@ namespace wtr
 			const uint32_t numComponents = vertexStream.attribute.numComponents;
 			const uint32_t componentType = GetDataType(vertexStream.attribute.componentType);
 			const uint32_t componentSize = GetDataTypeSize(vertexStream.attribute.componentType);
-			const uint32_t stride = componentType * componentSize;
+			const uint32_t stride = numComponents * componentSize;
 
 			const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(vertexStream.buffer->GetRawBuffer());
 			if (!glBuffer)
@@ -481,6 +497,47 @@ namespace wtr
 		{
 			return;
 		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture)
+		{
+			return;
+		}
+
+		uint32_t textureID = GL_NONE;
+		glGenTextures(1, &textureID);
+		if (textureID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate texture";
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t pixelFormat = GetPixelFormat(info.format);
+		const uint32_t dataType = GetDataType(info.dataType);
+
+		glBindTexture(textureType, textureID);
+		if (info.compressed)
+		{
+			glCompressedTexImage2D(textureType, 0, pixelFormat, info.width, info.height, 0, static_cast<GLsizei>(info.dataType), info.data);
+		}
+		else
+		{
+			glTexImage2D(textureType, 0, pixelFormat, info.width, info.height, 0, pixelFormat, dataType, info.data);
+		}
+
+		if (info.generateMips)
+		{
+			glGenerateMipmap(textureType);
+		}
+		else
+		{
+			glTexParameteri(textureType, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(textureType, GL_TEXTURE_MAX_LEVEL, 0);
+		}
+
+		glTexture->SetID(textureID);
+		glTexture->SetState(eResourceState::eReady);
 	}
 
 	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
@@ -489,46 +546,72 @@ namespace wtr
 		{
 			return;
 		}
+
+		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler)
+		{
+			return;
+		}
+
+		uint32_t samplerID = GL_NONE;
+		glCreateSamplers(1, &samplerID);
+		if (samplerID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to create sampler";
+			return;
+		}
+
+		glSampler->SetID(samplerID);
+		glSampler->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader)
+	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
 	{
 		if (!shader)
 		{
 			return;
 		}
-	}
 
-	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader)
-	{
-		if (!shader)
+		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
+		if (!glShader)
 		{
 			return;
 		}
-	}
 
-	void GLSystem::InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader)
-	{
-		if (!shader)
+		const char* shaderSource = reinterpret_cast<const char*>(info.data);
+		if (!shaderSource)
 		{
+			LOGERROR() << "[GL] Failed to get vertex shader source code";
 			return;
 		}
-	}
 
-	void GLSystem::InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader)
-	{
-		if (!shader)
+		const uint32_t shaderType = GetShaderType(shader->GetShaderType());
+		if (shaderType == GL_NONE)
 		{
+			LOGERROR() << "[GL] Unrecognized shader type: " << static_cast<uint32_t>(shader->GetShaderType());
 			return;
 		}
-	}
 
-	void GLSystem::InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader)
-	{
-		if (!shader)
+		const uint32_t shaderID = glCreateShader(shaderType);
+		const int32_t length = static_cast<int32_t>(info.dataSize);
+
+		glShaderSource(shaderID, 1, &shaderSource, &length);
+		glCompileShader(shaderID);
+
+		int32_t success = GL_NONE;
+		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+		if (!success)
 		{
+			glGetShaderInfoLog(shaderID, MAX_GL_MESSAGE_LENGTH, nullptr, GL_MESSAGE);
+
+			LOGERROR() << "[GL] Failed to compile shader: " << GL_MESSAGE;
+			glDeleteShader(shaderID);
+
 			return;
 		}
+
+		glShader->SetID(shaderID);
+		glShader->SetState(eResourceState::eReady);
 	}
 
 	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
@@ -537,6 +620,208 @@ namespace wtr
 		{
 			return;
 		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine)
+		{
+			return;
+		}
+
+		GLuint programID = glCreateProgram();
+		if (programID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to create shader program";
+			return;
+		}
+
+		auto AttachShader = [&](const Memory::RefPtr<const RHIShader>& shader)
+		{
+			if (!shader)
+			{
+				return;
+			}
+
+			const GLShader* glShader = reinterpret_cast<const GLShader*>(shader->GetRawBuffer());
+			if (!glShader || glShader->GetID() == GL_NONE)
+			{
+				return;
+			}
+
+			glAttachShader(programID, glShader->GetID());
+		};
+
+		AttachShader(info.vertexShader);
+		AttachShader(info.geometryShader);
+		AttachShader(info.hullShader);
+		AttachShader(info.pixelShader);
+		AttachShader(info.computeShader);
+
+		glLinkProgram(programID);
+
+		GLint success = GL_NONE;
+		glGetProgramiv(programID, GL_LINK_STATUS, &success);
+		if (!success)
+		{
+			glGetProgramInfoLog(programID, MAX_GL_MESSAGE_LENGTH, nullptr, GL_MESSAGE);
+			LOGERROR() << "[GL] Failed to link shader program: " << GL_MESSAGE;
+			glDeleteProgram(programID);
+			return;
+		}
+
+		glPipeLine->SetID(programID);
+
+		if (!InitializeAttribute(pipeline) || !InitializeSlot(pipeline))
+		{
+			glDeleteProgram(programID);
+
+			glPipeLine->SetID(GL_NONE);
+			glPipeLine->SetState(eResourceState::eError);
+		}
+		else
+		{
+			glPipeLine->SetState(eResourceState::eReady);
+		}
+	}
+
+	bool GLSystem::InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return false;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t programID = glPipeLine->GetID();
+
+		GLint attributeCount = GL_NONE;
+		glGetProgramInterfaceiv(programID, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &attributeCount);
+
+		for (GLint index = 0; index < attributeCount; ++index)
+		{
+			GLsizei nameLength = GL_NONE;
+			glGetProgramResourceName(programID, GL_PROGRAM_INPUT, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
+
+			const std::string attributeName(GL_MESSAGE, nameLength);
+			if (nameLength == GL_NONE || attributeName.empty())
+			{
+				LOGWARN() << "[GL] Failed to get vertex attribute name for index: " << index;
+				return false;
+			}
+
+			if (attributeName.substr(0, 3) == "gl_")
+			{
+				continue;
+			}
+
+			const VertexKey vertexKey = GetVertexKey(attributeName);
+			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
+			{
+				LOGWARN() << "[GL] Unrecognized vertex attribute: " << attributeName;
+				return false;
+			}
+
+			GLint location = -1;
+			const GLenum locationProp = { GL_LOCATION };
+
+			const uint32_t expectedLocation = GetVertexLocation(vertexKey);
+
+			glGetProgramResourceiv(programID, GL_PROGRAM_INPUT, index, 1, &locationProp, 1, nullptr, &location);
+
+			if (static_cast<uint32_t>(location) != expectedLocation)
+			{
+				LOGWARN() << "[GL] Vertex attribute location mismatch: " << attributeName << ", expected location: " << expectedLocation << ", actual location: " << location;
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return false;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t programID = glPipeLine->GetID();
+
+		for (const auto& desc : BUFFER_BINDINGS)
+		{
+			GLint bindingCount = GL_NONE;
+			glGetProgramInterfaceiv(programID, desc.enumType, GL_ACTIVE_RESOURCES, &bindingCount);
+
+			for (GLint index = 0; index < bindingCount; ++index)
+			{
+				GLsizei nameLength = GL_NONE;
+				glGetProgramResourceName(programID, desc.enumType, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
+			
+				const std::string blockName(GL_MESSAGE, nameLength);
+				if (nameLength == GL_NONE || blockName.empty())
+				{
+					continue;
+				}
+
+				RHIResourceBinding bindingSlot;
+				bindingSlot.location = GL_NONE;
+				bindingSlot.type = eBindingType::eNone;
+
+				if (desc.enumType == GL_UNIFORM)
+				{
+					const GLenum props[] = { GL_TYPE, GL_BLOCK_INDEX, GL_LOCATION };
+					GLint results[3] = { GL_NONE, GL_NONE, GL_NONE };
+
+					glGetProgramResourceiv(programID, desc.enumType, index, 3, props, 3, nullptr, results);
+
+					const bool bufferBlock = results[1] != -1;
+					if (bufferBlock || results[0] == -1)
+					{
+						continue;
+					}
+
+					if (IsSampler(results[0]))
+					{
+						bindingSlot.location = results[2];
+						bindingSlot.type = eBindingType::eSampler;
+					}
+					else
+					{
+						bindingSlot.location = results[2];
+						bindingSlot.type = eBindingType::eUniform;
+					}
+				}
+				else
+				{
+					GLint bindingIndex = GL_NONE;
+					const GLenum props = GL_BUFFER_BINDING;
+					glGetProgramResourceiv(programID, desc.enumType, index, 1, &props, 1, nullptr, &bindingIndex);
+
+					if (bindingIndex == -1)
+					{
+						continue;
+					}
+
+					bindingSlot.location = static_cast<uint16_t>(bindingIndex);
+					bindingSlot.type = desc.bindingType;
+				}
+
+				pipeline->AddSlot(blockName, bindingSlot);
+			}
+		}
+
+		return true;
 	}
 
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
@@ -720,9 +1005,11 @@ namespace wtr
 		{
 			return;
 		}
+
 		glDeleteShader(glShader->GetID());
+
 		glShader->SetID(GL_NONE);
-		glShader->SetState(eResourceState::eNone);
+		shader->SetState(eResourceState::eNone);
 	}
 
 	void GLSystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
@@ -743,14 +1030,14 @@ namespace wtr
 		glPipeLine->SetState(eResourceState::eNone);
 	}
 
-	void GLSystem::SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		if (!buffer)
 		{
 			return;
 		}
 	
-		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(buffer->GetRawBuffer());
 		if (!glBuffer)
 		{
 			return;
@@ -761,14 +1048,14 @@ namespace wtr
 		glBindBufferBase(bufferType, slot, glBuffer->GetID());
 	}
 
-	void GLSystem::SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	void GLSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
 		if (!layout)
 		{
 			return;
 		}
 
-		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		const GLVertexLayout* glVertexLayout = reinterpret_cast<const GLVertexLayout*>(layout->GetRawBuffer());
 		if (!glVertexLayout)
 		{
 			return;
@@ -777,14 +1064,14 @@ namespace wtr
 		glBindVertexArray(glVertexLayout->GetID());
 	}
 
-	void GLSystem::SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	void GLSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
 	{
 		if (!texture)
 		{
 			return;
 		}
 
-		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
 		if (!glTexture)
 		{
 			return;
@@ -795,14 +1082,14 @@ namespace wtr
 		glBindTexture(textureType, glTexture->GetID());
 	}
 
-	void GLSystem::SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	void GLSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
 	{
 		if (!sampler)
 		{
 			return;
 		}
 
-		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		const GLSampler* glSampler = reinterpret_cast<const GLSampler*>(sampler->GetRawBuffer());
 		if (!glSampler)
 		{
 			return;
@@ -811,23 +1098,29 @@ namespace wtr
 		glBindSampler(slot, glSampler->GetID());
 	}
 
-	void GLSystem::SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	void GLSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		if (!pipeline)
 		{
 			return;
 		}
 
-		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		const GLPipeLine* glPipeLine = reinterpret_cast<const GLPipeLine*>(pipeline->GetRawBuffer());
 		if (!glPipeLine)
 		{
 			return;
 		}
 
 		glUseProgram(glPipeLine->GetID());
+
+		SetColorState(pipeline->GetColorState());
+		SetDepthState(pipeline->GetDepthState());
+		SetBlendState(pipeline->GetBlendState());
+		SetRasterizerState(pipeline->GetRasterizerState());
+		SetStencilState(pipeline->GetStencilState());
 	}
 
-	void GLSystem::UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		if (!buffer)
 		{
@@ -838,12 +1131,12 @@ namespace wtr
 		glBindBufferBase(bufferType, slot, GL_NONE);
 	}
 
-	void GLSystem::UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	void GLSystem::UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
 		glBindVertexArray(GL_NONE);
 	}
 
-	void GLSystem::UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	void GLSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
 	{
 		if (!texture)
 		{
@@ -855,7 +1148,7 @@ namespace wtr
 		glBindTexture(textureType, GL_NONE);
 	}
 
-	void GLSystem::UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	void GLSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
 	{
 		if (!sampler)
 		{
@@ -865,7 +1158,7 @@ namespace wtr
 		glBindSampler(slot, GL_NONE);
 	}
 
-	void GLSystem::UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	void GLSystem::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		glUseProgram(GL_NONE);
 	}
@@ -1410,5 +1703,46 @@ namespace wtr
 		{
 			return GL_NONE;
 		}
+	}
+
+	const uint32_t GLSystem::GetShaderType(const eShaderType type) const
+	{
+		if (eShaderType::eVertex == type)
+		{
+			return GL_VERTEX_SHADER;
+		}
+		else if (eShaderType::eGeometry == type)
+		{
+			return GL_GEOMETRY_SHADER;
+		}
+		else if (eShaderType::eHull == type)
+		{
+			return GL_TESS_EVALUATION_SHADER;
+		}
+		else if (eShaderType::ePixel == type)
+		{
+			return GL_FRAGMENT_SHADER;
+		}
+		else if (eShaderType::eCompute == type)
+		{
+			return GL_COMPUTE_SHADER;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	bool GLSystem::IsSampler(const int32_t type) const
+	{
+		return type == GL_SAMPLER_1D ||
+			type == GL_SAMPLER_2D ||
+			type == GL_SAMPLER_3D ||
+			type == GL_SAMPLER_CUBE ||
+			type == GL_SAMPLER_1D_ARRAY ||
+			type == GL_SAMPLER_2D_ARRAY ||
+			type == GL_SAMPLER_CUBE_MAP_ARRAY ||
+			type == GL_SAMPLER_2D_MULTISAMPLE ||
+			type == GL_SAMPLER_2D_MULTISAMPLE_ARRAY;
 	}
 }

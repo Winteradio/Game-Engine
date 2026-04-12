@@ -2,6 +2,7 @@
 
 #include <Asset/AssetTypes.h>
 #include <Asset/AssetSystem.h>
+#include <Renderer/MeshBatch.h>
 #include <Renderer/RenderView.h>
 #include <Renderer/RenderScene.h>
 #include <RHI/RHICommandList.h>
@@ -23,29 +24,6 @@ namespace wtr
 	SimpleColor::~SimpleColor()
 	{}
 
-	void SimpleColor::Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> commandList)
-	{
-		if (!renderScene || !commandList || !m_pipeLine) // TODO
-		{
-			return;
-		}
-
-		static float tick = 0.0f;
-		const float diff = 0.01f;
-		tick += (tick >= 6.283185307f) ? -6.283185307f + diff : diff;
-
-		RHIClearState clearState = m_pipeLine->GetClearState();
-
-		clearState.color.r = std::sin(tick) * 0.5f + 0.5f;
-		clearState.color.g = std::sin(tick + 2.094f) * 0.5f + 0.5f;
-		clearState.color.b = std::sin(tick + 4.188f) * 0.5f + 0.5f;
-		clearState.color.a = 1.0f;
-
-		commandList->Clear(clearState);
-
-		// TODO
-	}
-
 	void SimpleColor::Init()
 	{
 		const std::string vertexShader = "asset/shader/SimpleColor.vs.glsl";
@@ -63,6 +41,71 @@ namespace wtr
 		{
 			LOGERROR() << "[SimpleColor] Failed to initialize the simple color pipeline, cause failed to load the pixel shader, path : " << pixelShader;
 			return;
+		}
+	}
+
+	void SimpleColor::Prepare()
+	{
+		if (!m_pipeLine)
+		{
+			return;
+		}
+
+		if (!m_pipeLine->HasSlot("CameraData") || !m_pipeLine->HasSlot("InstanceData"))
+		{
+			LOGERROR() << "[SimpleColor] Failed to prepare the simple color pipeline, cause the pipeline is missing required resource slots";
+			return;
+		}
+
+		const RHIResourceBinding& cameraSlot = m_pipeLine->GetBindingSlot("CameraData");
+		const RHIResourceBinding& instanceSlot = m_pipeLine->GetBindingSlot("InstanceData");
+
+		m_cameraSlot = cameraSlot.location;
+		m_instanceSlot = instanceSlot.location;
+
+		m_prepared = true;
+	}
+
+	void SimpleColor::Draw(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList || !m_pipeLine)
+		{
+			return;
+		}
+
+		static float tick = 0.0f;
+		const float diff = 0.01f;
+		tick += (tick >= 6.283185307f) ? -6.283185307f + diff : diff;
+
+		RHIClearState clearState = m_pipeLine->GetClearState();
+
+		clearState.color.r = std::sin(tick) * 0.5f + 0.5f;
+		clearState.color.g = std::sin(tick + 2.094f) * 0.5f + 0.5f;
+		clearState.color.b = std::sin(tick + 4.188f) * 0.5f + 0.5f;
+		clearState.color.a = 1.0f;
+
+		cmdList->SetPipeLine(m_pipeLine);
+		cmdList->Clear(clearState);
+
+		RHIDrawIndexDesc drawDesc;
+
+		for (const auto drawCommand : meshDrawCommands)
+		{
+			if (!drawCommand)
+			{
+				continue;
+			}
+
+			drawDesc.drawMode = eDrawMode::eTriangles;
+			drawDesc.indexType = eDataType::eUInt;
+			drawDesc.indexCount = drawCommand->indexCount;
+			drawDesc.indexOffset = drawCommand->indexOffset * sizeof(uint32_t);
+			drawDesc.baseVertex = drawCommand->minVertexIndex;
+			drawDesc.instanceCount = drawCommand->instanceCount;
+
+			cmdList->SetBuffer(drawCommand->instanceBuffer, m_instanceSlot);
+			cmdList->SetVertexLayout(drawCommand->vertexLayout);
+			cmdList->DrawIndexPrimitive(drawDesc);
 		}
 	}
 

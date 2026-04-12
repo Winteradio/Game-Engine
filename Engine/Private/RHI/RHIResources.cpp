@@ -186,25 +186,15 @@ namespace wtr
 		return m_desc.wrapR;
 	}
 
-	RHIVertexShader::RHIVertexShader(const RHIVertexShaderDesc& desc)
-		: m_dsec(desc)
-	{}
-
-	RHIGeometryShader::RHIGeometryShader(const RHIGeometryShaderDesc& desc)
+	RHIShader::RHIShader(const RHIShaderDesc& desc)
 		: m_desc(desc)
-	{}
+	{
+	}
 
-	RHIHullShader::RHIHullShader(const RHIHullShaderDesc& desc)
-		: m_desc(desc)
-	{}
-
-	RHIPixelShader::RHIPixelShader(const RHIPixelShaderDesc& desc)
-		: m_desc(desc)
-	{}
-
-	RHIComputeShader::RHIComputeShader(const RHIComputeShaderDesc& desc)
-		: m_desc(desc)
-	{}
+	const eShaderType RHIShader::GetShaderType() const
+	{
+		return m_desc.shaderType;
+	}
 
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
@@ -238,5 +228,33 @@ namespace wtr
 	const RHIRasterizerState RHIPipeLine::GetRasterizerState() const
 	{
 		return m_desc.rasterizer;
+	}
+
+	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
+	{
+		m_slots.Insert(std::make_pair(name, binding));
+	}
+
+	bool RHIPipeLine::HasSlot(const std::string& name) const
+	{
+		return m_slots.Find(name) != m_slots.End();
+	}
+
+	size_t RHIPipeLine::GetSlotCount() const
+	{
+		return m_slots.Size();
+	}
+
+	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const std::string& name) const
+	{
+		auto itr = m_slots.Find(name);
+		if (itr != m_slots.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			return RHIResourceBinding{};
+		}
 	}
 };

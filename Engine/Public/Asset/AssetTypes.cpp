@@ -139,7 +139,7 @@ namespace wtr
 
 	eResourceState TextureAsset::GetResourceState() const
 	{
-		return eResourceState::eLoaded;
+		return eResourceState::eReady;
 
 		// TODO
 		if (!rawBuffer)
@@ -250,6 +250,6 @@ namespace wtr
 
 		eResourceState shaderState = shader ? shader->GetState() : eResourceState::eNone;
 
-		return rawState | shaderState;
+		return shaderState >= rawState ? shaderState : rawState;
 	}
 }

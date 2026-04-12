@@ -2,7 +2,12 @@
 
 out vec4 FragColor;
 
+layout(binding = 0) uniform sampler2D albedo;
+
+uniform vec4 tintColor;
+
 void main()
 {
-   FragColor = vec4(float(gl_FragCoord.x)/ 1000.0, float(gl_FragCoord.y) / 1000.0,0.0, 1.0);
+    vec4 texColor = texture(albedo, vec2(gl_FragCoord.xy / 1000.0));
+    FragColor = texColor * tintColor;
 }

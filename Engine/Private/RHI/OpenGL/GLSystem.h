@@ -35,22 +35,18 @@ namespace wtr
 		Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutDesc desc) override;
 		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc desc) override;
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc desc) override;
-		Memory::RefPtr<RHIVertexShader> CreateVertexShader(const RHIVertexShaderDesc desc) override;
-		Memory::RefPtr<RHIGeometryShader> CreateGeometryShader(const RHIGeometryShaderDesc desc) override;
-		Memory::RefPtr<RHIHullShader> CreateHullShader(const RHIHullShaderDesc desc) override;
-		Memory::RefPtr<RHIPixelShader> CreatePixelShader(const RHIPixelShaderDesc desc) override;
-		Memory::RefPtr<RHIComputeShader> CreateComputeShader(const RHIComputeShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateVertexShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateGeometryShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateHullShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
 		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
 		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
-		void InitializeVertexShader(const RHIVertexShaderCreateDesc info, Memory::RefPtr<RHIVertexShader> shader);
-		void InitializeGeometryShader(const RHIGeometryShaderCreateDesc info, Memory::RefPtr<RHIGeometryShader> shader);
-		void InitializeHullShader(const RHIHullShaderCreateDesc info, Memory::RefPtr<RHIHullShader> shader);
-		void InitializePixelShader(const RHIPixelShaderCreateDesc info, Memory::RefPtr<RHIPixelShader> shader);
-		void InitializeComputeShader(const RHIComputeShaderCreateDesc info, Memory::RefPtr<RHIComputeShader> shader);
+		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
@@ -66,22 +62,25 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader) override;
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
 
-		void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) override;
-		void SetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
-		void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) override;
-		void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) override;
-		void SetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
+		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
+		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
+		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
+		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 
-		void UnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot) override;
-		void UnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
-		void UnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot) override;
-		void UnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot) override;
-		void UnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
+		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
+		void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
+		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
+		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
+		void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
 	private :
+		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
+		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
+
 		const uint32_t GetBufferType(const eBufferType buffer) const;
 		const uint32_t GetDataAccess(const eDataAccess access) const;
 		const uint32_t GetDataType(const eDataType data) const;
@@ -98,6 +97,9 @@ namespace wtr
 		const uint32_t GetStencilOp(const eStencilOp op) const;
 		const uint32_t GetBlendFunc(const eBlendFunc func) const;
 		const uint32_t GetBlendOp(const eBlendOp op) const;
+		const uint32_t GetShaderType(const eShaderType type) const;
+
+		bool IsSampler(const int32_t type) const;
 
 	private:
 		WGLContext m_context;

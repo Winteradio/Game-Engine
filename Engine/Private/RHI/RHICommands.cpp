@@ -180,7 +180,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializeVertexShader::RHICommandInitializeVertexShader(const RHIVertexShaderCreateDesc info, const Memory::RefPtr<RHIVertexShader> shader)
+	RHICommandInitializeVertexShader::RHICommandInitializeVertexShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -189,11 +189,11 @@ namespace wtr
 	{
 		if (system && m_shader)
 		{
-			system->InitializeVertexShader(m_info, m_shader);
+			system->InitializeShader(m_info, m_shader);
 		}
 	}
 
-	RHICommandInitializeGeometryShader::RHICommandInitializeGeometryShader(const RHIGeometryShaderCreateDesc info, const Memory::RefPtr<RHIGeometryShader> shader)
+	RHICommandInitializeGeometryShader::RHICommandInitializeGeometryShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -202,11 +202,11 @@ namespace wtr
 	{
 		if (system && m_shader)
 		{
-			system->InitializeGeometryShader(m_info, m_shader);
+			system->InitializeShader(m_info, m_shader);
 		}
 	}
 
-	RHICommandInitializeHullShader::RHICommandInitializeHullShader(const RHIHullShaderCreateDesc info, const Memory::RefPtr<RHIHullShader> shader)
+	RHICommandInitializeHullShader::RHICommandInitializeHullShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{
@@ -216,11 +216,11 @@ namespace wtr
 	{
 		if (system && m_shader)
 		{
-			system->InitializeHullShader(m_info, m_shader);
+			system->InitializeShader(m_info, m_shader);
 		}
 	}
 
-	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIPixelShaderCreateDesc info, const Memory::RefPtr<RHIPixelShader> shader)
+	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -229,11 +229,11 @@ namespace wtr
 	{
 		if (system && m_shader)
 		{
-			system->InitializePixelShader(m_info, m_shader);
+			system->InitializeShader(m_info, m_shader);
 		}
 	}
 
-	RHICommandInitializeComputeShader::RHICommandInitializeComputeShader(const RHIComputeShaderCreateDesc info, const Memory::RefPtr<RHIComputeShader> shader)
+	RHICommandInitializeComputeShader::RHICommandInitializeComputeShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
 	{}
@@ -242,7 +242,7 @@ namespace wtr
 	{
 		if (system && m_shader)
 		{
-			system->InitializeComputeShader(m_info, m_shader);
+			system->InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -385,7 +385,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetBuffer::RHICommandSetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 		: m_buffer(buffer)
 		, m_slot(slot)
 	{
@@ -399,7 +399,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetVertexLayout::RHICommandSetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	RHICommandSetVertexLayout::RHICommandSetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout)
 		: m_layout(layout)
 	{
 	}
@@ -412,7 +412,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetTexture::RHICommandSetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
 		: m_texture(texture)
 		, m_slot(slot)
 	{
@@ -426,7 +426,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetSampler::RHICommandSetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
 		: m_sampler(sampler)
 		, m_slot(slot)
 	{
@@ -440,7 +440,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetPipeLine::RHICommandSetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	RHICommandSetPipeLine::RHICommandSetPipeLine(const Memory::RefPtr<const RHIPipeLine> pipeline)
 		: m_pipeline(pipeline)
 	{
 	}
@@ -453,7 +453,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetBuffer::RHICommandUnsetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t slot)
+	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 		: m_buffer(buffer)
 		, m_slot(slot)
 	{
@@ -467,7 +467,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout)
 		: m_layout(layout)
 	{
 	}
@@ -480,7 +480,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetTexture::RHICommandUnsetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t slot)
+	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
 		: m_texture(texture)
 		, m_slot(slot)
 	{
@@ -494,7 +494,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetSampler::RHICommandUnsetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t slot)
+	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
 		: m_sampler(sampler)
 		, m_slot(slot)
 	{
@@ -508,7 +508,7 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
+	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine(const Memory::RefPtr<const RHIPipeLine> pipeline)
 		: m_pipeline(pipeline)
 	{
 	}

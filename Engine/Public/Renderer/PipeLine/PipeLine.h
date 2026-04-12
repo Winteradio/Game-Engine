@@ -4,13 +4,14 @@
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Reflection/include/Type/TypeMacro.h>
 #include <ECS/include/Object/Data.h>
-#include <Container/include/HashMap.h>
+#include <Container/include/DynamicArray.h>
 #include <Renderer/RenderResource.h>
 
 namespace wtr
 {
 	class RenderScene;
 	struct RenderView;
+	struct MeshDrawCommand;
 
 	class RHIShader;
 	class RHIPipeLine;
@@ -27,18 +28,26 @@ namespace wtr
 		GENERATE(PipeLine);
 
 	public :
+		using MeshDrawCommands = wtr::DynamicArray<Memory::RefPtr<const MeshDrawCommand>>;
+
 		PipeLine();
 		virtual ~PipeLine();
 
 	public :
-		virtual void Draw(const RenderView& renderView, Memory::RefPtr<RenderScene> renderScene, Memory::RefPtr<RHICommandList> cmdList) = 0;
-		virtual void Init() = 0;
+		void Execute(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList);
 
+		virtual void Init() = 0;
+		
 		virtual eResourceState GetShaderState() const = 0;
+
+	protected :
+		virtual void Prepare() = 0;
+		virtual void Draw(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList) = 0;
 
 	protected :
 		Memory::RefPtr<RHIPipeLine> m_pipeLine;
 
+		bool m_prepared;
 	};
 };
 

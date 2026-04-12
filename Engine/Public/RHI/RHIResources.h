@@ -115,59 +115,15 @@ namespace wtr
 
 	class RHIShader : public RHIResource
 	{
-		public :
-			RHIShader() = default;
-			virtual ~RHIShader() = default;
-	};
+	public :
+		RHIShader(const RHIShaderDesc& desc);
+		virtual ~RHIShader() = default;
 
-	class RHIVertexShader : virtual public RHIShader
-	{
-		public : 
-			RHIVertexShader(const RHIVertexShaderDesc& desc);
-			virtual ~RHIVertexShader() = default;
+	public :
+		const eShaderType GetShaderType() const;
 
-		private :
-			RHIVertexShaderDesc m_dsec;
-	};
-
-	class RHIGeometryShader : virtual public RHIShader
-	{
-		public :
-			RHIGeometryShader(const RHIGeometryShaderDesc& desc);
-			virtual ~RHIGeometryShader() = default;
-
-		private :
-			RHIGeometryShaderDesc m_desc;
-	};
-
-	class RHIHullShader : virtual public RHIShader
-	{
-	public:
-		RHIHullShader(const RHIHullShaderDesc& desc);
-		virtual ~RHIHullShader() = default;
-
-	private:
-		RHIHullShaderDesc m_desc;
-	};
-
-	class RHIPixelShader : virtual public RHIShader
-	{
-		public :
-			RHIPixelShader(const RHIPixelShaderDesc& desc);
-			virtual ~RHIPixelShader() = default;
-
-		private :
-			RHIPixelShaderDesc m_desc;
-	};
-
-	class RHIComputeShader : virtual public RHIShader
-	{
-		public :
-			RHIComputeShader(const RHIComputeShaderDesc& desc);
-			virtual ~RHIComputeShader() = default;
-
-		private :
-			RHIComputeShaderDesc m_desc;
+	private :
+		RHIShaderDesc m_desc;
 	};
 
 	class RHIPipeLine : public RHIResource
@@ -184,8 +140,15 @@ namespace wtr
 			const RHIBlendState GetBlendState() const;
 			const RHIRasterizerState GetRasterizerState() const;
 
-		protected :
+			void AddSlot(const std::string& name, const RHIResourceBinding& binding);
+			bool HasSlot(const std::string& name) const;
+
+			size_t GetSlotCount() const;
+			const RHIResourceBinding GetBindingSlot(const std::string& name) const;
+
+		private :
 			RHIPipeLineDesc m_desc;
+			wtr::HashMap<std::string, RHIResourceBinding> m_slots;
 	};
 };
 

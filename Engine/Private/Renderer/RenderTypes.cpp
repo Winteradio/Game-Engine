@@ -1,5 +1,7 @@
 #include <Renderer/RenderTypes.h>
 
+#include <Container/include/HashMap.h>
+
 namespace wtr
 {
 	bool IsIntegerDataType(const eDataType dataType)
@@ -79,4 +81,45 @@ namespace wtr
 			return -1;
 		};
 	};
+
+	const VertexKey GetVertexKey(const std::string& attributeName)
+	{
+		if (attributeName.empty())
+		{
+			return { eVertexSemantic::eNone, 0xFF };
+		}
+
+		// Change the upper case of the attribute name
+		std::string upper = attributeName;
+		std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+
+		// Explicit the last number of the attribute name
+		size_t pos = upper.size();
+		while (pos > 0 && std::isdigit(upper[pos - 1]))
+		{
+			--pos;
+		}
+
+		const uint8_t semanticIndex = (pos < upper.size()) ? static_cast<uint8_t>(std::stoi(upper.substr(pos))) : 0x00;
+
+		static const wtr::HashMap<std::string, eVertexSemantic> SEMANTIC_MAP = 
+		{
+			{ "POSITION", eVertexSemantic::ePosition },
+			{ "NORMAL", eVertexSemantic::eNormal },
+			{ "TANGENT", eVertexSemantic::eTangent },
+			{ "COLOR", eVertexSemantic::eColor },
+			{ "TEXCOORD", eVertexSemantic::eTexCoord },
+			{ "JOINT", eVertexSemantic::eJoint },
+			{ "WEIGHT", eVertexSemantic::eWeight },
+			{ "GENERIC", eVertexSemantic::eGeneric }
+		};
+
+		const auto itr = SEMANTIC_MAP.Find(upper.substr(0, pos));
+		if (itr != SEMANTIC_MAP.end())
+		{
+			return { itr->second, semanticIndex };
+		}
+
+		return { eVertexSemantic::eNone, 0xFF };
+	}
 };

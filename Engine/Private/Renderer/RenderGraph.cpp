@@ -1,5 +1,7 @@
 #include <Renderer/RenderGraph.h>
 
+#include <Renderer/MeshBatch.h>
+#include <Renderer/RenderScene.h>
 #include <Renderer/RenderView.h>
 #include <Renderer/PipeLine/SimpleColor.h>
 #include <RHI/RHIResources.h>
@@ -148,6 +150,16 @@ namespace wtr
 		}
 
 		m_drawCommands.Clear();
+		
+		const auto& meshBatches = renderScene->GetMeshBatches();
+		for (const auto& batchPair : meshBatches)
+		{
+			const auto& batch = batchPair.second;
+			if (batch && batch->GetResourceState() == eResourceState::eReady)
+			{
+				m_drawCommands.PushBack(batch->GetDrawCommand());
+			}
+		}
 
 		if (m_graph.IsUpdated())
 		{
@@ -165,7 +177,7 @@ namespace wtr
 				continue;
 			}
 
-			pipeLine->Draw(renderView, renderScene, cmdList);
+			pipeLine->Execute(renderView, m_drawCommands, cmdList);
 		}
 	}
 

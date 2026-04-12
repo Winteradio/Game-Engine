@@ -47,45 +47,45 @@ namespace wtr
 			virtual ~GLSampler();
 	};
 
-	class GLShader : virtual public RHIShader, public GLResource
+	class GLShader : public RHIShader, public GLResource
 	{
 		public :
-			GLShader() = default;
+			GLShader(const RHIShaderDesc& desc);
 			virtual ~GLShader() = default;
 	};
 
-	class GLVertexShader : virtual public RHIVertexShader, virtual public GLShader
+	class GLVertexShader : public GLShader
 	{
 		public :
-			GLVertexShader(const RHIVertexShaderDesc& desc);
+			GLVertexShader(const RHIShaderDesc& desc);
 			virtual ~GLVertexShader();
 	};
 
-	class GLGeometryShader : virtual public RHIGeometryShader, virtual public GLShader
+	class GLGeometryShader : public GLShader
 	{
 		public :
-			GLGeometryShader(const RHIGeometryShaderDesc& desc);
+			GLGeometryShader(const RHIShaderDesc& desc);
 			virtual ~GLGeometryShader();
 	};
 
-	class GLHullShader : virtual public RHIHullShader, virtual public GLShader
+	class GLHullShader : public GLShader
 	{
 		public :
-			GLHullShader(const RHIHullShaderDesc& desc);
+			GLHullShader(const RHIShaderDesc& desc);
 			virtual ~GLHullShader();
 	};
 
-	class GLPixelShader : virtual public RHIPixelShader, virtual public GLShader
+	class GLPixelShader : public GLShader
 	{
 		public :
-			GLPixelShader(const RHIPixelShaderDesc& desc);
+			GLPixelShader(const RHIShaderDesc& desc);
 			virtual ~GLPixelShader();
 	};
 
-	class GLComputeShader : virtual public RHIComputeShader, virtual public GLShader
+	class GLComputeShader : public GLShader
 	{
 		public :
-			GLComputeShader(const RHIComputeShaderDesc& desc);
+			GLComputeShader(const RHIShaderDesc& desc);
 			virtual ~GLComputeShader();
 	};
 

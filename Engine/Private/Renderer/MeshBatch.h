@@ -88,7 +88,7 @@ namespace wtr
 		wtr::HashMap<eScalarSlot, float> scalarValues;
 
 		// Instance
-		Memory::RefPtr<RHIBuffer> instanceBuffer;
+		Memory::RefPtr<const RHIBuffer> instanceBuffer;
 		uint32_t instanceCount = 0;
 	};
 

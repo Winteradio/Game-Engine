@@ -32,7 +32,6 @@ namespace wtr
 	struct RHIResourceBinding
 	{
 		uint16_t location 	= 0; // resource binding location
-		uint32_t count 		= 0; // number of resources in array
 		eBindingType type 	= eBindingType::eNone; // type of the binding resource
 	};
 
@@ -99,6 +98,9 @@ namespace wtr
 		ePixelFormat	format = ePixelFormat::eNone;
 		eTextureUsage 	usage = eTextureUsage::eNone;
 		eTextureType	textureType = eTextureType::eNone;
+		eDataType		dataType = eDataType::eNone;
+		bool			generateMips = false;
+		bool			compressed = false;
 	};
 
 	struct RHITextureCreateDesc : RHITextureDesc
@@ -135,62 +137,15 @@ namespace wtr
 	struct RHISamplerCreateDesc : RHISamplerDesc
 	{};
 
-	template<enum class eShaderType Type>
 	struct RHIShaderDesc : RHIDesc<eResourceType::eShader>
 	{
-		eShaderType shaderType = Type;
+		eShaderType shaderType = eShaderType::eNone;
 	};
 
-	struct RHIVertexShaderDesc : RHIShaderDesc<eShaderType::eVertex>
-	{
-		static constexpr size_t MAX_ATTRIBUTES = 16;
-
-		uint32_t numAttributes = 0;
-		
-		RHIVertexAttribute attributes[MAX_ATTRIBUTES];
-	};
-
-	struct RHIGeometryShaderDesc : RHIShaderDesc<eShaderType::eGeometry>
-	{
-
-	};
-
-	struct RHIHullShaderDesc : RHIShaderDesc<eShaderType::eHull>
-	{
-
-	};
-
-	struct RHIPixelShaderDesc : RHIShaderDesc<eShaderType::ePixel>
-	{
-	};
-
-	struct RHIComputeShaderDesc : RHIShaderDesc<eShaderType::eCompute>
-	{
-	};
-
-	struct RHIVertexShaderCreateDesc : RHIVertexShaderDesc
+	struct RHIShaderCreateDesc : RHIShaderDesc
 	{
 		const void* data = nullptr;
-	};
-
-	struct RHIGeometryShaderCreateDesc : RHIGeometryShaderDesc
-	{
-		const void* data = nullptr;
-	};
-
-	struct RHIHullShaderCreateDesc : RHIHullShaderDesc
-	{
-		const void* data = nullptr;
-	};
-
-	struct RHIPixelShaderCreateDesc : RHIPixelShaderDesc
-	{
-		const void* data = nullptr;
-	};
-
-	struct RHIComputeShaderCreateDesc : RHIComputeShaderDesc
-	{
-		const void* data = nullptr;
+		size_t dataSize = 0;
 	};
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
