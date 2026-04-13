@@ -181,23 +181,33 @@ namespace demo
 			return false;
 		}
 
-		auto cubeEntity = world->CreateEntity();
-		if (!cubeEntity)
+		for (size_t index = 0; index < 3; index++)
 		{
-			LOGERROR() << "[Game] Failed to create the camera entity";
-			return false;
+			auto dragonEntity = world->CreateEntity();
+			if (!dragonEntity)
+			{
+				LOGERROR() << "[Game] Failed to create the dragon entity";
+				continue;
+			}
+
+			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
+
+			dragonEntity->AddComponent<wtr::SceneComponent>();
+			dragonEntity->AddComponent<wtr::MeshComponent>(dragonAsset);
+			dragonEntity->AddNode<wtr::MeshNode>();
+
+			auto sceneComponent = dragonEntity->GetComponent<wtr::SceneComponent>();
+			if (sceneComponent)
+			{
+				sceneComponent->UpdatePosition({ static_cast<float>(index) * 0.2f, 0.0f, 0.0f });
+				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+			}
+
+			world->scene.Attach(dragonEntity->GetNode<wtr::MeshNode>());
+
+			LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
-
-		const std::string cubePath = "asset/mesh/3d/dragon.obj";
-		Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
-
-		cubeEntity->AddComponent<wtr::SceneComponent>();
-		cubeEntity->AddComponent<wtr::MeshComponent>(cubeAsset);
-		cubeEntity->AddNode<wtr::MeshNode>();
-
-		world->scene.Attach(cubeEntity->GetNode<wtr::MeshNode>());
-
-		LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
 
 		return true;
 	}

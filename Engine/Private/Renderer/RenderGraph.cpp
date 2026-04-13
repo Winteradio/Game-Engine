@@ -3,6 +3,7 @@
 #include <Renderer/MeshBatch.h>
 #include <Renderer/RenderScene.h>
 #include <Renderer/RenderView.h>
+#include <Renderer/GlobalResource.h>
 #include <Renderer/PipeLine/SimpleColor.h>
 #include <RHI/RHIResources.h>
 
@@ -23,6 +24,15 @@ namespace wtr
 
 	bool RenderGraph::Init()
 	{
+		Memory::RefPtr<GlobalResource> globalResource = Memory::MakeRef<GlobalResource>();
+		if (!globalResource)
+		{
+			LOGERROR() << "[Render Graph] Failed to create the global resource";
+			return false;
+		}
+
+		m_globalResource = globalResource;
+
 		Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>();
 		if (simpleColor)
 		{
@@ -143,14 +153,20 @@ namespace wtr
 
 	void RenderGraph::Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene> renderScene, const RenderView& renderView)
 	{
-		if (!cmdList || !renderScene)
+		if (!cmdList || !renderScene || !m_globalResource)
 		{
 			LOGERROR() << "[Render Graph] Failed to execute the render graph, cause the command list or render scene is invalid";
 			return;
 		}
 
+		if (!m_globalResource->IsReady())
+		{
+			m_globalResource->Setup(cmdList);
+		}
+
+		m_globalResource->UpdateCamera(renderView, cmdList);
+
 		m_drawCommands.Clear();
-		
 		const auto& meshBatches = renderScene->GetMeshBatches();
 		for (const auto& batchPair : meshBatches)
 		{
@@ -177,7 +193,7 @@ namespace wtr
 				continue;
 			}
 
-			pipeLine->Execute(renderView, m_drawCommands, cmdList);
+			pipeLine->Execute(m_drawCommands, m_globalResource, cmdList);
 		}
 	}
 

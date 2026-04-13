@@ -7,6 +7,11 @@ layout(binding = 0) uniform CameraData
 {
     mat4 view;
     mat4 projection;
+
+    vec3 cameraPosition;
+    float nearPlane;
+    float farPlane;
+    float fov;
 };
 
 layout(binding = 1) buffer InstanceData

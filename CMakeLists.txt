@@ -158,6 +158,9 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.h
+	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.cpp
 )
 
 set(ENGINE_RHI_PUBLIC_FILES

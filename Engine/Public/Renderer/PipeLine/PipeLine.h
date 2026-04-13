@@ -9,8 +9,7 @@
 
 namespace wtr
 {
-	class RenderScene;
-	struct RenderView;
+	class GlobalResource;
 	struct MeshDrawCommand;
 
 	class RHIShader;
@@ -34,7 +33,7 @@ namespace wtr
 		virtual ~PipeLine();
 
 	public :
-		void Execute(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList);
+		void Execute(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList);
 
 		virtual void Init() = 0;
 		
@@ -42,7 +41,7 @@ namespace wtr
 
 	protected :
 		virtual void Prepare() = 0;
-		virtual void Draw(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList) = 0;
+		virtual void Draw(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList) = 0;
 
 	protected :
 		Memory::RefPtr<RHIPipeLine> m_pipeLine;

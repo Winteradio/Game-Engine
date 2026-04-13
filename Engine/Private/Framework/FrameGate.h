@@ -56,6 +56,7 @@ namespace wtr
 		std::mutex m_mutex;
 		const size_t m_frameLimit;
 		std::atomic<int32_t> m_frameDiff;
+		std::atomic<bool> m_notified;
 	};
 }
 

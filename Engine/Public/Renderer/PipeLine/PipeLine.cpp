@@ -12,7 +12,7 @@ namespace wtr
 	PipeLine::~PipeLine()
 	{}
 
-	void PipeLine::Execute(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList)
+	void PipeLine::Execute(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!m_prepared)
 		{
@@ -20,7 +20,7 @@ namespace wtr
 		}
 		else
 		{
-			Draw(renderView, meshDrawCommands, cmdList);
+			Draw(meshDrawCommands, globalResource, cmdList);
 		}
 	}
 }

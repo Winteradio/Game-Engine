@@ -5,6 +5,7 @@ namespace wtr
 	FrameGate::FrameGate(const size_t frameLimit)
 		: m_frameLimit(frameLimit)
 		, m_frameDiff(0)
+		, m_notified(false)
 	{}
 
 	FrameGate::~FrameGate()
@@ -20,7 +21,7 @@ namespace wtr
 			m_cvProducer.wait(lock, [this]()
 				{
 					const int32_t frameDiff = m_frameDiff.load(std::memory_order_acquire);
-					return frameDiff < static_cast<int32_t>(m_frameLimit);
+					return frameDiff < static_cast<int32_t>(m_frameLimit) || m_notified.load(std::memory_order_acquire);
 				}
 			);
 		}
@@ -38,7 +39,7 @@ namespace wtr
 			m_cvConsumer.wait(lock, [this]()
 				{
 					const int32_t frameDiff = m_frameDiff.load(std::memory_order_acquire);
-					return frameDiff > 0;
+					return frameDiff > 0 || m_notified.load(std::memory_order_acquire);
 				}
 			);
 		}
@@ -51,5 +52,7 @@ namespace wtr
 	{
 		m_cvConsumer.notify_all();
 		m_cvProducer.notify_all();
+
+		m_notified.store(true, std::memory_order_release);
 	}
 }

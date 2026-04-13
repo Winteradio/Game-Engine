@@ -413,7 +413,6 @@ namespace wtr
 
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetDataAccess(info.accessType);
-		const uint32_t dataType = GetDataType(info.componentType);
 		const uint32_t dataSize = info.size;
 		
 		uint32_t bufferID = GL_NONE;

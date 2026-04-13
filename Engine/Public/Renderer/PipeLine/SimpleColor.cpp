@@ -3,8 +3,7 @@
 #include <Asset/AssetTypes.h>
 #include <Asset/AssetSystem.h>
 #include <Renderer/MeshBatch.h>
-#include <Renderer/RenderView.h>
-#include <Renderer/RenderScene.h>
+#include <Renderer/GlobalResource.h>
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIDescriptions.h>
 #include <RHI/RHIResources.h>
@@ -66,9 +65,9 @@ namespace wtr
 		m_prepared = true;
 	}
 
-	void SimpleColor::Draw(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList)
+	void SimpleColor::Draw(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_pipeLine)
+		if (!cmdList || !globalResource|| !m_pipeLine)
 		{
 			return;
 		}
@@ -84,8 +83,9 @@ namespace wtr
 		clearState.color.b = std::sin(tick + 4.188f) * 0.5f + 0.5f;
 		clearState.color.a = 1.0f;
 
-		cmdList->SetPipeLine(m_pipeLine);
 		cmdList->Clear(clearState);
+		cmdList->SetPipeLine(m_pipeLine);
+		cmdList->SetBuffer(globalResource->GetCameraBuffer(), m_cameraSlot);
 
 		RHIDrawIndexDesc drawDesc;
 

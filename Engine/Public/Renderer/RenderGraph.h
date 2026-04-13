@@ -12,6 +12,7 @@ namespace wtr
 	struct RenderView;
 
 	class RenderScene;
+	class GlobalResource;
 	class RHICommandList;
 };
 
@@ -79,6 +80,8 @@ namespace wtr
 
 		PendingPipeLine m_addable;
 		PendingPipeLine m_removable;
+
+		Memory::RefPtr<GlobalResource> m_globalResource;
 
 		wtr::DynamicArray<Memory::RefPtr<const MeshDrawCommand>> m_drawCommands;
 	};

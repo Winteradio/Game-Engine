@@ -66,7 +66,10 @@ namespace wtr
 
 	void SceneComponent::Update()
 	{
-		m_scene->Update(GetID());
+		if (m_scene)
+		{
+			m_scene->Update(GetID());
+		}
 	}
 
 	MeshComponent::MeshComponent(Memory::RefPtr<Asset> refAsset)

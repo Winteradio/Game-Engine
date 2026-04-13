@@ -20,7 +20,7 @@ namespace wtr
 	public :
 		void Init() override;
 		void Prepare() override;
-		void Draw(const RenderView& renderView, const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<RHICommandList> cmdList) override;
+		void Draw(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList) override;
 
 		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
