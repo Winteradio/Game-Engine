@@ -4,6 +4,7 @@
 #include <Container/include/HashSet.h>
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Memory/include/Pointer/ObjectPtr.h>
+#include <Framework/Math/MathTypes.h>
 
 namespace wtr
 {
@@ -26,6 +27,8 @@ namespace wtr
 		Memory::ObjectPtr<const Entity> GetEntity() const;
 		Memory::ObjectPtr<const SceneComponent> GetTransform() const;
 		Memory::ObjectPtr<const CameraComponent> GetCamera() const;
+		const fmat4 GetViewMatrix() const;
+		const fmat4 GetProjectionMatrix() const;
 
 		void Register(Memory::RefPtr<ViewInfo> viewInfo);
 		void Unregister(Memory::RefPtr<ViewInfo> viewInfo);

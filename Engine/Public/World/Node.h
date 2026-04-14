@@ -138,6 +138,7 @@ namespace wtr
 			, transform(transform)
 			, camera(camera)
 		{}
+
 		virtual ~CameraNode() = default;
 	};
 };

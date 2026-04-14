@@ -48,9 +48,6 @@ namespace wtr
 		}
 	}
 
-	void WorldWorker::onStart()
-	{}
-
 	void WorldWorker::onUpdate()
 	{
 		m_timeStep.Tick();
@@ -142,18 +139,16 @@ namespace wtr
 			return {};
 		}
 
-		RenderView RenderView;
-		RenderView.viewport.width = view->GetWidth();
-		RenderView.viewport.height = view->GetHeight();
-		RenderView.viewport.posX = view->GetPosX();
-		RenderView.viewport.posY = view->GetPosY();
+		RenderView renderView;
+		renderView.viewport.width = view->GetWidth();
+		renderView.viewport.height = view->GetHeight();
+		renderView.viewport.posX = view->GetPosX();
+		renderView.viewport.posY = view->GetPosY();
 
-		RenderView.camera.fov = camera->fov;
-		RenderView.camera.nearPlane = camera->nearPlane;
-		RenderView.camera.farPlane = camera->farPlane;
-		RenderView.camera.position = transform->GetPosition();
-		RenderView.camera.rotation = transform->GetRotation();
+		renderView.camera.position = transform->GetPosition();
+		renderView.camera.viewMatrix = player->GetViewMatrix();
+		renderView.camera.projMatrix = player->GetProjectionMatrix();
 
-		return RenderView;
+		return renderView;
 	}
 }

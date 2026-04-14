@@ -27,7 +27,6 @@ namespace wtr
 		void SetTaskExecutor(Memory::RefPtr<RHIExecutor> taskExecutor);
 
 	protected :
-		void onStart() override;
 		void onUpdate() override;
 		void onDestroy() override;
 		void onNotify() override;

@@ -22,9 +22,6 @@ namespace wtr
 		fmat4 projectionMatrix;
 		
 		fvec3 cameraPosition;
-		float nearPlane;
-		float farPlane;
-		float fov;
 	};
 
 	struct BufferResource
@@ -45,7 +42,8 @@ namespace wtr
 
 	struct ScreenQuadResource
 	{
-		Memory::RefPtr<RHIBuffer> vertexBuffer;
+		Memory::RefPtr<RHIBuffer> positionBuffer;
+		Memory::RefPtr<RHIBuffer> uvBuffer;
 		Memory::RefPtr<RHIBuffer> indexBuffer;
 		Memory::RefPtr<RHIVertexLayout> vertexLayout;
 	};
@@ -57,23 +55,29 @@ namespace wtr
 		~GlobalResource() = default;
 
 	public :
-		bool IsReady() const;
-
-		bool Setup(Memory::RefPtr<RHICommandList> cmdLIst);
+		bool Init(Memory::RefPtr<RHICommandList> cmdLIst);
 		void Release(Memory::RefPtr<RHICommandList> cmdList);
 
 		void UpdateCamera(const RenderView& renderView, Memory::RefPtr<RHICommandList> cmdList);
 
 		const Memory::RefPtr<RHIBuffer> GetCameraBuffer() const;
-		
+		const Memory::RefPtr<RHIVertexLayout> GetScreenQuad() const;
+
 		// TODO : Update Light
+
+	public :
+		bool InitBuffer(Memory::RefPtr<RHICommandList> cmdList);
+		bool InitTexture(Memory::RefPtr<RHICommandList> cmdList);
+		bool InitScreenQuad(Memory::RefPtr<RHICommandList> cmdList);
+
+		void ReleaseBuffer(Memory::RefPtr<RHICommandList> cmdList);
+		void ReleaseTexture(Memory::RefPtr<RHICommandList> cmdList);
+		void ReleaseScreenQuad(Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
 		BufferResource m_bufferResource;
 		TextureResource m_textureResource;
 		ScreenQuadResource m_screenQuadResource;
-
-		bool m_ready;
 	};
 }
 

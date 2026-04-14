@@ -1,5 +1,7 @@
 #include <Framework/Worker.h>
 
+#include <Log/include/Log.h>
+
 namespace wtr
 {
 	Worker::Worker()
@@ -61,7 +63,10 @@ namespace wtr
 
 	void Worker::Run()
 	{
-		onStart();
+		if (!onStart())
+		{
+			return;
+		}
 
 		while (m_isRunning)
 		{
@@ -71,8 +76,10 @@ namespace wtr
 		onDestroy();
 	}
 
-	void Worker::onStart()
-	{}
+	bool Worker::onStart()
+	{
+		return true;
+	}
 
 	void Worker::onUpdate()
 	{}

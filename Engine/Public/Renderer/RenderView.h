@@ -17,12 +17,10 @@ namespace wtr
 
 		struct Camera
 		{
-			fvec3 position = fvec3(0.f);
-			fvec3 rotation = fvec3(0.f);
+			fmat4 viewMatrix = fmat4(1.f);
+			fmat4 projMatrix = fmat4(1.f);
 
-			float fov = 45.f;
-			float nearPlane = 1.f;
-			float farPlane = 1000.f;
+			fvec3 position = fvec3(0.f);
 		};
 
 		Viewport viewport;

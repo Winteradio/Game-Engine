@@ -5,13 +5,10 @@ layout(location = 1) in vec3 normal;
 
 layout(binding = 0) uniform CameraData
 {
-    mat4 view;
-    mat4 projection;
+    mat4 viewMatrix;
+    mat4 projMatrix;
 
     vec3 cameraPosition;
-    float nearPlane;
-    float farPlane;
-    float fov;
 };
 
 layout(binding = 1) buffer InstanceData
@@ -22,5 +19,5 @@ layout(binding = 1) buffer InstanceData
 void main()
 {
     mat4 transform = transforms[max(gl_InstanceID, 0)];
-    gl_Position = projection * view * transform * vec4(position, 1.0);
+    gl_Position = projMatrix * viewMatrix * transform * vec4(position, 1.0);
 }

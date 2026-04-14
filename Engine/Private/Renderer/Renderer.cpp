@@ -40,12 +40,6 @@ namespace wtr
 			return false;
 		}
 
-		if (!m_refGraph->Init())
-		{
-			LOGERROR() << "[Renderer] Failed to initialize the render graph";
-			return false;
-		}
-
 		m_refCommandList = Memory::MakeRef<RenderCommandList>();
 		if (!m_refCommandList)
 		{

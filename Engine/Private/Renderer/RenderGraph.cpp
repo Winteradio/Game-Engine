@@ -6,6 +6,7 @@
 #include <Renderer/GlobalResource.h>
 #include <Renderer/PipeLine/SimpleColor.h>
 #include <RHI/RHIResources.h>
+#include <RHI/RHICommandList.h>
 
 #include <Log/include/Log.h>
 #include <Memory/include/Core.h>
@@ -22,24 +23,59 @@ namespace wtr
 	RenderGraph::~RenderGraph()
 	{}
 
-	bool RenderGraph::Init()
+	bool RenderGraph::Init(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		Memory::RefPtr<GlobalResource> globalResource = Memory::MakeRef<GlobalResource>();
-		if (!globalResource)
+		if (!InitResource(cmdList))
+		{
+			LOGERROR() << "[Render Graph] Failed to initialize the render graph resource";
+			return false;
+		}
+
+		if (!InitPipeLine())
+		{
+			LOGERROR() << "[Render Graph] Failed to initialize the render graph pipeline";
+			return false;
+		}
+
+		return true;
+	}
+
+	bool RenderGraph::InitResource(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			LOGERROR() << "[Render Graph] Failed to initialize the render graph resource, cause the command list is invalid";
+			return false;
+		}
+
+		m_globalResource = Memory::MakeRef<GlobalResource>();
+		if (!m_globalResource)
 		{
 			LOGERROR() << "[Render Graph] Failed to create the global resource";
 			return false;
 		}
 
-		m_globalResource = globalResource;
-
-		Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>();
-		if (simpleColor)
+		if (!m_globalResource->Init(cmdList))
 		{
-			simpleColor->Init();
+			LOGERROR() << "[Render Graph] Failed to initialize the global resource";
+			return false;
 		}
 
-		Add(simpleColor);
+		return true;
+	}
+
+	bool RenderGraph::InitPipeLine()
+	{
+		if (Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>())
+		{
+			simpleColor->Init();
+			Add(simpleColor);
+		}
+		else
+		{
+			LOGERROR() << "[Render Graph] Failed to create the simple color pipeline";
+			return false;
+		}
 
 		return true;
 	}
@@ -159,11 +195,6 @@ namespace wtr
 			return;
 		}
 
-		if (!m_globalResource->IsReady())
-		{
-			m_globalResource->Setup(cmdList);
-		}
-
 		m_globalResource->UpdateCamera(renderView, cmdList);
 
 		m_drawCommands.Clear();
@@ -185,6 +216,8 @@ namespace wtr
 				return;
 			}
 		}
+
+		cmdList->Resize(renderView.viewport.posX, renderView.viewport.posY, renderView.viewport.width, renderView.viewport.height);
 
 		for (const auto& pipeLine : m_graph.GetSorted())
 		{

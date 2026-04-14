@@ -28,7 +28,7 @@ namespace wtr
 		bool IsTasking() const;
 
 	protected :
-		void onStart() override;
+		bool onStart() override;
 		void onUpdate() override;
 		void onNotify() override;
 

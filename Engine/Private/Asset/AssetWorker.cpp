@@ -50,9 +50,6 @@ namespace wtr
 		m_refTaskExecutor = taskExecutor;
 	}
 
-	void AssetWorker::onStart()
-	{}
-
 	void AssetWorker::onUpdate()
 	{
 		if (!m_refTaskExecutor)

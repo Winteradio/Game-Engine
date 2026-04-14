@@ -23,4 +23,28 @@ namespace wtr
 			Draw(meshDrawCommands, globalResource, cmdList);
 		}
 	}
+
+	std::string PipeLineString::operator()(const Memory::RefPtr<PipeLine>& pipeLine) const
+	{
+		if (!pipeLine)
+		{
+			return {};
+		}
+
+		const Reflection::TypeInfo* typeInfo = pipeLine->GetTypeInfo();
+		return typeInfo->GetTypeName();
+	}
+
+	size_t PipeLineHasher::operator()(const Memory::RefPtr<PipeLine>& pipeLine) const
+	{
+		if (pipeLine)
+		{
+			const Reflection::TypeInfo* typeInfo = pipeLine->GetTypeInfo();
+			return typeInfo->GetTypeHash();
+		}
+		else
+		{
+			return 0;
+		}
+	}
 }

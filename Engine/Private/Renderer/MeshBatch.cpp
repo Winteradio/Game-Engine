@@ -342,4 +342,41 @@ namespace wtr
 
 		return key;
 	}
+
+	bool MeshBatchKey::operator==(const MeshBatchKey& other) const
+	{
+		return meshId == other.meshId && materialId == other.materialId && meshSection == other.meshSection;
+	}
+
+	const std::string MeshBatchKey::ToString() const
+	{
+		std::string data;
+		data += "Mesh ID : " + meshId.ToString() + " / Material ID : " + materialId.ToString() + " / Section : " + std::to_string(meshSection) + " ";
+		return data;
+	}
+
+	size_t MeshBatchHasher::operator()(const MeshBatchKey& key) const
+	{
+		size_t seed = 0;
+		auto combine = [&seed](const auto& value)
+		{
+			std::hash<std::decay_t<decltype(value)>> hasher;
+			seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		};
+	
+		combine(key.meshId);
+		combine(key.materialId);
+		combine(key.meshSection);
+		return seed;
+	}
+
+	size_t MeshBatchHasher::operator()(const Memory::RefPtr<MeshBatch>& refMeshBatch) const
+	{
+		if (!refMeshBatch)
+		{
+			return 0;
+		}
+
+		return operator()(refMeshBatch->GetKey());
+	}
 }

@@ -99,7 +99,7 @@ namespace wtr
 			drawDesc.drawMode = eDrawMode::eTriangles;
 			drawDesc.indexType = eDataType::eUInt;
 			drawDesc.indexCount = drawCommand->indexCount;
-			drawDesc.indexOffset = drawCommand->indexOffset * sizeof(uint32_t);
+			drawDesc.indexOffset = drawCommand->indexOffset * GetDataTypeSize(drawDesc.indexType);
 			drawDesc.baseVertex = drawCommand->minVertexIndex;
 			drawDesc.instanceCount = drawCommand->instanceCount;
 

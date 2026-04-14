@@ -434,7 +434,7 @@ namespace wtr
 
 	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
-		if (!info.vertexStreams.Empty() && !info.indexBuffer || !layout)
+		if (info.vertexStreams.Empty() || !info.indexBuffer || !layout)
 		{
 			return;
 		}
@@ -1114,7 +1114,7 @@ namespace wtr
 		}
 
 		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
-		if (!glBuffer)
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1235,7 +1235,7 @@ namespace wtr
 		}
 
 		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
-		if (!glBuffer)
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1255,7 +1255,7 @@ namespace wtr
 		}
 	
 		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
-		if (!glVertexLayout)
+		if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1275,7 +1275,7 @@ namespace wtr
 		}
 
 		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
-		if (!glTexture)
+		if (!glTexture || glTexture->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1294,7 +1294,7 @@ namespace wtr
 		}
 
 		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
-		if (!glSampler)
+		if (!glSampler || glSampler->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1313,7 +1313,7 @@ namespace wtr
 		}
 
 		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
-		if (!glShader)
+		if (!glShader || glShader->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1350,7 +1350,7 @@ namespace wtr
 		}
 	
 		const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(buffer->GetRawBuffer());
-		if (!glBuffer)
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1368,7 +1368,7 @@ namespace wtr
 		}
 
 		const GLVertexLayout* glVertexLayout = reinterpret_cast<const GLVertexLayout*>(layout->GetRawBuffer());
-		if (!glVertexLayout)
+		if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1384,7 +1384,7 @@ namespace wtr
 		}
 
 		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
-		if (!glTexture)
+		if (!glTexture || glTexture->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1402,7 +1402,7 @@ namespace wtr
 		}
 
 		const GLSampler* glSampler = reinterpret_cast<const GLSampler*>(sampler->GetRawBuffer());
-		if (!glSampler)
+		if (!glSampler || glSampler->GetID() == GL_NONE)
 		{
 			return;
 		}
@@ -1418,7 +1418,7 @@ namespace wtr
 		}
 
 		const GLPipeLine* glPipeLine = reinterpret_cast<const GLPipeLine*>(pipeline->GetRawBuffer());
-		if (!glPipeLine)
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
 		{
 			return;
 		}

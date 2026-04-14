@@ -18,36 +18,6 @@ namespace wtr
 
 namespace wtr
 {
-	struct PipeLineString
-	{
-		std::string operator()(const Memory::RefPtr<PipeLine>& pipeLine) const
-		{
-			if (!pipeLine)
-			{
-				return {};
-			}
-
-			const Reflection::TypeInfo* typeInfo = pipeLine->GetTypeInfo();
-			return typeInfo->GetTypeName();
-		}
-	};
-
-	struct PipeLineHasher
-	{
-		size_t operator()(const Memory::RefPtr<PipeLine>& pipeLine) const
-		{
-			if (pipeLine)
-			{
-				const Reflection::TypeInfo* typeInfo = pipeLine->GetTypeInfo();
-				return typeInfo->GetTypeHash();
-			}
-			else
-			{
-				return 0;
-			}
-		}
-	};
-
 	class RenderGraph
 	{
 	public :
@@ -58,7 +28,7 @@ namespace wtr
 		~RenderGraph();
 
 	public :
-		bool Init();
+		bool Init(Memory::RefPtr<RHICommandList> cmdList);
 		void Flush(Memory::RefPtr<RHICommandList> cmdList);
 
 		void Add(Memory::RefPtr<PipeLine> pipeline);
@@ -72,6 +42,9 @@ namespace wtr
 		PendingPipeLine& GetRemovable();
 
 	private :
+		bool InitResource(Memory::RefPtr<RHICommandList> cmdList);
+		bool InitPipeLine();
+
 		void FlushAddable(Memory::RefPtr<RHICommandList> cmdList);
 		void FlushRemovable(Memory::RefPtr<RHICommandList> cmdList);
 

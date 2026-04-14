@@ -48,6 +48,16 @@ namespace wtr
 
 		bool m_prepared;
 	};
+
+	struct PipeLineString
+	{
+		std::string operator()(const Memory::RefPtr<PipeLine>& pipeLine) const;
+	};
+
+	struct PipeLineHasher
+	{
+		size_t operator()(const Memory::RefPtr<PipeLine>& pipeLine) const;
+	};
 };
 
 #endif // __WTR_PIPELINE_H__

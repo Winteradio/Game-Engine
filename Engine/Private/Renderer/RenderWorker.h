@@ -29,7 +29,7 @@ namespace wtr
 		void SetProducer(const Memory::RefPtr<FrameProducer> producer);
 
 	protected :
-		void onStart() override;
+		bool onStart() override;
 		void onUpdate() override;
 		void onNotify() override;
 

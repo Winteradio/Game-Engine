@@ -2,6 +2,7 @@
 
 #include <Framework/FrameGate.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/RenderGraph.h>
 #include <RHI/RHIExecutor.h>
 #include <RHI/RHICommandList.h>
 
@@ -49,8 +50,31 @@ namespace wtr
 		}
 	}
 
-	void RenderWorker::onStart()
-	{}
+	bool RenderWorker::onStart()
+	{
+		if (!m_refRenderer || !m_refExecutor)
+		{
+			return false;
+		}
+
+		auto cmdList = m_refExecutor->Acquire();
+		if (!cmdList)
+		{
+			return false;
+		}
+
+		bool initialized = false;
+
+		auto renderGraph = m_refRenderer->GetGraph();
+		if (renderGraph)
+		{	
+			initialized = renderGraph->Init(cmdList);
+		}
+
+		m_refExecutor->Submit(cmdList);
+
+		return initialized;
+	}
 
 	void RenderWorker::onUpdate()
 	{

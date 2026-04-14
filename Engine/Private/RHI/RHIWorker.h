@@ -28,7 +28,7 @@ namespace wtr
 		void SetConsumer(const Memory::RefPtr<FrameConsumer> consumer);
 
 	public :
-		void onStart() override;
+		bool onStart() override;
 		void onUpdate() override;
 		void onNotify() override;
 

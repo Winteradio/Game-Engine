@@ -50,9 +50,11 @@ namespace wtr
 		return m_task != nullptr;
 	}
 
-	void TaskWorker::onStart()
+	bool TaskWorker::onStart()
 	{
 		LOGINFO() << "[Worker] The task worker started" << " Thread ID: " << std::hash<std::thread::id>()(m_thread.get_id());
+
+		return true;
 	}
 
 	void TaskWorker::onUpdate()

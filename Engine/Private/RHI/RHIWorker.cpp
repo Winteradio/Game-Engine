@@ -50,11 +50,17 @@ namespace wtr
 		}
 	}
 
-	void RHIWorker::onStart()
+	bool RHIWorker::onStart()
 	{
 		if (m_refSystem)
 		{
 			m_refSystem->MakeCurrent();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 

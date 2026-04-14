@@ -30,7 +30,7 @@ namespace wtr
 		void Stop();
 
 	protected :
-		virtual void onStart();
+		virtual bool onStart();
 		virtual void onUpdate();
 		virtual void onDestroy();
 		virtual void onNotify();

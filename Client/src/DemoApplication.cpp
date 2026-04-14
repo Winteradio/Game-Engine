@@ -136,6 +136,13 @@ namespace demo
 		cameraEntity->AddComponent<wtr::CameraComponent>();
 		cameraEntity->AddNode<wtr::CameraNode>();
 
+		auto sceneComponent = cameraEntity->GetComponent<wtr::SceneComponent>();
+		if (sceneComponent)
+		{
+			sceneComponent->UpdatePosition({ 0.0f, 0.0f, 5.0f });
+			sceneComponent->UpdateRotation({ 0.0f, 0.0f, 0.0f });
+		}
+
 		LOGINFO() << "[Game] Camera Entity ID : " << cameraEntity->GetID().ToString();
 
 		auto cameraPlayer = players->Create(cameraEntity);
