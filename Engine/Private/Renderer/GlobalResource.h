@@ -30,10 +30,6 @@ namespace wtr
 	struct BufferResource
 	{
 		Memory::RefPtr<RHIBuffer> cameraBuffer;
-
-		Memory::RefPtr<RHIBuffer> directionalLightBuffer;
-		Memory::RefPtr<RHIBuffer> pointLightBuffer;
-		Memory::RefPtr<RHIBuffer> spotLightBuffer;
 	};
 
 	struct TextureResource

@@ -59,7 +59,6 @@ namespace wtr
 		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
 
 		const MeshBatchKey GetKey() const;
-		const std::string ToString() const;
 
 	private :
 		wtr::HashMap<ECS::UUID, TransformInfo> m_transformInfos;
@@ -101,6 +100,15 @@ namespace wtr
 		bool operator==(const MeshBatchKey& other) const
 		{
 			return meshId == other.meshId && materialId == other.materialId && meshSection == other.meshSection;
+		}
+
+		const std::string ToString() const
+		{
+			std::string data;
+
+			data += "Mesh ID : " + meshId.ToString() + " / Material ID : " + materialId.ToString() + " / Section : " + std::to_string(meshSection) + " ";
+
+			return data;
 		}
 	};
 

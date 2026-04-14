@@ -28,6 +28,8 @@ namespace wtr
 			constexpr uint32_t numComponents = 16;
 
 			const uint32_t count = static_cast<uint32_t>(m_transformInfos.Size());
+
+			// TODO : Consider the type inference using the template parameter of the container of the transform data
 			const eDataType componentType = eDataType::eFloat;
 			const eBufferType bufferType = eBufferType::eStorage;
 			const eDataAccess accessType = eDataAccess::eDynamic;
@@ -169,7 +171,7 @@ namespace wtr
 			return;
 		}
 
-		if (!m_transformBuffer)
+		if (!m_transformBuffer || !m_refDrawCommand)
 		{
 			return;
 		}
@@ -179,9 +181,10 @@ namespace wtr
 		updateDesc.accessType = m_transformBuffer->GetAccessType();
 		updateDesc.componentType = m_transformBuffer->GetComponentType();
 		updateDesc.numComponents = m_transformBuffer->GetNumComponents();
+		updateDesc.stride = m_transformBuffer->GetStride();
+
 		updateDesc.count = static_cast<uint32_t>(m_transformInfos.Size());
-		updateDesc.size = updateDesc.count * updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
-		updateDesc.stride = updateDesc.numComponents * GetDataTypeSize(updateDesc.componentType);
+		updateDesc.size = static_cast<uint32_t>(m_transformInfos.Size()) * m_transformBuffer->GetStride();
 
 		fmat4* transformData = reinterpret_cast<fmat4*>(cmdList->Alloc<fmat4>(updateDesc.size));
 		if (!transformData)
@@ -208,13 +211,15 @@ namespace wtr
 
 		// TODO : Partial Update
 		updateDesc.data = static_cast<const void*>(transformData + minDirtyIndex);
-		updateDesc.dataOffset = minDirtyIndex * updateDesc.stride;
-		updateDesc.dataSize = (maxDirtyIndex - minDirtyIndex + 1) * updateDesc.stride;
+		updateDesc.dataOffset = minDirtyIndex * m_transformBuffer->GetStride();
+		updateDesc.dataSize = (maxDirtyIndex - minDirtyIndex + 1) * m_transformBuffer->GetStride();
 
 		const bool needResize = m_transformBuffer->GetCount() < m_transformInfos.Size();
 		if (needResize)
 		{
 			cmdList->ResizeBuffer(updateDesc, m_transformBuffer);
+
+			m_refDrawCommand->instanceCount = m_transformInfos.Size();
 		}
 		else
 		{
@@ -336,22 +341,5 @@ namespace wtr
 		key.meshSection = m_sectionIndex;
 
 		return key;
-	}
-
-	const std::string MeshBatch::ToString() const
-	{
-		std::string data;
-
-		if (m_refMesh)
-		{
-			data += "Mesh : " + m_refMesh->name + " / Section : " + std::to_string(m_sectionIndex) + " ";
-		}
-
-		if (m_refMaterial)
-		{
-			data += "Material : " + m_refMaterial->name + " ";
-		}
-
-		return data;
 	}
 }

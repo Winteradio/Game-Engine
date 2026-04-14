@@ -36,14 +36,15 @@ namespace wtr
 	{
 		AssetCore& core = GetCore();
 
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(path);
+		const std::filesystem::path inputPath(path);
+		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
+
+		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
 		if (asset)
 		{
 			return asset;
 		}
 
-		const std::filesystem::path inputPath(path);
-		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 		asset = AssetFactory::Create(assetPath);
 		if (asset)
 		{
@@ -59,7 +60,10 @@ namespace wtr
 	{
 		AssetCore& core = GetCore();
 
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(path);
+		const std::filesystem::path inputPath(path);
+		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
+
+		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
 		if (asset)
 		{
 			asset->SetState(eAssetState::eExpried);
@@ -67,7 +71,7 @@ namespace wtr
 			AddTask(asset);
 		}
 		
-		core.manager.RemoveAsset(path);
+		core.manager.RemoveAsset(assetPath);
 	}
 
 	void AssetSystem::Shutdown()
@@ -120,6 +124,9 @@ namespace wtr
 	{
 		AssetCore& core = GetCore();
 
-		return core.loader.GetParser(path);
+		const std::filesystem::path inputPath(path);
+		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
+
+		return core.loader.GetParser(assetPath);
 	}
 }

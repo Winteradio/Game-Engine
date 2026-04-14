@@ -194,9 +194,13 @@ namespace wtr
 		for (size_t index = 0; index < endIndex; index++)
 		{
 			const MeshBatchKey batchKey = GetMeshBatchKey(primitive, index);
-			if (GetMeshBatch(batchKey))
+			Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
+			if (meshBatch)
 			{
-				LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh batch with the same key already exists, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+				LOGINFO() << "[RenderScene] Add the mesh batch's transform info, the mesh batch ID : " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
+
+				meshBatch->AddTransform(primitive->GetID(), primitive->GetTransform());
+				meshBatch->Sync(cmdList);
 
 				continue;
 			}
@@ -211,7 +215,7 @@ namespace wtr
 				}
 			}
 
-			Memory::RefPtr<MeshBatch> meshBatch = Memory::MakeRef<MeshBatch>();
+			meshBatch = Memory::MakeRef<MeshBatch>();
 			if (!meshBatch)
 			{
 				LOGINFO() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;

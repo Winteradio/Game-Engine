@@ -72,24 +72,6 @@ namespace wtr
 			m_bufferResource.cameraBuffer = nullptr;
 		}
 
-		if (m_bufferResource.directionalLightBuffer)
-		{
-			cmdList->RemoveBuffer(m_bufferResource.directionalLightBuffer);
-			m_bufferResource.directionalLightBuffer = nullptr;
-		}
-
-		if (m_bufferResource.pointLightBuffer)
-		{
-			cmdList->RemoveBuffer(m_bufferResource.pointLightBuffer);
-			m_bufferResource.pointLightBuffer = nullptr;
-		}
-
-		if (m_bufferResource.spotLightBuffer)
-		{
-			cmdList->RemoveBuffer(m_bufferResource.spotLightBuffer);
-			m_bufferResource.spotLightBuffer = nullptr;
-		}
-
 		if (m_textureResource.position)
 		{
 			cmdList->RemoveTexture(m_textureResource.position);
