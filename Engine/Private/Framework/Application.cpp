@@ -96,6 +96,8 @@ namespace wtr
 			return false;
 		}
 
+		cameraSystem->SetInputStorage(GetInputStorage());
+
 		auto cameraEntity = world->CreateEntity();
 		if (!cameraEntity)
 		{
@@ -143,8 +145,8 @@ namespace wtr
 
 		desc.PosX = 0.0f;
 		desc.PosY = 0.0f;
-		desc.Width = 1280.0f;
-		desc.Height = 720.0f;
+		desc.Width = 1080.0f;
+		desc.Height = 800.0f;
 		return desc;
 	}
 
@@ -211,5 +213,15 @@ namespace wtr
 		}
 
 		return m_engine->GetRenderer();
+	}
+
+	Memory::RefPtr<InputStorage> Application::GetInputStorage() const
+	{
+		if (!m_engine)
+		{
+			return {};
+		}
+
+		return m_engine->GetInputStorage();
 	}
 }

@@ -40,6 +40,7 @@ namespace wtr
 			Memory::RefPtr<ViewController> GetViewController() const;
 			Memory::RefPtr<PlayerController> GetPlayerController() const;
 			Memory::RefPtr<Renderer> GetRenderer() const;
+			Memory::RefPtr<InputStorage> GetInputStorage() const;
 
 		protected :
 			Memory::RefPtr<Engine> m_engine;

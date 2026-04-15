@@ -438,6 +438,11 @@ namespace wtr
 		LOGINFO() << "[Engine] Engine run completed";
 	}
 
+	Memory::RefPtr<InputStorage> Engine::GetInputStorage()
+	{
+		return m_inputStorage;
+	}
+
 	Memory::RefPtr<WorldContext> Engine::GetWorldContext()
 	{
 		return m_worldContext;

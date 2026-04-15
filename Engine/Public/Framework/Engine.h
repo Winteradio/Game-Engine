@@ -36,6 +36,7 @@ namespace wtr
 			void Shutdown();
 			void Run();
 
+			Memory::RefPtr<InputStorage> GetInputStorage();
 			Memory::RefPtr<WorldContext> GetWorldContext();
 			Memory::RefPtr<Renderer> GetRenderer();
 

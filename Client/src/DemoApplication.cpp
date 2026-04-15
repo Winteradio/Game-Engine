@@ -46,7 +46,7 @@ namespace demo
 			return false;
 		}
 
-		for (size_t index = 0; index < 3; index++)
+		for (size_t index = 0; index < 25; index++)
 		{
 			auto dragonEntity = world->CreateEntity();
 			if (!dragonEntity)
@@ -65,7 +65,7 @@ namespace demo
 			auto sceneComponent = dragonEntity->GetComponent<wtr::SceneComponent>();
 			if (sceneComponent)
 			{
-				sceneComponent->UpdatePosition({ static_cast<float>(index) * 0.2f, 0.0f, 0.0f });
+				sceneComponent->UpdatePosition({ static_cast<float>(index % 5) * 0.4f, static_cast<float>(index / 5) * 0.4f, 0.0f });
 				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
 			}
 
