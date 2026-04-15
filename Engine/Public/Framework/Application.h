@@ -4,11 +4,18 @@
 #include <Framework/Engine.h>
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Memory/include/Pointer/ObjectPtr.h>
 
 namespace wtr
 {
-	class Engine;
+	class World;
+	class ViewController;
+	class PlayerController;
+	class Renderer;
+};
 
+namespace wtr
+{
 	class Application
 	{
 		public :
@@ -16,9 +23,23 @@ namespace wtr
 			virtual ~Application() = default;
 
 		public :
-			virtual void onInit() = 0;
-			virtual void onRun() = 0;
-			virtual void onShutdown() = 0;
+			virtual void onInit();
+			virtual void onRun();
+			virtual void onShutdown();
+
+			virtual void onSetup() = 0;
+			
+		protected:
+			bool InitEngine(const wtr::WindowDesc& windowDesc, const wtr::RenderDesc& renderDesc);
+			bool InitDefault();
+
+			virtual const WindowDesc GetWindowDesc() const;
+			virtual const RenderDesc GetRenderDesc() const;
+
+			Memory::ObjectPtr<World> GetWorld() const;
+			Memory::RefPtr<ViewController> GetViewController() const;
+			Memory::RefPtr<PlayerController> GetPlayerController() const;
+			Memory::RefPtr<Renderer> GetRenderer() const;
 
 		protected :
 			Memory::RefPtr<Engine> m_engine;

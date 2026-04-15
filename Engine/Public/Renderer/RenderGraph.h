@@ -18,10 +18,10 @@ namespace wtr
 
 namespace wtr
 {
-	class RenderGraph
+	class RenderGraph : public ECS::Graph<PipeLine>
 	{
 	public :
-		using GraphType = ECS::Graph<Memory::RefPtr<PipeLine>, PipeLineString, PipeLineHasher>;
+		using Super = ECS::Graph<PipeLine>;
 		using PendingPipeLine = wtr::HashSet<Memory::RefPtr<PipeLine>, PipeLineHasher>;
 
 		RenderGraph();
@@ -31,12 +31,7 @@ namespace wtr
 		bool Init(Memory::RefPtr<RHICommandList> cmdList);
 		void Flush(Memory::RefPtr<RHICommandList> cmdList);
 
-		void Add(Memory::RefPtr<PipeLine> pipeline);
-		void Remove(Memory::RefPtr<PipeLine> pipeline);
-
 		void Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene> renderScene, const RenderView& renderView);
-
-		Memory::RefPtr<PipeLine> GetPipeLine(const ECS::UUID& id) const;
 
 		PendingPipeLine& GetAddable();
 		PendingPipeLine& GetRemovable();
@@ -45,12 +40,13 @@ namespace wtr
 		bool InitResource(Memory::RefPtr<RHICommandList> cmdList);
 		bool InitPipeLine();
 
+		void Add(Memory::RefPtr<PipeLine> pipeline);
+		void Remove(Memory::RefPtr<PipeLine> pipeline);
+
 		void FlushAddable(Memory::RefPtr<RHICommandList> cmdList);
 		void FlushRemovable(Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
-		GraphType m_graph;
-
 		PendingPipeLine m_addable;
 		PendingPipeLine m_removable;
 

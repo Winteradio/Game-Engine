@@ -12,14 +12,11 @@ namespace demo
 			virtual ~Game();
 
 		public :
-			void onInit() override;
-			void onRun() override;
-			void onShutdown() override;
+			void onSetup() override;
 
 		private :
-			bool InitEngine();
-			bool InitWorld();
-			bool InitScene();
+			bool InitEntity();
+			bool InitSystem();
 	};
 };
 

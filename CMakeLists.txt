@@ -93,6 +93,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 
 set(ENGINE_FRAMEWORK_PRIVATE_FILES	
 	${ENGINE_PRIVATE_DIR}/Framework/Engine.cpp
+	${ENGINE_PRIVATE_DIR}/Framework/Application.cpp
 
 	${ENGINE_PRIVATE_DIR}/Framework/InputStorage.cpp
 	${ENGINE_PRIVATE_DIR}/Framework/InputTypes.cpp
@@ -208,9 +209,12 @@ set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/Entity.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
 	${ENGINE_PUBLIC_DIR}/World/Scene.h
-	${ENGINE_PUBLIC_DIR}/World/System.h
 
-	${ENGINE_PUBLIC_DIR}/World/GraphBuilder.h
+	${ENGINE_PUBLIC_DIR}/World/System/System.h
+	${ENGINE_PUBLIC_DIR}/World/System/CameraSystem.h
+	${ENGINE_PUBLIC_DIR}/World/System/CameraSystem.cpp
+	${ENGINE_PUBLIC_DIR}/World/System/MoveSystem.h
+	${ENGINE_PUBLIC_DIR}/World/System/MoveSystem.cpp
 )
 
 set(ENGINE_WORLD_PRIVATE_FILES
@@ -223,9 +227,6 @@ set(ENGINE_WORLD_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/World/Commander.cpp
 	${ENGINE_PRIVATE_DIR}/World/Entity.cpp
 	${ENGINE_PRIVATE_DIR}/World/Scene.cpp
-	${ENGINE_PRIVATE_DIR}/World/System.cpp
-
-	${ENGINE_PRIVATE_DIR}/World/GraphBuilder.cpp
 )
 
 set(ENGINE_ASSET_PUBLIC_FILES

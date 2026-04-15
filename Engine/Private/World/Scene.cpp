@@ -123,8 +123,8 @@ namespace wtr
 		if (itr == m_sceneDatas.End())
 		{
 			ScenePair scenePair;
-
 			scenePair.transform = transform;
+			scenePair.transform->OnAttached(this);
 			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
 
 			m_sceneDatas[node->GetID()] = scenePair;
@@ -153,6 +153,7 @@ namespace wtr
 		}
 		
 		ScenePair& scenePair = itr->second;
+		scenePair.transform->OnDetached();
 		scenePair.nodeTypes.Erase(nodeType->GetTypeHash());
 		
 		if (scenePair.nodeTypes.Empty())

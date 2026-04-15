@@ -68,7 +68,7 @@ namespace wtr
 			if (mesh->GetState() >= eAssetState::eLoaded)
 			{
 				AddBatch(primitive, cmdList);
-
+				m_primitives[primitive->GetID()] = primitive;
 				itr = m_pendingPrimitives.Erase(itr);
 				continue;
 			}

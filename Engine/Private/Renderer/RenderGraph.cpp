@@ -14,7 +14,7 @@
 namespace wtr
 {
 	RenderGraph::RenderGraph()
-		: m_graph()
+		: Graph()
 		, m_addable()
 		, m_removable()
 		, m_drawCommands()
@@ -66,7 +66,7 @@ namespace wtr
 
 	bool RenderGraph::InitPipeLine()
 	{
-		if (Memory::RefPtr<SimpleColor> simpleColor = Memory::MakeRef<SimpleColor>())
+		if (Memory::RefPtr<SimpleColor> simpleColor = Create<SimpleColor>())
 		{
 			simpleColor->Init();
 			Add(simpleColor);
@@ -108,7 +108,6 @@ namespace wtr
 			if (state == eResourceState::eReady)
 			{
 				itr = m_addable.Erase(itr);
-				m_graph.Add(pipeLine);
 
 				pipeLine->Upload(cmdList);
 
@@ -181,8 +180,8 @@ namespace wtr
 			return;
 		}
 
+		Super::Remove(pipeLine->GetID());
 		m_removable.Insert(pipeLine);
-		m_graph.Remove(pipeLine);
 
 		LOGINFO() << "[Render Graph] Remove the pipeline, ID : " << PipeLineString()(pipeLine);
 	}
@@ -208,18 +207,9 @@ namespace wtr
 			}
 		}
 
-		if (m_graph.IsUpdated())
-		{
-			if (!m_graph.Build())
-			{
-				LOGERROR() << "[Render Graph] Failed to build the render graph";
-				return;
-			}
-		}
-
 		cmdList->Resize(renderView.viewport.posX, renderView.viewport.posY, renderView.viewport.width, renderView.viewport.height);
 
-		for (const auto& pipeLine : m_graph.GetSorted())
+		for (const auto& pipeLine : GetSorted())
 		{
 			if (!pipeLine || pipeLine->GetResourceState() != eResourceState::eReady)
 			{
@@ -228,19 +218,6 @@ namespace wtr
 
 			pipeLine->Execute(m_drawCommands, m_globalResource, cmdList);
 		}
-	}
-
-	Memory::RefPtr<PipeLine> RenderGraph::GetPipeLine(const ECS::UUID& id) const
-	{
-		for (const auto& pipeLine : m_graph.GetSorted())
-		{
-			if (pipeLine && pipeLine->GetID() == id)
-			{
-				return pipeLine;
-			}
-		}
-
-		return nullptr;
 	}
 
 	RenderGraph::PendingPipeLine& RenderGraph::GetAddable()

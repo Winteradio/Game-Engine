@@ -2,10 +2,11 @@
 #define __WTR_WORLD_H__
 
 #include <ECS/include/Container/Registry.h>
-#include <ECS/include/Container/SystemRegistry.h>
+#include <ECS/include/Graph/Graph.h>
 #include <World/Scene.h>
 #include <World/Node.h>
 #include <World/Component.h>
+#include <World/System/System.h>
 
 namespace wtr
 {
@@ -37,14 +38,14 @@ namespace wtr
 		void RegisterEntity(Memory::ObjectPtr<Entity> entity);
 
 		void RemoveEntity(const ECS::UUID& uuid);
-		void RemoveSystem(const ECS::UUID& uuid);
 		void RemoveComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
 		void RemoveNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
+		void RemoveSystem(const ECS::UUID& uuid);
 
 		Memory::ObjectPtr<Entity> GetEntity(const ECS::UUID& uuid);
-		Memory::ObjectPtr<ECS::System> GetSystem(const ECS::UUID& uuid);
 		Memory::ObjectPtr<BaseComponent> GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
 		Memory::ObjectPtr<BaseNode> GetNode(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo);
+		Memory::RefPtr<BaseSystem> GetSystem(const ECS::UUID& uuid);
 
 	public :
 		template<typename T, typename... Args>
@@ -60,9 +61,9 @@ namespace wtr
 		}
 
 		template<typename T, typename... Args>
-		Memory::ObjectPtr<T> CreateSystem()
+		Memory::RefPtr<T> CreateSystem(Args&&... args)
 		{
-			return m_systemRegistry.Create<T>();
+			return m_systemRegistry.Create<T>(std::forward<Args>(args)...);
 		}
 
 	private :
@@ -76,7 +77,7 @@ namespace wtr
 		ECS::Registry<BaseComponent> m_componentContainer;
 
 		PROPERTY(m_systemRegistry);
-		ECS::SystemRegistry m_systemRegistry;
+		ECS::Graph<BaseSystem> m_systemRegistry;
 	};
 };
 

@@ -52,9 +52,20 @@ namespace wtr
 
 	void World::Update(const ECS::TimeStep& timeStep)
 	{
-		const ECS::SystemRegistry::GraphType graph = m_systemRegistry.BuildGraph();
+		const auto& sortedSystems = m_systemRegistry.GetSorted();
 
-		// TODO
+		for (auto& system : sortedSystems)
+		{
+			if (!system)
+			{
+				continue;
+			}
+
+			const auto nodeType = system->GetNodeType();
+			auto nodeContainer = m_nodeContainer.GetContainer(nodeType);
+
+			system->Update(timeStep, nodeContainer);
+		}
 	}
 
 	Memory::ObjectPtr<Entity> World::CreateEntity()
@@ -78,11 +89,6 @@ namespace wtr
 		m_entityStorage.Erase(uuid);
 	}
 
-	void World::RemoveSystem(const ECS::UUID& uuid)
-	{
-		m_systemRegistry.Remove(uuid);
-	}
-
 	void World::RemoveComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
 	{
 		m_componentContainer.Remove(uuid, typeinfo);
@@ -93,14 +99,14 @@ namespace wtr
 		m_nodeContainer.Remove(uuid, typeinfo);
 	}
 
+	void World::RemoveSystem(const ECS::UUID& uuid)
+	{
+		m_systemRegistry.Remove(uuid);
+	}
+
 	Memory::ObjectPtr<Entity> World::GetEntity(const ECS::UUID& uuid)
 	{
 		return m_entityStorage.Get(uuid);
-	}
-
-	Memory::ObjectPtr<ECS::System> World::GetSystem(const ECS::UUID& uuid)
-	{
-		return m_systemRegistry.Get(uuid);
 	}
 
 	Memory::ObjectPtr<BaseComponent> World::GetComponent(const ECS::UUID& uuid, const Reflection::TypeInfo* typeinfo)
@@ -127,5 +133,10 @@ namespace wtr
 		{
 			return Memory::ObjectPtr<BaseNode>();
 		}
+	}
+
+	Memory::RefPtr<BaseSystem> World::GetSystem(const ECS::UUID& uuid)
+	{
+		return m_systemRegistry.Get(uuid);
 	}
 }

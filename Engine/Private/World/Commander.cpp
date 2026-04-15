@@ -104,8 +104,6 @@ namespace wtr
 		const ECS::UUID& id = meshNode->GetID();
 		m_refCmdList->Enqueue([id](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				LOGINFO() << "[Render] Remove Primitive";
-
 				if (nullptr == renderer)
 				{
 					return;
@@ -176,8 +174,6 @@ namespace wtr
 		const ECS::UUID& id = lightNode->GetID();
 		m_refCmdList->Enqueue([id](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				LOGINFO() << "[Render] Remove Primitive";
-
 				if (nullptr == renderer)
 				{
 					return;
@@ -210,8 +206,6 @@ namespace wtr
 
 		m_refCmdList->Enqueue([updateInfo](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				LOGINFO() << "[Render] Update the scene transform";
-
 				if (nullptr == renderer)
 				{
 					return;
