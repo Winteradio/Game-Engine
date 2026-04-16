@@ -1,5 +1,3 @@
-![Diagram](http://plantuml.com)
-
 # Custom Game Engine
 
 ## Project Overview
@@ -69,65 +67,56 @@ Game-Engine/
 
 Dependency relationships between external submodules and internal engine modules. `Memory`, `Container`, and `Log` are shared across all layers. `ECS` serves as the foundation framework for the World layer.
 
-```plantuml
-@startuml External_Component_Diagram
+```mermaid
+flowchart TD
+    subgraph External["External Modules (Git Submodules)"]
+        ECS[ECS]
+        Memory[Memory]
+        Reflection[Reflection]
+        Container[Container]
+        Log[Log]
+        glm[glm]
+        glad[glad]
+        imgui[imgui]
+        yaml-cpp[yaml-cpp]
+        stb[stb]
+    end
 
-skinparam componentStyle rectangle
-skinparam BackgroundColor #FAFAFA
-skinparam ComponentBorderColor #555
-skinparam ArrowColor #444
-skinparam packageStyle frame
+    subgraph Engine["Game Engine"]
+        Framework[Framework]
+        World[World]
+        Renderer[Renderer]
+        RHI[RHI]
+        Asset[Asset]
+    end
 
-package "External Modules (Git Submodules)" {
-    [ECS]
-    [Memory]
-    [Reflection]
-    [Container]
-    [Log]
-    [glm]
-    [glad]
-    [imgui]
-    [yaml-cpp]
-    [stb]
-}
+    ECS -->|Entity / Component<br>Node / System / Graph| World
+    Reflection -->|GENERATE / PROPERTY / METHOD<br>Runtime type registration| World
+    glm -->|fvec3 / fmat4 math operations| World
+    glm -->|Matrix / vector operations| Renderer
+    glm -->|RHIDescriptions math types| RHI
+    glad -->|OpenGL 4.5 Core Profile<br>API loading WGL| RHI
+    imgui -->|Debug GUI rendering| Framework
+    yaml-cpp -->|.yaml config file parsing| Asset
+    stb -->|stb_image<br>Image byte decoding| Asset
 
-package "Game Engine" {
-    [Framework]
-    [World]
-    [Renderer]
-    [RHI]
-    [Asset]
-}
+    Memory -.->|RefPtr / ObjectPtr / RootPtr<br>Pool & Array allocators| Framework
+    Memory -.-> World
+    Memory -.-> Renderer
+    Memory -.-> RHI
+    Memory -.-> Asset
 
-ECS         --> World       : Entity / Component\nNode / System / Graph
-Reflection  --> World       : GENERATE / PROPERTY / METHOD\nRuntime type registration
-glm         --> World       : fvec3 / fmat4 math operations
-glm         --> Renderer    : Matrix / vector operations
-glm         --> RHI         : RHIDescriptions math types
-glad        --> RHI         : OpenGL 4.5 Core Profile\nAPI loading (WGL)
-imgui       --> Framework   : Debug GUI rendering
-yaml-cpp    --> Asset       : .yaml config file parsing
-stb         --> Asset       : stb_image\nImage byte decoding
+    Container -.->|DynamicArray / HashMap<br>HashSet / StaticArray| Framework
+    Container -.-> World
+    Container -.-> Renderer
+    Container -.-> RHI
+    Container -.-> Asset
 
-Memory      ..> Framework   : RefPtr / ObjectPtr / RootPtr\nPool & Array allocators
-Memory      ..> World
-Memory      ..> Renderer
-Memory      ..> RHI
-Memory      ..> Asset
-
-Container   ..> Framework   : DynamicArray / HashMap\nHashSet / StaticArray
-Container   ..> World
-Container   ..> Renderer
-Container   ..> RHI
-Container   ..> Asset
-
-Log         ..> Framework   : LOGINFO / LOGERROR macros
-Log         ..> World
-Log         ..> Renderer
-Log         ..> RHI
-Log         ..> Asset
-
-@enduml
+    Log -.->|LOGINFO / LOGERROR macros| Framework
+    Log -.-> World
+    Log -.-> Renderer
+    Log -.-> RHI
+    Log -.-> Asset
 ```
 
 ---
@@ -136,46 +125,25 @@ Log         ..> Asset
 
 Dependency directions and responsibilities of the five internal engine modules. Dependencies always flow **toward lower layers only**.
 
-```plantuml
-@startuml Internal_Component_Diagram
+```mermaid
+flowchart TD
+    FW["Framework<br>─────────────────<br>Engine · Window<br>Worker · FrameGate<br>Input · Task · Application"]
+    WO["World<br>─────────────────<br>ECS wrapper layer<br>Entity · Component · Node<br>System · Commander<br>Scene · WorldContext"]
+    RD["Renderer<br>─────────────────<br>PrimitiveProxy · LightProxy<br>RenderScene · MeshBatch<br>RenderGraph · PipeLine<br>GlobalResource"]
+    RI["RHI<br>─────────────────<br>RHISystem (GLSystem)<br>RHIResources · RHICommandList<br>RHIFrameExecutor · RHITaskExecutor<br>RHI Command Objects (45+)"]
+    AS["Asset<br>─────────────────<br>AssetSystem · AssetFactory<br>OBJ / MTL / PNG / GLSL Parsers<br>Async 3-stage pipeline"]
 
-skinparam componentStyle rectangle
-skinparam BackgroundColor #FAFAFA
-skinparam ComponentBorderColor #555
-skinparam ArrowColor #444
+    WO -->|InputStorage read input<br>FrameGate frame sync participation| FW
+    RD -->|RenderCommandList consume<br>RenderScene <- Commander Enqueue| WO
+    RD -->|RHICommandList generate GPU commands<br>RHIFrameExecutor.Acquire / Submit| RI
+    AS -->|RHITaskExecutor<br>submit GPU upload commands| RI
+    FW -->|RHIExecutor lifecycle management<br>Init / Shutdown| RI
+    FW -->|WorldContext lifecycle management| WO
+    FW -->|Renderer lifecycle management| RD
+    FW -->|AssetWorker & TaskWorker management| AS
 
-component "Framework\n─────────────────\nEngine · Window\nWorker · FrameGate\nInput · Task · Application" as FW
-
-component "World\n─────────────────\nECS wrapper layer\nEntity · Component · Node\nSystem · Commander\nScene · WorldContext" as WO
-
-component "Renderer\n─────────────────\nPrimitiveProxy · LightProxy\nRenderScene · MeshBatch\nRenderGraph · PipeLine\nGlobalResource" as RD
-
-component "RHI\n─────────────────\nRHISystem (GLSystem)\nRHIResources · RHICommandList\nRHIFrameExecutor · RHITaskExecutor\nRHI Command Objects (45+)" as RI
-
-component "Asset\n─────────────────\nAssetSystem · AssetFactory\nOBJ / MTL / PNG / GLSL Parsers\nAsync 3-stage pipeline" as AS
-
-WO  -->  FW : InputStorage (read input)\nFrameGate (frame sync participation)
-RD  -->  WO : RenderCommandList (consume)\nRenderScene <- Commander Enqueue
-RD  -->  RI : RHICommandList (generate GPU commands)\nRHIFrameExecutor.Acquire / Submit
-AS  -->  RI : RHITaskExecutor\n(submit GPU upload commands)
-FW  -->  RI : RHIExecutor lifecycle management\n(Init / Shutdown)
-FW  -->  WO : WorldContext lifecycle management
-FW  -->  RD : Renderer lifecycle management
-FW  -->  AS : AssetWorker & TaskWorker management
-
-note bottom of FW
-  Owns and controls all Worker threads.
-  FrameGate synchronizes the
-  World -> Renderer -> RHI frame flow.
-end note
-
-note bottom of RI
-  Actual GPU API calls happen only in RHIWorker.
-  RHISystem is a platform abstraction interface
-  (swappable: OpenGL / DirectX / Vulkan).
-end note
-
-@enduml
+    FW_Note["Note: Owns and controls all Worker threads.<br>FrameGate synchronizes the<br>World -> Renderer -> RHI frame flow."] -.- FW
+    RI_Note["Note: Actual GPU API calls happen only in RHIWorker.<br>RHISystem is a platform abstraction interface<br>(swappable: OpenGL / DirectX / Vulkan)."] -.- RI
 ```
 
 ---
@@ -184,143 +152,136 @@ end note
 
 The `Engine` class owns and initializes all workers (threads) and subsystems. `FrameGate` synchronizes the frame flow in World → Renderer → RHI order.
 
-```plantuml
-@startuml Engine_ClassDiagram
-
-skinparam classAttributeIconSize 0
-skinparam BackgroundColor #FAFAFA
-skinparam ClassBorderColor #555
-skinparam ArrowColor #333
-
-package "Framework" {
-
+```mermaid
+classDiagram
     class Engine {
-        - m_window : RefPtr<Window>
-        - m_inputHandler : RefPtr<InputHandler>
-        - m_inputStorage : RefPtr<InputStorage>
-        - m_updateGate : RefPtr<FrameGate>
-        - m_renderGate : RefPtr<FrameGate>
-        - m_worldContext : RefPtr<WorldContext>
-        - m_renderer : RefPtr<Renderer>
-        - m_rhiSystem : RefPtr<RHISystem>
-        - m_rhiFrameExecutor : RefPtr<RHIExecutor>
-        - m_rhiTaskExecutor : RefPtr<RHIExecutor>
-        - m_worldWorker : RefPtr<Worker>
-        - m_renderWorker : RefPtr<Worker>
-        - m_rhiWorker : RefPtr<Worker>
-        - m_assetWorker : RefPtr<Worker>
-        + Init(windowDesc, renderDesc) : bool
-        + Shutdown() : void
-        + Run() : void
-        + GetInputStorage() : RefPtr<InputStorage>
-        + GetWorldContext() : RefPtr<WorldContext>
-        + GetRenderer() : RefPtr<Renderer>
-        - InitWindow() : bool
-        - InitRender() : bool
-        - InitRHI() : bool
-        - InitWorld() : bool
-        - InitAsset() : bool
-        - InitWorker() : bool
-        - UpdateInput() : void
+        - RefPtr~Window~ m_window
+        - RefPtr~InputHandler~ m_inputHandler
+        - RefPtr~InputStorage~ m_inputStorage
+        - RefPtr~FrameGate~ m_updateGate
+        - RefPtr~FrameGate~ m_renderGate
+        - RefPtr~WorldContext~ m_worldContext
+        - RefPtr~Renderer~ m_renderer
+        - RefPtr~RHISystem~ m_rhiSystem
+        - RefPtr~RHIExecutor~ m_rhiFrameExecutor
+        - RefPtr~RHIExecutor~ m_rhiTaskExecutor
+        - RefPtr~Worker~ m_worldWorker
+        - RefPtr~Worker~ m_renderWorker
+        - RefPtr~Worker~ m_rhiWorker
+        - RefPtr~Worker~ m_assetWorker
+        + Init(windowDesc, renderDesc) bool
+        + Shutdown() void
+        + Run() void
+        + GetInputStorage() RefPtr~InputStorage~
+        + GetWorldContext() RefPtr~WorldContext~
+        + GetRenderer() RefPtr~Renderer~
+        - InitWindow() bool
+        - InitRender() bool
+        - InitRHI() bool
+        - InitWorld() bool
+        - InitAsset() bool
+        - InitWorker() bool
+        - UpdateInput() void
     }
 
-    abstract class Worker {
-        - m_isRunning : atomic<bool>
-        - m_thread : std::thread
-        + Start() : void
-        + Stop() : void
-        # onStart() : virtual bool
-        # onUpdate() : virtual void
-        # onDestroy() : virtual void
-        # onNotify() : virtual void
-        - Run() : void
+    class Worker {
+        <<abstract>>
+        - atomic~bool~ m_isRunning
+        - thread m_thread
+        + Start() void
+        + Stop() void
+        # onStart() bool
+        # onUpdate() void
+        # onDestroy() void
+        # onNotify() void
+        - Run() void
     }
 
     class TaskWorker {
-        - m_isWaited : atomic<bool>
-        - m_cv : condition_variable
-        - m_mutex : mutex
-        - m_task : RefPtr<DefaultTask>
-        + Wait() : void
-        + Notify() : void
-        + Set(task) : void
-        + IsWaited() : bool
+        - atomic~bool~ m_isWaited
+        - condition_variable m_cv
+        - mutex m_mutex
+        - RefPtr~DefaultTask~ m_task
+        + Wait() void
+        + Notify() void
+        + Set(task) void
+        + IsWaited() bool
     }
 
-    abstract class FrameHandler {
-        + NotifyAll() : virtual void
+    class FrameHandler {
+        <<abstract>>
+        + NotifyAll() void
     }
 
-    abstract class FrameProducer {
-        + Submit() : virtual void
+    class FrameProducer {
+        <<abstract>>
+        + Submit() void
     }
 
-    abstract class FrameConsumer {
-        + Acquire() : virtual void
+    class FrameConsumer {
+        <<abstract>>
+        + Acquire() void
     }
 
     class FrameGate {
-        - m_cvProducer : condition_variable
-        - m_cvConsumer : condition_variable
-        - m_mutex : mutex
-        - m_frameLimit : const size_t
-        - m_frameDiff : atomic<int32_t>
-        - m_notified : atomic<bool>
-        + Submit() : void
-        + Acquire() : void
-        + NotifyAll() : void
+        - condition_variable m_cvProducer
+        - condition_variable m_cvConsumer
+        - mutex m_mutex
+        - size_t m_frameLimit
+        - atomic~int32_t~ m_frameDiff
+        - atomic~bool~ m_notified
+        + Submit() void
+        + Acquire() void
+        + NotifyAll() void
     }
 
     class WorldWorker {
-        - m_timeStep : ECS::TimeStep
-        - m_refInputStorage : RefPtr<InputStorage>
-        - m_refWorldContext : RefPtr<WorldContext>
-        - m_refProducer : RefPtr<FrameProducer>
-        - m_renderViews : DynamicArray<RenderView>
+        - ECS_TimeStep m_timeStep
+        - RefPtr~InputStorage~ m_refInputStorage
+        - RefPtr~WorldContext~ m_refWorldContext
+        - RefPtr~FrameProducer~ m_refProducer
+        - DynamicArray~RenderView~ m_renderViews
     }
 
     class RenderWorker {
-        - m_refRenderer : RefPtr<Renderer>
-        - m_refExecutor : RefPtr<RHIExecutor>
-        - m_refConsumer : RefPtr<FrameConsumer>
-        - m_refProducer : RefPtr<FrameProducer>
+        - RefPtr~Renderer~ m_refRenderer
+        - RefPtr~RHIExecutor~ m_refExecutor
+        - RefPtr~FrameConsumer~ m_refConsumer
+        - RefPtr~FrameProducer~ m_refProducer
     }
 
     class RHIWorker {
-        - m_refSystem : RefPtr<RHISystem>
-        - m_refFrameExecutor : RefPtr<RHIExecutor>
-        - m_refTaskExecutor : RefPtr<RHIExecutor>
-        - m_refConsumer : RefPtr<FrameConsumer>
+        - RefPtr~RHISystem~ m_refSystem
+        - RefPtr~RHIExecutor~ m_refFrameExecutor
+        - RefPtr~RHIExecutor~ m_refTaskExecutor
+        - RefPtr~FrameConsumer~ m_refConsumer
     }
 
     class AssetWorker {
-        - m_threads : DynamicArray<RefPtr<TaskWorker>>
-        - m_refTaskExecutor : RefPtr<RHIExecutor>
-        + SetTaskThread(count) : void
-        + SetTaskExecutor(executor) : void
+        - DynamicArray~RefPtr_TaskWorker~ m_threads
+        - RefPtr~RHIExecutor~ m_refTaskExecutor
+        + SetTaskThread(count) void
+        + SetTaskExecutor(executor) void
     }
-}
 
-FrameHandler <|-- FrameProducer
-FrameHandler <|-- FrameConsumer
-FrameProducer <|-- FrameGate
-FrameConsumer <|-- FrameGate
+    FrameHandler <|-- FrameProducer
+    FrameHandler <|-- FrameConsumer
+    FrameProducer <|-- FrameGate
+    FrameConsumer <|-- FrameGate
 
-Worker <|-- WorldWorker
-Worker <|-- RenderWorker
-Worker <|-- RHIWorker
-Worker <|-- AssetWorker
-Worker <|-- TaskWorker
+    Worker <|-- WorldWorker
+    Worker <|-- RenderWorker
+    Worker <|-- RHIWorker
+    Worker <|-- AssetWorker
+    Worker <|-- TaskWorker
 
-Engine *-- FrameGate : m_updateGate\nm_renderGate
-Engine *-- WorldWorker
-Engine *-- RenderWorker
-Engine *-- RHIWorker
-Engine *-- AssetWorker
+    Engine *-- FrameGate : m_updateGate / m_renderGate
+    Engine *-- WorldWorker
+    Engine *-- RenderWorker
+    Engine *-- RHIWorker
+    Engine *-- AssetWorker
 
-AssetWorker *-- TaskWorker
-
-@enduml
+    AssetWorker *-- TaskWorker
 ```
 
 ---
@@ -329,183 +290,179 @@ AssetWorker *-- TaskWorker
 
 References Unreal Engine's `UWorld`, `AActor`, `UActorComponent` structure. `Entity` acts as the `Actor`, `Component` holds data, and `Node` handles component composition. `Commander` is the one-way data bridge from World → Renderer.
 
-```plantuml
-@startuml World_ClassDiagram
-
-skinparam classAttributeIconSize 0
-skinparam BackgroundColor #FAFAFA
-
-package "World" {
-
+```mermaid
+classDiagram
     class WorldContext {
-        + world : RootPtr<World>
-        + views : RefPtr<ViewController>
-        + players : RefPtr<PlayerController>
-        + commander : RefPtr<Commander>
-        - m_refCommandList : RefPtr<WorldCommandList>
-        + Init() : bool
-        + Clear() : void
-        + Prepare() : void
-        + Update(timeStep) : void
+        + RootPtr~World~ world
+        + RefPtr~ViewController~ views
+        + RefPtr~PlayerController~ players
+        + RefPtr~Commander~ commander
+        - RefPtr~WorldCommandList~ m_refCommandList
+        + Init() bool
+        + Clear() void
+        + Prepare() void
+        + Update(timeStep) void
     }
 
-    class World <<ECS::Object>> {
-        + scene : Scene
-        - m_entityStorage : ObjectStorage<Entity>
-        - m_componentContainer : Registry<BaseComponent>
-        - m_nodeContainer : Registry<BaseNode>
-        - m_systemRegistry : Graph<BaseSystem>
-        + Init(refCommander) : bool
-        + Update(timeStep) : void
-        + CreateEntity() : ObjectPtr<Entity>
-        + CreateComponent<T>(...) : ObjectPtr<T>
-        + CreateNode<T>(...) : ObjectPtr<T>
-        + CreateSystem<T>(...) : RefPtr<T>
-        + GetEntity(uuid) : ObjectPtr<Entity>
-        + RemoveEntity(uuid) : void
+    class World {
+        <<ECS::Object>>
+        + Scene scene
+        - ObjectStorage~Entity~ m_entityStorage
+        - Registry~BaseComponent~ m_componentContainer
+        - Registry~BaseNode~ m_nodeContainer
+        - Graph~BaseSystem~ m_systemRegistry
+        + Init(refCommander) bool
+        + Update(timeStep) void
+        + CreateEntity() ObjectPtr~Entity~
+        + CreateComponent~T~(...) ObjectPtr~T~
+        + CreateNode~T~(...) ObjectPtr~T~
+        + CreateSystem~T~(...) RefPtr~T~
+        + GetEntity(uuid) ObjectPtr~Entity~
+        + RemoveEntity(uuid) void
     }
 
-    class Entity <<ECS::Entity>> {
-        - m_owner : World*
-        + Clear() : void
-        + AddComponent<T>(...) : bool
-        + AddNode<T>(...) : bool
-        + GetComponent<T>() : ObjectPtr<T>
-        + GetNode<T>() : ObjectPtr<T>
-        + HasAllComponents<TList>() : bool
+    class Entity {
+        <<ECS::Entity>>
+        - World* m_owner
+        + Clear() void
+        + AddComponent~T~(...) bool
+        + AddNode~T~(...) bool
+        + GetComponent~T~() ObjectPtr~T~
+        + GetNode~T~() ObjectPtr~T~
+        + HasAllComponents~TList~() bool
     }
 
     class Scene {
-        - m_refCommander : RefPtr<Commander>
-        - m_sceneDatas : HashMap<UUID, ScenePair>
-        + Attach(node) : void
-        + Detach(node) : void
-        + Detach(entityId) : void
-        + Update(entityId) : void
+        - RefPtr~Commander~ m_refCommander
+        - HashMap~UUID_ScenePair~ m_sceneDatas
+        + Attach(node) void
+        + Detach(node) void
+        + Detach(entityId) void
+        + Update(entityId) void
     }
 
     class Commander {
-        - m_refCmdList : RefPtr<RenderCommandList>
-        + SetView(renderView) : void
-        + AddPrimitive(meshNode) : void
-        + RemovePrimitive(meshNode) : void
-        + AddLight(lightNode) : void
-        + RemoveLight(lightNode) : void
-        + Update(sceneComponent) : void
-        + Remove(entityId) : void
-        + RemoveAll() : void
+        - RefPtr~RenderCommandList~ m_refCmdList
+        + SetView(renderView) void
+        + AddPrimitive(meshNode) void
+        + RemovePrimitive(meshNode) void
+        + AddLight(lightNode) void
+        + RemoveLight(lightNode) void
+        + Update(sceneComponent) void
+        + Remove(entityId) void
+        + RemoveAll() void
     }
 
-    abstract class BaseComponent <<ECS::Component>> {
+    class BaseComponent {
+        <<ECS::Component>>
     }
 
     class SceneComponent {
-        - m_position : fvec3
-        - m_rotation : fvec3
-        - m_scale : fvec3
-        - m_scene : Scene*
-        + UpdatePosition(pos) : void
-        + UpdateRotation(rot) : void
-        + UpdateScale(scale) : void
-        + OnAttached() : void
-        + OnDetached() : void
+        - fvec3 m_position
+        - fvec3 m_rotation
+        - fvec3 m_scale
+        - Scene* m_scene
+        + UpdatePosition(pos) void
+        + UpdateRotation(rot) void
+        + UpdateScale(scale) void
+        + OnAttached() void
+        + OnDetached() void
     }
 
     class CameraComponent {
-        + fov : float
-        + nearPlane : float
-        + farPlane : float
-        + width : float
-        + height : float
-        + perspective : bool
+        + float fov
+        + float nearPlane
+        + float farPlane
+        + float width
+        + float height
+        + bool perspective
     }
 
     class MeshComponent {
-        + meshAsset : RefPtr<MeshAsset>
+        + RefPtr~MeshAsset~ meshAsset
     }
 
     class MaterialComponent {
-        + materialAsset : RefPtr<MaterialAsset>
+        + RefPtr~MaterialAsset~ materialAsset
     }
 
     class LightComponent {
-        + direction : fvec3
+        + fvec3 direction
     }
 
     class ColorComponent {
-        + red : float
-        + green : float
-        + blue : float
-        + alpha : float
+        + float red
+        + float green
+        + float blue
+        + float alpha
     }
 
-    abstract class BaseNode <<ECS::Node>> {
+    class BaseNode {
+        <<ECS::Node>>
     }
 
     class MeshNode {
-        + transform : ObjectPtr<SceneComponent>
-        + mesh : ObjectPtr<MeshComponent>
-        + overrideMaterial : ObjectPtr<MaterialComponent>
+        + ObjectPtr~SceneComponent~ transform
+        + ObjectPtr~MeshComponent~ mesh
+        + ObjectPtr~MaterialComponent~ overrideMaterial
     }
 
     class CameraNode {
-        + transform : ObjectPtr<SceneComponent>
-        + camera : ObjectPtr<CameraComponent>
+        + ObjectPtr~SceneComponent~ transform
+        + ObjectPtr~CameraComponent~ camera
     }
 
     class LightNode {
-        + transform : ObjectPtr<SceneComponent>
-        + light : ObjectPtr<LightComponent>
+        + ObjectPtr~SceneComponent~ transform
+        + ObjectPtr~LightComponent~ light
     }
 
-    abstract class BaseSystem <<ECS::System>> {
+    class BaseSystem {
+        <<ECS::System>>
     }
 
-    class TypedSystem<T> {
-        # UpdateInternal(timeStep, container) : virtual void
+    class TypedSystem~T~ {
+        # UpdateInternal(timeStep, container) void
     }
 
-    class InputSystem<T> {
-        # inputStorage : RefPtr<InputStorage>
+    class InputSystem~T~ {
+        # RefPtr~InputStorage~ inputStorage
     }
-}
 
-WorldContext *-- World
-WorldContext *-- Commander
+    WorldContext *-- World
+    WorldContext *-- Commander
 
-World *-- Scene
-World o-- Entity
+    World *-- Scene
+    World o-- Entity
 
-Entity ..> World : uses
+    Entity ..> World : uses
 
-BaseComponent <|-- SceneComponent
-BaseComponent <|-- CameraComponent
-BaseComponent <|-- MeshComponent
-BaseComponent <|-- MaterialComponent
-BaseComponent <|-- LightComponent
-BaseComponent <|-- ColorComponent
+    BaseComponent <|-- SceneComponent
+    BaseComponent <|-- CameraComponent
+    BaseComponent <|-- MeshComponent
+    BaseComponent <|-- MaterialComponent
+    BaseComponent <|-- LightComponent
+    BaseComponent <|-- ColorComponent
 
-BaseNode <|-- MeshNode
-BaseNode <|-- CameraNode
-BaseNode <|-- LightNode
+    BaseNode <|-- MeshNode
+    BaseNode <|-- CameraNode
+    BaseNode <|-- LightNode
 
-MeshNode o-- SceneComponent
-MeshNode o-- MeshComponent
-MeshNode o-- MaterialComponent
+    MeshNode o-- SceneComponent
+    MeshNode o-- MeshComponent
+    MeshNode o-- MaterialComponent
 
-CameraNode o-- SceneComponent
-CameraNode o-- CameraComponent
+    CameraNode o-- SceneComponent
+    CameraNode o-- CameraComponent
 
-LightNode o-- SceneComponent
-LightNode o-- LightComponent
+    LightNode o-- SceneComponent
+    LightNode o-- LightComponent
 
-BaseSystem <|-- TypedSystem
-TypedSystem <|-- InputSystem
+    BaseSystem <|-- TypedSystem
+    TypedSystem <|-- InputSystem
 
-Scene ..> Commander : uses
-Commander ..> RenderCommandList : enqueues
-
-@enduml
+    Scene ..> Commander : uses
+    Commander ..> RenderCommandList : enqueues
 ```
 
 ---
@@ -514,186 +471,181 @@ Commander ..> RenderCommandList : enqueues
 
 References Unreal Engine's `FScene`, `FPrimitiveSceneProxy`, `FMeshBatch`, and `FRenderingCompositePassContext`. World objects are never passed directly to the renderer — they are converted into **Proxy** objects. `RenderScene` reorganizes these Proxies into `MeshBatch` instances to implement instancing.
 
-```plantuml
-@startuml Renderer_ClassDiagram
-
-skinparam classAttributeIconSize 0
-skinparam BackgroundColor #FAFAFA
-
-package "Renderer" {
-
+```mermaid
+classDiagram
     class Renderer {
-        - m_refScene : RefPtr<RenderScene>
-        - m_refGraph : RefPtr<RenderGraph>
-        - m_refCommandList : RefPtr<RenderCommandList>
-        - m_renderViews : DynamicArray<RenderView>
-        + Init() : bool
-        + Execute(cmdList) : void
-        + SetView(view) : void
-        + PreDraw(cmdList) : void
-        + Draw(cmdList) : void
-        + PostDraw(cmdList) : void
-        + GetScene() : RefPtr<RenderScene>
-        + GetGraph() : RefPtr<RenderGraph>
+        - RefPtr~RenderScene~ m_refScene
+        - RefPtr~RenderGraph~ m_refGraph
+        - RefPtr~RenderCommandList~ m_refCommandList
+        - DynamicArray~RenderView~ m_renderViews
+        + Init() bool
+        + Execute(cmdList) void
+        + SetView(view) void
+        + PreDraw(cmdList) void
+        + Draw(cmdList) void
+        + PostDraw(cmdList) void
+        + GetScene() RefPtr~RenderScene~
+        + GetGraph() RefPtr~RenderGraph~
     }
 
     class RenderScene {
-        - m_primitives : HashMap<UUID, RefPtr<PrimitiveProxy>>
-        - m_lights : HashMap<UUID, RefPtr<LightProxy>>
-        - m_meshBatches : HashMap<MeshBatchKey, RefPtr<MeshBatch>>
-        - m_pendingPrimitives : DynamicArray<RefPtr<PrimitiveProxy>>
-        + Flush(cmdList) : void
-        + UpdateProxy(updateInfo, cmdList) : void
-        + AddPrimitive(primitive) : void
-        + RemovePrimitive(id, cmdList) : void
-        + AddLight(light) : void
-        + RemoveLight(id) : void
-        + AddBatch(primitive, cmdList) : void
-        + UpdateBatch(primitive, cmdList) : void
-        + RemoveBatch(primitive, cmdList) : void
-        + GetMeshBatch(key) : RefPtr<MeshBatch>
+        - HashMap~UUID_RefPtr_PrimitiveProxy~ m_primitives
+        - HashMap~UUID_RefPtr_LightProxy~ m_lights
+        - HashMap~MeshBatchKey_RefPtr_MeshBatch~ m_meshBatches
+        - DynamicArray~RefPtr_PrimitiveProxy~ m_pendingPrimitives
+        + Flush(cmdList) void
+        + UpdateProxy(updateInfo, cmdList) void
+        + AddPrimitive(primitive) void
+        + RemovePrimitive(id, cmdList) void
+        + AddLight(light) void
+        + RemoveLight(id) void
+        + AddBatch(primitive, cmdList) void
+        + UpdateBatch(primitive, cmdList) void
+        + RemoveBatch(primitive, cmdList) void
+        + GetMeshBatch(key) RefPtr~MeshBatch~
     }
 
-    class RenderGraph <<ECS::Graph<PipeLine>>> {
-        - m_addable : HashSet<RefPtr<PipeLine>>
-        - m_removable : HashSet<RefPtr<PipeLine>>
-        - m_globalResource : RefPtr<GlobalResource>
-        - m_drawCommands : DynamicArray<RefPtr<MeshDrawCommand>>
-        + Init(cmdList) : bool
-        + Execute(cmdList, renderScene, renderView) : void
-        + Flush(cmdList) : void
-        + Add(pipeline) : void
-        + Remove(pipeline) : void
+    class RenderGraph {
+        <<ECS::Graph~PipeLine~>>
+        - HashSet~RefPtr_PipeLine~ m_addable
+        - HashSet~RefPtr_PipeLine~ m_removable
+        - RefPtr~GlobalResource~ m_globalResource
+        - DynamicArray~RefPtr_MeshDrawCommand~ m_drawCommands
+        + Init(cmdList) bool
+        + Execute(cmdList, renderScene, renderView) void
+        + Flush(cmdList) void
+        + Add(pipeline) void
+        + Remove(pipeline) void
     }
 
     class GlobalResource {
-        + struct CameraData { viewMatrix, projMatrix, cameraPos }
-        + struct BufferResource { cameraBuffer }
-        + struct TextureResource { position, normal, albedo, depth, stencil }
-        + struct ScreenQuadResource { posBuffer, uvBuffer, indexBuffer }
-        + Init(cmdList) : bool
-        + UpdateCamera(renderView, cmdList) : void
-        + GetCameraBuffer() : RefPtr<RHIBuffer>
-        + GetScreenQuad() : RefPtr<RHIVertexLayout>
+        + CameraData cameraData
+        + BufferResource bufferResource
+        + TextureResource textureResource
+        + ScreenQuadResource screenQuadResource
+        + Init(cmdList) bool
+        + UpdateCamera(renderView, cmdList) void
+        + GetCameraBuffer() RefPtr~RHIBuffer~
+        + GetScreenQuad() RefPtr~RHIVertexLayout~
     }
 
-    abstract class PipeLine <<ECS::Object, RenderResource>> {
-        - m_pipeLine : RefPtr<RHIPipeLine>
-        - m_prepared : bool
-        + Execute(commands, globalResource, cmdList) : void
-        + Init() : virtual void
-        + Prepare() : virtual void
-        + Draw(commands, globalResource, cmdList) : virtual void
-        + GetShaderState() : virtual eResourceState
+    class PipeLine {
+        <<ECS::Object, RenderResource>>
+        - RefPtr~RHIPipeLine~ m_pipeLine
+        - bool m_prepared
+        + Execute(commands, globalResource, cmdList) void
+        + Init() void
+        + Prepare() void
+        + Draw(commands, globalResource, cmdList) void
+        + GetShaderState() eResourceState
     }
 
     class SimpleColor {
-        + Init() : void
-        + Prepare() : void
-        + Draw(commands, globalResource, cmdList) : void
+        + Init() void
+        + Prepare() void
+        + Draw(commands, globalResource, cmdList) void
     }
 
     class RenderCommandList {
-        - m_head : atomic<RenderTask*>
-        - m_tail : atomic<RenderTask*>
-        - m_allocator[2] : LinearArena
-        - m_writeIndex : atomic<size_t>
-        - m_readIndex : size_t
-        + Enqueue(func) : void
-        + ExecuteAll(renderer, cmdList) : void
-        + Reset() : void
+        - atomic~RenderTask*~ m_head
+        - atomic~RenderTask*~ m_tail
+        - LinearArena m_allocator[2]
+        - atomic~size_t~ m_writeIndex
+        - size_t m_readIndex
+        + Enqueue(func) void
+        + ExecuteAll(renderer, cmdList) void
+        + Reset() void
     }
 
     class SceneProxy {
-        - m_position : fvec3
-        - m_rotation : fvec3
-        - m_scale : fvec3
-        + UpdatePosition(pos) : void
-        + UpdateRotation(rot) : void
-        + UpdateScale(scale) : void
-        + GetTransform() : fmat4
+        - fvec3 m_position
+        - fvec3 m_rotation
+        - fvec3 m_scale
+        + UpdatePosition(pos) void
+        + UpdateRotation(rot) void
+        + UpdateScale(scale) void
+        + GetTransform() fmat4
     }
 
     class PrimitiveProxy {
-        - m_refMesh : RefPtr<const MeshAsset>
-        - m_refOverrideMaterial : RefPtr<const MaterialAsset>
-        + SetMesh(refMesh) : void
-        + SetOverrideMaterial(refMaterial) : void
-        + GetMesh() : RefPtr<const MeshAsset>
+        - RefPtr~const_MeshAsset~ m_refMesh
+        - RefPtr~const_MaterialAsset~ m_refOverrideMaterial
+        + SetMesh(refMesh) void
+        + SetOverrideMaterial(refMaterial) void
+        + GetMesh() RefPtr~const_MeshAsset~
     }
 
     class LightProxy {
     }
 
     class MeshBatch {
-        - m_transformInfos : HashMap<UUID, TransformInfo>
-        - m_transformBuffer : RefPtr<RHIBuffer>
-        - m_refDrawCommand : RefPtr<MeshDrawCommand>
-        - m_refMesh : RefPtr<const MeshAsset>
-        - m_refMaterial : RefPtr<const MaterialAsset>
-        - m_sectionIndex : size_t
-        + Upload(cmdList) : void
-        + Unload(cmdList) : void
-        + Sync(cmdList) : void
-        + AddTransform(id, transform) : void
-        + UpdateTransform(id, transform) : void
-        + RemoveTransform(id) : void
-        + GetInstanceCount() : size_t
-        + GetDrawCommand() : RefPtr<MeshDrawCommand>
+        - HashMap~UUID_TransformInfo~ m_transformInfos
+        - RefPtr~RHIBuffer~ m_transformBuffer
+        - RefPtr~MeshDrawCommand~ m_refDrawCommand
+        - RefPtr~const_MeshAsset~ m_refMesh
+        - RefPtr~const_MaterialAsset~ m_refMaterial
+        - size_t m_sectionIndex
+        + Upload(cmdList) void
+        + Unload(cmdList) void
+        + Sync(cmdList) void
+        + AddTransform(id, transform) void
+        + UpdateTransform(id, transform) void
+        + RemoveTransform(id) void
+        + GetInstanceCount() size_t
+        + GetDrawCommand() RefPtr~MeshDrawCommand~
     }
 
     class MeshDrawCommand {
-        + vertexLayout : RefPtr<RHIVertexLayout>
-        + indexOffset : uint32_t
-        + indexCount : uint32_t
-        + textureSlots : HashMap<eTextureSlot, RefPtr<RHITexture>>
-        + vectorValues : HashMap<eVectorSlot, fvec3>
-        + scalarValues : HashMap<eScalarSlot, float>
-        + instanceBuffer : RefPtr<RHIBuffer>
-        + instanceCount : uint32_t
+        + RefPtr~RHIVertexLayout~ vertexLayout
+        + uint32_t indexOffset
+        + uint32_t indexCount
+        + HashMap~eTextureSlot_RefPtr_RHITexture~ textureSlots
+        + HashMap~eVectorSlot_fvec3~ vectorValues
+        + HashMap~eScalarSlot_float~ scalarValues
+        + RefPtr~RHIBuffer~ instanceBuffer
+        + uint32_t instanceCount
     }
 
     class MeshBatchKey {
-        + meshId : UUID
-        + materialId : UUID
-        + meshSection : size_t
-        + operator==() : bool
+        + UUID meshId
+        + UUID materialId
+        + size_t meshSection
+        + operator==() bool
     }
 
-    struct UpdateProxyInfo {
-        + id : UUID
-        + position : fvec3
-        + rotation : fvec3
-        + scale : fvec3
+    class UpdateProxyInfo {
+        <<struct>>
+        + UUID id
+        + fvec3 position
+        + fvec3 rotation
+        + fvec3 scale
     }
 
-    struct RenderView {
-        + viewMatrix : fmat4
-        + projectionMatrix : fmat4
-        + cameraPosition : fvec3
+    class RenderView {
+        <<struct>>
+        + fmat4 viewMatrix
+        + fmat4 projectionMatrix
+        + fvec3 cameraPosition
     }
-}
 
-Renderer *-- RenderScene
-Renderer *-- RenderGraph
-Renderer *-- RenderCommandList
+    Renderer *-- RenderScene
+    Renderer *-- RenderGraph
+    Renderer *-- RenderCommandList
 
-RenderGraph *-- GlobalResource
-RenderGraph *-- PipeLine
+    RenderGraph *-- GlobalResource
+    RenderGraph *-- PipeLine
 
-PipeLine <|-- SimpleColor
+    PipeLine <|-- SimpleColor
 
-RenderScene o-- PrimitiveProxy
-RenderScene o-- LightProxy
-RenderScene o-- MeshBatch
+    RenderScene o-- PrimitiveProxy
+    RenderScene o-- LightProxy
+    RenderScene o-- MeshBatch
 
-SceneProxy <|-- PrimitiveProxy
-SceneProxy <|-- LightProxy
+    SceneProxy <|-- PrimitiveProxy
+    SceneProxy <|-- LightProxy
 
-MeshBatch *-- MeshDrawCommand
-MeshBatch ..> MeshBatchKey : keyed by
-
-@enduml
+    MeshBatch *-- MeshDrawCommand
+    MeshBatch ..> MeshBatchKey : keyed by
 ```
 
 ---
@@ -702,178 +654,157 @@ MeshBatch ..> MeshBatchKey : keyed by
 
 References Unreal Engine's `FRHICommandList`, `FRHIResource`, and `FRHICommandListExecutor` patterns. Abstracts the actual GPU API (OpenGL / DirectX / Vulkan), and all GPU commands are encapsulated as **Command Objects** before being executed serially.
 
-```plantuml
-@startuml RHI_ClassDiagram
-
-skinparam classAttributeIconSize 0
-skinparam BackgroundColor #FAFAFA
-
-package "RHI" {
-
-    abstract class RHISystem {
-        + Init(nativeHandle) : virtual bool
-        + Clear(state) : virtual void
-        + Flush() : virtual void
-        + Present() : virtual void
-        + Resize(...) : virtual void
-        + SetColorState(state) : virtual void
-        + SetDepthState(state) : virtual void
-        + SetStencilState(state) : virtual void
-        + SetBlendState(state) : virtual void
-        + SetRasterizerState(state) : virtual void
-        + CreateBuffer(desc) : virtual RefPtr<RHIBuffer>
-        + CreateVertexLayout(desc) : virtual RefPtr<RHIVertexLayout>
-        + CreateTexture(desc) : virtual RefPtr<RHITexture>
-        + CreateSampler(desc) : virtual RefPtr<RHISampler>
-        + CreateVertexShader(desc) : virtual RefPtr<RHIShader>
-        + CreatePixelShader(desc) : virtual RefPtr<RHIShader>
-        + CreatePipeLine(desc) : virtual RefPtr<RHIPipeLine>
-        + InitializeBuffer(info, buffer) : virtual void
-        + UpdateBuffer(info, buffer) : virtual void
-        + DrawIndexPrimitive(info) : virtual void
-        + DispatchCompute(info) : virtual void
-        ... (40+ methods)
+```mermaid
+classDiagram
+    class RHISystem {
+        <<abstract>>
+        + Init(nativeHandle) bool
+        + Clear(state) void
+        + Flush() void
+        + Present() void
+        + Resize(...) void
+        + SetColorState(state) void
+        + SetDepthState(state) void
+        + SetStencilState(state) void
+        + SetBlendState(state) void
+        + SetRasterizerState(state) void
+        + CreateBuffer(desc) RefPtr~RHIBuffer~
+        + CreateVertexLayout(desc) RefPtr~RHIVertexLayout~
+        + CreateTexture(desc) RefPtr~RHITexture~
+        + CreateSampler(desc) RefPtr~RHISampler~
+        + CreateVertexShader(desc) RefPtr~RHIShader~
+        + CreatePixelShader(desc) RefPtr~RHIShader~
+        + CreatePipeLine(desc) RefPtr~RHIPipeLine~
+        + InitializeBuffer(info, buffer) void
+        + UpdateBuffer(info, buffer) void
+        + DrawIndexPrimitive(info) void
+        + DispatchCompute(info) void
     }
 
     class GLSystem {
-        (OpenGL 4.5 implementation)
     }
+    note for GLSystem "OpenGL 4.5 implementation"
 
     class RHIResource {
-        - m_state : atomic<eResourceState>
-        + GetRawBuffer() : void*
-        + SetState(eState) : void
-        + GetState() : eResourceState
+        - atomic~eResourceState~ m_state
+        + GetRawBuffer() void*
+        + SetState(eState) void
+        + GetState() eResourceState
     }
 
     class RHIBuffer {
-        - m_desc : RHIBufferDesc
-        + GetBufferType() : eBufferType
-        + GetAccessType() : eDataAccess
-        + GetSize() : uint32_t
-        + GetStride() : uint32_t
-        + GetCount() : uint32_t
+        - RHIBufferDesc m_desc
+        + GetBufferType() eBufferType
+        + GetAccessType() eDataAccess
+        + GetSize() uint32_t
+        + GetStride() uint32_t
+        + GetCount() uint32_t
     }
 
     class RHIVertexLayout {
-        - m_desc : RHIVertexLayoutDesc
-        + GetNumAttributes() : size_t
+        - RHIVertexLayoutDesc m_desc
+        + GetNumAttributes() size_t
     }
 
     class RHITexture {
-        - m_desc : RHITextureDesc
-        + GetWidth() : uint32_t
-        + GetHeight() : uint32_t
-        + GetPixelFormat() : ePixelFormat
-        + GetTextureType() : eTextureType
+        - RHITextureDesc m_desc
+        + GetWidth() uint32_t
+        + GetHeight() uint32_t
+        + GetPixelFormat() ePixelFormat
+        + GetTextureType() eTextureType
     }
 
     class RHISampler {
-        - m_desc : RHISamplerDesc
-        + GetMinFilter() : eFilterMode
-        + GetMagFilter() : eFilterMode
+        - RHISamplerDesc m_desc
+        + GetMinFilter() eFilterMode
+        + GetMagFilter() eFilterMode
     }
 
     class RHIShader {
-        - m_desc : RHIShaderDesc
-        + GetShaderType() : eShaderType
+        - RHIShaderDesc m_desc
+        + GetShaderType() eShaderType
     }
 
     class RHIPipeLine {
-        - m_desc : RHIPipeLineDesc
-        - m_slots : HashMap<string, RHIResourceBinding>
-        + GetClearState() : RHIClearState
-        + GetDepthState() : RHIDepthState
-        + AddSlot(name, binding) : void
-        + HasSlot(name) : bool
-        + GetBindingSlot(name) : RHIResourceBinding
+        - RHIPipeLineDesc m_desc
+        - HashMap~string_RHIResourceBinding~ m_slots
+        + GetClearState() RHIClearState
+        + GetDepthState() RHIDepthState
+        + AddSlot(name, binding) void
+        + HasSlot(name) bool
+        + GetBindingSlot(name) RHIResourceBinding
     }
 
     class RHICommandList {
-        - m_system : RefPtr<RHISystem>
-        - m_commands : DynamicArray<RHICommandBase*>
-        - m_frame : size_t
-        + Enqueue<T>(...) : void
-        + ExecuteAll() : void
-        + Reset() : void
-        + SetFrame(frame) : void
-        + CreateBuffer(info) : RefPtr<RHIBuffer>
-        + InitializeBuffer(info, buffer) : void
-        + UpdateBuffer(info, buffer) : void
-        + DrawIndexPrimitive(info) : void
-        ... (delegates to command objects)
+        - RefPtr~RHISystem~ m_system
+        - DynamicArray~RHICommandBase*~ m_commands
+        - size_t m_frame
+        + Enqueue~T~(...) void
+        + ExecuteAll() void
+        + Reset() void
+        + SetFrame(frame) void
+        + CreateBuffer(info) RefPtr~RHIBuffer~
+        + InitializeBuffer(info, buffer) void
+        + UpdateBuffer(info, buffer) void
+        + DrawIndexPrimitive(info) void
     }
 
     class RHICommandBase {
-        - m_func : ExecuteFunc
-        + Execute(system) : void
+        - ExecuteFunc m_func
+        + Execute(system) void
     }
 
-    class "RHICommand<T>" as RHICommandT {
-        + ExecuteAndDestruct(system, base) : static void
+    class RHICommandT {
+        <<RHICommand~T~>>
+        + ExecuteAndDestruct(system, base) static void
     }
+    
+    note for RHICommandT "45+ command classes:\nRHICommandClear\nRHICommandFlush\nRHICommandPresent\nRHICommandInitializeBuffer\nRHICommandUpdateBuffer\n..."
 
-    note right of RHICommandT
-      45+ command classes:
-      RHICommandClear
-      RHICommandFlush
-      RHICommandPresent
-      RHICommandInitializeBuffer
-      RHICommandUpdateBuffer
-      RHICommandInitializeTexture
-      RHICommandInitializePipeLine
-      RHICommandSetPipeLine
-      RHICommandDrawIndexPrimitive
-      RHICommandDispatchCompute
-      ...
-    end note
-
-    abstract class RHIExecutor {
-        - m_system : RefPtr<RHISystem>
-        + Acquire() : virtual RefPtr<RHICommandList>
-        + Submit(cmdList) : virtual void
-        + Execute() : virtual void
+    class RHIExecutor {
+        <<abstract>>
+        - RefPtr~RHISystem~ m_system
+        + Acquire() RefPtr~RHICommandList~
+        + Submit(cmdList) void
+        + Execute() void
     }
 
     class RHIFrameExecutor {
-        - m_frameCount : size_t
-        - m_recordIndex : size_t
-        - m_beginIndex : size_t
-        - m_endIndex : atomic<size_t>
-        - m_listPool : DynamicArray<RefPtr<RHICommandList>>
-        + Acquire() : RefPtr<RHICommandList>
-        + Submit(cmdList) : void
-        + Execute() : void
-        + Init(frameCount) : bool
+        - size_t m_frameCount
+        - size_t m_recordIndex
+        - size_t m_beginIndex
+        - atomic~size_t~ m_endIndex
+        - DynamicArray~RefPtr_RHICommandList~ m_listPool
+        + Acquire() RefPtr~RHICommandList~
+        + Submit(cmdList) void
+        + Execute() void
+        + Init(frameCount) bool
     }
 
     class RHITaskExecutor {
-        (Command list pool for asset/task uploads)
-        + Acquire() : RefPtr<RHICommandList>
-        + Submit(cmdList) : void
-        + Execute() : void
+        + Acquire() RefPtr~RHICommandList~
+        + Submit(cmdList) void
+        + Execute() void
     }
-}
+    note for RHITaskExecutor "Command list pool for asset/task uploads"
 
-RHISystem <|-- GLSystem
+    RHISystem <|-- GLSystem
 
-RHIResource <|-- RHIBuffer
-RHIResource <|-- RHIVertexLayout
-RHIResource <|-- RHITexture
-RHIResource <|-- RHISampler
-RHIResource <|-- RHIShader
-RHIResource <|-- RHIPipeLine
+    RHIResource <|-- RHIBuffer
+    RHIResource <|-- RHIVertexLayout
+    RHIResource <|-- RHITexture
+    RHIResource <|-- RHISampler
+    RHIResource <|-- RHIShader
+    RHIResource <|-- RHIPipeLine
 
-RHICommandBase <|-- RHICommandT
+    RHICommandBase <|-- RHICommandT
 
-RHICommandList o-- RHICommandBase
+    RHICommandList o-- RHICommandBase
 
-RHIExecutor <|-- RHIFrameExecutor
-RHIExecutor <|-- RHITaskExecutor
+    RHIExecutor <|-- RHIFrameExecutor
+    RHIExecutor <|-- RHITaskExecutor
 
-RHICommandList ..> RHISystem : delegates to
-
-@enduml
+    RHICommandList ..> RHISystem : delegates to
 ```
 
 ---
@@ -882,130 +813,124 @@ RHICommandList ..> RHISystem : delegates to
 
 Asset loading is organized as a 3-stage pipeline: **Parse (file read)** → **Load (GPU format conversion)** → **Upload (GPU upload)**. Each stage runs in a different thread context, ensuring the main loop is never blocked.
 
-```plantuml
-@startuml Asset_ClassDiagram
-
-skinparam classAttributeIconSize 0
-skinparam BackgroundColor #FAFAFA
-
-package "Asset" {
-
-    class Asset <<ECS::Object>> {
-        + id : UUID
-        + name : string
-        + path : const string
-        + extension : const eExtension
-        + type : const eAsset
-        - m_state : atomic<eAssetState>
-        + GetResourceState() : virtual eResourceState
-        + SetState(state) : void
-        + GetState() : eAssetState
+```mermaid
+classDiagram
+    class Asset {
+        <<ECS::Object>>
+        + UUID id
+        + string name
+        + const string path
+        + const eExtension extension
+        + const eAsset type
+        - atomic~eAssetState~ m_state
+        + GetResourceState() eResourceState
+        + SetState(state) void
+        + GetState() eAssetState
     }
 
     class MeshAsset {
-        + rawBuffers : HashMap<VertexKey, RefPtr<FormattedBuffer>>
-        + buffers : HashMap<VertexKey, RefPtr<RHIBuffer>>
-        + rawIndex : RefPtr<FormattedBuffer>
-        + index : RefPtr<RHIBuffer>
-        + sections : DynamicArray<MeshSection>
-        + materials : HashMap<string, RefPtr<MaterialAsset>>
-        + GetResourceState() : eResourceState
+        + HashMap~VertexKey_RefPtr_FormattedBuffer~ rawBuffers
+        + HashMap~VertexKey_RefPtr_RHIBuffer~ buffers
+        + RefPtr~FormattedBuffer~ rawIndex
+        + RefPtr~RHIBuffer~ index
+        + DynamicArray~MeshSection~ sections
+        + HashMap~string_RefPtr_MaterialAsset~ materials
+        + GetResourceState() eResourceState
     }
 
     class MaterialAsset {
-        + textures : HashMap<eTextureSlot, RefPtr<TextureAsset>>
-        + vectorValues : HashMap<eVectorSlot, fvec3>
-        + scalarValues : HashMap<eScalarSlot, float>
-        + GetResourceState() : eResourceState
+        + HashMap~eTextureSlot_RefPtr_TextureAsset~ textures
+        + HashMap~eVectorSlot_fvec3~ vectorValues
+        + HashMap~eScalarSlot_float~ scalarValues
+        + GetResourceState() eResourceState
     }
 
     class TextureAsset {
-        + rawBuffer : RefPtr<FormattedBuffer>
-        + texture : RefPtr<RHITexture>
-        + width : uint32_t
-        + height : uint32_t
-        + pixelFormat : ePixelFormat
-        + GetResourceState() : eResourceState
+        + RefPtr~FormattedBuffer~ rawBuffer
+        + RefPtr~RHITexture~ texture
+        + uint32_t width
+        + uint32_t height
+        + ePixelFormat pixelFormat
+        + GetResourceState() eResourceState
     }
 
     class ShaderAsset {
-        + rawBuffer : RefPtr<RawBuffer>
-        + shader : RefPtr<RHIShader>
-        - m_shaderType : eShaderType
-        + GetResourceState() : eResourceState
-        + SetShaderType(type) : void
+        + RefPtr~RawBuffer~ rawBuffer
+        + RefPtr~RHIShader~ shader
+        - eShaderType m_shaderType
+        + GetResourceState() eResourceState
+        + SetShaderType(type) void
     }
 
     class AssetSystem {
-        + Load(path) : static RefPtr<Asset>
-        + Unload(path) : static void
-        + Shutdown() : static void
-        + GetTask() : static TaskQueue
-        + AddTask(asset) : static void
-        + Release(cmdList) : static void
-        + GetParser(path) : static RefPtr<AssetParser>
+        + Load(path) static RefPtr~Asset~
+        + Unload(path) static void
+        + Shutdown() static void
+        + GetTask() static TaskQueue
+        + AddTask(asset) static void
+        + Release(cmdList) static void
+        + GetParser(path) static RefPtr~AssetParser~
     }
 
     class AssetFactory {
-        + Create(path) : RefPtr<Asset>
-        + Create(path, extension) : RefPtr<Asset>
-        + GetExtension(path) : eExtension
+        + Create(path) RefPtr~Asset~
+        + Create(path, extension) RefPtr~Asset~
+        + GetExtension(path) eExtension
     }
 
-    abstract class AssetParser {
-        + Parse(asset) : virtual void
-        + Load(asset, cmdList) : virtual void
-        + Unload(asset, cmdList) : virtual void
+    class AssetParser {
+        <<abstract>>
+        + Parse(asset) void
+        + Load(asset, cmdList) void
+        + Unload(asset, cmdList) void
     }
 
     class OBJParser {
-        + Parse(asset) : void
-        + Load(asset, cmdList) : void
+        + Parse(asset) void
+        + Load(asset, cmdList) void
     }
 
     class MTLParser {
-        + Parse(asset) : void
-        + Load(asset, cmdList) : void
+        + Parse(asset) void
+        + Load(asset, cmdList) void
     }
 
     class GLSLParser {
-        + Parse(asset) : void
-        + Load(asset, cmdList) : void
+        + Parse(asset) void
+        + Load(asset, cmdList) void
     }
 
     class StbImageParser {
-        + Parse(asset) : void
-        + Load(asset, cmdList) : void
+        + Parse(asset) void
+        + Load(asset, cmdList) void
     }
 
-    struct MeshSection {
-        + indexOffset : uint32_t
-        + indexCount : uint32_t
-        + minVertexIndex : uint32_t
-        + maxVertexIndex : uint32_t
-        + materialName : string
-        + name : string
+    class MeshSection {
+        <<struct>>
+        + uint32_t indexOffset
+        + uint32_t indexCount
+        + uint32_t minVertexIndex
+        + uint32_t maxVertexIndex
+        + string materialName
+        + string name
     }
-}
 
-Asset <|-- MeshAsset
-Asset <|-- MaterialAsset
-Asset <|-- TextureAsset
-Asset <|-- ShaderAsset
+    Asset <|-- MeshAsset
+    Asset <|-- MaterialAsset
+    Asset <|-- TextureAsset
+    Asset <|-- ShaderAsset
 
-MeshAsset *-- MeshSection
-MeshAsset o-- MaterialAsset
+    MeshAsset *-- MeshSection
+    MeshAsset o-- MaterialAsset
 
-AssetParser <|-- OBJParser
-AssetParser <|-- MTLParser
-AssetParser <|-- GLSLParser
-AssetParser <|-- StbImageParser
+    AssetParser <|-- OBJParser
+    AssetParser <|-- MTLParser
+    AssetParser <|-- GLSLParser
+    AssetParser <|-- StbImageParser
 
-AssetSystem ..> AssetFactory : uses
-AssetSystem ..> AssetParser : uses
-AssetFactory ..> Asset : creates
-
-@enduml
+    AssetSystem ..> AssetFactory : uses
+    AssetSystem ..> AssetParser : uses
+    AssetFactory ..> Asset : creates
 ```
 
 ---
@@ -1016,42 +941,20 @@ AssetFactory ..> Asset : creates
 
 The engine consists of 4 independent worker threads and 1 task thread pool.
 
-```plantuml
-@startuml Thread_Overview
+```mermaid
+flowchart TD
+    main["Main Thread<br>Window Event Loop<br>+ Input Polling"]
+    world["WorldWorker<br>(Logic Thread)<br>ECS Update<br>Commander<br>Fill RenderCommandList"]
+    render["RenderWorker<br>(Render Thread)<br>RenderScene Flush<br>MeshBatch Sync<br>RenderGraph Execute<br>Fill RHICommandList"]
+    rhi["RHIWorker<br>(GPU Submit Thread)<br>RHIFrameExecutor Execute<br>RHITaskExecutor Execute<br>OpenGL / GPU API calls"]
+    asset["AssetWorker<br>(Asset Thread)<br>Consume AssetSystem Queue<br>Dispatch to Parsers"]
+    task["TaskWorker Pool<br>(N threads)<br>OBJ / PNG / GLSL<br>File parsing (CPU-bound)"]
 
-skinparam BackgroundColor #FAFAFA
-
-rectangle "Main Thread" as main {
-    [Window Event Loop\n+ Input Polling]
-}
-
-rectangle "WorldWorker\n(Logic Thread)" as world {
-    [ECS Update\nCommander\nFill RenderCommandList]
-}
-
-rectangle "RenderWorker\n(Render Thread)" as render {
-    [RenderScene Flush\nMeshBatch Sync\nRenderGraph Execute\nFill RHICommandList]
-}
-
-rectangle "RHIWorker\n(GPU Submit Thread)" as rhi {
-    [RHIFrameExecutor Execute\nRHITaskExecutor Execute\nOpenGL / GPU API calls]
-}
-
-rectangle "AssetWorker\n(Asset Thread)" as asset {
-    [Consume AssetSystem Queue\nDispatch to Parsers]
-}
-
-rectangle "TaskWorker Pool\n(N threads)" as task {
-    [OBJ / PNG / GLSL\nFile parsing (CPU-bound)]
-}
-
-main --> world : InputStorage
-world --> render : FrameGate (updateGate)\n+ RenderCommandList
-render --> rhi : FrameGate (renderGate)\n+ RHICommandList (Frame)
-asset --> rhi : RHICommandList (Task)\n(GPU upload)
-asset --> task : Dispatch parse tasks
-
-@enduml
+    main -->|InputStorage| world
+    world -->|FrameGate updateGate<br>+ RenderCommandList| render
+    render -->|FrameGate renderGate<br>+ RHICommandList Frame| rhi
+    asset -->|RHICommandList Task<br>GPU upload| rhi
+    asset -->|Dispatch parse tasks| task
 ```
 
 ---
@@ -1060,173 +963,117 @@ asset --> task : Dispatch parse tasks
 
 `FrameGate` implements producer-consumer synchronization between World and Renderer, and between Renderer and RHI.
 
-```plantuml
-@startuml Frame_Sequence
+```mermaid
+sequenceDiagram
+    participant WW as WorldWorker<br>(Logic Thread)
+    participant FG1 as FrameGate<br>(updateGate)
+    participant RCL as RenderCommandList
+    participant RW as RenderWorker<br>(Render Thread)
+    participant FG2 as FrameGate<br>(renderGate)
+    participant RHICL as RHICommandList<br>(Frame)
+    participant RHIW as RHIWorker<br>(GPU Submit)
+    participant GPU as GPU (OpenGL)
 
-skinparam BackgroundColor #FAFAFA
-skinparam SequenceArrowThickness 1.5
+    Note over WW,GPU: == Frame N Start ==
+    WW->>WW: ECS Update<br>(Systems, Components)
+    WW->>RCL: Commander.AddPrimitive()<br>Commander.Update()<br>Commander.SetView()
+    Note right of RCL: RenderTask lambdas stored<br>in LinearArena<br>(lock-free queue)
+    WW->>FG1: Submit()<br>(m_frameDiff++)
+    Note right of FG1: condition_variable<br>wakes RenderWorker
 
-participant "WorldWorker\n(Logic Thread)" as WW
-participant "FrameGate\n(updateGate)" as FG1
-participant "RenderCommandList" as RCL
-participant "RenderWorker\n(Render Thread)" as RW
-participant "FrameGate\n(renderGate)" as FG2
-participant "RHICommandList\n(Frame)" as RHICL
-participant "RHIWorker\n(GPU Submit)" as RHIW
-participant "GPU (OpenGL)" as GPU
+    Note over WW,GPU: == Render Thread Processing ==
+    FG1->>RW: Acquire() done<br>(m_frameDiff--)
+    RW->>RHICL: Executor.Acquire()<br>(acquire next frame command list)
+    RW->>RCL: ExecuteAll(renderer, cmdList)<br>(execute all RenderTasks)
+    Note right of RCL: Inside each task:<br>RenderScene.AddBatch()<br>RenderScene.UpdateBatch()<br>RenderScene.Flush()<br>GlobalResource.UpdateCamera()
+    RW->>RHICL: RenderGraph.Execute()<br>(PipeLine.Draw() -> generate draw commands)
+    RW->>RHICL: Enqueue<RHICommandDraw>()
+    RW->>RHICL: Executor.Submit(cmdList)
+    RW->>FG2: Submit()<br>(m_frameDiff++)
 
-== Frame N Start ==
-
-WW -> WW : ECS Update\n(Systems, Components)
-WW -> RCL : Commander.AddPrimitive()\nCommander.Update()\nCommander.SetView()
-note right of RCL : RenderTask lambdas stored\nin LinearArena\n(lock-free queue)
-WW -> FG1 : Submit()\n(m_frameDiff++)
-note right of FG1 : condition_variable\nwakes RenderWorker
-
-== Render Thread Processing ==
-
-FG1 -> RW : Acquire() done\n(m_frameDiff--)
-RW -> RHICL : Executor.Acquire()\n(acquire next frame command list)
-RW -> RCL : ExecuteAll(renderer, cmdList)\n(execute all RenderTasks)
-note right of RCL
-  Inside each task:
-  RenderScene.AddBatch()
-  RenderScene.UpdateBatch()
-  RenderScene.Flush()
-  GlobalResource.UpdateCamera()
-end note
-RW -> RHICL : RenderGraph.Execute()\n(PipeLine.Draw() -> generate draw commands)
-RW -> RHICL : Enqueue<RHICommandDraw>()
-RW -> RHICL : Executor.Submit(cmdList)
-RW -> FG2 : Submit()\n(m_frameDiff++)
-
-== RHI Thread Processing ==
-
-FG2 -> RHIW : Acquire() done
-RHIW -> RHICL : FrameExecutor.Execute()\n(consume command lists)
-RHICL -> GPU : RHICommand::Execute(RHISystem)\n(OpenGL API calls)
-GPU -> GPU : DrawIndexPrimitive\nPresent
-RHIW -> RHIW : TaskExecutor.Execute()\n(process asset upload commands)
-
-@enduml
+    Note over WW,GPU: == RHI Thread Processing ==
+    FG2->>RHIW: Acquire() done
+    RHIW->>RHICL: FrameExecutor.Execute()<br>(consume command lists)
+    RHICL->>GPU: RHICommand::Execute(RHISystem)<br>(OpenGL API calls)
+    GPU->>GPU: DrawIndexPrimitive<br>Present
+    RHIW->>RHIW: TaskExecutor.Execute()<br>(process asset upload commands)
 ```
 
 ---
 
 ### Asset Loading Sequence — Async 3-Stage Pipeline
 
-```plantuml
-@startuml Asset_Sequence
+```mermaid
+sequenceDiagram
+    participant GC as Game Code<br>(Main Thread)
+    participant AS as AssetSystem
+    participant AW as AssetWorker<br>(Asset Thread)
+    participant TW as TaskWorker Pool<br>(Parse Threads)
+    participant RTE as RHITaskExecutor<br>(Task CmdList)
+    participant RHIW as RHIWorker<br>(GPU Submit)
+    participant GPU as GPU
 
-skinparam BackgroundColor #FAFAFA
+    Note over GC,GPU: == Asset Load Request ==
+    GC->>AS: AssetSystem::Load("mesh.obj")
+    AS->>AS: AssetFactory::Create(path)<br>-> MeshAsset created<br>(state = eLoaded)
+    AS->>AS: Enqueue(asset) to internal queue
 
-participant "Game Code\n(Main Thread)" as GC
-participant "AssetSystem" as AS
-participant "AssetWorker\n(Asset Thread)" as AW
-participant "TaskWorker Pool\n(Parse Threads)" as TW
-participant "RHITaskExecutor\n(Task CmdList)" as RTE
-participant "RHIWorker\n(GPU Submit)" as RHIW
-participant "GPU" as GPU
+    Note over GC,GPU: == Parse Stage (CPU-bound) ==
+    AW->>AS: GetTask() -> dequeue MeshAsset
+    AW->>TW: TaskWorker::Set(ParseTask)<br>(condition_variable notify)
+    TW->>TW: OBJParser::Parse(asset)<br>read file -> fill rawBuffers<br>(state = eParsed)
+    TW-->>AW: completion signal
 
-== Asset Load Request ==
+    Note over GC,GPU: == Load Stage (GPU format conversion) ==
+    AW->>RTE: Executor.Acquire()<br>-> acquire RHICommandList
+    AW->>RTE: OBJParser::Load(asset, cmdList)<br>-> Enqueue<RHICommandInitializeBuffer>()<br>-> Enqueue<RHICommandInitializeTexture>()
+    AW->>RTE: Executor.Submit(cmdList)
 
-GC -> AS : AssetSystem::Load("mesh.obj")
-AS -> AS : AssetFactory::Create(path)\n-> MeshAsset created\n(state = eLoaded)
-AS -> AS : Enqueue(asset) to internal queue
-
-== Parse Stage (CPU-bound) ==
-
-AW -> AS : GetTask() -> dequeue MeshAsset
-AW -> TW : TaskWorker::Set(ParseTask)\n(condition_variable notify)
-TW -> TW : OBJParser::Parse(asset)\nread file -> fill rawBuffers\n(state = eParsed)
-TW --> AW : completion signal
-
-== Load Stage (GPU format conversion) ==
-
-AW -> RTE : Executor.Acquire()\n-> acquire RHICommandList
-AW -> RTE : OBJParser::Load(asset, cmdList)\n-> Enqueue<RHICommandInitializeBuffer>()\n-> Enqueue<RHICommandInitializeTexture>()
-AW -> RTE : Executor.Submit(cmdList)
-
-== GPU Upload Stage ==
-
-RHIW -> RTE : TaskExecutor.Execute()
-RTE -> GPU : RHICommand::Execute(RHISystem)\n-> glBufferData / glTexImage2D
-GPU --> RHIW : done
-note right of RHIW
-  asset.state = eReady
-  MeshBatch can now
-  reference RHIBuffer
-end note
-
-@enduml
+    Note over GC,GPU: == GPU Upload Stage ==
+    RHIW->>RTE: TaskExecutor.Execute()
+    RTE->>GPU: RHICommand::Execute(RHISystem)<br>-> glBufferData / glTexImage2D
+    GPU-->>RHIW: done
+    Note right of RHIW: asset.state = eReady<br>MeshBatch can now<br>reference RHIBuffer
 ```
 
 ---
 
 ### Synchronization Mechanism Detail
 
-```plantuml
-@startuml Sync_Detail
-
-skinparam BackgroundColor #FAFAFA
-
-package "FrameGate Internal Structure" {
+```mermaid
+classDiagram
     class FrameGate {
-        - m_cvProducer : condition_variable
-        - m_cvConsumer : condition_variable
-        - m_mutex : mutex
-        - m_frameLimit : const size_t
-        - m_frameDiff : atomic<int32_t>
-        - m_notified : atomic<bool>
-        ..
-        Submit() {
-          lock(m_mutex)
-          m_frameDiff++
-          m_cvConsumer.notify_one()
-        }
-        ..
-        Acquire() {
-          lock(m_mutex)
-          m_cvConsumer.wait(
-            lock, [&]{ return m_frameDiff > 0 }
-          )
-          m_frameDiff--
-        }
+        - condition_variable m_cvProducer
+        - condition_variable m_cvConsumer
+        - mutex m_mutex
+        - const size_t m_frameLimit
+        - atomic~int32_t~ m_frameDiff
+        - atomic~bool~ m_notified
+        + Submit()
+        + Acquire()
     }
-}
+    note for FrameGate "Submit() {\n  lock(m_mutex)\n  m_frameDiff++\n  m_cvConsumer.notify_one()\n}\n\nAcquire() {\n  lock(m_mutex)\n  m_cvConsumer.wait(\n    lock, [&]{ return m_frameDiff > 0 }\n  )\n  m_frameDiff--\n}"
 
-package "RHIFrameExecutor Internal Structure (Triple Buffering)" {
     class RHIFrameExecutor {
-        - m_listPool[3] : RHICommandList[]
-        - m_recordIndex : size_t   <- written by RenderWorker
-        - m_beginIndex : size_t    <- read start index for RHIWorker
-        - m_endIndex : atomic      <- cross-thread: Submit writes, Execute reads
-        ..
-        Acquire() -> returns m_listPool[m_recordIndex]
-        Submit()  -> advances m_recordIndex, increments m_endIndex
-        Execute() -> processes range m_beginIndex ~ m_endIndex
+        - RHICommandList[] m_listPool
+        - size_t m_recordIndex
+        - size_t m_beginIndex
+        - atomic m_endIndex
+        + Acquire()
+        + Submit()
+        + Execute()
     }
-}
+    note for RHIFrameExecutor "m_recordIndex <- written by RenderWorker\nm_beginIndex <- read start index for RHIWorker\nm_endIndex <- cross-thread: Submit writes, Execute reads\n\nAcquire() -> returns m_listPool[m_recordIndex]\nSubmit() -> advances m_recordIndex, increments m_endIndex\nExecute() -> processes range m_beginIndex ~ m_endIndex"
 
-package "RenderCommandList Internal Structure (Lock-free Queue)" {
     class RenderCommandList {
-        - m_head : atomic<RenderTask*>
-        - m_tail : atomic<RenderTask*>
-        - m_allocator[2] : LinearArena  <- ping-pong buffers
-        - m_writeIndex : atomic<size_t>
-        ..
-        Enqueue() {
-          task = m_allocator[writeIdx].Alloc()
-          CAS(m_tail, task)  <- lock-free insert
-        }
-        ExecuteAll() {
-          m_writeIndex ^= 1  <- swap buffers
-          while(head) head->Execute(); head = head->next
-        }
+        - atomic~RenderTask*~ m_head
+        - atomic~RenderTask*~ m_tail
+        - LinearArena m_allocator[2]
+        - atomic~size_t~ m_writeIndex
+        + Enqueue()
+        + ExecuteAll()
     }
-}
-
-@enduml
+    note for RenderCommandList "m_allocator <- ping-pong buffers\n\nEnqueue() {\n  task = m_allocator[writeIdx].Alloc()\n  CAS(m_tail, task) <- lock-free insert\n}\nExecuteAll() {\n  m_writeIndex ^= 1 <- swap buffers\n  while(head) head->Execute(); head = head->next\n}"
 ```
 
 ---
@@ -1237,172 +1084,134 @@ Control flow for each Worker during one frame or one task.
 
 #### WorldWorker (Logic Thread)
 
-```plantuml
-@startuml WorldWorker_Activity
-
-skinparam BackgroundColor #FAFAFA
-title WorldWorker (Logic Thread)
-
-start
-
-:onStart()\nWorldContext.Init()\nConnect InputStorage;
-
-while (m_isRunning?) is (true)
-  :InputStorage.SwapInput()\nAtomic swap: CurrData -> PrevData;
-  :WorldContext.Prepare()\nRenderCommandList.Reset();
-  :WorldContext.Update(timeStep)\nExecute ECS Systems in order\n(CameraSystem / MoveSystem / ...);
-  note right
-    During System execution, Commander
-    enqueues Scene changes into
-    RenderCommandList as RenderTask lambdas
-  end note
-  :updateGate.Submit()\nm_frameDiff++ -> wake RenderWorker;
-endwhile (false)
-
-:onDestroy();
-stop
-
-@enduml
+```mermaid
+flowchart TD
+    Start([Start]) --> Init["onStart()<br>WorldContext.Init()<br>Connect InputStorage"]
+    Init --> Loop{"m_isRunning? (true)"}
+    Loop -->|true| Swap["InputStorage.SwapInput()<br>Atomic swap: CurrData -> PrevData"]
+    Swap --> Prepare["WorldContext.Prepare()<br>RenderCommandList.Reset()"]
+    Prepare --> Update["WorldContext.Update(timeStep)<br>Execute ECS Systems in order<br>(CameraSystem / MoveSystem / ...)"]
+    Update --> Note1["Note: During System execution, Commander<br>enqueues Scene changes into<br>RenderCommandList as RenderTask lambdas"] -.-> Update
+    Update --> Submit["updateGate.Submit()<br>m_frameDiff++ -> wake RenderWorker"]
+    Submit --> Loop
+    Loop -->|false| Destroy["onDestroy()"]
+    Destroy --> Stop([Stop])
 ```
 
 #### RenderWorker (Render Thread)
 
-```plantuml
-@startuml RenderWorker_Activity
-
-skinparam BackgroundColor #FAFAFA
-title RenderWorker (Render Thread)
-
-start
-
-:onStart();
-
-while (m_isRunning?) is (true)
-  :updateGate.Acquire()\nWait for WorldWorker Submit\n(until m_frameDiff > 0);
-  :RHIFrameExecutor.Acquire()\nAcquire RHICommandList from triple buffer\nAdvance m_recordIndex;
-  :RenderCommandList.ExecuteAll(renderer, cmdList)\nExecute all RenderTasks\n-> RenderScene Flush / MeshBatch Sync;
-  :GlobalResource.UpdateCamera(renderView, cmdList)\nUpload View & Proj matrices to UBO;
-  :RenderGraph.Execute(cmdList, renderScene, renderView)\nPipeLine.Draw()\n-> Enqueue RHICommandDrawIndexPrimitive;
-  :RHIFrameExecutor.Submit(cmdList)\nAtomic increment m_endIndex\n-> RHIWorker can now read;
-  :renderGate.Submit()\nm_frameDiff++ -> wake RHIWorker;
-endwhile (false)
-
-:onDestroy();
-stop
-
-@enduml
+```mermaid
+flowchart TD
+    Start([Start]) --> Init["onStart()"]
+    Init --> Loop{"m_isRunning? (true)"}
+    Loop -->|true| Acquire1["updateGate.Acquire()<br>Wait for WorldWorker Submit<br>(until m_frameDiff > 0)"]
+    Acquire1 --> Acquire2["RHIFrameExecutor.Acquire()<br>Acquire RHICommandList from triple buffer<br>Advance m_recordIndex"]
+    Acquire2 --> Execute["RenderCommandList.ExecuteAll(renderer, cmdList)<br>Execute all RenderTasks<br>-> RenderScene Flush / MeshBatch Sync"]
+    Execute --> UpdateCam["GlobalResource.UpdateCamera(renderView, cmdList)<br>Upload View & Proj matrices to UBO"]
+    UpdateCam --> Graph["RenderGraph.Execute(cmdList, renderScene, renderView)<br>PipeLine.Draw()<br>-> Enqueue RHICommandDrawIndexPrimitive"]
+    Graph --> SubmitRHI["RHIFrameExecutor.Submit(cmdList)<br>Atomic increment m_endIndex<br>-> RHIWorker can now read"]
+    SubmitRHI --> SubmitGate["renderGate.Submit()<br>m_frameDiff++ -> wake RHIWorker"]
+    SubmitGate --> Loop
+    Loop -->|false| Destroy["onDestroy()"]
+    Destroy --> Stop([Stop])
 ```
 
 #### RHIWorker (GPU Submit Thread)
 
-```plantuml
-@startuml RHIWorker_Activity
-
-skinparam BackgroundColor #FAFAFA
-title RHIWorker (GPU Submit Thread)
-
-start
-
-:onStart()\nRHISystem.Init()\nInitialize WGLContext (create OpenGL context);
-
-while (m_isRunning?) is (true)
-  :renderGate.Acquire()\nWait for RenderWorker Submit;
-  :RHIFrameExecutor.Execute()\nConsume range m_beginIndex ~ m_endIndex sequentially;
-  note right
-    For each RHICommandList.ExecuteAll():
-    RHICommandBase::Execute(RHISystem)
-    -> direct OpenGL API calls
-    After loop: RHISystem.Present()
-  end note
-  :RHITaskExecutor.Execute()\nProcess asset upload commands\nglBufferData / glTexImage2D;
-endwhile (false)
-
-:onDestroy();
-stop
-
-@enduml
+```mermaid
+flowchart TD
+    Start([Start]) --> Init["onStart()<br>RHISystem.Init()<br>Initialize WGLContext (create OpenGL context)"]
+    Init --> Loop{"m_isRunning? (true)"}
+    Loop -->|true| Acquire["renderGate.Acquire()<br>Wait for RenderWorker Submit"]
+    Acquire --> ExecuteFrame["RHIFrameExecutor.Execute()<br>Consume range m_beginIndex ~ m_endIndex sequentially"]
+    ExecuteFrame --> Note1["Note: For each RHICommandList.ExecuteAll():<br>RHICommandBase::Execute(RHISystem)<br>-> direct OpenGL API calls<br>After loop: RHISystem.Present()"] -.-> ExecuteFrame
+    ExecuteFrame --> ExecuteTask["RHITaskExecutor.Execute()<br>Process asset upload commands<br>glBufferData / glTexImage2D"]
+    ExecuteTask --> Loop
+    Loop -->|false| Destroy["onDestroy()"]
+    Destroy --> Stop([Stop])
 ```
 
 #### AssetWorker (Asset Thread)
 
-```plantuml
-@startuml AssetWorker_Activity
-
-skinparam BackgroundColor #FAFAFA
-title AssetWorker (Asset Thread)
-
-start
-
-:onStart()\nInitialize TaskWorker pool (N threads);
-
-while (m_isRunning?) is (true)
-  :AssetSystem.GetTask()\nCheck for pending assets;
-  if (pending asset?) then (yes)
-    fork
-      :TaskWorker A\nOBJParser.Parse(asset)\nFill rawBuffers\nstate = eParsed;
-    fork again
-      :TaskWorker B\nStbImageParser.Parse(asset)\nFill rawBuffer\nstate = eParsed;
-    end merge
-    :RHITaskExecutor.Acquire()\nAcquire RHICommandList;
-    :Parser.Load(asset, cmdList)\nGPU format conversion\nEnqueue RHICommandInitializeBuffer\nEnqueue RHICommandInitializeTexture;
-    :RHITaskExecutor.Submit(cmdList)\nstate = eReady;
-    note right
-      RHIWorker later calls TaskExecutor.Execute()
-      to perform actual GPU upload
-    end note
-  else (no)
-    :yield / idle;
-  endif
-endwhile (false)
-
-:onDestroy();
-stop
-
-@enduml
+```mermaid
+flowchart TD
+    Start([Start]) --> Init["onStart()<br>Initialize TaskWorker pool (N threads)"]
+    Init --> Loop{"m_isRunning? (true)"}
+    Loop -->|true| Check["AssetSystem.GetTask()<br>Check for pending assets"]
+    Check --> Cond{"pending asset?"}
+    
+    Cond -->|yes| Fork1["TaskWorker A<br>OBJParser.Parse(asset)<br>Fill rawBuffers<br>state = eParsed"]
+    Cond -->|yes| Fork2["TaskWorker B<br>StbImageParser.Parse(asset)<br>Fill rawBuffer<br>state = eParsed"]
+    
+    Fork1 --> Merge
+    Fork2 --> Merge
+    
+    Merge["Merge"] --> Acquire["RHITaskExecutor.Acquire()<br>Acquire RHICommandList"]
+    Acquire --> Load["Parser.Load(asset, cmdList)<br>GPU format conversion<br>Enqueue RHICommandInitializeBuffer<br>Enqueue RHICommandInitializeTexture"]
+    Load --> Submit["RHITaskExecutor.Submit(cmdList)<br>state = eReady"]
+    Submit --> Note1["Note: RHIWorker later calls TaskExecutor.Execute()<br>to perform actual GPU upload"] -.-> Submit
+    Submit --> Loop
+    
+    Cond -->|no| Idle["yield / idle"]
+    Idle --> Loop
+    
+    Loop -->|false| Destroy["onDestroy()"]
+    Destroy --> Stop([Stop])
 ```
 
 ---
 
 ## World → Renderer Data Flow Detail
 
-```plantuml
-@startuml DataFlow_Detail
+```mermaid
+flowchart TD
+    subgraph WorldLayer["World Layer"]
+        Entity[Entity]
+        SceneComponent["SceneComponent<br>(position/rotation/scale)"]
+        MeshComponent["MeshComponent<br>(MeshAsset ref)"]
+        MaterialComponent["MaterialComponent<br>(MaterialAsset ref)"]
+        Scene[Scene]
+        Commander[Commander]
 
-skinparam BackgroundColor #FAFAFA
+        Entity --> SceneComponent
+        Entity --> MeshComponent
+        Entity --> MaterialComponent
+        SceneComponent --> Scene
+        Scene --> Commander
+    end
 
-rectangle "World Layer" {
-    [Entity] --> [SceneComponent\n(position/rotation/scale)]
-    [Entity] --> [MeshComponent\n(MeshAsset ref)]
-    [Entity] --> [MaterialComponent\n(MaterialAsset ref)]
-    [SceneComponent] --> [Scene]
-    [Scene] --> [Commander]
-}
+    subgraph BridgeLayer["Bridge Layer"]
+        RenderCommandList["RenderCommandList<br>(RenderTask lambda queue)"]
+        BridgeNote["Note: WorldWorker writes (Producer)<br>RenderWorker reads (Consumer)<br>Zero-alloc via LinearArena ping-pong"] -.- RenderCommandList
+    end
 
-rectangle "Bridge Layer" {
-    [Commander] --> [RenderCommandList\n(RenderTask lambda queue)]
-    note bottom of [RenderCommandList]
-      WorldWorker writes (Producer)
-      RenderWorker reads (Consumer)
-      Zero-alloc via LinearArena ping-pong
-    end note
-}
+    subgraph RendererLayer["Renderer Layer"]
+        RenderScene[RenderScene]
+        PrimitiveProxy["PrimitiveProxy<br>(SceneProxy + Mesh/Material)"]
+        MeshBatch["MeshBatch<br>(grouped by Mesh+Material+Section key)"]
+        MeshDrawCommand["MeshDrawCommand<br>(VBO, IBO, instance buffer, texture slots)"]
+        RenderGraph[RenderGraph]
+        PipeLine["PipeLine<br>(SimpleColor / Deferred planned)"]
 
-rectangle "Renderer Layer" {
-    [RenderCommandList] --> [RenderScene]
-    [RenderScene] --> [PrimitiveProxy\n(SceneProxy + Mesh/Material)]
-    [PrimitiveProxy] --> [MeshBatch\n(grouped by Mesh+Material+Section key)]
-    [MeshBatch] --> [MeshDrawCommand\n(VBO, IBO, instance buffer, texture slots)]
-    [MeshDrawCommand] --> [RenderGraph]
-    [RenderGraph] --> [PipeLine\n(SimpleColor / Deferred planned)]
-}
+        RenderScene --> PrimitiveProxy
+        PrimitiveProxy --> MeshBatch
+        MeshBatch --> MeshDrawCommand
+        MeshDrawCommand --> RenderGraph
+        RenderGraph --> PipeLine
+    end
 
-rectangle "RHI Layer" {
-    [PipeLine] --> [RHICommandList\n(GPU command object queue)]
-    [RHICommandList] --> [RHISystem\n(GLSystem)]
-    [RHISystem] --> [GPU\n(OpenGL 4.5)]
-}
+    subgraph RHILayer["RHI Layer"]
+        RHICommandList["RHICommandList<br>(GPU command object queue)"]
+        RHISystem["RHISystem<br>(GLSystem)"]
+        GPU["GPU<br>(OpenGL 4.5)"]
 
-@enduml
+        PipeLine --> RHICommandList
+        RHICommandList --> RHISystem
+        RHISystem --> GPU
+    end
+
+    Commander --> RenderCommandList
+    RenderCommandList --> RenderScene
 ```
 
 ---
@@ -1480,7 +1289,7 @@ rectangle "RHI Layer" {
 
 ```bash
 # Clone with submodules
-git clone --recursive https://github.com/YourUsername/GameEngine.git
+git clone --recursive [https://github.com/YourUsername/GameEngine.git](https://github.com/YourUsername/GameEngine.git)
 cd GameEngine
 
 # If cloned without submodules
