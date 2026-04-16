@@ -76,7 +76,8 @@ namespace wtr
 
 	bool RHIFrameExecutor::Init(const size_t frameCount)
 	{
-		if (frameCount < 3)
+		constexpr size_t MIN_FRAME_COUNT = 3;
+		if (frameCount < MIN_FRAME_COUNT)
 		{
 			return false;
 		}
