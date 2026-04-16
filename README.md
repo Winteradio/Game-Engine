@@ -1,3 +1,5 @@
+![Diagram](http://plantuml.com)
+
 # Custom Game Engine
 
 ## Project Overview
