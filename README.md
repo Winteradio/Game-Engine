@@ -8,6 +8,13 @@ The goal is to design and implement the core structures found in commercial engi
 
 Every core layer of the engine is directly controlled — from STL-free custom containers and purpose-built memory allocators to a multi-threaded worker-based pipeline — pursuing a complete understanding of both performance and architecture.
 
+## 📸 Current Progress & Demo
+
+**Milestone: Core Framework & Basic Rendering Completed** Currently, the core backbone of the engine, asset parsers, and the foundational RHI rendering pipeline have been successfully implemented.
+
+*[26-04-17] Demonstration of MeshBatch Instancing with Normal Mapping*
+![MeshBatch Instancing Demo](asset/screenshot/base-dragon-viewer.gif)
+
 ---
 
 ## Core Design Philosophy
@@ -1269,6 +1276,7 @@ flowchart TD
 | Asset System (OBJ/MTL/PNG/GLSL) | ✅ Complete |
 | Async Asset loading pipeline | ✅ Complete |
 | Multi-threaded Worker + FrameGate | ✅ Complete |
+| Input System | 🚧 Planned |
 | Deferred Rendering Pipeline | 🚧 Planned |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
 | DirectX 11 / 12 RHI backend | 🚧 Planned |
