@@ -75,6 +75,19 @@ namespace wtr
 		uint32_t	count = 0;
 		uint32_t	size = 0;
 		uint32_t	stride = 0;
+
+		RHIBufferDesc& operator=(const RHIBufferDesc& other)
+		{
+			bufferType = other.bufferType;
+			accessType = other.accessType;
+			componentType = other.componentType;
+			numComponents = other.numComponents;
+			count = other.count;
+			size = other.size;
+			stride = other.stride;
+
+			return *this;
+		}
 	};
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
@@ -94,6 +107,14 @@ namespace wtr
 	{
 		wtr::HashMap<VertexKey, RHIVertexStream> vertexStreams;
 		Memory::RefPtr<const RHIBuffer> indexBuffer;
+
+		RHIVertexLayoutDesc& operator=(const RHIVertexLayoutDesc& other)
+		{
+			vertexStreams = other.vertexStreams;
+			indexBuffer = other.indexBuffer;
+
+			return *this;
+		}
 	};
 
 	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
@@ -113,6 +134,23 @@ namespace wtr
 		eDataType		dataType = eDataType::eNone;
 		bool			generateMips = false;
 		bool			compressed = false;
+
+		RHITextureDesc& operator=(const RHITextureDesc& other)
+		{
+			width = other.width;
+			height = other.height;
+			depth = other.depth;
+			mipLevels = other.mipLevels;
+			sampleCount = other.sampleCount;
+			format = other.format;
+			usage = other.usage;
+			textureType = other.textureType;
+			dataType = other.dataType;
+			generateMips = other.generateMips;
+			compressed = other.compressed;
+
+			return *this;
+		}
 	};
 
 	struct RHITextureCreateDesc : RHITextureDesc
@@ -141,6 +179,18 @@ namespace wtr
 		eWrapMode		wrapS = eWrapMode::eNone;
 		eWrapMode		wrapT = eWrapMode::eNone;
 		eWrapMode		wrapR = eWrapMode::eNone;
+
+		RHISamplerDesc& operator=(const RHISamplerDesc& other)
+		{
+			minFilter = other.minFilter;
+			magFilter = other.magFilter;
+			mipFilter = other.mipFilter;
+			wrapS = other.wrapS;
+			wrapT = other.wrapT;
+			wrapR = other.wrapR;
+
+			return *this;
+		}
 	};
 
 	struct RHISamplerCreateDesc : RHISamplerDesc
@@ -165,6 +215,18 @@ namespace wtr
 		RHIStencilState		stencil;
 		RHIBlendState		blend;
 		RHIRasterizerState	rasterizer;
+
+		RHIPipeLineDesc& operator=(const RHIPipeLineDesc& other)
+		{
+			clear = other.clear;
+			color = other.color;
+			depth = other.depth;
+			stencil = other.stencil;
+			blend = other.blend;
+			rasterizer = other.rasterizer;
+
+			return *this;
+		}
 	};
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc

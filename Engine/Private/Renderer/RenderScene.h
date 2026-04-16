@@ -13,6 +13,7 @@ namespace wtr
 	class SceneProxy;
 	class PrimitiveProxy;
 	class LightProxy;
+	struct PrimitiveProxyHasher;
 	struct UpdateProxyInfo;
 
 	class MeshBatch;
@@ -32,7 +33,8 @@ namespace wtr
 
 			using MeshBatchContainer = wtr::HashMap<MeshBatchKey, Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
-			using PendingPrimitive = wtr::DynamicArray<Memory::RefPtr<PrimitiveProxy>>;
+			using PendingPrimitive = wtr::HashSet<Memory::RefPtr<PrimitiveProxy>, PrimitiveProxyHasher>;
+			using PendingBatch = wtr::HashSet<Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
 		public:
 			RenderScene();
@@ -56,6 +58,10 @@ namespace wtr
 		private :
 			void Clear();
 			
+			void FlushPending(Memory::RefPtr<RHICommandList> cmdList);
+			void FlushUpdated(Memory::RefPtr<RHICommandList> cmdList);
+			void FlushBatch(Memory::RefPtr<RHICommandList> cmdList);
+
 			void AddBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
 			void UpdateBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
 			void RemoveBatch(Memory::RefPtr<PrimitiveProxy> primitive, Memory::RefPtr<RHICommandList> cmdList);
@@ -69,6 +75,10 @@ namespace wtr
 			MeshBatchContainer m_meshBatches;
 
 			PendingPrimitive m_pendingPrimitives;
+			PendingPrimitive m_updatedPrimitives;
+
+			PendingBatch m_addedBatches;
+			PendingBatch m_updatedBatches;
 	};
 };
 

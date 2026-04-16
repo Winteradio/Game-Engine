@@ -32,6 +32,19 @@ namespace wtr
 		Memory::RefPtr<const MeshAsset> m_refMesh;
 		Memory::RefPtr<const MaterialAsset> m_refOverrideMaterial;
 	};
+
+	struct PrimitiveProxyHasher
+	{
+		size_t operator()(const PrimitiveProxy& proxy) const
+		{
+			return std::hash<ECS::UUID>()(proxy.GetID());
+		}
+
+		size_t operator()(const Memory::RefPtr<PrimitiveProxy>& proxy) const
+		{
+			return std::hash<ECS::UUID>()(proxy ? proxy->GetID() : ECS::UUID::Null());
+		}
+	};
 }
 
 #endif // __WTR_PRIMTIVEPROXY_H__

@@ -53,13 +53,25 @@ namespace wtr
 
 	void RenderScene::Flush(Memory::RefPtr<RHICommandList> cmdList)
 	{
+		FlushPending(cmdList);
+		FlushUpdated(cmdList);
+		FlushBatch(cmdList);
+	}
+
+	void RenderScene::FlushPending(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
 		auto itr = m_pendingPrimitives.begin();
 		while (itr != m_pendingPrimitives.end())
 		{
 			auto& primitive = *itr;
 			if (!primitive || !primitive->GetMesh())
 			{
-				LOGERROR() << "[RENDER SCENE] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
+				LOGERROR() << "[RenderScene] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
 				itr = m_pendingPrimitives.Erase(itr);
 				continue;
 			}
@@ -79,6 +91,65 @@ namespace wtr
 		}
 	}
 
+	void RenderScene::FlushUpdated(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
+		auto itr = m_updatedPrimitives.begin();
+		while (itr != m_updatedPrimitives.end())
+		{
+			auto& primitive = *itr;
+			if (!primitive || !primitive->GetMesh())
+			{
+				LOGERROR() << "[RenderScene] Failed to update the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
+				itr = m_updatedPrimitives.Erase(itr);
+				continue;
+			}
+
+			auto mesh = primitive->GetMesh();
+			if (mesh->GetState() >= eAssetState::eLoaded)
+			{
+				UpdateBatch(primitive, cmdList);
+				itr = m_updatedPrimitives.Erase(itr);
+				continue;
+			}
+			else
+			{
+				itr++;
+			}
+		}
+	}
+
+	void RenderScene::FlushBatch(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
+		for (auto& meshBatch : m_addedBatches)
+		{
+			if (meshBatch)
+			{
+				meshBatch->Upload(cmdList);
+			}
+		}
+
+		for (auto& meshBatch : m_updatedBatches)
+		{
+			if (meshBatch)
+			{
+				meshBatch->Sync(cmdList);
+			}
+		}
+
+		m_addedBatches.Clear();
+		m_updatedBatches.Clear();
+	}
+
 	void RenderScene::UpdateProxy(const UpdateProxyInfo& updateInfo, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
@@ -94,7 +165,7 @@ namespace wtr
 			primitiveProxy->UpdateRotation(updateInfo.rotation);
 			primitiveProxy->UpdateScale(updateInfo.scale);
 
-			UpdateBatch(primitiveProxy, cmdList);
+			m_updatedPrimitives.Insert(primitiveProxy);
 		}
 
 		auto itrLight = m_lights.Find(updateInfo.id);
@@ -114,7 +185,7 @@ namespace wtr
 			return;
 		}
 
-		m_pendingPrimitives.PushBack(primitive);
+		m_pendingPrimitives.Insert(primitive);
 
 		LOGINFO() << "[RenderScene] Add the primitive proxy, ID : " << primitive->GetID().ToString();
 	}
@@ -200,7 +271,8 @@ namespace wtr
 				LOGINFO() << "[RenderScene] Add the mesh batch's transform info, the mesh batch ID : " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
 
 				meshBatch->AddTransform(primitive->GetID(), primitive->GetTransform());
-				meshBatch->Sync(cmdList);
+
+				m_updatedBatches.Insert(meshBatch);
 
 				continue;
 			}
@@ -226,10 +298,9 @@ namespace wtr
 			meshBatch->SetMaterial(materialAsset);
 			meshBatch->AddTransform(primitive->GetID(), primitive->GetTransform());
 
-			meshBatch->Upload(cmdList);
-
 			LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
 
+			m_addedBatches.Insert(meshBatch);
 			m_meshBatches.Insert(std::make_pair(batchKey, meshBatch));
 		}
 	}
@@ -260,7 +331,8 @@ namespace wtr
 			}
 
 			meshBatch->UpdateTransform(primitive->GetID(), primitive->GetTransform());
-			meshBatch->Sync(cmdList);
+
+			m_updatedBatches.Insert(meshBatch);
 		}
 	}
 

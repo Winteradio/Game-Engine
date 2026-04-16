@@ -430,6 +430,8 @@ namespace wtr
 
 		glBuffer->SetID(bufferID);
 		glBuffer->SetState(eResourceState::eReady);
+
+		buffer->SetDesc(info);
 	}
 
 	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -501,6 +503,8 @@ namespace wtr
 
 		glVertexLayout->SetID(vertexLayoutID);
 		glVertexLayout->SetState(eResourceState::eReady);
+
+		layout->SetDesc(info);
 	}
 
 	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -562,6 +566,8 @@ namespace wtr
 		{
 			glTexture->SetID(textureID);
 			glTexture->SetState(eResourceState::eReady);
+
+			texture->SetDesc(info);
 		}
 	}
 
@@ -594,6 +600,8 @@ namespace wtr
 
 		glSampler->SetID(samplerID);
 		glSampler->SetState(eResourceState::eReady);
+
+		sampler->SetDesc(info);
 	}
 
 	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
@@ -711,6 +719,8 @@ namespace wtr
 		else
 		{
 			glPipeLine->SetState(eResourceState::eReady);
+
+			pipeline->SetDesc(info);
 		}
 	}
 
@@ -1144,6 +1154,8 @@ namespace wtr
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
+
+		buffer->SetDesc(info);
 	}
 
 	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -1152,6 +1164,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		texture->SetDesc(info);
 	}
 
 	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
@@ -1175,6 +1189,8 @@ namespace wtr
 		glBindBuffer(bufferType, glBuffer->GetID());
 		glBufferData(bufferType, dataSize, info.data, accessType);
 		glBindBuffer(bufferType, GL_NONE);
+
+		buffer->SetDesc(info);
 	}
 
 	void GLSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -1224,6 +1240,8 @@ namespace wtr
 
 			glTexture->SetID(GL_NONE);
 			glTexture->SetState(eResourceState::eError);
+
+			texture->SetDesc(info);
 		}
 	}
 
