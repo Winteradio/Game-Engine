@@ -99,6 +99,46 @@ namespace wtr
 		return m_desc.stride;
 	}
 
+	void RHIBuffer::SetBufferType(const eBufferType bufferType)
+	{
+		m_desc.bufferType = bufferType;
+	}
+
+	void RHIBuffer::SetAccessType(const eDataAccess accessType)
+	{
+		m_desc.accessType = accessType;
+	}
+
+	void RHIBuffer::SetComponentType(const eDataType componentType)
+	{
+		m_desc.componentType = componentType;
+	}
+
+	void RHIBuffer::SetNumComponents(const uint32_t numComponents)
+	{
+		m_desc.numComponents = numComponents;
+	}
+
+	void RHIBuffer::SetCount(const uint32_t count)
+	{
+		m_desc.count = count;
+	}
+
+	void RHIBuffer::SetSize(const uint32_t size)
+	{
+		m_desc.size = size;
+	}
+
+	void RHIBuffer::SetStride(const uint32_t stride)
+	{
+		m_desc.stride = stride;
+	}
+
+	void RHIBuffer::SetDesc(const RHIBufferDesc& desc)
+	{
+		m_desc = desc;
+	}
+
 	RHIVertexLayout::RHIVertexLayout(const RHIVertexLayoutDesc& desc)
 		: m_desc(desc)
 	{}
@@ -106,6 +146,11 @@ namespace wtr
 	const size_t RHIVertexLayout::GetNumAttributes() const
 	{
 		return m_desc.vertexStreams.Size();
+	}
+
+	void RHIVertexLayout::SetDesc(const RHIVertexLayoutDesc& desc)
+	{
+		m_desc = desc;
 	}
 
 	RHITexture::RHITexture(const RHITextureDesc& desc)
@@ -152,6 +197,51 @@ namespace wtr
 		return m_desc.textureType;
 	}
 
+	void RHITexture::SetWidth(const uint32_t width)
+	{
+		m_desc.width = width;
+	}
+
+	void RHITexture::SetHeight(const uint32_t height)
+	{
+		m_desc.height = height;
+	}
+
+	void RHITexture::SetDepth(const uint32_t depth)
+	{
+		m_desc.depth = depth;
+	}
+
+	void RHITexture::SetMipLevels(const uint32_t mipLevels)
+	{
+		m_desc.mipLevels = mipLevels;
+	}
+
+	void RHITexture::SetSampleCount(const uint32_t sampleCount)
+	{
+		m_desc.sampleCount = sampleCount;
+	}
+
+	void RHITexture::SetPixelFormat(const ePixelFormat pixelFormat)
+	{
+		m_desc.format = pixelFormat;
+	}
+
+	void RHITexture::SetTextureUsage(const eTextureUsage textureUsage)
+	{
+		m_desc.usage = textureUsage;
+	}
+
+	void RHITexture::SetTextureType(const eTextureType textureType)
+	{
+		m_desc.textureType = textureType;
+	}
+
+	void RHITexture::SetDesc(const RHITextureDesc& desc)
+	{
+		m_desc = desc;
+	}
+
 	RHISampler::RHISampler(const RHISamplerDesc& desc)
 		: m_desc(desc)
 	{}
@@ -184,6 +274,41 @@ namespace wtr
 	const eWrapMode RHISampler::GetWrapR() const
 	{
 		return m_desc.wrapR;
+	}
+
+	void RHISampler::SetMinFilter(const eFilterMode minFilter)
+	{
+		m_desc.minFilter = minFilter;
+	}
+
+	void RHISampler::SetMagFilter(const eFilterMode magFilter)
+	{
+		m_desc.magFilter = magFilter;
+	}
+
+	void RHISampler::SetMipFilter(const eFilterMode mipFilter)
+	{
+		m_desc.mipFilter = mipFilter;
+	}
+
+	void RHISampler::SetWrapS(const eWrapMode wrapS)
+	{
+		m_desc.wrapS = wrapS;
+	}
+
+	void RHISampler::SetWrapT(const eWrapMode wrapT)
+	{
+		m_desc.wrapT = wrapT;
+	}
+
+	void RHISampler::SetWrapR(const eWrapMode wrapR)
+	{
+		m_desc.wrapR = wrapR;
+	}
+
+	void RHISampler::SetDesc(const RHISamplerDesc& desc)
+	{
+		m_desc = desc;
 	}
 
 	RHIShader::RHIShader(const RHIShaderDesc& desc)
@@ -258,6 +383,11 @@ namespace wtr
 	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState rasterizer)
 	{
 		m_desc.rasterizer = rasterizer;
+	}
+
+	void RHIPipeLine::SetDesc(const RHIPipeLineDesc& desc)
+	{
+		m_desc = desc;
 	}
 
 	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)

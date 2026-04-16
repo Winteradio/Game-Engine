@@ -58,6 +58,16 @@ namespace wtr
 			const uint32_t GetSize() const;
 			const uint32_t GetStride() const;
 
+			void SetBufferType(const eBufferType bufferType);
+			void SetAccessType(const eDataAccess accessType);
+			void SetComponentType(const eDataType componentType);
+			void SetNumComponents(const uint32_t numComponents);
+			void SetCount(const uint32_t count);
+			void SetSize(const uint32_t size);
+			void SetStride(const uint32_t stride);
+
+			void SetDesc(const RHIBufferDesc& desc);
+
 		protected :
 			RHIBufferDesc m_desc;
 	};
@@ -70,6 +80,8 @@ namespace wtr
 
 		public :
 			const size_t GetNumAttributes() const;
+
+			void SetDesc(const RHIVertexLayoutDesc& desc);
 
 		protected :
 			RHIVertexLayoutDesc m_desc;
@@ -91,6 +103,17 @@ namespace wtr
 			const eTextureUsage GetTextureUsage() const;
 			const eTextureType GetTextureType() const;
 
+			void SetWidth(const uint32_t width);
+			void SetHeight(const uint32_t height);
+			void SetDepth(const uint32_t depth);
+			void SetMipLevels(const uint32_t mipLevels);
+			void SetSampleCount(const uint32_t sampleCount);
+			void SetPixelFormat(const ePixelFormat pixelFormat);
+			void SetTextureUsage(const eTextureUsage textureUsage);
+			void SetTextureType(const eTextureType textureType);
+
+			void SetDesc(const RHITextureDesc& desc);
+
 		protected :
 			RHITextureDesc m_desc;
 	};
@@ -108,6 +131,15 @@ namespace wtr
 			const eWrapMode GetWrapS() const;
 			const eWrapMode GetWrapT() const;
 			const eWrapMode GetWrapR() const;
+
+			void SetMinFilter(const eFilterMode minFilter);
+			void SetMagFilter(const eFilterMode magFilter);
+			void SetMipFilter(const eFilterMode mipFilter);
+			void SetWrapS(const eWrapMode wrapS);
+			void SetWrapT(const eWrapMode wrapT);
+			void SetWrapR(const eWrapMode wrapR);
+
+			void SetDesc(const RHISamplerDesc& desc);
 
 		protected :
 			RHISamplerDesc m_desc;
@@ -146,6 +178,8 @@ namespace wtr
 			void SetStencilState(const RHIStencilState stencil);
 			void SetBlendState(const RHIBlendState blend);
 			void SetRasterizerState(const RHIRasterizerState rasterizer);
+
+			void SetDesc(const RHIPipeLineDesc& desc);
 
 			void AddSlot(const std::string& name, const RHIResourceBinding& binding);
 			bool HasSlot(const std::string& name) const;
