@@ -29,8 +29,10 @@ namespace wtr
 			const eWindowStatus GetStatus() const override;
 			void* GetNativeHandle() const override;
 
-			void SetInputHandler(InputHandler* inputHandler) override;
-			const InputHandler* GetInputHandler() const override;
+			void SetInputHandler(Memory::RefPtr<InputHandler> inputHandler) override;
+			Memory::RefPtr<const InputHandler> GetInputHandler() const override;
+
+			void SetCloseCallback(const std::function<void()>& callback) override;
 
 		private :
 			static LRESULT CALLBACK InputCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -38,16 +40,18 @@ namespace wtr
 			eKeyCode ConvertToKeyCode(WPARAM wParam);
 
 		private :
-			HWND m_WindowHandle;
-			WNDCLASSA m_WindowClass;
+			HWND		m_windowHandle;
+			WNDCLASSA	m_windowClass;
 
-			InputHandler* m_InputHandler;
+			Memory::RefPtr<InputHandler> m_refInputHandler;
 
 			std::string m_name;
 			int m_width;
 			int m_height;
 			int m_posX;
 			int m_posY;
+
+			std::function<void()> m_closeCallback;
 	};
 };
 

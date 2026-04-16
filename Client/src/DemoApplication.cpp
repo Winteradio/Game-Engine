@@ -1,84 +1,97 @@
 #include <DemoApplication.h>
 
-#include <Framework/Engine.h>
-#include <Framework/Window.h>
-#include <Renderer/RenderTypes.h>
-#include <Renderer/RenderGraph.h>
+#include <Asset/AssetSystem.h>
+#include <Asset/AssetTypes.h>
+
+#include <World/WorldContext.h>
+#include <World/Component.h>
+#include <World/Node.h>
+#include <World/Entity.h>
+#include <World/System/MoveSystem.h>
 
 #include <Log/include/Log.h>
 
 namespace demo
 {
 	Game::Game()
-		: engine(nullptr)
 	{}
 
 	Game::~Game()
+	{}
+
+	void Game::onSetup()
 	{
-		if (nullptr != engine)
+		if (!InitEntity())
 		{
-			delete engine;
+			LOGERROR() << "[Game] Failed to initialize the entity";
+
+			onShutdown();
+			return;
+		}
+
+		if (!InitSystem())
+		{
+			LOGERROR() << "[Game] Failed to initialize the system";
+			onShutdown();
+			return;
 		}
 	}
 
-	void Game::onInit()
+	bool Game::InitEntity()
 	{
-		if (nullptr != engine)
-		{
-			LOGERROR() << "[GAME] The engine was already initialized";
-			return;
-		}
-
-		engine = new wtr::Engine();
-
-		wtr::WindowDesc windowDesc;
-		windowDesc.Type = wtr::eWindowType::eWin32;
-
-		wtr::RenderDesc renderDesc;
-		renderDesc.Type = wtr::eRenderType::eOpenGL;
-		
-		if (!engine->Init(windowDesc, renderDesc))
-		{
-			LOGERROR() << "[GAME] Failed to initialize the engine";
-			engine->Shutdown();
-			return;
-		}
-
-		auto& world = engine->GetWorld();
+		auto world = GetWorld();
 		if (!world)
 		{
-			LOGERROR() << "[GAME] Failed to get the world from the engine";
-			engine->Shutdown();
-			return;
+			LOGERROR() << "[Game] Failed to get the world from the engine";
+			return false;
 		}
 
-		auto& mainScene = world->scene.Create("MainScene");
-		auto mainView = wtr::ViewInfo();
-		mainView.name = "MainView";
-		mainView.pipeline = "BasePipeline";
-		mainView.cameraID = ECS::UUID();
-		mainView.posX = 0;
-		mainView.posY = 0;
-		mainView.width = 1280;
-		mainView.height = 720;
-		mainView.active = true;
+		for (size_t index = 0; index < 25; index++)
+		{
+			auto dragonEntity = world->CreateEntity();
+			if (!dragonEntity)
+			{
+				LOGERROR() << "[Game] Failed to create the dragon entity";
+				continue;
+			}
 
-		mainScene.RegisterView(mainView);
+			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
+
+			dragonEntity->AddComponent<wtr::SceneComponent>();
+			dragonEntity->AddComponent<wtr::MeshComponent>(dragonAsset);
+			dragonEntity->AddNode<wtr::MeshNode>();
+
+			auto sceneComponent = dragonEntity->GetComponent<wtr::SceneComponent>();
+			if (sceneComponent)
+			{
+				sceneComponent->UpdatePosition({ static_cast<float>(index % 5) * 0.4f, static_cast<float>(index / 5) * 0.4f, 0.0f });
+				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+			}
+
+			world->scene.Attach(dragonEntity->GetNode<wtr::MeshNode>());
+
+			LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
+		}
+
+		return true;
 	}
 
-	void Game::onRun()
+	bool Game::InitSystem()
 	{
-		if (nullptr != engine)
+		auto world = GetWorld();
+		if (!world)
 		{
-			engine->Run();
+			LOGERROR() << "[Game] Failed to get the world from the engine";
+			return false;
 		}
-	}
 
-	void Game::onShutdown()
-	{
-		if (nullptr != engine)
+		auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
+		if (!moveSystem)
 		{
-			engine->Shutdown();
+			LOGERROR() << "[Game] Failed to create the render system";
+			return false;
 		}
+		return true;
 	}
 }

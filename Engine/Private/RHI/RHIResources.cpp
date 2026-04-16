@@ -2,9 +2,52 @@
 
 namespace wtr
 {
+	eResourceState operator|(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator&(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator^(const eResourceState lhs, const eResourceState rhs)
+	{
+		return static_cast<eResourceState>(static_cast<uint8_t>(lhs) ^ static_cast<uint8_t>(rhs));
+	}
+
+	eResourceState operator~(const eResourceState state)
+	{
+		return static_cast<eResourceState>(~static_cast<uint8_t>(state));
+	}
+
+	eResourceState& operator|=(eResourceState& lhs, const eResourceState rhs)
+	{
+		lhs = lhs | rhs;
+		return lhs;
+	}
+
+	eResourceState& operator&=(eResourceState& lhs, const eResourceState rhs)
+	{
+		lhs = lhs & rhs;
+		return lhs;
+	}
+
+	eResourceState& operator^=(eResourceState& lhs, const eResourceState rhs)
+	{
+		lhs = lhs ^ rhs;
+		return lhs;
+	}
+
+	void* RHIResource::GetRawBuffer()
+	{
+		return reinterpret_cast<void*>(this);
+	}
+
 	const void* RHIResource::GetRawBuffer() const
 	{
-		return nullptr;
+		return reinterpret_cast<const void*>(this);
 	}
 
 	void RHIResource::SetState(const eResourceState eState)
@@ -21,12 +64,7 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const void* RHIBuffer::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
-	const eBufferType RHIBuffer::GetType() const
+	const eBufferType RHIBuffer::GetBufferType() const
 	{
 		return m_desc.bufferType;
 	}
@@ -34,6 +72,21 @@ namespace wtr
 	const eDataAccess RHIBuffer::GetAccessType() const
 	{
 		return m_desc.accessType;
+	}
+
+	const eDataType RHIBuffer::GetComponentType() const
+	{
+		return m_desc.componentType;
+	}
+
+	const uint32_t RHIBuffer::GetNumComponents() const
+	{
+		return m_desc.numComponents;
+	}
+
+	const uint32_t RHIBuffer::GetCount() const
+	{
+		return m_desc.count;
 	}
 
 	const uint32_t RHIBuffer::GetSize() const
@@ -46,14 +99,18 @@ namespace wtr
 		return m_desc.stride;
 	}
 
-	RHITexture::RHITexture(const RHITextureDesc& desc)
+	RHIVertexLayout::RHIVertexLayout(const RHIVertexLayoutDesc& desc)
 		: m_desc(desc)
 	{}
 
-	const void* RHITexture::GetRawBuffer() const
+	const size_t RHIVertexLayout::GetNumAttributes() const
 	{
-		return static_cast<const void*>(this);
+		return m_desc.vertexStreams.Size();
 	}
+
+	RHITexture::RHITexture(const RHITextureDesc& desc)
+		: m_desc(desc)
+	{}
 
 	const uint32_t RHITexture::GetWidth() const
 	{
@@ -90,14 +147,14 @@ namespace wtr
 		return m_desc.usage;
 	}
 
+	const eTextureType RHITexture::GetTextureType() const
+	{
+		return m_desc.textureType;
+	}
+
 	RHISampler::RHISampler(const RHISamplerDesc& desc)
 		: m_desc(desc)
 	{}
-
-	const void* RHISampler::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
 
 	const eFilterMode RHISampler::GetMinFilter() const
 	{
@@ -129,50 +186,19 @@ namespace wtr
 		return m_desc.wrapR;
 	}
 
-	RHIVertexShader::RHIVertexShader(const RHIVertexShaderDesc& desc)
-		: m_dsec(desc)
-	{}
-
-	const void* RHIVertexShader::GetRawBuffer() const
+	RHIShader::RHIShader(const RHIShaderDesc& desc)
+		: m_desc(desc)
 	{
-		return static_cast<const void*>(this);
 	}
 
-	RHIGeometryShader::RHIGeometryShader(const RHIGeometryShaderDesc& desc)
-		: m_desc(desc)
-	{}
-
-	const void* RHIGeometryShader::GetRawBuffer() const
+	const eShaderType RHIShader::GetShaderType() const
 	{
-		return static_cast<const void*>(this);
-	}
-
-	RHIPixelShader::RHIPixelShader(const RHIPixelShaderDesc& desc)
-		: m_desc(desc)
-	{}
-
-	const void* RHIPixelShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
-
-	RHIComputeShader::RHIComputeShader(const RHIComputeShaderDesc& desc)
-		: m_desc(desc)
-	{}
-
-	const void* RHIComputeShader::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
+		return m_desc.shaderType;
 	}
 
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
 	{}
-
-	const void* RHIPipeLine::GetRawBuffer() const
-	{
-		return static_cast<const void*>(this);
-	}
 
 	const RHIClearState RHIPipeLine::GetClearState() const
 	{
@@ -202,5 +228,63 @@ namespace wtr
 	const RHIRasterizerState RHIPipeLine::GetRasterizerState() const
 	{
 		return m_desc.rasterizer;
+	}
+
+	void RHIPipeLine::SetClearState(const RHIClearState clear)
+	{
+		m_desc.clear = clear;
+	}
+
+	void RHIPipeLine::SetColorState(const RHIColorState color)
+	{
+		m_desc.color = color;
+	}
+
+	void RHIPipeLine::SetDepthState(const RHIDepthState depth)
+	{
+		m_desc.depth = depth;
+	}
+
+	void RHIPipeLine::SetStencilState(const RHIStencilState stencil)
+	{
+		m_desc.stencil = stencil;
+	}
+
+	void RHIPipeLine::SetBlendState(const RHIBlendState blend)
+	{
+		m_desc.blend = blend;
+	}
+
+	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState rasterizer)
+	{
+		m_desc.rasterizer = rasterizer;
+	}
+
+	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
+	{
+		m_slots.Insert(std::make_pair(name, binding));
+	}
+
+	bool RHIPipeLine::HasSlot(const std::string& name) const
+	{
+		return m_slots.Find(name) != m_slots.End();
+	}
+
+	size_t RHIPipeLine::GetSlotCount() const
+	{
+		return m_slots.Size();
+	}
+
+	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const std::string& name) const
+	{
+		auto itr = m_slots.Find(name);
+		if (itr != m_slots.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			return RHIResourceBinding{};
+		}
 	}
 };

@@ -13,13 +13,13 @@ namespace wtr
 	class RHITaskExecutor : public RHIExecutor
 	{
 	public :
-		RHITaskExecutor();
+		RHITaskExecutor(Memory::RefPtr<RHISystem> system);
 		virtual ~RHITaskExecutor();
 
 	public :
 		Memory::RefPtr<RHICommandList> Acquire() override;
 		void Submit(Memory::RefPtr<RHICommandList> cmdList) override;
-		void Execute(Memory::RefPtr<RHISystem> system) override;
+		void Execute() override;
 
 	private :
 		std::mutex m_listMutex;

@@ -48,7 +48,7 @@ namespace wtr
 			void Update(const InputDesc& inputDesc);
 			void SwapInput();
 
-			bool IsChanaged() const;
+			bool IsChanged() const;
 			bool IsDown(eKeyCode key) const;
 			bool IsPressed(eKeyCode key) const;
 			bool IsReleased(eKeyCode key) const;

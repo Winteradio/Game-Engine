@@ -1,20 +1,36 @@
 #ifndef __WTR_PRIMTIVEPROXY_H__
 #define __WTR_PRIMTIVEPROXY_H__
 
-#include <Renderer/Proxy/RenderProxy.h>
+#include <Renderer/Proxy/SceneProxy.h>
+#include <Framework/Math/MathTypes.h>
+
+#include <Memory/include/Pointer/RefPtr.h>
 
 namespace wtr
 {
-	class PrimitiveProxy : public RenderProxy
+	class MeshAsset;
+	class MaterialAsset;
+};
+
+namespace wtr
+{
+	class PrimitiveProxy : public SceneProxy
 	{
-	public:
+		GENERATE(PrimitiveProxy);
+	public :
 		PrimitiveProxy();
 		virtual ~PrimitiveProxy();
 
-	public:
-		virtual void CreateRHI(RHICommandList& commandList) override;
-		virtual void UpdateRHI(RHICommandList& commandList) override;
-		virtual void ReleaseRHI(RHICommandList& commandList) override;
+	public :
+		void SetMesh(Memory::RefPtr<const MeshAsset> refMesh);
+		void SetOverrideMaterial(Memory::RefPtr<const MaterialAsset> refMaterial);
+
+		Memory::RefPtr<const MeshAsset> GetMesh() const;
+		Memory::RefPtr<const MaterialAsset> GetOverrideMaterial() const;
+
+	private :
+		Memory::RefPtr<const MeshAsset> m_refMesh;
+		Memory::RefPtr<const MaterialAsset> m_refOverrideMaterial;
 	};
 }
 

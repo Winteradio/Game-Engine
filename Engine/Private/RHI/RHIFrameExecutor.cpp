@@ -9,13 +9,12 @@
 
 namespace wtr
 {
-	RHIFrameExecutor::RHIFrameExecutor()
-		: m_frameCount(0)
+	RHIFrameExecutor::RHIFrameExecutor(Memory::RefPtr<RHISystem> system)
+		: RHIExecutor(system)
+		, m_frameCount(0)
 		, m_recordIndex(0)
 		, m_beginIndex(0)
 		, m_endIndex(0)
-		, m_mutexWriting()
-		, m_cvWriting()
 		, m_listPool()
 	{}
 
@@ -24,29 +23,17 @@ namespace wtr
 
 	Memory::RefPtr<RHICommandList> RHIFrameExecutor::Acquire()
 	{
-		const size_t now = m_recordIndex.load(std::memory_order_relaxed);
+		const size_t now = m_recordIndex;
 		const size_t next = GetNext(now);
 
-		if (next == m_beginIndex.load(std::memory_order_acquire))
-		{
-			std::unique_lock<std::mutex> lock(m_mutexWriting);
-
-			auto checkWritable = [this, next]()
-			{
-				return next != m_beginIndex.load(std::memory_order_acquire);
-			};
-
-			m_cvWriting.wait(lock, checkWritable);
-		}
-
-		m_recordIndex.store(next, std::memory_order_relaxed);
+		m_recordIndex = next;
 
 		return m_listPool[now];
 	}
 
 	void RHIFrameExecutor::Submit(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		const size_t recordNow = m_recordIndex.load(std::memory_order_acquire);
+		const size_t recordNow = m_recordIndex;
 		const size_t recordPrev = GetPrev(recordNow);
 
 		if (m_listPool[recordPrev] != cmdList)
@@ -54,22 +41,21 @@ namespace wtr
 			return;
 		}
 
-		const size_t endNow = m_endIndex.load(std::memory_order_relaxed);
+		const size_t endNow = m_endIndex.load(std::memory_order_acquire);
 		const size_t endNext = GetNext(endNow);
 
 		m_endIndex.store(endNext, std::memory_order_release);
 	}
 
-	void RHIFrameExecutor::Execute(Memory::RefPtr<RHISystem> system)
+	void RHIFrameExecutor::Execute()
 	{
-		if (!system)
+		if (!m_system)
 		{
 			return;
 		}
 
-		const size_t record = m_recordIndex.load(std::memory_order_acquire);
-		const size_t begin = m_beginIndex.load(std::memory_order_acquire);
-		const size_t end = m_endIndex.load(std::memory_order_relaxed);
+		const size_t begin = m_beginIndex;
+		const size_t end = m_endIndex.load(std::memory_order_acquire);
 		size_t now = begin;
 
 		while (now != end)
@@ -77,20 +63,21 @@ namespace wtr
 			Memory::RefPtr<RHICommandList> cmdList = m_listPool[now];
 			if (cmdList)
 			{
-				cmdList->ExecuteAll(system);
-				system->Present();
+				cmdList->ExecuteAll();
 			}
 
 			now = GetNext(now);
 		}
 
-		m_beginIndex.store(end, std::memory_order_release);
-		m_cvWriting.notify_all();
+		m_system->Present();
+
+		m_beginIndex = end;
 	}
 
 	bool RHIFrameExecutor::Init(const size_t frameCount)
 	{
-		if (frameCount < 3)
+		constexpr size_t MIN_FRAME_COUNT = 3;
+		if (frameCount < MIN_FRAME_COUNT)
 		{
 			return false;
 		}
@@ -100,9 +87,10 @@ namespace wtr
 
 		for (size_t count = 0; count < m_frameCount; count++)
 		{
-			Memory::RefPtr<RHICommandList> cmdList = Memory::MakeRef<RHICommandList>();
+			Memory::RefPtr<RHICommandList> cmdList = Memory::MakeRef<RHICommandList>(m_system);
 			if (!cmdList)
 			{
+				LOGERROR() << "[RHIFrameExecutor] Failed to creae the RHI Commmand List";
 				break;
 			}
 
@@ -111,6 +99,8 @@ namespace wtr
 
 		if (m_listPool.Size() != m_frameCount)
 		{
+			m_listPool.Clear();
+
 			return false;
 		}
 

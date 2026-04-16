@@ -1,15 +1,24 @@
 #include <World/WorldWorker.h>
 
 #include <Framework/Input/InputStorage.h>
-#include <Framework/FrameContext.h>
+#include <Framework/Player.h>
+#include <Framework/PlayerController.h>
+#include <Framework/ViewController.h>
+#include <Framework/FrameGate.h>
+#include <Renderer/RenderView.h>
+#include <World/WorldContext.h>
+#include <World/World.h>
+#include <World/Commander.h>
+#include <World/Component.h>
 
 namespace wtr
 {
 	WorldWorker::WorldWorker()
 		: m_timeStep()
 		, m_refInputStorage(nullptr)
-		, m_refFrameContext(nullptr)
-		, m_world()
+		, m_refWorldContext(nullptr)
+		, m_refProducer(nullptr)
+		, m_renderViews()
 	{}
 
 	WorldWorker::~WorldWorker()
@@ -23,50 +32,123 @@ namespace wtr
 		}
 	}
 
-	void WorldWorker::SetFrameContext(const Memory::RefPtr<FrameContext> frameContext)
+	void WorldWorker::SetWorldContext(const Memory::RefPtr<WorldContext> worldContext)
 	{
-		if (frameContext)
+		if (worldContext)
 		{
-			m_refFrameContext = frameContext;
+			m_refWorldContext = worldContext;
 		}
 	}
 
-	void WorldWorker::SetWorld(const Memory::ObjectPtr<World> world)
+	void WorldWorker::SetProducer(const Memory::RefPtr<FrameProducer> producer)
 	{
-		if (world)
+		if (producer)
 		{
-			m_world = world;
+			m_refProducer = producer;
 		}
 	}
-
-	void WorldWorker::onStart()
-	{}
 
 	void WorldWorker::onUpdate()
 	{
 		m_timeStep.Tick();
 
-		if (!m_refInputStorage || !m_world || !m_refFrameContext)
+		if (!m_refInputStorage || !m_refWorldContext)
 		{
 			return;
 		}
 
 		m_refInputStorage->SwapInput();
+		m_refWorldContext->Update(m_timeStep);
 
-		auto& frame = m_refFrameContext->Acquire(eWorkerType::eProceduer);
-		frame.SetFrame(m_timeStep.frame);
+		auto& commander = m_refWorldContext->commander;
+		auto& views = m_refWorldContext->views;
+		auto& players = m_refWorldContext->players;
 
-		m_world->Update(m_timeStep);
-		m_world->Render(frame);
+		if (!commander || !players || !views)
+		{
+			return;
+		}
 
-		m_refFrameContext->Return(eWorkerType::eProceduer, frame);
+		UpdateView(players, views);
+
+		for (const auto& renderView : m_renderViews)
+		{
+			commander->SetView(renderView);
+		}
+
+		if (m_refProducer)
+		{
+			m_refProducer->Submit();
+		}
 	}
 
-	void WorldWorker::onDestroy()
+	void WorldWorker::onNotify()
 	{
-		if (m_refFrameContext)
+		if (m_refProducer)
 		{
-			m_refFrameContext->Notify(eWorkerType::eProceduer);
+			m_refProducer->NotifyAll();
 		}
+	}
+
+	void WorldWorker::UpdateView(Memory::RefPtr<PlayerController> playerController, Memory::RefPtr<ViewController> viewController)
+	{
+		if (!playerController || !viewController)
+		{
+			return;
+		}
+
+		m_renderViews.Clear();
+
+		const auto& actives = playerController->GetActives();
+		for (const auto& player : actives)
+		{
+			if (!player)
+			{
+				continue;
+			}
+
+			const auto& viewList = player->GetViews();
+
+			for (const auto& viewId : viewList)
+			{
+				const auto view = viewController->Get(viewId);
+				if (!view)
+				{
+					continue;
+				}
+
+				RenderView renderView = MakeView(player, view);
+
+				m_renderViews.PushBack(renderView);
+			}
+		}
+	}
+
+	RenderView WorldWorker::MakeView(Memory::RefPtr<Player> player, Memory::RefPtr<ViewInfo> view)
+	{
+		if (!player || !view)
+		{
+			return {};
+		}
+
+		Memory::ObjectPtr<const CameraComponent> camera = player->GetCamera();
+		Memory::ObjectPtr<const SceneComponent> transform = player->GetTransform();
+
+		if (!camera || !transform)
+		{
+			return {};
+		}
+
+		RenderView renderView;
+		renderView.viewport.width = view->GetWidth();
+		renderView.viewport.height = view->GetHeight();
+		renderView.viewport.posX = view->GetPosX();
+		renderView.viewport.posY = view->GetPosY();
+
+		renderView.camera.position = transform->GetPosition();
+		renderView.camera.viewMatrix = player->GetViewMatrix();
+		renderView.camera.projMatrix = player->GetProjectionMatrix();
+
+		return renderView;
 	}
 }

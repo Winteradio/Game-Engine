@@ -1,65 +1,52 @@
 #ifndef __WTR_SCENE_H__
 #define __WTR_SCENE_H__
 
-#include <ECS/include/Object/Scene.h>
+#include <Memory/include/Pointer/RefPtr.h>
+#include <Memory/include/Pointer/ObjectPtr.h>
 #include <Container/include/HashMap.h>
+#include <Container/include/HashSet.h>
+#include <ECS/include/UUID/UUID.h>
 
 namespace wtr
 {
-	struct ViewInfo
+	class BaseNode;
+	class SceneComponent;
+	class Commander;
+};
+
+namespace wtr
+{
+	class Scene
 	{
-		std::string name = "DefaultView";
-		std::string pipeline = "DefaultPipeline";
+	private :
+		struct ScenePair
+		{
+			Memory::ObjectPtr<SceneComponent> transform;
+			wtr::HashSet<size_t> nodeTypes;
+		};
 
-		ECS::UUID cameraID = ECS::UUID();
+	public :
+		Scene();
+		~Scene();
 
-		uint16_t posX = 0;
-		uint16_t posY = 0;
-		uint16_t width = 800;
-		uint16_t height = 600;
+	public :
+		void SetCommander(Memory::RefPtr<Commander> refCommander);
 
-		bool active = true;
-	};
+		void Attach(Memory::ObjectPtr<BaseNode> node);
+		void Detach(Memory::ObjectPtr<BaseNode> node);
+		void Detach(const ECS::UUID& entityId);
+		void DetachAll();
+		
+		void Update(const ECS::UUID& entityId);
 
-	class Scene : public ECS::Scene
-	{
-		public :
-			Scene();
-			Scene(const std::string& name);
-			virtual ~Scene();
+	private :
+		void AttachNode(Memory::ObjectPtr<BaseNode> node, Memory::ObjectPtr<SceneComponent> transform);
+		void DetachNode(Memory::ObjectPtr<BaseNode> node);
 
-		public :
-			void RegisterView(const ViewInfo& view);
-			void RemoveView(const std::string name);
+	private :
+		Memory::RefPtr<Commander> m_refCommander;
 
-			const ViewInfo& GetView(const std::string& name) const;
-			const wtr::HashMap<std::string, ViewInfo>& GetView() const;
-		private :
-			wtr::HashMap<std::string, ViewInfo> m_viewMap;
-	};
-
-	class SceneContainer
-	{
-		public :
-			using Storage = wtr::HashMap<std::string, Scene>;
-
-			SceneContainer();
-			~SceneContainer();
-
-		public :
-			Scene& Create(const std::string& name);
-			void Remove(const std::string& name);
-
-			Scene& GetScene(const std::string& name);
-			const Scene& GetScene(const std::string& name) const;
-
-			Storage& GetScene();
-			const Storage& GetScene() const;
-
-			bool HasScene(const std::string& name) const;
-			
-		private :
-			Storage m_storage;
+		wtr::HashMap<ECS::UUID, ScenePair> m_sceneDatas;
 	};
 };
 

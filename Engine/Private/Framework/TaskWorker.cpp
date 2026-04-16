@@ -1,24 +1,15 @@
 #include <Framework/TaskWorker.h>
 
+#include <Log/include/Log.h>
+
 namespace wtr
 {
-	Task::Task(std::function<void()> func)
-		: func(func)
-	{}
-
-	void Task::operator()()
-	{
-		if (func)
-		{
-			func();
-		}
-	}
-
 	TaskWorker::TaskWorker()
 		: Worker()
 		, m_mutex()
 		, m_cv()
 		, m_task()
+		, m_isWaited(false)
 	{}
 
 	TaskWorker::~TaskWorker()
@@ -26,20 +17,17 @@ namespace wtr
 
 	void TaskWorker::Wait()
 	{
-		std::unique_lock<std::mutex> lock(m_mutex);
-
-		m_cv.wait(lock, [this]()
-		{
-			return this->IsRunning();
-		});
+		m_isWaited = true;
 	}
 
 	void TaskWorker::Notify()
 	{
-		m_cv.notify_one();
+		m_isWaited = false;
+
+		m_cv.notify_all();
 	}
 
-	void TaskWorker::Set(Memory::RefPtr<Task> task)
+	void TaskWorker::Set(Memory::RefPtr<DefaultTask> task)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -48,9 +36,9 @@ namespace wtr
 		Notify();
 	}
 
-	bool TaskWorker::IsRunning() const
+	bool TaskWorker::IsWaited() const
 	{
-		return m_isRunning;
+		return m_isWaited;
 	}
 
 	bool TaskWorker::IsJoinable() const
@@ -58,23 +46,43 @@ namespace wtr
 		return m_thread.joinable();
 	}
 
-	void TaskWorker::onStart()
-	{}
+	bool TaskWorker::IsTasking() const
+	{
+		return m_task != nullptr;
+	}
+
+	bool TaskWorker::onStart()
+	{
+		LOGINFO() << "[Worker] The task worker started" << " Thread ID: " << std::hash<std::thread::id>()(m_thread.get_id());
+
+		return true;
+	}
 
 	void TaskWorker::onUpdate()
 	{
+		{
+			std::unique_lock<std::mutex> lock(m_mutex);
+
+			m_cv.wait(lock, [this]()
+			{
+				return !this->m_isRunning || (this->m_task != nullptr && !this->m_isWaited);
+			}
+			);
+		}
+
 		if (m_task)
 		{
 			m_task->operator()();
 			m_task.Reset();
+
+			Wait();
 		}
 	}
 
-	void TaskWorker::onDestroy()
+	void TaskWorker::onNotify()
 	{
-		if (m_task)
-		{
-			m_task.Reset();
-		}
+		Notify();
+
+		LOGINFO() << "[Worker] The task worker destroyed" << " Thread ID: " << std::hash<std::thread::id>()(m_thread.get_id());
 	}
 };

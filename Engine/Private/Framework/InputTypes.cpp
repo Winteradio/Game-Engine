@@ -141,8 +141,6 @@ namespace wtr
 		{
 			return "Unknown";
 		}
-
-		return "Unknown";
 	}
 
 	std::string InputDesc::ToString(const eInputType type)
@@ -171,8 +169,6 @@ namespace wtr
 		{
 			return "Unknown";
 		}
-
-		return "Unknown";
 	}
 
 	std::string InputDesc::ToStringKeyboard(const InputDesc& desc)

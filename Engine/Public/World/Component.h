@@ -3,47 +3,130 @@
 
 #include <ECS/include/Object/Data.h>
 #include <Framework/Math/MathTypes.h>
+#include <Asset/AssetTypes.h>
 
 namespace wtr
 {
-	namespace Component
+	class Scene;
+};
+
+namespace wtr
+{
+	class BaseComponent : public ECS::Component
 	{
-		struct Transform : ECS::Component::Base
-		{
-			fvec3 position = fvec3(0.f);
-			fvec3 rotation = fvec3(0.f);
-			fvec3 scale = fvec3(1.f);
-		};
+		GENERATE(BaseComponent);
 
-		struct Color : ECS::Component::Base
-		{
-			float red = 1.f;
-			float blue = 1.f;
-			float green = 1.f;
-			float alpha = 1.f;
-		};
+	public :
+		using ECS::Component::Component;
 
-		struct Camera : ECS::Component::Base
-		{
-			float fov = 45.f;
+		virtual ~BaseComponent() = default;
+	};
 
-			float near = 1.f;
-			float far = 1000.f;
+	class SceneComponent : public BaseComponent
+	{
+		GENERATE(SceneComponent);
 
-			float width = 1080.f;
-			float height = 800.f;
-		};
+	public:
+		using BaseComponent::BaseComponent;
 
-		struct Resource : ECS::Component::Base
-		{
-			ECS::UUID id;
-		};
+		SceneComponent();
+		virtual ~SceneComponent() = default;
 
-		struct Light : ECS::Component::Base
-		{
-			fvec3 direction = fvec3(0.f);
-		};
-	}
+	public:
+		void OnAttached(Scene* scene);
+		void OnDetached();
+
+		void UpdatePosition(const fvec3& position);
+		void UpdateRotation(const fvec3& rotation);
+		void UpdateScale(const fvec3& scale);
+
+		const fvec3 GetPosition() const;
+		const fvec3 GetRotation() const;
+		const fvec3 GetScale() const;
+
+	private :
+		void Update();
+
+	private :
+		fvec3 m_position;
+		fvec3 m_rotation;
+		fvec3 m_scale;
+
+		Scene* m_scene;
+	};
+
+	class ColorComponent : public BaseComponent
+	{
+		GENERATE(ColorComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~ColorComponent() = default;
+
+		float red = 1.f;
+		float blue = 1.f;
+		float green = 1.f;
+		float alpha = 1.f;
+	};
+
+	class CameraComponent : public BaseComponent
+	{
+		GENERATE(CameraComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~CameraComponent() = default;
+
+		float nearPlane = 1.f;
+		float farPlane = 1000.f;
+
+		float width = 0.f;
+		float height = 0.f;
+
+		bool perspective = true;
+	};
+
+	class LightComponent : public BaseComponent
+	{
+		GENERATE(LightComponent);
+
+	public:
+		using BaseComponent::BaseComponent;
+
+		virtual ~LightComponent() = default;
+
+		fvec3 direction = fvec3(0.f);
+	};
+
+	class MeshComponent : public BaseComponent
+	{
+		GENERATE(MeshComponent);
+
+	public :
+		using BaseComponent::BaseComponent;
+
+		MeshComponent() = default;
+		MeshComponent(Memory::RefPtr<Asset> refAsset);
+		virtual ~MeshComponent() = default;
+
+		Memory::RefPtr<MeshAsset> meshAsset;
+	};
+	
+	class MaterialComponent : public BaseComponent
+	{
+		GENERATE(MaterialComponent);
+
+	public :
+		using BaseComponent::BaseComponent;
+
+		MaterialComponent() = default;
+		MaterialComponent(Memory::RefPtr<Asset> refAsset);
+		virtual ~MaterialComponent() = default;
+
+		Memory::RefPtr<MaterialAsset> materialAsset;
+	};
 };
 
 #endif // __WTR_COMPONENT_H__

@@ -9,15 +9,14 @@ namespace demo
 	{
 		public : 
 			Game();
-			~Game();
+			virtual ~Game();
 
 		public :
-			void onInit() override;
-			void onRun() override;
-			void onShutdown() override;
+			void onSetup() override;
 
 		private :
-			wtr::Engine* engine;
+			bool InitEntity();
+			bool InitSystem();
 	};
 };
 

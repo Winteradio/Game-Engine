@@ -7,19 +7,20 @@
 namespace wtr
 {
 	Win32Window::Win32Window()
-		: m_WindowHandle(nullptr)
-		, m_WindowClass{0}
-		, m_InputHandler(nullptr)
+		: m_windowHandle(nullptr)
+		, m_windowClass{0}
+		, m_refInputHandler(nullptr)
 		, m_name("")
 		, m_width(800)
 		, m_height(600)
 		, m_posX(0)
 		, m_posY(0)
+		, m_closeCallback()
 	{}
 
 	Win32Window::~Win32Window()
 	{
-		if (m_WindowHandle != nullptr)
+		if (m_windowHandle != nullptr)
 		{
 			Shutdown();
 		}
@@ -37,14 +38,14 @@ namespace wtr
 
 		HINSTANCE hInstance = GetModuleHandle(0);
 
-		m_WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		m_WindowClass.hInstance = hInstance;
-		m_WindowClass.hCursor = LoadCursor(0, IDC_ARROW);
-		m_WindowClass.hbrBackground = 0;
-		m_WindowClass.lpfnWndProc = InputCallback;
-		m_WindowClass.lpszClassName = m_name.c_str();
+		m_windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		m_windowClass.hInstance = hInstance;
+		m_windowClass.hCursor = LoadCursor(0, IDC_ARROW);
+		m_windowClass.hbrBackground = 0;
+		m_windowClass.lpfnWndProc = InputCallback;
+		m_windowClass.lpszClassName = m_name.c_str();
 
-		if (!RegisterClassA(&m_WindowClass))
+		if (!RegisterClassA(&m_windowClass))
 		{
 			DWORD errCode = GetLastError();
 			LOGERROR() << "[Window] Failed to register window | Error : " << static_cast<UINT64>(errCode);
@@ -60,9 +61,9 @@ namespace wtr
 		DWORD windowStyle = WS_OVERLAPPEDWINDOW;
 		AdjustWindowRect(&rect, windowStyle, false);
 
-		m_WindowHandle = CreateWindowExA(
+		m_windowHandle = CreateWindowExA(
 			0,
-			m_WindowClass.lpszClassName,
+			m_windowClass.lpszClassName,
 			m_name.c_str(),
 			windowStyle,
 			m_posX,
@@ -74,7 +75,7 @@ namespace wtr
 			hInstance,
 			this);
 
-		if (!m_WindowHandle)
+		if (!m_windowHandle)
 		{
 			DWORD errCode = GetLastError();
 			LOGERROR() << "[Window] Failed to create window instance | Error : " << static_cast<UINT64>(errCode);
@@ -90,21 +91,22 @@ namespace wtr
 	{
 		LOGINFO() << "[Window] Shut down the Win32 Window";
 
-		if (m_WindowHandle)
+		if (m_windowHandle)
 		{
-			SetWindowLongPtr(m_WindowHandle, GWLP_USERDATA, 0);
+			SetWindowLongPtr(m_windowHandle, GWLP_USERDATA, 0);
 
-			if (IsWindow(m_WindowHandle))
+			if (IsWindow(m_windowHandle))
 			{
-				DestroyWindow(m_WindowHandle);
+				DestroyWindow(m_windowHandle);
+				PostQuitMessage(0);
 			}
-			m_WindowHandle = nullptr;
+			m_windowHandle = nullptr;
 		}
 
-		HINSTANCE hInstance = m_WindowClass.hInstance;
-		UnregisterClassA(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
+		HINSTANCE hInstance = m_windowClass.hInstance;
+		UnregisterClassA(m_windowClass.lpszClassName, m_windowClass.hInstance);
 
-		m_InputHandler = nullptr;
+		m_refInputHandler = nullptr;
 	}
 
 	bool Win32Window::PollEvents()
@@ -128,24 +130,24 @@ namespace wtr
 
 	void Win32Window::Show()
 	{
-		if (m_WindowHandle)
+		if (m_windowHandle)
 		{
-			ShowWindow(m_WindowHandle, SW_SHOW);
+			ShowWindow(m_windowHandle, SW_SHOW);
 
-			UpdateWindow(m_WindowHandle);
+			UpdateWindow(m_windowHandle);
 		}
 	}
 
 	const eWindowStatus Win32Window::GetStatus() const
 	{
-		if (!IsWindow(m_WindowHandle))
+		if (!IsWindow(m_windowHandle))
 		{
 			return eWindowStatus::eClosed;
 		}
 
 		WINDOWPLACEMENT placement;
 		placement.length = sizeof(WINDOWPLACEMENT);
-		GetWindowPlacement(m_WindowHandle, &placement);
+		GetWindowPlacement(m_windowHandle, &placement);
 
 		if (placement.showCmd == SW_MINIMIZE || placement.showCmd == SW_SHOWMINIMIZED)
 		{
@@ -157,17 +159,22 @@ namespace wtr
 
 	void* Win32Window::GetNativeHandle() const
 	{
-		return static_cast<void*>(m_WindowHandle);
+		return static_cast<void*>(m_windowHandle);
 	}
 
-	void Win32Window::SetInputHandler(InputHandler* inputHandler)
+	void Win32Window::SetInputHandler(Memory::RefPtr<InputHandler> inputHandler)
 	{
-		m_InputHandler = inputHandler;
+		m_refInputHandler = inputHandler;
 	}
 
-	const InputHandler* Win32Window::GetInputHandler() const
+	Memory::RefPtr<const InputHandler> Win32Window::GetInputHandler() const
 	{
-		return m_InputHandler;
+		return m_refInputHandler;
+	}
+
+	void Win32Window::SetCloseCallback(const std::function<void()>& closeCallback)
+	{
+		m_closeCallback = closeCallback;
 	}
 
 	LRESULT CALLBACK Win32Window::InputCallback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -194,17 +201,7 @@ namespace wtr
 			switch (uMsg)
 			{
 				case WM_CLOSE:
-				{
-					DestroyWindow(hwnd);
-					break;
-				}
-
 				case WM_DESTROY:
-				{
-					PostQuitMessage(0);
-					break;
-				}
-
 				case WM_KEYDOWN:
 				case WM_KEYUP:
 				case WM_MOUSEMOVE:
@@ -218,8 +215,7 @@ namespace wtr
 				case WM_SIZE:
 				case WM_SIZING:
 				{
-					window->HandleMessage(uMsg, wParam, lParam);
-					break;
+					return window->HandleMessage(uMsg, wParam, lParam);
 				}
 
 				default:
@@ -232,23 +228,33 @@ namespace wtr
 
 	LRESULT Win32Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		if (m_InputHandler)
+		if (m_refInputHandler)
 		{
 			switch (uMsg)
 			{
+				case WM_CLOSE:
+				case WM_DESTROY:
+				{
+					if (m_closeCallback)
+					{
+						m_closeCallback();
+					}
+					break;
+				}
+
 				case WM_KEYDOWN:
 				{
 					bool isRepeat = (lParam & (0x01 << 30)) != 0;
 					eInputAction action = isRepeat ? eInputAction::eRepeat : eInputAction::ePress;
 					InputDesc desc = InputDesc::Keyboard(ConvertToKeyCode(wParam), action);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
 				case WM_KEYUP:
 				{
 					InputDesc desc = InputDesc::Keyboard(ConvertToKeyCode(wParam), eInputAction::eRelease);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -256,11 +262,11 @@ namespace wtr
 				{
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
-					const InputDesc& lastDesc = m_InputHandler->GetInputEvent();
+					const InputDesc& lastDesc = m_refInputHandler->GetInputEvent();
 					InputDesc desc = InputDesc::MouseMove(x, y, 0, 0);
 					desc.DeltaX = (lastDesc.Type == eInputType::eMouseMove) ? (x - lastDesc.X) : 0;
 					desc.DeltaY = (lastDesc.Type == eInputType::eMouseMove) ? (y - lastDesc.Y) : 0;
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -269,7 +275,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseLeft, eInputAction::ePress, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -278,7 +284,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseLeft, eInputAction::eRelease, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -287,7 +293,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseRight, eInputAction::ePress, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -296,7 +302,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseRight, eInputAction::eRelease, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -305,7 +311,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseMiddle, eInputAction::ePress, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -314,7 +320,7 @@ namespace wtr
 					int x = LOWORD(lParam);
 					int y = HIWORD(lParam);
 					InputDesc desc = InputDesc::MouseButton(eKeyCode::eKey_MouseMiddle, eInputAction::eRelease, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -324,7 +330,7 @@ namespace wtr
 					int y = HIWORD(lParam);
 					float scrollDelta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
 					InputDesc desc = InputDesc::MouseScroll(scrollDelta, x, y);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -333,7 +339,7 @@ namespace wtr
 					int width = LOWORD(lParam);
 					int height = HIWORD(lParam);
 					InputDesc desc = InputDesc::WindowResize(width, height);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -343,7 +349,7 @@ namespace wtr
 					int width = rect->right - rect->left;
 					int height = rect->bottom - rect->top;
 					InputDesc desc = InputDesc::WindowResize(width, height);
-					m_InputHandler->OnInputEvent(desc);
+					m_refInputHandler->OnInputEvent(desc);
 					break;
 				}
 
@@ -352,7 +358,7 @@ namespace wtr
 			}
 		}
 
-		return DefWindowProc(m_WindowHandle, uMsg, wParam, lParam);
+		return DefWindowProc(m_windowHandle, uMsg, wParam, lParam);
 	}
 
 	eKeyCode Win32Window::ConvertToKeyCode(WPARAM wParam)

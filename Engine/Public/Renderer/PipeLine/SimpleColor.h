@@ -5,24 +5,34 @@
 
 namespace wtr
 {
-	class RHIShader;
+	class ShaderAsset;
 };
 
 namespace wtr
 {
 	class SimpleColor : public PipeLine
 	{
+		GENERATE(SimpleColor);
 	public :
 		SimpleColor();
 		virtual ~SimpleColor();
 
 	public :
-		virtual void Draw(const SceneView& scene, Memory::RefPtr<RHICommandList> commandList);
-		virtual void Init(Memory::RefPtr<RHICommandList> commandList);
+		void Init() override;
+		void Prepare() override;
+		void Draw(const MeshDrawCommands& meshDrawCommands, Memory::RefPtr<GlobalResource> globalResource, Memory::RefPtr<RHICommandList> cmdList) override;
+
+		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
+		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
+		eResourceState GetResourceState() const override;
+		eResourceState GetShaderState() const override;
 
 	private :
-		Memory::RefPtr<RHIShader> m_vertexShader;
-		Memory::RefPtr<RHIShader> m_pixelShader;
+		Memory::RefPtr<const ShaderAsset> m_vertexShader;
+		Memory::RefPtr<const ShaderAsset> m_pixelShader;
+
+		uint32_t m_cameraSlot;
+		uint32_t m_instanceSlot;
 	};
 };
 

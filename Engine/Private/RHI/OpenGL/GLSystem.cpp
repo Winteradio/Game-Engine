@@ -1,13 +1,45 @@
 #include <RHI/OpenGL/GLSystem.h>
 
+#include <Memory/include/Core.h>
 #include <Log/include/Log.h>
 #include <glad/glad.h>
 
 #include <RHI/RHIStates.h>
 #include <RHI/RHIResources.h>
+#include <RHI/OpenGL/GLResources.h>
+
+#include <cmath>
+
+#define __GL_DEBUG__
 
 namespace wtr
 {
+	struct BufferDesc
+	{
+		GLenum enumType;
+		eBindingType bindingType;
+	};
+
+	const BufferDesc BUFFER_BINDINGS[] =
+	{
+		{ GL_UNIFORM_BLOCK, eBindingType::eUniformBuffer },
+		{ GL_SHADER_STORAGE_BLOCK, eBindingType::eStorageBuffer },
+		{ GL_UNIFORM, eBindingType::eNone }
+	};
+
+	const GLenum TEXTURE_CUBEMAP_FACES[] =
+	{
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	};
+
+	constexpr size_t MAX_GL_MESSAGE_LENGTH = 512;
+	thread_local char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
+
 	GLSystem::GLSystem()
 		: m_context()
 		, m_colorState()
@@ -27,6 +59,19 @@ namespace wtr
 			LOGERROR() << "[GL] Failed to initialize the OpenGL, cause failed to initialize the WGL";
 			return false;
 		}
+
+#ifdef __GL_DEBUG__
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(
+			[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+			{
+				LOGERROR() << "[GL] Error : " << message;
+			},
+			nullptr
+		);
+
+#endif
 
 		return true;
 	}
@@ -68,7 +113,10 @@ namespace wtr
 
 	void GLSystem::ReleaseCurrent()
 	{
-		m_context.ReleaseCurrent();
+		if (m_context.GetCurrent())
+		{
+			m_context.ReleaseCurrent();
+		}
 	}
 
 	void GLSystem::Present()
@@ -280,53 +328,1219 @@ namespace wtr
 		m_rasterizerState = state;
 	}
 
-	void GLSystem::InitializeBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
-	{}
+	Memory::RefPtr<RHIBuffer> GLSystem::CreateBuffer(const RHIBufferDesc desc)
+	{
+		Memory::RefPtr<RHIBuffer> refBuffer = Memory::MakeRef<GLBuffer>(desc);
 
-	void GLSystem::InitializeTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
-	{}
+		return refBuffer;
+	}
 
-	void GLSystem::InitializeSampler(const RHISamplerDesc& desc, Memory::RefPtr<RHISampler> sampler)
-	{}
+	Memory::RefPtr<RHIVertexLayout> GLSystem::CreateVertexLayout(const RHIVertexLayoutDesc desc)
+	{
+		Memory::RefPtr<RHIVertexLayout> refVertexLayout = Memory::MakeRef<GLVertexLayout>(desc);
+	
+		return refVertexLayout;
+	}
 
-	void GLSystem::InitializeVertexShader(const RHIVertexShaderDesc& desc, Memory::RefPtr<RHIVertexShader> shader)
-	{}
+	Memory::RefPtr<RHITexture> GLSystem::CreateTexture(const RHITextureDesc desc)
+	{
+		Memory::RefPtr<RHITexture> refTexture = Memory::MakeRef<GLTexture>(desc);
 
-	void GLSystem::InitializeGeometryShader(const RHIGeometryShaderDesc& desc, Memory::RefPtr<RHIGeometryShader> shader)
-	{}
+		return refTexture;
+	}
 
-	void GLSystem::InitializePixelShader(const RHIPixelShaderDesc& desc, Memory::RefPtr<RHIPixelShader> shader)
-	{}
+	Memory::RefPtr<RHISampler> GLSystem::CreateSampler(const RHISamplerDesc desc)
+	{
+		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<GLSampler>(desc);
 
-	void GLSystem::InitializeComputeShader(const RHIComputeShaderDesc& desc, Memory::RefPtr<RHIComputeShader> shader)
-	{}
+		return refSampler;
+	}
 
-	void GLSystem::InitializePipeLine(const RHIPipeLineDesc& desc, Memory::RefPtr<RHIPipeLine> pipeline)
-	{}
+	Memory::RefPtr<RHIShader> GLSystem::CreateVertexShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refVertexShader = Memory::MakeRef<GLVertexShader>(desc);
 
-	void GLSystem::UpdateBuffer(const RHIBufferDesc& desc, Memory::RefPtr<RHIBuffer> buffer)
-	{}
+		return refVertexShader;
+	}
 
-	void GLSystem::UpdateTexture(const RHITextureDesc& desc, Memory::RefPtr<RHITexture> texture)
-	{}
+	Memory::RefPtr<RHIShader> GLSystem::CreateGeometryShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refGeometryShader = Memory::MakeRef<GLGeometryShader>(desc);
+
+		return refGeometryShader;
+	}
+
+	Memory::RefPtr<RHIShader> GLSystem::CreateHullShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refHullShader = Memory::MakeRef<GLHullShader>(desc);
+	
+		return refHullShader;
+	}
+
+	Memory::RefPtr<RHIShader> GLSystem::CreatePixelShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
+
+		return refPixelShader;
+	}
+
+	Memory::RefPtr<RHIShader> GLSystem::CreateComputeShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refComputeShader = Memory::MakeRef<GLComputeShader>(desc);
+
+		return refComputeShader;
+	}
+
+	Memory::RefPtr<RHIPipeLine> GLSystem::CreatePipeLine(const RHIPipeLineDesc desc)
+	{
+		Memory::RefPtr<RHIPipeLine> refPipeLine = Memory::MakeRef<GLPipeLine>(desc);
+
+		return refPipeLine;
+	}
+
+	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!buffer || !info.data || info.size == 0)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetDataAccess(info.accessType);
+		const uint32_t dataSize = info.size;
+		
+		uint32_t bufferID = GL_NONE;
+		glGenBuffers(1, &bufferID);
+
+		if (bufferID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate buffer";
+			return;
+		}
+
+		glBindBuffer(bufferType, bufferID);
+		glBufferData(bufferType, dataSize, info.data, accessType);
+		glBindBuffer(bufferType, GL_NONE);
+
+		glBuffer->SetID(bufferID);
+		glBuffer->SetState(eResourceState::eReady);
+	}
+
+	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		if (info.vertexStreams.Empty() || !info.indexBuffer || !layout)
+		{
+			return;
+		}
+
+		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout)
+		{
+			return;
+		}
+
+		uint32_t vertexLayoutID = GL_NONE;
+		glGenVertexArrays(1, &vertexLayoutID);
+
+		if (vertexLayoutID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate vertex layout buffer";
+			return;
+		}
+
+		glBindVertexArray(vertexLayoutID);
+		for (const auto& [vertexKey, vertexStream] : info.vertexStreams)
+		{
+			const uint32_t location = vertexStream.attribute.location;
+			const uint64_t offset = static_cast<uint64_t>(vertexStream.attribute.offset);
+			const uint32_t normalized = vertexStream.attribute.normalized ? GL_TRUE : GL_FALSE;
+			const uint32_t integer = vertexStream.attribute.integer ? GL_TRUE : GL_FALSE;
+			const uint32_t divisor = vertexStream.attribute.divisor;
+			const uint32_t numComponents = vertexStream.attribute.numComponents;
+			const uint32_t componentType = GetDataType(vertexStream.attribute.componentType);
+			const uint32_t componentSize = GetDataTypeSize(vertexStream.attribute.componentType);
+			const uint32_t stride = numComponents * componentSize;
+
+			const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(vertexStream.buffer->GetRawBuffer());
+			if (!glBuffer)
+			{
+				LOGERROR() << "[GL] Failed to get vertex stream buffer";
+				continue;
+			}
+
+			glBindBuffer(GL_ARRAY_BUFFER, glBuffer->GetID());
+			glEnableVertexAttribArray(location);
+
+			if (integer == GL_TRUE)
+			{
+				glVertexAttribIPointer(location, numComponents, componentType, stride, reinterpret_cast<void*>(offset));
+			}
+			else
+			{
+				glVertexAttribPointer(location, numComponents, componentType, normalized, stride, reinterpret_cast<void*>(offset));
+			}
+
+			glVertexAttribDivisor(location, vertexStream.attribute.divisor);
+		}
+
+		const GLBuffer* glIndexBuffer = reinterpret_cast<const GLBuffer*>(info.indexBuffer->GetRawBuffer());
+		if (glIndexBuffer)
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndexBuffer->GetID());
+		}
+
+		glBindVertexArray(GL_NONE);
+		glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
+
+		glVertexLayout->SetID(vertexLayoutID);
+		glVertexLayout->SetState(eResourceState::eReady);
+	}
+
+	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture)
+		{
+			return;
+		}
+
+		uint32_t textureID = GL_NONE;
+		glGenTextures(1, &textureID);
+		if (textureID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to generate texture";
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+
+		bool Initialized = false;
+		if (textureDimension == 1)
+		{
+			Initialized = InitializeTexture1D(info, textureID);
+		}
+		else if (textureDimension == 2)
+		{
+			Initialized = InitializeTexture2D(info, textureID);
+		}
+		else if (textureDimension == 3)
+		{
+			Initialized = InitializeTexture3D(info, textureID);
+		}
+		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
+		{
+			Initialized = InitializeTextureMulti(info, textureID);
+		}
+		else
+		{
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+		}
+		
+		if (!Initialized)
+		{
+			LOGERROR() << "[GL] Failed to initialize texture";
+			
+			glDeleteTextures(1, &textureID);
+			
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
+		}
+		else
+		{
+			glTexture->SetID(textureID);
+			glTexture->SetState(eResourceState::eReady);
+		}
+	}
+
+	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler)
+		{
+			return;
+		}
+
+		uint32_t samplerID = GL_NONE;
+		glCreateSamplers(1, &samplerID);
+		if (samplerID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to create sampler";
+			return;
+		}
+
+		glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GetFilterMode(info.minFilter));
+		glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, GetFilterMode(info.magFilter));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, GetWrapMode(info.wrapS));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, GetWrapMode(info.wrapT));
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, GetWrapMode(info.wrapR));
+
+		glSampler->SetID(samplerID);
+		glSampler->SetState(eResourceState::eReady);
+	}
+
+	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
+	{
+		if (!shader)
+		{
+			return;
+		}
+
+		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
+		if (!glShader)
+		{
+			return;
+		}
+
+		const char* shaderSource = reinterpret_cast<const char*>(info.data);
+		if (!shaderSource)
+		{
+			LOGERROR() << "[GL] Failed to get shader source code, the shader type : " << static_cast<uint32_t>(info.shaderType);
+			return;
+		}
+
+		const uint32_t shaderType = GetShaderType(shader->GetShaderType());
+		if (shaderType == GL_NONE)
+		{
+			LOGERROR() << "[GL] Unrecognized shader type: " << static_cast<uint32_t>(shaderType);
+			return;
+		}
+
+		const uint32_t shaderID = glCreateShader(shaderType);
+		const int32_t length = static_cast<int32_t>(info.dataSize);
+
+		glShaderSource(shaderID, 1, &shaderSource, &length);
+		glCompileShader(shaderID);
+
+		int32_t success = GL_NONE;
+		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+		if (!success)
+		{
+			glGetShaderInfoLog(shaderID, MAX_GL_MESSAGE_LENGTH, nullptr, GL_MESSAGE);
+
+			LOGERROR() << "[GL] Failed to compile shader: " << GL_MESSAGE;
+			glDeleteShader(shaderID);
+
+			return;
+		}
+
+		glShader->SetID(shaderID);
+		glShader->SetState(eResourceState::eReady);
+	}
+
+	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine)
+		{
+			return;
+		}
+
+		GLuint programID = glCreateProgram();
+		if (programID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to create shader program";
+			return;
+		}
+
+		auto AttachShader = [&](const Memory::RefPtr<const RHIShader>& shader)
+		{
+			if (!shader)
+			{
+				return;
+			}
+
+			const GLShader* glShader = reinterpret_cast<const GLShader*>(shader->GetRawBuffer());
+			if (!glShader || glShader->GetID() == GL_NONE)
+			{
+				return;
+			}
+
+			glAttachShader(programID, glShader->GetID());
+		};
+
+		AttachShader(info.vertexShader);
+		AttachShader(info.geometryShader);
+		AttachShader(info.hullShader);
+		AttachShader(info.pixelShader);
+		AttachShader(info.computeShader);
+
+		glLinkProgram(programID);
+
+		GLint success = GL_NONE;
+		glGetProgramiv(programID, GL_LINK_STATUS, &success);
+		if (!success)
+		{
+			glGetProgramInfoLog(programID, MAX_GL_MESSAGE_LENGTH, nullptr, GL_MESSAGE);
+			LOGERROR() << "[GL] Failed to link shader program: " << GL_MESSAGE;
+			glDeleteProgram(programID);
+			return;
+		}
+
+		glPipeLine->SetID(programID);
+
+		if (!InitializeAttribute(pipeline) || !InitializeSlot(pipeline))
+		{
+			glDeleteProgram(programID);
+
+			glPipeLine->SetID(GL_NONE);
+			glPipeLine->SetState(eResourceState::eError);
+		}
+		else
+		{
+			glPipeLine->SetState(eResourceState::eReady);
+		}
+	}
+
+	bool GLSystem::InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return false;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t programID = glPipeLine->GetID();
+
+		GLint attributeCount = GL_NONE;
+		glGetProgramInterfaceiv(programID, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &attributeCount);
+
+		for (GLint index = 0; index < attributeCount; ++index)
+		{
+			GLsizei nameLength = GL_NONE;
+			glGetProgramResourceName(programID, GL_PROGRAM_INPUT, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
+
+			const std::string attributeName(GL_MESSAGE, nameLength);
+			if (nameLength == GL_NONE || attributeName.empty())
+			{
+				LOGWARN() << "[GL] Failed to get vertex attribute name for index: " << index;
+				continue;
+			}
+
+			if (attributeName.substr(0, 3) == "gl_")
+			{
+				continue;
+			}
+
+			const VertexKey vertexKey = GetVertexKey(attributeName);
+			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
+			{
+				LOGWARN() << "[GL] Unrecognized vertex attribute: " << attributeName;
+				continue;
+			}
+
+			const uint32_t expectedLocation = GetVertexLocation(vertexKey);
+
+			GLint location = -1;
+			const GLenum locationProp = { GL_LOCATION };
+			glGetProgramResourceiv(programID, GL_PROGRAM_INPUT, index, 1, &locationProp, 1, nullptr, &location);
+
+			if (static_cast<uint32_t>(location) != expectedLocation)
+			{
+				LOGWARN() << "[GL] Vertex attribute location mismatch: " << attributeName << ", expected location: " << expectedLocation << ", actual location: " << location;
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return false;
+		}
+
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t programID = glPipeLine->GetID();
+
+		for (const auto& desc : BUFFER_BINDINGS)
+		{
+			GLint bindingCount = GL_NONE;
+			glGetProgramInterfaceiv(programID, desc.enumType, GL_ACTIVE_RESOURCES, &bindingCount);
+
+			for (GLint index = 0; index < bindingCount; ++index)
+			{
+				GLsizei nameLength = GL_NONE;
+				glGetProgramResourceName(programID, desc.enumType, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
+			
+				const std::string blockName(GL_MESSAGE, nameLength);
+				if (nameLength == GL_NONE || blockName.empty())
+				{
+					continue;
+				}
+
+				RHIResourceBinding bindingSlot;
+				bindingSlot.location = GL_NONE;
+				bindingSlot.type = eBindingType::eNone;
+
+				if (desc.enumType == GL_UNIFORM)
+				{
+					const GLenum props[] = { GL_TYPE, GL_BLOCK_INDEX, GL_LOCATION };
+					GLint results[3] = { GL_NONE, GL_NONE, GL_NONE };
+
+					glGetProgramResourceiv(programID, desc.enumType, index, 3, props, 3, nullptr, results);
+
+					const bool bufferBlock = results[1] != -1;
+					if (bufferBlock || results[0] == -1)
+					{
+						continue;
+					}
+
+					if (IsSampler(results[0]))
+					{
+						bindingSlot.location = results[2];
+						bindingSlot.type = eBindingType::eSampler;
+					}
+					else
+					{
+						bindingSlot.location = results[2];
+						bindingSlot.type = eBindingType::eUniform;
+					}
+				}
+				else
+				{
+					GLint bindingIndex = GL_NONE;
+					const GLenum props = GL_BUFFER_BINDING;
+					glGetProgramResourceiv(programID, desc.enumType, index, 1, &props, 1, nullptr, &bindingIndex);
+
+					if (bindingIndex == -1)
+					{
+						continue;
+					}
+
+					bindingSlot.location = static_cast<uint16_t>(bindingIndex);
+					bindingSlot.type = desc.bindingType;
+				}
+
+				pipeline->AddSlot(blockName, bindingSlot);
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE || info.faces.Size() != 1)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		auto& face = info.faces.Front();
+		for (const auto& mipMap : face.mipMaps)
+		{
+			const uint32_t width = max(1, info.width >> mipMap.level);
+			const uint32_t height = max(1, info.height >> mipMap.level);
+			const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+			if (info.compressed)
+			{
+				glCompressedTexImage1D(textureType, mipMap.level, internalFormat, width, 0, mipMap.dataSize, mipMap.data);
+			}
+			else
+			{
+				glTexImage1D(textureType, mipMap.level, internalFormat, width, 0, baseFormat, pixelDataType, mipMap.data);
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP;
+
+		if (cubeMap)
+		{
+			constexpr size_t faceCount = 6;
+			if (info.faces.Size() != faceCount)
+			{
+				return false;
+			}
+
+			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+			{
+				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
+				{
+					const uint32_t width = max(1, info.width >> mipMap.level);
+					const uint32_t height = max(1, info.height >> mipMap.level);
+					const uint32_t depth = max(1, info.depth >> mipMap.level);
+					if (info.compressed)
+					{
+						glCompressedTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+					}
+					else
+					{
+						glTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (info.faces.Size() != 1)
+			{
+				return false;
+			}
+
+			auto& face = info.faces.Front();
+			for (const auto& mipMap : face.mipMaps)
+			{
+				const uint32_t width = max(1, info.width >> mipMap.level);
+				const uint32_t height = max(1, info.height >> mipMap.level);
+				const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+				if (info.compressed)
+				{
+					glCompressedTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+				}
+				else
+				{
+					glTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP_ARRAY;
+
+		if (cubeMap)
+		{
+			constexpr size_t faceCount = 6;
+			if (info.faces.Size() != faceCount)
+			{
+				return false;
+			}
+
+			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+			{
+				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
+				{
+					const uint32_t width = max(1, info.width >> mipMap.level);
+					const uint32_t height = max(1, info.height >> mipMap.level);
+					const uint32_t depth = max(1, info.depth >> mipMap.level);
+					if (info.compressed)
+					{
+						glCompressedTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+					}
+					else
+					{
+						glTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (info.faces.Size() != 1)
+			{
+				return false;
+			}
+
+			auto& face = info.faces.Front();
+			for (const auto& mipMap : face.mipMaps)
+			{
+				const uint32_t width = max(1, info.width >> mipMap.level);
+				const uint32_t height = max(1, info.height >> mipMap.level);
+				const uint32_t depth = max(1, info.depth >> mipMap.level);
+
+				if (info.compressed)
+				{
+					glCompressedTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+				}
+				else
+				{
+					glTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	bool GLSystem::UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		// TODO : Implemented yet
+		return false;
+	}
+
+	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		if (!info.data)
+		{
+			LOGERROR() << "[GL] Failed to update buffer, cause the data pointer is null";
+			return;
+		}
+
+		if ((info.dataOffset + info.dataSize) > buffer->GetSize())
+		{
+			LOGERROR() << "[GL] Buffer size is smaller than the data size, resizing the buffer";
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetMapAccess(info.mapAccess);
+		const bool useMapBuffer = accessType != GL_NONE;
+		glBindBuffer(bufferType, glBuffer->GetID());
+
+		if (useMapBuffer)
+		{
+			void* mappedBuffer = glMapBufferRange(bufferType, info.dataOffset, info.dataSize, accessType);
+			if (mappedBuffer)
+			{
+				std::memcpy(mappedBuffer, info.data, info.dataSize);
+			}
+			else
+			{
+				LOGERROR() << "[GL] Failed to map buffer for update";
+			}
+
+			glUnmapBuffer(bufferType);
+		}
+		else
+		{
+			glBufferSubData(bufferType, info.dataOffset, info.dataSize, info.data);
+		}
+
+		glBindBuffer(bufferType, GL_NONE);
+	}
+
+	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			return;
+		}
+	}
+
+	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer || (glBuffer->GetID() == GL_NONE))
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(info.bufferType);
+		const uint32_t accessType = GetDataAccess(info.accessType);
+		const uint32_t dataType = GetDataType(info.componentType);
+		const uint32_t dataSize = info.size;
+
+		glBindBuffer(bufferType, glBuffer->GetID());
+		glBufferData(bufferType, dataSize, info.data, accessType);
+		glBindBuffer(bufferType, GL_NONE);
+	}
+
+	void GLSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || (glTexture->GetID() == GL_NONE))
+		{
+			return;
+		}
+
+		const uint32_t textureID = glTexture->GetID();
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+
+		bool Initialized = false;
+		if (textureDimension == 1)
+		{
+			Initialized = InitializeTexture1D(info, textureID);
+		}
+		else if (textureDimension == 2)
+		{
+			Initialized = InitializeTexture2D(info, textureID);
+		}
+		else if (textureDimension == 3)
+		{
+			Initialized = InitializeTexture3D(info, textureID);
+		}
+		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
+		{
+			Initialized = InitializeTextureMulti(info, textureID);
+		}
+		else
+		{
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+		}
+
+		if (!Initialized)
+		{
+			LOGERROR() << "[GL] Failed to resize texture";
+
+			glDeleteTextures(1, &textureID);
+
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
+		}
+	}
 
 	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
-	{}
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t bufferID = glBuffer->GetID();
+		glDeleteBuffers(1, &bufferID);
+
+		glBuffer->SetID(GL_NONE);
+		glBuffer->SetState(eResourceState::eNone);
+	}
+
+	void GLSystem::RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		if (!layout)
+		{
+			return;
+		}
+	
+		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
+		{
+			return;
+		}
+		
+		const uint32_t bufferID = glVertexLayout->GetID();
+		glDeleteVertexArrays(1, &bufferID);
+		
+		glVertexLayout->SetID(GL_NONE);
+		glVertexLayout->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
-	{}
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || glTexture->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t textureID = glTexture->GetID();
+		glDeleteTextures(1, &textureID);
+		glTexture->SetID(GL_NONE);
+		glTexture->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveSampler(Memory::RefPtr<RHISampler> sampler)
-	{}
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler || glSampler->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t samplerID = glSampler->GetID();
+		glDeleteSamplers(1, &samplerID);
+		glSampler->SetID(GL_NONE);
+		glSampler->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemoveShader(Memory::RefPtr<RHIShader> shader)
-	{}
+	{
+		if (!shader)
+		{
+			return;
+		}
+
+		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
+		if (!glShader || glShader->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		glDeleteShader(glShader->GetID());
+
+		glShader->SetID(GL_NONE);
+		shader->SetState(eResourceState::eNone);
+	}
 
 	void GLSystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
-	{}
+	{
+		if (!pipeline)
+		{
+			return;
+		}
 
-	void GLSystem::DrawIndexPrimitive()
-	{}
+		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine)
+		{
+			return;
+		}
+
+		glDeleteProgram(glPipeLine->GetID());
+		glPipeLine->SetID(GL_NONE);
+		glPipeLine->SetState(eResourceState::eNone);
+	}
+
+	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+	
+		const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(buffer->GetRawBuffer());
+		if (!glBuffer || glBuffer->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
+
+		glBindBufferBase(bufferType, slot, glBuffer->GetID());
+	}
+
+	void GLSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
+	{
+		if (!layout)
+		{
+			return;
+		}
+
+		const GLVertexLayout* glVertexLayout = reinterpret_cast<const GLVertexLayout*>(layout->GetRawBuffer());
+		if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		glBindVertexArray(glVertexLayout->GetID());
+	}
+
+	void GLSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || glTexture->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(textureType, glTexture->GetID());
+	}
+
+	void GLSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		const GLSampler* glSampler = reinterpret_cast<const GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler || glSampler->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		glBindSampler(slot, glSampler->GetID());
+	}
+
+	void GLSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
+	{
+		if (!pipeline)
+		{
+			return;
+		}
+
+		const GLPipeLine* glPipeLine = reinterpret_cast<const GLPipeLine*>(pipeline->GetRawBuffer());
+		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		glUseProgram(glPipeLine->GetID());
+
+		SetColorState(pipeline->GetColorState());
+		SetDepthState(pipeline->GetDepthState());
+		SetBlendState(pipeline->GetBlendState());
+		SetRasterizerState(pipeline->GetRasterizerState());
+		SetStencilState(pipeline->GetStencilState());
+	}
+
+	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
+		glBindBufferBase(bufferType, slot, GL_NONE);
+	}
+
+	void GLSystem::UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
+	{
+		glBindVertexArray(GL_NONE);
+	}
+
+	void GLSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(textureType, GL_NONE);
+	}
+
+	void GLSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
+	{
+		if (!sampler)
+		{
+			return;
+		}
+
+		glBindSampler(slot, GL_NONE);
+	}
+
+	void GLSystem::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
+	{
+		glUseProgram(GL_NONE);
+	}
+
+	void GLSystem::DispatchCompute(const RHIDispatchDesc info)
+	{
+		glDispatchCompute(info.groupX, info.groupY, info.groupZ);
+	}
+
+	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
+	{
+		if (info.indexCount == 0 || info.instanceCount == 0)
+		{
+			return;
+		}
+
+		const uint32_t drawMode = GetDrawMode(info.drawMode);
+		const uint32_t indexType = GetDataType(info.indexType);
+
+		const bool instancing = info.instanceCount > 1;
+		const bool baseVertex = info.baseVertex != 0;
+
+		if (baseVertex)
+		{
+			if (instancing)
+			{
+				glDrawElementsInstancedBaseVertex(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount,
+					info.baseVertex
+				);
+			}
+			else
+			{
+				glDrawElementsInstanced(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount
+				);
+			}
+		}
+		else
+		{
+			if (instancing)
+			{
+				glDrawElementsInstanced(
+					drawMode,
+					info.indexCount,
+					indexType,
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)),
+					info.instanceCount
+				);
+			}
+			else
+			{
+				glDrawElementsBaseVertex(
+					drawMode, 
+					info.indexCount, 
+					indexType, 
+					reinterpret_cast<void*>(static_cast<uint64_t>(info.indexOffset)), 
+					info.baseVertex
+				);
+			}
+		}
+	}
 
 	const uint32_t GLSystem::GetBufferType(const eBufferType buffer) const
 	{
@@ -412,27 +1626,264 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetPixelFormat(const ePixelFormat pixel) const
+	const uint32_t GLSystem::GetMapAccess(const eMapAccess access) const
+	{
+		GLbitfield accessFlags = GL_NONE;
+
+		if (eMapAccess::eRead == (access & eMapAccess::eRead))
+		{
+			accessFlags |= GL_MAP_READ_BIT;
+		}
+
+		if (eMapAccess::eWrite == (access & eMapAccess::eWrite))
+		{
+			accessFlags |= GL_MAP_WRITE_BIT;
+		}
+
+		if (eMapAccess::eInvalidateRange == (access & eMapAccess::eInvalidateRange))
+		{
+			accessFlags |= GL_MAP_INVALIDATE_RANGE_BIT;
+		}
+
+		if (eMapAccess::eInvalidateBuffer == (access & eMapAccess::eInvalidateBuffer))
+		{
+			accessFlags |= GL_MAP_INVALIDATE_BUFFER_BIT;
+		}
+
+		if (eMapAccess::eFlushExplicit == (access & eMapAccess::eFlushExplicit))
+		{
+			accessFlags |= GL_MAP_FLUSH_EXPLICIT_BIT;
+		}
+
+		return accessFlags;
+	}
+
+	const uint32_t GLSystem::GetTextureType(const eTextureType type) const
+	{
+		if (eTextureType::eTexture1D == type)
+		{
+			return GL_TEXTURE_1D;
+		}
+		else if (eTextureType::eTexture2D == type)
+		{
+			return GL_TEXTURE_2D;
+		}
+		else if (eTextureType::eTexture3D == type)
+		{
+			return GL_TEXTURE_3D;
+		}
+		else if (eTextureType::eTextureCube == type)
+		{
+			return GL_TEXTURE_CUBE_MAP;
+		}
+		else if (eTextureType::eTexture1DArray == type)
+		{
+			return GL_TEXTURE_1D_ARRAY;
+		}
+		else if (eTextureType::eTexture2DArray == type)
+		{
+			return GL_TEXTURE_2D_ARRAY;
+		}
+		else if (eTextureType::eTextureCubeArray == type)
+		{
+			return GL_TEXTURE_CUBE_MAP_ARRAY;
+		}
+		else if (eTextureType::eTextureMultisample == type)
+		{
+			return GL_TEXTURE_2D_MULTISAMPLE;
+		}
+		else if (eTextureType::eTextureMultisampleArray == type)
+		{
+			return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetTextureDimension(const eTextureType texture) const
+	{
+		if (eTextureType::eNone == texture ||
+			eTextureType::eTextureMultisample == texture ||
+			eTextureType::eTextureMultisampleArray == texture)
+		{
+			return 0;
+		}
+		else if (eTextureType::eTexture1D == texture)
+		{
+			return 1;
+		}
+		else if (eTextureType::eTexture1DArray == texture ||
+			eTextureType::eTexture2D == texture ||
+			eTextureType::eTextureCube == texture)
+		{
+			return 2;
+		}
+		else if (eTextureType::eTexture2DArray == texture ||
+			eTextureType::eTexture3D == texture ||
+			eTextureType::eTextureCubeArray == texture)
+		{
+			return 3;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	const uint32_t GLSystem::GetInternalFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
 			return GL_NONE;
 		}
-		else if (ePixelFormat::eR8 == pixel)
+		else if (ePixelFormat::eR8_UNorm == pixel)
 		{
 			return GL_R8;
 		}
-		else if (ePixelFormat::eR8G8 == pixel)
+		else if (ePixelFormat::eR8G8_UNorm == pixel)
 		{
 			return GL_RG8;
 		}
-		else if (ePixelFormat::eR8G8B8 == pixel)
+		else if (ePixelFormat::eR8G8B8_UNorm == pixel)
 		{
 			return GL_RGB8;
 		}
-		else if (ePixelFormat::eR8G8B8A8 == pixel)
+		else if (ePixelFormat::eR8G8B8A8_UNorm == pixel)
 		{
 			return GL_RGBA8;
+		}
+		else if (ePixelFormat::eR8G8B8A8_sRGB == pixel)
+		{
+			return GL_SRGB8_ALPHA8;
+		}
+		else if (ePixelFormat::eR16_Float == pixel)
+		{
+			return GL_R16F;
+		}
+		else if (ePixelFormat::eR16G16_Float == pixel)
+		{
+			return GL_RG16F;
+		}
+		else if (ePixelFormat::eR16G16B16_Float == pixel)
+		{
+			return GL_RGB16F;
+		}
+		else if (ePixelFormat::eR16G16B16A16_Float == pixel)
+		{
+			return GL_RGBA16F;
+		}
+		else if (ePixelFormat::eR32_Float == pixel)
+		{
+			return GL_R32F;
+		}
+		else if (ePixelFormat::eR32G32_Float == pixel)
+		{
+			return GL_RG32F;
+		}
+		else if (ePixelFormat::eR32G32B32_Float == pixel)
+		{
+			return GL_RGB32F;
+		}
+		else if (ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_RGBA32F;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_DEPTH24_STENCIL8;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_DEPTH_COMPONENT32F;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetBaseFormat(const ePixelFormat pixel) const
+	{
+		if (ePixelFormat::eNone == pixel)
+		{
+			return GL_NONE;
+		}
+		else if (ePixelFormat::eR8_UNorm == pixel ||
+			ePixelFormat::eR16_Float == pixel ||
+			ePixelFormat::eR32_Float == pixel)
+		{
+			return GL_RED;
+		}
+		else if (ePixelFormat::eR8G8_UNorm == pixel ||
+			ePixelFormat::eR16G16_Float == pixel ||
+			ePixelFormat::eR32G32_Float == pixel)
+		{
+			return GL_RG;
+		}
+		else if (ePixelFormat::eR8G8B8_UNorm == pixel ||
+			ePixelFormat::eR16G16B16_Float == pixel ||
+			ePixelFormat::eR32G32B32_Float == pixel)
+		{
+			return GL_RGB;
+		}
+		else if (ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_sRGB == pixel ||
+			ePixelFormat::eR16G16B16A16_Float == pixel ||
+			ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_RGBA;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_DEPTH_STENCIL;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_DEPTH_COMPONENT;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	const uint32_t GLSystem::GetPixelDataType(const ePixelFormat pixel) const
+	{
+		if (ePixelFormat::eNone == pixel)
+		{
+			return GL_NONE;
+		}
+		else if (ePixelFormat::eR8_UNorm == pixel ||
+			ePixelFormat::eR8G8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR8G8B8A8_sRGB == pixel)
+		{
+			return GL_UNSIGNED_BYTE;
+		}
+		else if (ePixelFormat::eR16_Float == pixel ||
+			ePixelFormat::eR16G16_Float == pixel ||
+			ePixelFormat::eR16G16B16_Float == pixel ||
+			ePixelFormat::eR16G16B16A16_Float == pixel)
+		{
+			return GL_HALF_FLOAT;
+		}
+		else if (ePixelFormat::eR32_Float == pixel ||
+			ePixelFormat::eR32G32_Float == pixel ||
+			ePixelFormat::eR32G32B32_Float == pixel ||
+			ePixelFormat::eR32G32B32A32_Float == pixel)
+		{
+			return GL_FLOAT;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return GL_UNSIGNED_INT_24_8;
+		}
+		else if (ePixelFormat::eD32 == pixel)
+		{
+			return GL_FLOAT;
 		}
 		else
 		{
@@ -726,5 +2177,46 @@ namespace wtr
 		{
 			return GL_NONE;
 		}
+	}
+
+	const uint32_t GLSystem::GetShaderType(const eShaderType type) const
+	{
+		if (eShaderType::eVertex == type)
+		{
+			return GL_VERTEX_SHADER;
+		}
+		else if (eShaderType::eGeometry == type)
+		{
+			return GL_GEOMETRY_SHADER;
+		}
+		else if (eShaderType::eHull == type)
+		{
+			return GL_TESS_EVALUATION_SHADER;
+		}
+		else if (eShaderType::ePixel == type)
+		{
+			return GL_FRAGMENT_SHADER;
+		}
+		else if (eShaderType::eCompute == type)
+		{
+			return GL_COMPUTE_SHADER;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
+	bool GLSystem::IsSampler(const int32_t type) const
+	{
+		return type == GL_SAMPLER_1D ||
+			type == GL_SAMPLER_2D ||
+			type == GL_SAMPLER_3D ||
+			type == GL_SAMPLER_CUBE ||
+			type == GL_SAMPLER_1D_ARRAY ||
+			type == GL_SAMPLER_2D_ARRAY ||
+			type == GL_SAMPLER_CUBE_MAP_ARRAY ||
+			type == GL_SAMPLER_2D_MULTISAMPLE ||
+			type == GL_SAMPLER_2D_MULTISAMPLE_ARRAY;
 	}
 }

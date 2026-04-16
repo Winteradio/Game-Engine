@@ -10,11 +10,21 @@ namespace wtr
 {
 	enum class eResourceState : uint8_t
 	{
-		eNone	= 0x00,
-		eLoaded = 0x01,
-		eReady	= 0x02,
-		eError	= 0x03
+		eNone		= 0x00,
+		eError		= 0x01,
+		eLoaded		= 0x10,
+		eDirty		= 0x20,
+		eReady		= 0x40,
+		eAll		= 0xF0,
 	};
+
+	eResourceState operator|(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator&(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator^(const eResourceState lhs, const eResourceState rhs);
+	eResourceState operator~(const eResourceState state);
+	eResourceState& operator|=(eResourceState& lhs, const eResourceState rhs);
+	eResourceState& operator&=(eResourceState& lhs, const eResourceState rhs);
+	eResourceState& operator^=(eResourceState& lhs, const eResourceState rhs);
 
 	class RHIResource
 	{
@@ -23,7 +33,8 @@ namespace wtr
 			virtual ~RHIResource() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
+			void* GetRawBuffer();
+			const void* GetRawBuffer() const;
 			
 			void SetState(const eResourceState eState);
 			const eResourceState GetState() const;
@@ -39,15 +50,29 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
-			const eBufferType GetType() const;
+			const eBufferType GetBufferType() const;
 			const eDataAccess GetAccessType() const;
+			const eDataType GetComponentType() const;
+			const uint32_t GetNumComponents() const;
+			const uint32_t GetCount() const;
 			const uint32_t GetSize() const;
 			const uint32_t GetStride() const;
 
 		protected :
 			RHIBufferDesc m_desc;
+	};
+
+	class RHIVertexLayout : public RHIResource
+	{
+		public :
+			RHIVertexLayout(const RHIVertexLayoutDesc& desc);
+			virtual ~RHIVertexLayout() = default;
+
+		public :
+			const size_t GetNumAttributes() const;
+
+		protected :
+			RHIVertexLayoutDesc m_desc;
 	};
 
 	class RHITexture : public RHIResource
@@ -57,8 +82,6 @@ namespace wtr
 			virtual ~RHITexture() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const uint32_t GetWidth() const;
 			const uint32_t GetHeight() const;
 			const uint32_t GetDepth() const;
@@ -66,6 +89,7 @@ namespace wtr
 			const uint32_t GetSampleCount() const;
 			const ePixelFormat GetPixelFormat() const;
 			const eTextureUsage GetTextureUsage() const;
+			const eTextureType GetTextureType() const;
 
 		protected :
 			RHITextureDesc m_desc;
@@ -78,8 +102,6 @@ namespace wtr
 			virtual ~RHISampler() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const eFilterMode GetMinFilter() const;
 			const eFilterMode GetMagFilter() const;
 			const eFilterMode GetMipFilter() const;
@@ -93,61 +115,15 @@ namespace wtr
 
 	class RHIShader : public RHIResource
 	{
-		public :
-			RHIShader() = default;
-			virtual ~RHIShader() = default;
-	};
+	public :
+		RHIShader(const RHIShaderDesc& desc);
+		virtual ~RHIShader() = default;
 
-	class RHIVertexShader : public RHIShader
-	{
-		public : 
-			RHIVertexShader(const RHIVertexShaderDesc& desc);
-			virtual ~RHIVertexShader() = default;
+	public :
+		const eShaderType GetShaderType() const;
 
-		public :
-			virtual const void* GetRawBuffer() const;
-
-		private :
-			RHIVertexShaderDesc m_dsec;
-	};
-
-	class RHIGeometryShader : public RHIShader
-	{
-		public :
-			RHIGeometryShader(const RHIGeometryShaderDesc& desc);
-			virtual ~RHIGeometryShader() = default;
-
-		public :
-			virtual const void* GetRawBuffer() const;
-
-		private :
-			RHIGeometryShaderDesc m_desc;
-	};
-
-	class RHIPixelShader : public RHIShader
-	{
-		public :
-			RHIPixelShader(const RHIPixelShaderDesc& desc);
-			virtual ~RHIPixelShader() = default;
-
-		public :
-			virtual const void* GetRawBuffer() const;
-
-		private :
-			RHIPixelShaderDesc m_desc;
-	};
-
-	class RHIComputeShader : public RHIShader
-	{
-		public :
-			RHIComputeShader(const RHIComputeShaderDesc& desc);
-			virtual ~RHIComputeShader() = default;
-
-		public :
-			virtual const void* GetRawBuffer() const;
-
-		private :
-			RHIComputeShaderDesc m_desc;
+	private :
+		RHIShaderDesc m_desc;
 	};
 
 	class RHIPipeLine : public RHIResource
@@ -157,8 +133,6 @@ namespace wtr
 			virtual ~RHIPipeLine() = default;
 
 		public :
-			virtual const void* GetRawBuffer() const;
-
 			const RHIClearState GetClearState() const;
 			const RHIColorState GetColorState() const;
 			const RHIDepthState GetDepthState() const;
@@ -166,8 +140,22 @@ namespace wtr
 			const RHIBlendState GetBlendState() const;
 			const RHIRasterizerState GetRasterizerState() const;
 
-		protected :
+			void SetClearState(const RHIClearState clear);
+			void SetColorState(const RHIColorState color);
+			void SetDepthState(const RHIDepthState depth);
+			void SetStencilState(const RHIStencilState stencil);
+			void SetBlendState(const RHIBlendState blend);
+			void SetRasterizerState(const RHIRasterizerState rasterizer);
+
+			void AddSlot(const std::string& name, const RHIResourceBinding& binding);
+			bool HasSlot(const std::string& name) const;
+
+			size_t GetSlotCount() const;
+			const RHIResourceBinding GetBindingSlot(const std::string& name) const;
+
+		private :
 			RHIPipeLineDesc m_desc;
+			wtr::HashMap<std::string, RHIResourceBinding> m_slots;
 	};
 };
 

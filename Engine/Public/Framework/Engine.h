@@ -1,26 +1,23 @@
 #ifndef __WTR_ENGINE_H__
 #define __WTR_ENGINE_H__
 
-#include <Memory/include/Pointer/RootPtr.h>
 #include <Memory/include/Pointer/RefPtr.h>
-
-#include <World/World.h>
 
 namespace wtr
 {
 	class Window;
 	class InputHandler;
 	class InputStorage;
-	class FrameContext;
-	class RenderGraph;
+	
+	class WorldContext;
+	
+	class Renderer;
+
 	class RHISystem;
 	class RHIExecutor;
-	class AssetManager;
-	
-	class WorldWorker;
-	class RenderWorker;
-	class RHIWorker;
-	class AssetWorker;
+
+	class Worker;
+	class FrameGate;
 
 	struct WindowDesc;
 	struct RenderDesc;
@@ -39,39 +36,40 @@ namespace wtr
 			void Shutdown();
 			void Run();
 
-			Memory::ObjectPtr<World> GetWorld();
-			Memory::RefPtr<RenderGraph> GetGraph();
+			Memory::RefPtr<InputStorage> GetInputStorage();
+			Memory::RefPtr<WorldContext> GetWorldContext();
+			Memory::RefPtr<Renderer> GetRenderer();
 
 		private :
 			bool InitWindow(const WindowDesc& windowDesc);
 			bool InitRender(const RenderDesc& renderDesc);
 			bool InitRHI(const RenderDesc& renderDesc);
 			bool InitWorld();
-			bool InitRHI();
 			bool InitAsset();
+			bool InitWorker();
 
 			void UpdateInput();
 
 		private :
-			Window*			m_window;
-			InputHandler*	m_inputHandler;
+			Memory::RefPtr<Window>			m_window;
 
+			Memory::RefPtr<InputHandler>	m_inputHandler;
 			Memory::RefPtr<InputStorage>	m_inputStorage;
-			Memory::RefPtr<FrameContext>	m_frameContext;
+			Memory::RefPtr<FrameGate>		m_updateGate;
+			Memory::RefPtr<FrameGate>		m_renderGate;
 			
-			Memory::RefPtr<AssetManager> m_assetManager;
-			Memory::RefPtr<AssetWorker> m_assetWorker;
+			Memory::RefPtr<WorldContext>	m_worldContext;
 
-			Memory::RootPtr<World>	m_world;
-			Memory::RefPtr<WorldWorker> m_worldWorker;
+			Memory::RefPtr<Renderer>		m_renderer;
 
-			Memory::RefPtr<RenderGraph> m_renderGraph;
-			Memory::RefPtr<RenderWorker> m_renderWorker;
+			Memory::RefPtr<RHISystem>		m_rhiSystem;
+			Memory::RefPtr<RHIExecutor>		m_rhiFrameExecutor;
+			Memory::RefPtr<RHIExecutor>		m_rhiTaskExecutor;
 
-			Memory::RefPtr<RHISystem> m_rhiSystem;
-			Memory::RefPtr<RHIExecutor> m_rhiFrameExecutor;
-			Memory::RefPtr<RHIExecutor> m_rhiTaskExecutor;
-			Memory::RefPtr<RHIWorker> m_rhiWorker;
+			Memory::RefPtr<Worker>			m_worldWorker;
+			Memory::RefPtr<Worker>			m_renderWorker;
+			Memory::RefPtr<Worker>			m_rhiWorker;
+			Memory::RefPtr<Worker>			m_assetWorker;
 	};
 };
 

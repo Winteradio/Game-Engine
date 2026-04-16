@@ -19,14 +19,21 @@ namespace wtr
 		Worker();
 		virtual ~Worker();
 
+		Worker(const Worker&) = delete;
+		Worker& operator=(const Worker&) = delete;
+
+		Worker(Worker&& other) noexcept;
+		Worker& operator=(Worker&& other) noexcept;
+
 	public :
 		void Start();
 		void Stop();
 
 	protected :
-		virtual void onStart() = 0;
-		virtual void onUpdate() = 0;
-		virtual void onDestroy() = 0;
+		virtual bool onStart();
+		virtual void onUpdate();
+		virtual void onDestroy();
+		virtual void onNotify();
 
 	private :
 		void Run();

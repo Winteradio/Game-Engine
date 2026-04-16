@@ -4,36 +4,13 @@
 #include <Memory/include/Pointer/RefPtr.h>
 
 #include <Framework/Worker.h>
+#include <Framework/Task.h>
 
 #include <mutex>
 #include <condition_variable>
-#include <functional>
 
 namespace wtr
 {
-	struct Task
-	{
-		std::function<void()> func;
-
-		Task(std::function<void()> func);
-		void operator()();
-
-		template<typename Logic, typename Callback, typename... Args>
-		static Task Make(Logic&& logic, Callback&& callback, Args&&... args)
-		{
-			auto taskFunc = [taskLogic = std::forward<Logic>(logic), 
-				taskCallback = std::forward<Callback>(callback), 
-				...taskArgs = std::forward<Args>(args)...]
-				() mutable
-			{
-				auto result = taskLogic(taskArgs...);
-				taskCallback(result);
-			};
-
-			return Task(taskFunc);
-		};
-	};
-
 	class TaskWorker : public Worker
 	{
 	public :
@@ -44,20 +21,22 @@ namespace wtr
 		void Wait();
 		void Notify();
 		
-		void Set(Memory::RefPtr<Task> task);
+		void Set(Memory::RefPtr<DefaultTask> task);
 		
-		bool IsRunning() const;
+		bool IsWaited() const;
 		bool IsJoinable() const;
+		bool IsTasking() const;
 
 	protected :
-		void onStart() override;
+		bool onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
+		std::atomic<bool> m_isWaited;
 		std::condition_variable m_cv;
 		std::mutex m_mutex;
-		Memory::RefPtr<Task> m_task;
+		Memory::RefPtr<DefaultTask> m_task;
 	};
 };
 

@@ -1,7 +1,10 @@
 #ifndef __WTR_RENDERTYPES_H__
 #define __WTR_RENDERTYPES_H__
 
+#include <Container/include/DynamicArray.h>
+#include <Memory/include/Pointer/RefPtr.h>
 #include <cstdint>
+#include <string>
 
 namespace wtr
 {
@@ -23,9 +26,8 @@ namespace wtr
 		eTexture	= 0x02,
 		eSampler	= 0x03,
 		eShader		= 0x04,
-		eState		= 0x05,
-		ePipeLine	= 0x06,
-		eView		= 0x07
+		ePipeLine	= 0x05,
+		eLayout		= 0x06,
 	};
 
 	enum class eBufferType : uint8_t
@@ -60,16 +62,28 @@ namespace wtr
 		eDouble = 0x08
 	};
 
+	enum class eMapAccess : uint8_t
+	{
+		eNone				= 0x00,
+		eRead				= 0x01 << 0,
+		eWrite				= 0x01 << 1,
+		eInvalidateRange	= 0x01 << 2,
+		eInvalidateBuffer	= 0x01 << 3,
+		eFlushExplicit		= 0x01 << 4,
+		eUnsynchronized		= 0x01 << 5,
+	};
+
 	enum class eVertexSemantic : uint8_t
 	{
 		eNone		= 0x00,
-		ePosition	= 0x00,
-		eNormal		= 0x01,
-		eTangent	= 0x02,
-		eColor		= 0x03,
-		eTexCoord	= 0x04,
-		eJoint 		= 0x05,
-		eWeight		= 0x06
+		ePosition	= 0x01,
+		eNormal		= 0x02,
+		eTangent	= 0x03,
+		eColor		= 0x04,
+		eTexCoord	= 0x05,
+		eJoint 		= 0x06,
+		eWeight		= 0x07,
+		eGeneric	= 0x08
 	};
 
 	enum class eBindingType : uint8_t
@@ -79,20 +93,44 @@ namespace wtr
 		eUniformBuffer	= 0x02,
 		eStorageBuffer 	= 0x03,
 		eSampler		= 0x04,
-		eTexture		= 0x05,
+	};
+
+	enum class eTextureType : uint8_t
+	{
+		eNone 						= 0x00,
+		eTexture1D					= 0x01,
+		eTexture2D					= 0x02,
+		eTexture3D					= 0x03,
+		eTextureCube				= 0x04,
+		eTexture1DArray				= 0x05,
+		eTexture2DArray				= 0x06,
+		eTextureCubeArray			= 0x07,
+		eTextureMultisample			= 0x08,
+		eTextureMultisampleArray	= 0x09
 	};
 
 	enum class ePixelFormat : uint8_t
 	{
-		eNone			= 0x00,
-		eR8				= 0x01,
-		eR8G8			= 0x02,
-		eR8G8B8			= 0x03,
-		eR8G8B8A8		= 0x04,
-		eR8G8B8A8_SRGB	= 0x05,
+		eNone				= 0x00,
+		eR8_UNorm			= 0x01,
+		eR8G8_UNorm			= 0x02,
+		eR8G8B8_UNorm		= 0x03,
+		eR8G8B8A8_UNorm		= 0x04,
+		eR8G8B8A8_sRGB		= 0x05,
 		
-		eD24_S8			= 0x06,
-		eD32			= 0x07
+		eR16_Float			= 0x06,
+		eR16G16_Float		= 0x07,
+		eR16G16B16_Float	= 0x08,
+		eR16G16B16A16_Float = 0x09,
+		
+		eR32_Float			= 0x10,
+		eR32G32_Float		= 0x11,
+		eR32G32B32_Float	= 0x12,
+		eR32G32B32A32_Float = 0x13,
+
+		eD24_S8				= 0x14,
+		eD32				= 0x15
+		// TODO : Not yet the compressed pixel format
 	};
 
 	enum class eTextureUsage : uint8_t
@@ -193,10 +231,10 @@ namespace wtr
 		eZero			= 0x00,
 		eKeep			= 0x01,
 		eReplace		= 0x02,
-		eInc_Clamp	= 0x03,
-		eInc_Wrap 	= 0x04,
-		eDec_Clamp = 0x05,
-		eDec_Wrap 	= 0x06,
+		eInc_Clamp		= 0x03,
+		eInc_Wrap 		= 0x04,
+		eDec_Clamp 		= 0x05,
+		eDec_Wrap 		= 0x06,
 		eInvert			= 0x07,
 	};
 
@@ -238,6 +276,102 @@ namespace wtr
 		eStencil		= 0x01 << 5,
 	};
 
+	enum class eBarrierFlag : uint16_t
+	{
+		eNone			= 0x00,
+		eVertexBuffer	= 0x01 << 0,
+		eIndexBuffer	= 0x01 << 1,
+		eConstBuffer	= 0x01 << 2,
+		eStorageBuffer	= 0x01 << 3,
+		eBufferUpdate	= 0x01 << 4,
+
+		eTextureFetch	= 0x01 << 5,
+		eTextureUpdate	= 0x01 << 6,
+
+		eImageRead		= 0x01 << 7,
+		eImageWrite		= 0x01 << 8,
+
+		eFrameBuffer	= 0x01 << 9,
+	};
+
+	enum class eTextureSlot : uint8_t
+	{
+		eNone				= 0x00,
+		eAmbient			= 0x01,
+		eDiffuse			= 0x02,
+		eSpecular			= 0x03,
+		eEmissive			= 0x04,
+		eOpacity			= 0x05,
+		eBump				= 0x06,
+		eNormal				= 0x07,
+		eRoughness			= 0x08,
+		eMetallic			= 0x09,
+		eAmbientOcclusion	= 0x10,
+		eSheen				= 0x11,
+	};
+
+	enum class eVectorSlot : uint8_t
+	{
+		eNone			= 0x00,
+		eAmbientColor	= 0x01,
+		eDiffuseColor	= 0x02,
+		eSpecularColor	= 0x03,
+		eEmissiveColor	= 0x04,
+	};
+
+	enum class eScalarSlot : uint8_t
+	{
+		eNone			= 0x00,
+		eShininess		= 0x01,
+		eOpacity		= 0x02,
+		eRefraction		= 0x03,
+		eRoughness		= 0x04,
+		eMetallic		= 0x05,
+	};
+
+	struct RawDataDesc
+	{
+		const void* pointer;
+	};
+
+	struct FormattedDataDesc : RawDataDesc
+	{
+		eDataType componentType;
+		uint32_t numComponents;
+		uint32_t count;
+	};
+
+	template<typename Desc>
+	struct BufferContainer
+	{
+		wtr::DynamicArray<uint8_t> data;
+		Desc desc;
+	};
+
+	using RawBuffer = BufferContainer<RawDataDesc>;
+	using FormattedBuffer = BufferContainer<FormattedDataDesc>;
+
+	struct VertexKey
+	{
+		eVertexSemantic semantic;
+		uint8_t semanticIndex;
+
+		bool operator==(const VertexKey& other) const
+		{
+			return semantic == other.semantic && semanticIndex == other.semanticIndex;
+		}
+	};
+
+	inline eMapAccess operator|(eMapAccess a, eMapAccess b)
+	{
+		return static_cast<eMapAccess>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+
+	inline eMapAccess operator&(eMapAccess a, eMapAccess b)
+	{
+		return static_cast<eMapAccess>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
@@ -267,6 +401,24 @@ namespace wtr
 	{
 		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
+
+	bool IsIntegerDataType(const eDataType dataType);
+
+	size_t GetDataTypeSize(const eDataType dataType);
+	size_t GetVertexLocation(const VertexKey& vertexKey);
+	const VertexKey GetVertexKey(const std::string& attributeName);
+};
+
+namespace std
+{
+	template<>
+	struct hash<wtr::VertexKey>
+	{
+		size_t operator()(const wtr::VertexKey& key) const
+		{
+			return static_cast<uint64_t>(key.semanticIndex) << 32 | static_cast<uint64_t>(key.semantic);
+		}
+	};
 };
 
 #endif // __WTR_RENDERTYPES_H__N

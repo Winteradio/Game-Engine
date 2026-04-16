@@ -124,7 +124,7 @@ namespace wtr
 
 	void InputStorage::Prepare()
 	{
-		static InputData copyData;
+		InputData copyData;
 		copyData = *m_CurrData;
 
 		m_CurrData = m_PrevData.exchange(m_CurrData);
@@ -188,7 +188,7 @@ namespace wtr
 		m_Swapped.exchange(true);
 	}
 
-	bool InputStorage::IsChanaged() const
+	bool InputStorage::IsChanged() const
 	{
 		return *m_LogicData != *m_CurrData;
 	}
@@ -198,7 +198,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] >> keyBit);
 
 		return (keyData & eInputAction::eDown) != eInputAction::eNone;
 	}
@@ -208,7 +208,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] >> keyBit);
 
 		return (keyData & eInputAction::ePress) != eInputAction::eNone;
 	}
@@ -218,7 +218,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] >> keyBit);
 
 		return (keyData & eInputAction::eRelease) != eInputAction::eNone;
 	}
@@ -228,7 +228,7 @@ namespace wtr
 		const size_t keyIndex = GetKeyIndex(key);
 		const size_t keyBit = GetKeyBit(key);
 
-		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] << keyBit);
+		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] >> keyBit);
 
 		return (keyData & eInputAction::eRepeat) != eInputAction::eNone;
 	}

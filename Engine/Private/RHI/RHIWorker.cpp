@@ -2,6 +2,7 @@
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIExecutor.h>
+#include <Framework/FrameGate.h>
 
 namespace wtr
 {
@@ -9,6 +10,7 @@ namespace wtr
 		: m_refSystem(nullptr)
 		, m_refFrameExecutor(nullptr)
 		, m_refTaskExecutor(nullptr)
+		, m_refConsumer(nullptr)
 	{
 	}
 
@@ -18,44 +20,78 @@ namespace wtr
 
 	void RHIWorker::SetSystem(const Memory::RefPtr<RHISystem> rhiSystem)
 	{
-		m_refSystem = rhiSystem;
+		if (rhiSystem)
+		{
+			m_refSystem = rhiSystem;
+		}
 	}
 
 	void RHIWorker::SetFrameExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
-		m_refFrameExecutor = executor;
+		if (executor)
+		{
+			m_refFrameExecutor = executor;
+		}
 	}
 
 	void RHIWorker::SetTaskExecutor(const Memory::RefPtr<RHIExecutor> executor)
 	{
-		m_refTaskExecutor = executor;
+		if (executor)
+		{
+			m_refTaskExecutor = executor;
+		}
 	}
 
-	void RHIWorker::onStart()
+	void RHIWorker::SetConsumer(const Memory::RefPtr<FrameConsumer> consumer)
 	{
-		m_refSystem->MakeCurrent();
+		if (consumer)
+		{
+			m_refConsumer = consumer;
+		}
+	}
+
+	bool RHIWorker::onStart()
+	{
+		if (m_refSystem)
+		{
+			m_refSystem->MakeCurrent();
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	void RHIWorker::onUpdate()
 	{
-		if (!m_refSystem)
+		if (m_refConsumer)
 		{
-			return;
+			m_refConsumer->Acquire();
 		}
 
 		if (m_refTaskExecutor)
 		{
-			m_refTaskExecutor->Execute(m_refSystem);
+			m_refTaskExecutor->Execute();
 		}
 
 		if (m_refFrameExecutor)
 		{
-			m_refFrameExecutor->Execute(m_refSystem);
+			m_refFrameExecutor->Execute();
 		}
 	}
 
-	void RHIWorker::onDestroy()
+	void RHIWorker::onNotify()
 	{
-		m_refSystem->ReleaseCurrent();
+		if (m_refSystem)
+		{
+			m_refSystem->ReleaseCurrent();
+		}
+
+		if (m_refConsumer)
+		{
+			m_refConsumer->NotifyAll();
+		}
 	}
 }

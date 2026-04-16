@@ -1,118 +1,164 @@
 #include <World/Scene.h>
 
+#include <World/Node.h>
+#include <World/Commander.h>
+
+#include <Reflection/include/Utils.h>
+#include <Memory/include/Core.h>
+
 namespace wtr
 {
 	Scene::Scene()
-		: ECS::Scene()
-	{}
-
-	Scene::Scene(const std::string& name)
-		: ECS::Scene(name)
+		: m_refCommander(nullptr)
+		, m_sceneDatas()
 	{}
 
 	Scene::~Scene()
 	{}
 
-	void Scene::RegisterView(const ViewInfo& view)
+	void Scene::SetCommander(Memory::RefPtr<Commander> refCommander)
 	{
-		m_viewMap.Emplace(view.name, view);
+		m_refCommander = refCommander;
 	}
 
-	void Scene::RemoveView(const std::string name)
+	void Scene::Attach(Memory::ObjectPtr<BaseNode> node)
 	{
-		m_viewMap.Erase(name);
-	}
-
-	const ViewInfo& Scene::GetView(const std::string& name) const
-	{
-		auto itr = m_viewMap.Find(name);
-		if (itr != m_viewMap.End())
+		if (!m_refCommander || !node)
 		{
-			return itr->second;
+			return;
+		}
+
+		if (auto meshNode = Memory::Cast<MeshNode>(node))
+		{
+			AttachNode(meshNode, meshNode->transform);
+
+			m_refCommander->AddPrimitive(meshNode);
+		}
+		else if (auto lightNode = Memory::Cast<LightNode>(node))
+		{
+			AttachNode(lightNode, lightNode->transform);
+
+			m_refCommander->AddLight(lightNode);
 		}
 		else
 		{
-			static ViewInfo null;
-			return null;
+			// nothing
 		}
 	}
 
-	const wtr::HashMap<std::string, ViewInfo>& Scene::GetView() const
+	void Scene::Detach(Memory::ObjectPtr<BaseNode> node)
 	{
-		return m_viewMap;
-	}
-
-	SceneContainer::SceneContainer()
-		: m_storage()
-	{}
-
-	SceneContainer::~SceneContainer()
-	{}
-
-	Scene& SceneContainer::Create(const std::string& name)
-	{
-		auto [itr, inserted] = m_storage.TryEmplace(name);
-		if (inserted)
+		if (!m_refCommander || !node)
 		{
-			itr->second = Scene(name);
+			return;
 		}
 
-		return itr->second;
-	}
-
-	void SceneContainer::Remove(const std::string& name)
-	{
-		m_storage.Erase(name);
-	}
-
-	Scene& SceneContainer::GetScene(const std::string& name)
-	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
+		if (auto meshNode = Memory::Cast<MeshNode>(node))
 		{
-			return itr->second;
+			DetachNode(meshNode);
+
+			m_refCommander->RemovePrimitive(meshNode);
+		}
+		else if (auto lightNode = Memory::Cast<LightNode>(node))
+		{
+			DetachNode(lightNode);
+
+			m_refCommander->RemoveLight(lightNode);
 		}
 		else
 		{
-			static Scene null;
-			return null;
+			// nothing
 		}
 	}
 
-	const Scene& SceneContainer::GetScene(const std::string& name) const
+	void Scene::Detach(const ECS::UUID& entityId)
 	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
+		if (!m_refCommander)
 		{
-			return itr->second;
+			return;
+		}
+
+		m_refCommander->Remove(entityId);
+		m_sceneDatas.Erase(entityId);
+	}
+
+	void Scene::DetachAll()
+	{
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		m_refCommander->RemoveAll();
+	}
+
+	void Scene::Update(const ECS::UUID& entityId)
+	{
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		auto itr = m_sceneDatas.Find(entityId);
+		if (itr == m_sceneDatas.End())
+		{
+			return;
+		}
+
+		auto& scenePair = itr->second;
+
+		m_refCommander->Update(scenePair.transform);
+	}
+
+	void Scene::AttachNode(Memory::ObjectPtr<BaseNode> node, Memory::ObjectPtr<SceneComponent> transform)
+	{
+		if (!node || !transform)
+		{
+			return;
+		}
+
+		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
+
+		auto itr = m_sceneDatas.Find(node->GetID());
+		if (itr == m_sceneDatas.End())
+		{
+			ScenePair scenePair;
+			scenePair.transform = transform;
+			scenePair.transform->OnAttached(this);
+			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
+
+			m_sceneDatas[node->GetID()] = scenePair;
 		}
 		else
 		{
-			static Scene null;
-			return null;
+			ScenePair& scenePair = itr->second;
+
+			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
 		}
 	}
 
-	SceneContainer::Storage& SceneContainer::GetScene()
+	void Scene::DetachNode(Memory::ObjectPtr<BaseNode> node)
 	{
-		return m_storage;
-	}
-
-	const SceneContainer::Storage& SceneContainer::GetScene() const
-	{
-		return m_storage;
-	}
-
-	bool SceneContainer::HasScene(const std::string& name) const
-	{
-		auto itr = m_storage.Find(name);
-		if (itr != m_storage.End())
+		if (!node)
 		{
-			return true;
+			return;
 		}
-		else
+
+		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
+		
+		auto itr = m_sceneDatas.Find(node->GetID());
+		if (itr == m_sceneDatas.End())
 		{
-			return false;
+			return;
+		}
+		
+		ScenePair& scenePair = itr->second;
+		scenePair.transform->OnDetached();
+		scenePair.nodeTypes.Erase(nodeType->GetTypeHash());
+		
+		if (scenePair.nodeTypes.Empty())
+		{
+			m_sceneDatas.Erase(itr);
 		}
 	}
 }

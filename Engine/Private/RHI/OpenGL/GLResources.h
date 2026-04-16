@@ -5,116 +5,95 @@
 
 namespace wtr
 {
-	class GLBuffer : public RHIBuffer
+	class GLResource
+	{
+	public :
+		GLResource();
+		virtual ~GLResource() = default;
+
+	public :
+		void SetID(const uint32_t resourceID);
+		const uint32_t GetID() const;
+
+	private :
+		uint32_t m_resourceID;
+	};
+
+	class GLBuffer : public RHIBuffer, public GLResource
 	{
 		public : 
 			GLBuffer(const RHIBufferDesc& desc);
 			virtual ~GLBuffer();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_bufferID = 0;
 	};
 
-	class GLTexture : public RHITexture
+	class GLVertexLayout : public RHIVertexLayout, public GLResource
+	{
+		public :
+			GLVertexLayout(const RHIVertexLayoutDesc& desc);
+			virtual ~GLVertexLayout();
+	};
+
+	class GLTexture : public RHITexture, public GLResource
 	{
 		public :
 			GLTexture(const RHITextureDesc& desc);
 			virtual ~GLTexture();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_textureID = 0;
 	};
 
-	class GLSampler : public RHISampler
+	class GLSampler : public RHISampler, public GLResource
 	{
 		public :
 			GLSampler(const RHISamplerDesc& desc);
 			virtual ~GLSampler();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_samplerID = 0;
 	};
 
-	class GLVertexShader : public RHIVertexShader
+	class GLShader : public RHIShader, public GLResource
 	{
 		public :
-			GLVertexShader(const RHIVertexShaderDesc& desc);
+			GLShader(const RHIShaderDesc& desc);
+			virtual ~GLShader() = default;
+	};
+
+	class GLVertexShader : public GLShader
+	{
+		public :
+			GLVertexShader(const RHIShaderDesc& desc);
 			virtual ~GLVertexShader();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_shaderID = 0;
 	};
 
-	class GLGeometryShader : public RHIGeometryShader
+	class GLGeometryShader : public GLShader
 	{
 		public :
-			GLGeometryShader(const RHIGeometryShaderDesc& desc);
+			GLGeometryShader(const RHIShaderDesc& desc);
 			virtual ~GLGeometryShader();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_shaderID = 0;
 	};
 
-	class GLPixelShader : public RHIPixelShader
+	class GLHullShader : public GLShader
 	{
 		public :
-			GLPixelShader(const RHIPixelShaderDesc& desc);
+			GLHullShader(const RHIShaderDesc& desc);
+			virtual ~GLHullShader();
+	};
+
+	class GLPixelShader : public GLShader
+	{
+		public :
+			GLPixelShader(const RHIShaderDesc& desc);
 			virtual ~GLPixelShader();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_shaderID = 0;
 	};
 
-	class GLComputeShader : public RHIComputeShader
+	class GLComputeShader : public GLShader
 	{
 		public :
-			GLComputeShader(const RHIComputeShaderDesc& desc);
+			GLComputeShader(const RHIShaderDesc& desc);
 			virtual ~GLComputeShader();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_shaderID = 0;
 	};
 
-	class GLPipeLine : public RHIPipeLine
+	class GLPipeLine : public RHIPipeLine, public GLResource
 	{
 		public :
 			GLPipeLine(const RHIPipeLineDesc& desc);
 			virtual ~GLPipeLine();
-
-		public :
-			const void* GetRawBuffer() const final;
-			const uint32_t GetID() const;
-
-		private :
-			uint32_t m_pipelineID = 0;
 	};
 };
 

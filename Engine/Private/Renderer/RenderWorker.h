@@ -7,9 +7,11 @@
 
 namespace wtr
 {
-	class FrameContext;
-	class RenderGraph;
+	class Renderer;
 	class RHIExecutor;
+
+	class FrameConsumer;
+	class FrameProducer;
 };
 
 namespace wtr
@@ -21,19 +23,21 @@ namespace wtr
 		~RenderWorker();
 
 	public :
-		void SetFrameContext(const Memory::RefPtr<FrameContext> frameContext);
-		void SetGraph(const Memory::RefPtr<RenderGraph> graph);
+		void SetRenderer(Memory::RefPtr<Renderer> renderer);
 		void SetExecutor(const Memory::RefPtr<RHIExecutor> executor);
+		void SetConsumer(const Memory::RefPtr<FrameConsumer> consumer);
+		void SetProducer(const Memory::RefPtr<FrameProducer> producer);
 
 	protected :
-		void onStart() override;
+		bool onStart() override;
 		void onUpdate() override;
-		void onDestroy() override;
+		void onNotify() override;
 
 	private :
-		Memory::RefPtr<FrameContext> m_refFrameContext;
-		Memory::RefPtr<RenderGraph> m_refGraph;
+		Memory::RefPtr<Renderer>	m_refRenderer;
 		Memory::RefPtr<RHIExecutor> m_refExecutor;
+		Memory::RefPtr<FrameConsumer> m_refConsumer;
+		Memory::RefPtr<FrameProducer> m_refProducer;
 	};
 };
 

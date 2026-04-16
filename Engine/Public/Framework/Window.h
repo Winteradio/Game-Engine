@@ -1,8 +1,11 @@
 #ifndef __WTR_WINDOW_H__
 #define __WTR_WINDOW_H__
 
+#include <Memory/include/Pointer/RefPtr.h>
+
 #include <string>
 #include <cstdint>
+#include <functional>
 
 namespace wtr
 {
@@ -39,8 +42,8 @@ namespace wtr
 			, Name("Default Window")
 			, PosX(0.0f)
 			, PosY(0.0f)
-			, Width(800.0f)
-			, Height(600.0f)
+			, Width(1080)
+			, Height(800.0f)
 		{}
 	};
 };
@@ -63,8 +66,10 @@ namespace wtr
 			virtual const eWindowStatus GetStatus() const = 0;
 			virtual void* GetNativeHandle() const = 0;
 
-			virtual void SetInputHandler(InputHandler* inputHandler) = 0;
-			virtual const InputHandler* GetInputHandler() const = 0;
+			virtual void SetInputHandler(Memory::RefPtr<InputHandler> inputHandler) = 0;
+			virtual Memory::RefPtr<const InputHandler> GetInputHandler() const = 0;
+
+			virtual void SetCloseCallback(const std::function<void()>& callback) = 0;
 	};
 };
 
