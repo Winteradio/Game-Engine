@@ -44,7 +44,7 @@ namespace wtr
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)
 		{
-			return transform->GetPosition();
+			return {};
 		}
 
 		const fvec3 prevRotation = transform->GetRotation();
@@ -100,18 +100,20 @@ namespace wtr
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)
 		{
-			return transform->GetRotation();
+			return {};
 		}
 
 		const fvec2 mouseDelta = inputStorage->GetMouseDelta();
 
-		if (inputStorage->IsPressed(eKeyCode::eKey_MouseLeft))
+		if (inputStorage->IsDown(eKeyCode::eKey_MouseLeft))
 		{
+			static constexpr float mouseSensitivity = 0.01f;
+
 			const float seconds = ECS::TimeStep::ToSecond(timeStep.delta);
 			const float smoothFactor = 1.f - std::exp(-5.f * seconds);
 			
 			const fvec3 prevRotation = transform->GetRotation();
-			const fvec3 targetRotation = prevRotation + fvec3(-mouseDelta.y, -mouseDelta.x, 0.f) * 0.01f;
+			const fvec3 targetRotation = prevRotation + fvec3(-mouseDelta.y, -mouseDelta.x, 0.f) * mouseSensitivity;
 
 			const fquat prevQuat = glm::quat(prevRotation);
 			const fquat targetQuat = glm::quat(targetRotation);

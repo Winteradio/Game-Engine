@@ -83,6 +83,11 @@ namespace wtr
 		Enqueue<RHICommandDepthState>(state);
 	}
 
+	void RHICommandList::SetStencilState(const RHIStencilState& state)
+	{
+		Enqueue<RHICommandStencilState>(state);
+	}
+
 	void RHICommandList::SetBlendState(const RHIBlendState& state)
 	{
 		Enqueue<RHICommandBlendState>(state);
@@ -331,6 +336,11 @@ namespace wtr
 	void RHICommandList::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		Enqueue<RHICommandUnsetPipeLine>(pipeline);
+	}
+
+	void RHICommandList::DispatchCompute(const RHIDispatchDesc info)
+	{
+		Enqueue<RHICommandDispatchCompute>(info);
 	}
 
 	void RHICommandList::DrawIndexPrimitive(const RHIDrawIndexDesc info)

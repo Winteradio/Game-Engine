@@ -109,7 +109,7 @@ namespace wtr
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture);
 		void RemoveSampler(Memory::RefPtr<RHISampler> sampler);
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
-		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> shader);
+		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
 
 		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);

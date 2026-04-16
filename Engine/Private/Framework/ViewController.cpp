@@ -12,8 +12,8 @@ namespace wtr
 		: m_name("")
 		, m_posX(0)
 		, m_posY(0)
-		, m_width(1080)
-		, m_height(800)
+		, m_width(0)
+		, m_height(0)
 	{}
 
 	void ViewInfo::SetName(const std::string& name)

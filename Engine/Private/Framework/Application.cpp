@@ -85,7 +85,7 @@ namespace wtr
 		auto players = GetPlayerController();
 		if (!world || !views || !players)
 		{
-			LOGERROR() << "[Game] Failed to get the world, views or players from the world context";
+			LOGERROR() << "[Application] Failed to get the world, views or players from the world context";
 			return false;
 		}
 
@@ -101,9 +101,11 @@ namespace wtr
 		auto cameraEntity = world->CreateEntity();
 		if (!cameraEntity)
 		{
-			LOGERROR() << "[Game] Failed to create the camera entity";
+			LOGERROR() << "[Application] Failed to create the camera entity";
 			return false;
 		}
+
+		const auto windowDesc = GetWindowDesc();
 
 		cameraEntity->AddComponent<wtr::SceneComponent>();
 		cameraEntity->AddComponent<wtr::CameraComponent>();
@@ -115,21 +117,33 @@ namespace wtr
 			sceneComponent->UpdatePosition({ 0.0f, 0.0f, 5.0f });
 		}
 
-		LOGINFO() << "[Game] Camera Entity ID : " << cameraEntity->GetID().ToString();
+		auto cameraComponent = cameraEntity->GetComponent<wtr::CameraComponent>();
+		if (cameraComponent)
+		{
+			cameraComponent->nearPlane = 1.f;
+			cameraComponent->farPlane = 1000.0f;
+			cameraComponent->width = static_cast<float>(windowDesc.Width);
+			cameraComponent->height = static_cast<float>(windowDesc.Height);
+			cameraComponent->perspective = true;
+		}
+
+		LOGINFO() << "[Application] Camera Entity ID : " << cameraEntity->GetID().ToString();
 
 		auto cameraPlayer = players->Create(cameraEntity);
 		if (!cameraPlayer)
 		{
-			LOGERROR() << "[Game] Failed to create the camera player";
+			LOGERROR() << "[Application] Failed to create the camera player";
 			return false;
 		}
 
 		auto mainView = views->Create("MainView");
 		if (!mainView)
 		{
-			LOGERROR() << "[Game] Failed to create the main view";
+			LOGERROR() << "[Application] Failed to create the main view";
 			return false;
 		}
+
+		mainView->SetSize(static_cast<uint16_t>(windowDesc.Width), static_cast<uint16_t>(windowDesc.Height));
 
 		cameraPlayer->Activate();
 		cameraPlayer->Register(mainView);

@@ -11,7 +11,6 @@ namespace wtr
 	class RHITexture;
 	class RHISampler;
 	class RHIShader;
-	class RHIShader;
 	class RHIPipeLine;
 
 	struct RHIBufferDesc;

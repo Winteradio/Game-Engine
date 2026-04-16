@@ -124,7 +124,7 @@ namespace wtr
 
 	void InputStorage::Prepare()
 	{
-		static InputData copyData;
+		InputData copyData;
 		copyData = *m_CurrData;
 
 		m_CurrData = m_PrevData.exchange(m_CurrData);
@@ -149,8 +149,6 @@ namespace wtr
 		if ((eInputType::eKeyboard == inputDesc.Type) ||
 			(eInputType::eMouseButton == inputDesc.Type))
 		{
-			LOGINFO() << "[INPUT] " << InputData::ToString(*m_LogicData);
-
 			const size_t keyIndex = GetKeyIndex(inputDesc.Key);
 			const size_t keyBit = GetKeyBit(inputDesc.Key);
 
@@ -163,8 +161,6 @@ namespace wtr
 		}
 		else if (eInputType::eMouseMove == inputDesc.Type)
 		{
-			LOGINFO() << "[INPUT] " << InputData::ToString(*m_LogicData);
-
 			const fvec2 currPos = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
 			m_CurrData->mouseDelta += currPos - m_CurrData->mousePos;
 			m_CurrData->mousePos = currPos;
@@ -192,7 +188,7 @@ namespace wtr
 		m_Swapped.exchange(true);
 	}
 
-	bool InputStorage::IsChanaged() const
+	bool InputStorage::IsChanged() const
 	{
 		return *m_LogicData != *m_CurrData;
 	}

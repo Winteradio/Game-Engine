@@ -166,7 +166,7 @@ namespace wtr
 		{
 			if (!m_window)
 			{
-				LOGERROR() << "[Engne] The Window is invalid, failed to initialize the render";
+				LOGERROR() << "[Engine] The Window is invalid, failed to initialize the render";
 				return false;
 			}
 

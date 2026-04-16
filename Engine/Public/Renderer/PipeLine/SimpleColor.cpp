@@ -83,6 +83,8 @@ namespace wtr
 		clearState.color.b = std::sin(tick + 4.188f) * 0.5f + 0.5f;
 		clearState.color.a = 1.0f;
 
+		m_pipeLine->SetClearState(clearState);
+
 		cmdList->Clear(clearState);
 		cmdList->SetPipeLine(m_pipeLine);
 		cmdList->SetBuffer(globalResource->GetCameraBuffer(), m_cameraSlot);
@@ -122,12 +124,15 @@ namespace wtr
 		}
 
 		RHIPipeLineCreateDesc desc;
-		desc.clear.clearBuffer = eClearBuffer::eColor;
+		desc.clear.clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth;
 		desc.clear.color = { 0.0f, 0.0f, 0.0f, 1.0f };
-		desc.depth.enable = false;
+		desc.clear.depth = 1.0f;
+		desc.depth.enable = true;
+		desc.depth.write = true;
+		desc.depth.func = eCompareFunc::eLessEqual;
 		desc.stencil.enable = false;
 		desc.blend.enable = false;
-		desc.rasterizer.cullEnable = false;
+		desc.rasterizer.cullEnable = true;
 		desc.rasterizer.cullFace = eCullFace::eBack;
 		desc.rasterizer.frontFace = eFrontFace::eCCW;
 		desc.rasterizer.fillMode = ePrimitiveMode::eFill;

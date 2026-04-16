@@ -82,7 +82,7 @@ namespace wtr
 
 			std::string_view line(reinterpret_cast<const char*>(curr), static_cast<size_t>(lineEnd - curr));
 
-			if (curr < end && *curr == '\r' || *curr == '\n')
+			if (curr < end && (*curr == '\r' || *curr == '\n'))
 			{
 				curr++;
 				continue;

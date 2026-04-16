@@ -9,6 +9,7 @@ namespace wtr
 		, m_mutex()
 		, m_cv()
 		, m_task()
+		, m_isWaited(false)
 	{}
 
 	TaskWorker::~TaskWorker()

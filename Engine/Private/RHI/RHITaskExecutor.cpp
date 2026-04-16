@@ -1,7 +1,5 @@
 #include <RHI/RHITaskExecutor.h>
 
-#include <RHI/RHITaskExecutor.h>
-
 #include <Memory/include/Core.h>
 
 #include <RHI/RHISystem.h>

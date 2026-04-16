@@ -79,13 +79,11 @@ namespace wtr
 
 		virtual ~CameraComponent() = default;
 
-		float fov = 45.f;
-
 		float nearPlane = 1.f;
 		float farPlane = 1000.f;
 
-		float width = 1080.f;
-		float height = 800.f;
+		float width = 0.f;
+		float height = 0.f;
 
 		bool perspective = true;
 	};

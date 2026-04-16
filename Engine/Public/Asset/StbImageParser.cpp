@@ -44,6 +44,8 @@ namespace wtr
 			LOGINFO() << "[STDIMAGE] Failed to get the pixels data from the file : " << asset->path;
 		}
 
+		stbi_image_free(pixels);
+
 		// TODO
 
 		return true;

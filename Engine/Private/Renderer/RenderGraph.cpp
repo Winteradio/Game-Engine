@@ -146,7 +146,7 @@ namespace wtr
 			}
 
 			const eResourceState state = pipeLine->GetResourceState();
-			if (state >= eResourceState::eNone)
+			if (state != eResourceState::eNone)
 			{
 				pipeLine->Unload(cmdList);
 			}

@@ -41,7 +41,7 @@ namespace wtr
 			return;
 		}
 
-		const size_t endNow = m_endIndex.load(std::memory_order_relaxed);
+		const size_t endNow = m_endIndex.load(std::memory_order_acquire);
 		const size_t endNext = GetNext(endNow);
 
 		m_endIndex.store(endNext, std::memory_order_release);
@@ -54,7 +54,7 @@ namespace wtr
 			return;
 		}
 
-		const size_t begin = m_beginIndex.load(std::memory_order_relaxed);
+		const size_t begin = m_beginIndex;
 		const size_t end = m_endIndex.load(std::memory_order_acquire);
 		size_t now = begin;
 
@@ -64,12 +64,14 @@ namespace wtr
 			if (cmdList)
 			{
 				cmdList->ExecuteAll();
-				m_system->Present();
 			}
+
 			now = GetNext(now);
 		}
 
-		m_beginIndex.store(end, std::memory_order_release);
+		m_system->Present();
+
+		m_beginIndex = end;
 	}
 
 	bool RHIFrameExecutor::Init(const size_t frameCount)
@@ -87,6 +89,7 @@ namespace wtr
 			Memory::RefPtr<RHICommandList> cmdList = Memory::MakeRef<RHICommandList>(m_system);
 			if (!cmdList)
 			{
+				LOGERROR() << "[RHIFrameExecutor] Failed to creae the RHI Commmand List";
 				break;
 			}
 
@@ -95,6 +98,8 @@ namespace wtr
 
 		if (m_listPool.Size() != m_frameCount)
 		{
+			m_listPool.Clear();
+
 			return false;
 		}
 

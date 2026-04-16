@@ -12,7 +12,20 @@ namespace wtr
 	{}
 
 	WGLContext::~WGLContext()
-	{}
+	{
+		if (m_renderingContext)
+		{
+			wglDeleteContext(m_renderingContext);
+			m_renderingContext = nullptr;
+		}
+
+		if (m_deviceContext)
+		{
+			HWND windowHandle = WindowFromDC(m_deviceContext);
+			ReleaseDC(windowHandle, m_deviceContext);
+			m_deviceContext = nullptr;
+		}
+	}
 
 	bool WGLContext::Init(void* nativeHandle)
 	{
@@ -46,6 +59,7 @@ namespace wtr
 		if (!gladLoadGL())
 		{
 			LOGERROR() << "[WGL] Failed to load the OpenGL function symbols";
+			ReleaseCurrent();
 			return false;
 		}
 
@@ -162,6 +176,9 @@ namespace wtr
 		if (!wglMakeCurrent(m_deviceContext, dummyContext))
 		{
 			LOGERROR() << "[WGL] Failed to make current using dummy rendering context";
+
+			wglDeleteContext(dummyContext);
+
 			return false;
 		}
 

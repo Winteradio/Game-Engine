@@ -59,7 +59,7 @@ namespace wtr
 			auto& primitive = *itr;
 			if (!primitive || !primitive->GetMesh())
 			{
-				LOGINFO() << "[RENDER SCENE] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
+				LOGERROR() << "[RENDER SCENE] Failed to add the primitive proxy, cause the primitive proxy is invalid, ID : " << primitive->GetID().ToString();
 				itr = m_pendingPrimitives.Erase(itr);
 				continue;
 			}
@@ -184,7 +184,7 @@ namespace wtr
 		auto meshAsset = primitive->GetMesh();
 		if (!meshAsset)
 		{
-			LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+			LOGERROR() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 			return;
 		}
 
@@ -218,7 +218,7 @@ namespace wtr
 			meshBatch = Memory::MakeRef<MeshBatch>();
 			if (!meshBatch)
 			{
-				LOGINFO() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+				LOGERROR() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
 				continue;
 			}
 
@@ -244,7 +244,7 @@ namespace wtr
 		auto meshAsset = primitive->GetMesh();
 		if (!meshAsset || meshAsset->sections.Empty())
 		{
-			LOGINFO() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+			LOGWARN() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 			return;
 		}
 
@@ -274,7 +274,7 @@ namespace wtr
 		auto meshAsset = primitive->GetMesh();
 		if (!meshAsset || meshAsset->sections.Empty())
 		{
-			LOGINFO() << "[RenderScene] Failed to remove the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+			LOGWARN() << "[RenderScene] Failed to remove the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 			return;
 		}
 

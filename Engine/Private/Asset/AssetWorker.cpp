@@ -96,6 +96,11 @@ namespace wtr
 					break;
 				}
 			}
+
+			if (processing)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
 		}
 
 		Memory::RefPtr<RHICommandList> cmdList = m_refTaskExecutor->Acquire();

@@ -6,8 +6,9 @@ layout(binding = 0) uniform sampler2D albedo;
 
 uniform vec4 tintColor;
 
+in vec3 outNormal;
+
 void main()
 {
-    vec4 texColor = texture(albedo, vec2(gl_FragCoord.xy / 1000.0));
-    FragColor = texColor * tintColor;
+    FragColor = vec4(outNormal * 0.5 + 0.5, 1.0);
 }

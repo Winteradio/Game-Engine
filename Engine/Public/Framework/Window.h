@@ -42,8 +42,8 @@ namespace wtr
 			, Name("Default Window")
 			, PosX(0.0f)
 			, PosY(0.0f)
-			, Width(800.0f)
-			, Height(600.0f)
+			, Width(1080)
+			, Height(800.0f)
 		{}
 	};
 };

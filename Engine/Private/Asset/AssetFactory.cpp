@@ -4,6 +4,7 @@
 #include <Asset/AssetUtils.h>
 #include <Container/include/StaticArray.h>
 #include <Memory/include/Core.h>
+#include <Log/include/Log.h>
 #include <string>
 
 namespace wtr
@@ -55,7 +56,14 @@ namespace wtr
 			break;
 		}
 
-		asset->name = AssetUtils::GetName(path);
+		if (asset)
+		{
+			asset->name = AssetUtils::GetName(path);
+		}
+		else
+		{
+			LOGINFO() << "[AssetFactory] Unsupported asset type: " << path;
+		}
 
 		return asset;
 	}

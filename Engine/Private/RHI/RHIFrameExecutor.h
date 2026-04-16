@@ -30,7 +30,7 @@ namespace wtr
 		size_t m_frameCount;
 
 		size_t m_recordIndex;
-		std::atomic<size_t> m_beginIndex;
+		size_t m_beginIndex;
 		std::atomic<size_t> m_endIndex;
 
 		ListPool m_listPool;

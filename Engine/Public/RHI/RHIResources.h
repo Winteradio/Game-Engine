@@ -140,6 +140,13 @@ namespace wtr
 			const RHIBlendState GetBlendState() const;
 			const RHIRasterizerState GetRasterizerState() const;
 
+			void SetClearState(const RHIClearState clear);
+			void SetColorState(const RHIColorState color);
+			void SetDepthState(const RHIDepthState depth);
+			void SetStencilState(const RHIStencilState stencil);
+			void SetBlendState(const RHIBlendState blend);
+			void SetRasterizerState(const RHIRasterizerState rasterizer);
+
 			void AddSlot(const std::string& name, const RHIResourceBinding& binding);
 			bool HasSlot(const std::string& name) const;
 

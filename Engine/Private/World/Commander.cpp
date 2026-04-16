@@ -74,8 +74,6 @@ namespace wtr
 			primitive->SetOverrideMaterial(materialComponent->materialAsset);
 		}
 
-		primitive->SetID(meshNode->GetID());
-
 		m_refCmdList->Enqueue([primitive](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
 				if (nullptr == renderer)

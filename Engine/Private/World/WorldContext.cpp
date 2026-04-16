@@ -64,7 +64,7 @@ namespace wtr
 			return false;
 		}
 
-		LOGINFO() << "WorldContext] Succeed to initialize the world context";
+		LOGINFO() << "[WorldContext] Succeed to initialize the world context";
 
 		return true;
 	}

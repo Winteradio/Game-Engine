@@ -230,6 +230,36 @@ namespace wtr
 		return m_desc.rasterizer;
 	}
 
+	void RHIPipeLine::SetClearState(const RHIClearState clear)
+	{
+		m_desc.clear = clear;
+	}
+
+	void RHIPipeLine::SetColorState(const RHIColorState color)
+	{
+		m_desc.color = color;
+	}
+
+	void RHIPipeLine::SetDepthState(const RHIDepthState depth)
+	{
+		m_desc.depth = depth;
+	}
+
+	void RHIPipeLine::SetStencilState(const RHIStencilState stencil)
+	{
+		m_desc.stencil = stencil;
+	}
+
+	void RHIPipeLine::SetBlendState(const RHIBlendState blend)
+	{
+		m_desc.blend = blend;
+	}
+
+	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState rasterizer)
+	{
+		m_desc.rasterizer = rasterizer;
+	}
+
 	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
 	{
 		m_slots.Insert(std::make_pair(name, binding));
