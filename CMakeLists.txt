@@ -208,6 +208,7 @@ set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/Component.cpp
 	${ENGINE_PUBLIC_DIR}/World/Entity.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
+	${ENGINE_PUBLIC_DIR}/World/Node.cpp
 	${ENGINE_PUBLIC_DIR}/World/Scene.h
 
 	${ENGINE_PUBLIC_DIR}/World/System/System.h

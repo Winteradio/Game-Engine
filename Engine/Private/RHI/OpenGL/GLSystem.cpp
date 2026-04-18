@@ -60,6 +60,8 @@ namespace wtr
 			return false;
 		}
 
+		InitializeState();
+
 #ifdef __GL_DEBUG__
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -74,6 +76,56 @@ namespace wtr
 #endif
 
 		return true;
+	}
+
+	void GLSystem::InitializeState()
+	{
+		GLboolean bvals[4];
+		GLint     ivals[2];
+		GLfloat   fvals[4];
+
+		// RHIColorState
+		glGetBooleanv(GL_COLOR_WRITEMASK, bvals);
+		m_colorState.red = bvals[0];
+		m_colorState.green = bvals[1];
+		m_colorState.blue = bvals[2];
+		m_colorState.alpha = bvals[3];
+
+		// RHIDepthState
+		m_depthState.enable = glIsEnabled(GL_DEPTH_TEST);
+		glGetBooleanv(GL_DEPTH_WRITEMASK, bvals); m_depthState.write = bvals[0];
+		glGetIntegerv(GL_DEPTH_FUNC, ivals); m_depthState.func = GetCompareFunc(ivals[0]);
+
+		// RHIStencilState
+		m_stencilState.enable = glIsEnabled(GL_STENCIL_TEST);
+		glGetIntegerv(GL_STENCIL_REF, ivals); m_stencilState.refMask = static_cast<uint8_t>(ivals[0]);
+		glGetIntegerv(GL_STENCIL_VALUE_MASK, ivals); m_stencilState.readMask = static_cast<uint8_t>(ivals[0]);
+		glGetIntegerv(GL_STENCIL_WRITEMASK, ivals); m_stencilState.writeMask = static_cast<uint8_t>(ivals[0]);
+		glGetIntegerv(GL_STENCIL_FUNC, ivals); m_stencilState.func = GetCompareFunc(ivals[0]);
+		glGetIntegerv(GL_STENCIL_FAIL, ivals); m_stencilState.failOp = GetStencilOp(ivals[0]);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_FAIL, ivals); m_stencilState.depthFailOp = GetStencilOp(ivals[0]);
+		glGetIntegerv(GL_STENCIL_PASS_DEPTH_PASS, ivals); m_stencilState.passOp = GetStencilOp(ivals[0]);
+
+		// RHIBlendState
+		m_blendState.enable = glIsEnabled(GL_BLEND);
+		glGetIntegerv(GL_BLEND_SRC_RGB, ivals); m_blendState.srcColor = GetBlendFunc(ivals[0]);
+		glGetIntegerv(GL_BLEND_SRC_ALPHA, ivals); m_blendState.srcAlpha = GetBlendFunc(ivals[0]);
+		glGetIntegerv(GL_BLEND_DST_RGB, ivals); m_blendState.destColor = GetBlendFunc(ivals[0]);
+		glGetIntegerv(GL_BLEND_DST_ALPHA, ivals); m_blendState.destAlpha = GetBlendFunc(ivals[0]);
+		glGetIntegerv(GL_BLEND_EQUATION_RGB, ivals); m_blendState.colorOp = GetBlendOp(ivals[0]);
+		glGetIntegerv(GL_BLEND_EQUATION_ALPHA, ivals); m_blendState.alphaOp = GetBlendOp(ivals[0]);
+		// RHIRasterizerState
+		m_rasterizerState.cullEnable = glIsEnabled(GL_CULL_FACE);
+		glGetIntegerv(GL_CULL_FACE_MODE, ivals); m_rasterizerState.cullFace = GetCullFace(ivals[0]);
+		glGetIntegerv(GL_FRONT_FACE, ivals); m_rasterizerState.frontFace = GetFrontFace(ivals[0]);
+		glGetIntegerv(GL_POLYGON_MODE, ivals); m_rasterizerState.fillMode = GetPrimitiveMode(ivals[0]);
+
+		// RHIClearState
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, fvals); m_clearState.color = { fvals[0], fvals[1], fvals[2], fvals[3] };
+		glGetFloatv(GL_DEPTH_CLEAR_VALUE, fvals); m_clearState.depth = fvals[0];
+		glGetIntegerv(GL_STENCIL_CLEAR_VALUE, ivals); m_clearState.stencil = static_cast<uint32_t>(ivals[0]);
+
+		m_clearState.clearBuffer = eClearBuffer::eNone;
 	}
 
 	void GLSystem::Clear(const RHIClearState& state)
@@ -99,6 +151,8 @@ namespace wtr
 		}
 
 		glClear(clearMask);
+
+		m_clearState = state;
 	}
 
 	void GLSystem::Flush()
@@ -2222,6 +2276,218 @@ namespace wtr
 		else
 		{
 			return GL_NONE;
+		}
+	}
+
+	const eCompareFunc GLSystem::GetCompareFunc(const uint32_t func) const
+	{
+		if (GL_NEVER == func)
+		{
+			return eCompareFunc::eNever;
+		}
+		else if (GL_EQUAL == func)
+		{
+			return eCompareFunc::eEqual;
+		}
+		else if (GL_NOTEQUAL == func)
+		{
+			return eCompareFunc::eNotEqual;
+		}
+		else if (GL_LESS == func)
+		{
+			return eCompareFunc::eLess;
+		}
+		else if (GL_LEQUAL == func)
+		{
+			return eCompareFunc::eLessEqual;
+		}
+		else if (GL_GREATER == func)
+		{
+			return eCompareFunc::eGreater;
+		}
+		else if (GL_GEQUAL == func)
+		{
+			return eCompareFunc::eGreatorEqual;
+		}
+		else if (GL_ALWAYS == func)
+		{
+			return eCompareFunc::eAlways;
+		}
+		else
+		{
+			return eCompareFunc::eNone;
+		}
+	}
+
+	const eStencilOp GLSystem::GetStencilOp(const uint32_t op) const
+	{
+		if (GL_KEEP == op)
+		{
+			return eStencilOp::eKeep;
+		}
+		else if (GL_ZERO == op)
+		{
+			return eStencilOp::eZero;
+		}
+		else if (GL_REPLACE == op)
+		{
+			return eStencilOp::eReplace;
+		}
+		else if (GL_INCR == op)
+		{
+			return eStencilOp::eInc_Clamp;
+		}
+		else if (GL_DECR == op)
+		{
+			return eStencilOp::eDec_Clamp;
+		}
+		else if (GL_INVERT == op)
+		{
+			return eStencilOp::eInvert;
+		}
+		else if (GL_INCR_WRAP == op)
+		{
+			return eStencilOp::eInc_Wrap;
+		}
+		else if (GL_DECR_WRAP == op)
+		{
+			return eStencilOp::eDec_Wrap;
+		}
+		else
+		{
+			return eStencilOp::eNone;
+		}
+	}
+
+	const eBlendFunc GLSystem::GetBlendFunc(const uint32_t func) const
+	{
+		if (GL_ZERO == func)
+		{
+			return eBlendFunc::eZero;
+		}
+		else if (GL_ONE == func)
+		{
+			return eBlendFunc::eOne;
+		}
+		else if (GL_SRC_COLOR == func)
+		{
+			return eBlendFunc::eSrc_Color;
+		}
+		else if (GL_ONE_MINUS_SRC_COLOR == func)
+		{
+			return eBlendFunc::eOne_Minus_Src_Color;
+		}
+		else if (GL_DST_COLOR == func)
+		{
+			return eBlendFunc::eDst_Color;
+		}
+		else if (GL_ONE_MINUS_DST_COLOR == func)
+		{
+			return eBlendFunc::eOne_Minus_Dst_Color;
+		}
+		else if (GL_SRC_ALPHA == func)
+		{
+			return eBlendFunc::eSrc_Alpha;
+		}
+		else if (GL_ONE_MINUS_SRC_ALPHA == func)
+		{
+			return eBlendFunc::eOne_Minus_Src_Alpha;
+		}
+		else if (GL_DST_ALPHA == func)
+		{
+			return eBlendFunc::eDst_Alpha;
+		}
+		else if (GL_ONE_MINUS_DST_ALPHA == func)
+		{
+			return eBlendFunc::eOne_Minus_Dst_Alpha;
+		}
+		else
+		{
+			return eBlendFunc::eNone;
+		}
+	}
+
+	const eBlendOp GLSystem::GetBlendOp(const uint32_t op) const
+	{
+		if (GL_FUNC_ADD == op)
+		{
+			return eBlendOp::eAdd;
+		}
+		else if (GL_FUNC_SUBTRACT == op)
+		{
+			return eBlendOp::eSub;
+		}
+		else if (GL_FUNC_REVERSE_SUBTRACT == op)
+		{
+			return eBlendOp::eReverse_Sub;
+		}
+		else if (GL_MIN == op)
+		{
+			return eBlendOp::eMin;
+		}
+		else if (GL_MAX == op)
+		{
+			return eBlendOp::eMax;
+		}
+		else
+		{
+			return eBlendOp::eNone;
+		}
+	}
+
+	const eCullFace GLSystem::GetCullFace(const uint32_t mode) const
+	{
+		if (GL_FRONT == mode)
+		{
+			return eCullFace::eFront;
+		}
+		else if (GL_BACK == mode)
+		{
+			return eCullFace::eBack;
+		}
+		else if (GL_FRONT_AND_BACK == mode)
+		{
+			return eCullFace::eFront_Back;
+		}
+		else
+		{
+			return eCullFace::eNone;
+		}
+	}
+
+	const eFrontFace GLSystem::GetFrontFace(const uint32_t face) const
+	{
+		if (GL_CCW == face)
+		{
+			return eFrontFace::eCCW;
+		}
+		else if (GL_CW == face)
+		{
+			return eFrontFace::eCW;
+		}
+		else
+		{
+			return eFrontFace::eNone;
+		}
+	}
+
+	const ePrimitiveMode GLSystem::GetPrimitiveMode(const uint32_t mode) const
+	{
+		if (GL_POINT == mode)
+		{
+			return ePrimitiveMode::ePoint;
+		}
+		else if (GL_LINE == mode)
+		{
+			return ePrimitiveMode::eLine;
+		}
+		else if (GL_FILL == mode)
+		{
+			return ePrimitiveMode::eFill;
+		}
+		else
+		{
+			return ePrimitiveMode::eNone;
 		}
 	}
 

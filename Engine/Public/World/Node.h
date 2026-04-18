@@ -140,6 +140,10 @@ namespace wtr
 		{}
 
 		virtual ~CameraNode() = default;
+
+	public :
+		const fmat4 GetViewMatrix() const;
+		const fmat4 GetProjectionMatrix() const;
 	};
 };
 

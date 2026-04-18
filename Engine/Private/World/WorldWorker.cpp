@@ -131,10 +131,9 @@ namespace wtr
 			return {};
 		}
 
-		Memory::ObjectPtr<const CameraComponent> camera = player->GetCamera();
-		Memory::ObjectPtr<const SceneComponent> transform = player->GetTransform();
+		Memory::ObjectPtr<const CameraNode> cameraNode = player->GetCamera();
 
-		if (!camera || !transform)
+		if (!cameraNode || !cameraNode->transform)
 		{
 			return {};
 		}
@@ -145,9 +144,9 @@ namespace wtr
 		renderView.viewport.posX = view->GetPosX();
 		renderView.viewport.posY = view->GetPosY();
 
-		renderView.camera.position = transform->GetPosition();
-		renderView.camera.viewMatrix = player->GetViewMatrix();
-		renderView.camera.projMatrix = player->GetProjectionMatrix();
+		renderView.camera.position = cameraNode->transform->GetPosition();
+		renderView.camera.viewMatrix = cameraNode->GetViewMatrix();
+		renderView.camera.projMatrix = cameraNode->GetProjectionMatrix();
 
 		return renderView;
 	}

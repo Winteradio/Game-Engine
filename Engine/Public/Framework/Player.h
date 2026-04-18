@@ -10,8 +10,7 @@ namespace wtr
 {
 	class ViewInfo;
 	class Entity;
-	class SceneComponent;
-	class CameraComponent;
+	class CameraNode;
 };
 
 namespace wtr
@@ -25,10 +24,7 @@ namespace wtr
 	public :
 		void SetEntity(Memory::ObjectPtr<Entity> entity);
 		Memory::ObjectPtr<const Entity> GetEntity() const;
-		Memory::ObjectPtr<const SceneComponent> GetTransform() const;
-		Memory::ObjectPtr<const CameraComponent> GetCamera() const;
-		const fmat4 GetViewMatrix() const;
-		const fmat4 GetProjectionMatrix() const;
+		Memory::ObjectPtr<const CameraNode> GetCamera() const;
 
 		void Register(Memory::RefPtr<ViewInfo> viewInfo);
 		void Unregister(Memory::RefPtr<ViewInfo> viewInfo);

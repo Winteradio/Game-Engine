@@ -31,83 +31,14 @@ namespace wtr
 		return m_entity;
 	}
 
-	Memory::ObjectPtr<const SceneComponent> Player::GetTransform() const
+	Memory::ObjectPtr<const CameraNode> Player::GetCamera() const
 	{
 		if (!m_entity)
 		{
 			return {};
 		}
 
-		return m_entity->GetComponent<SceneComponent>();
-	}
-
-	Memory::ObjectPtr<const CameraComponent> Player::GetCamera() const
-	{
-		if (!m_entity)
-		{
-			return {};
-		}
-
-		return m_entity->GetComponent<CameraComponent>();
-	}
-
-	const fmat4 Player::GetViewMatrix() const
-	{
-		Memory::ObjectPtr<const SceneComponent> transform = GetTransform();
-		if (!transform)
-		{
-			return fmat4(1.f);
-		}
-
-		const fquat quaternion = glm::quat(transform->GetRotation());
-		const fmat4 rotation = glm::toMat4(quaternion);
-
-		const fmat4 inverseRotation = glm::transpose(rotation);
-		const fmat4 inverseTranslation = glm::translate(fmat4(1.f), -transform->GetPosition());
-
-		const fmat4 viewMatrix = inverseRotation * inverseTranslation;
-		return viewMatrix;
-	}
-
-	const fmat4 Player::GetProjectionMatrix() const
-	{
-		Memory::ObjectPtr<const CameraComponent> camera = GetCamera();
-		if (!camera)
-		{
-			return fmat4(1.f);
-		}
-	
-		const float far = std::abs(camera->farPlane) <= std::numeric_limits<float>::epsilon() ? 1000.0f : camera->farPlane;
-		const float near = std::abs(camera->nearPlane) <= std::numeric_limits<float>::epsilon() ? 0.1f : camera->nearPlane;
-		const float width = std::abs(camera->width) <= std::numeric_limits<float>::epsilon() ? 1.0f : camera->width;
-		const float height = std::abs(camera->height) <= std::numeric_limits<float>::epsilon() ? 1.0f : camera->height;
-
-		if (std::abs(far - near) <= std::numeric_limits<float>::epsilon())
-		{
-			return fmat4(1.0f);
-		}
-
-		fmat4 projMatrix = 1.0f;
-		if (camera->perspective)
-		{
-			projMatrix[0][0] = 2.0f * far / width;
-			projMatrix[1][1] = 2.0f * far / height;
-			projMatrix[2][2] = -(far + near) / (far - near);
-			projMatrix[3][2] = -2.0f * far * near / (far - near);
-			projMatrix[2][3] = -1.0f;
-			projMatrix[3][3] = 0.0f;
-		}
-		else
-		{
-			projMatrix[0][0] = 2.0f / width;
-			projMatrix[1][1] = 2.0f / height;
-			projMatrix[2][2] = -2.0f / (far - near);
-			projMatrix[3][2] = -(far + near) / (far - near);
-			projMatrix[2][3] = 0.0f;
-			projMatrix[3][3] = 1.0f;
-		}
-
-		return projMatrix;
+		return m_entity->GetNode<CameraNode>();
 	}
 
 	void Player::Register(Memory::RefPtr<ViewInfo> viewInfo)

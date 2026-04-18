@@ -79,8 +79,10 @@ namespace wtr
 
 		virtual ~CameraComponent() = default;
 
-		float nearPlane = 1.f;
+		float nearPlane = 0.1f;
 		float farPlane = 1000.f;
+
+		float fovY = 60.f;
 
 		float width = 0.f;
 		float height = 0.f;
