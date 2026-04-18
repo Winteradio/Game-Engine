@@ -78,6 +78,8 @@ namespace wtr
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
 	private :
+		void InitializeState();
+
 		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
 		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
 
@@ -119,11 +121,20 @@ namespace wtr
 		
 		const uint32_t GetShaderType(const eShaderType type) const override;
 
+		const eCompareFunc GetCompareFunc(const uint32_t func) const;
+		const eStencilOp GetStencilOp(const uint32_t op) const;
+		const eBlendFunc GetBlendFunc(const uint32_t func) const;
+		const eBlendOp GetBlendOp(const uint32_t op) const;
+		const eCullFace GetCullFace(const uint32_t face) const;
+		const eFrontFace GetFrontFace(const uint32_t face) const;
+		const ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
+
 		bool IsSampler(const int32_t type) const;
 
 	private:
 		WGLContext m_context;
 
+		RHIClearState m_clearState;
 		RHIColorState m_colorState;
 		RHIDepthState m_depthState;
 		RHIStencilState m_stencilState;

@@ -179,8 +179,9 @@ namespace wtr
 
 	enum class eFrontFace : uint8_t
 	{
-		eCCW	= 0x00,
-		eCW		= 0x01,
+		eNone	= 0x00,
+		eCCW	= 0x01,
+		eCW		= 0x02,
 	};
 
 	enum class eDrawMode : uint8_t
@@ -216,43 +217,46 @@ namespace wtr
 
 	enum class eCompareFunc : uint8_t
 	{
-		eNever			= 0x00,
-		eEqual			= 0x01,
-		eNotEqual		= 0x02,
-		eLess			= 0x03,
-		eLessEqual		= 0x04,
-		eGreater		= 0x05,
-		eGreatorEqual	= 0x06,
-		eAlways			= 0xFF,
+		eNone			= 0x00,
+		eNever			= 0x01,
+		eEqual			= 0x02,
+		eNotEqual		= 0x03,
+		eLess			= 0x04,
+		eLessEqual		= 0x05,
+		eGreater		= 0x06,
+		eGreatorEqual	= 0x07,
+		eAlways			= 0x08,
 	};
 
 	enum class eStencilOp : uint8_t
 	{
-		eZero			= 0x00,
-		eKeep			= 0x01,
-		eReplace		= 0x02,
-		eInc_Clamp		= 0x03,
-		eInc_Wrap 		= 0x04,
-		eDec_Clamp 		= 0x05,
-		eDec_Wrap 		= 0x06,
-		eInvert			= 0x07,
+		eNone			= 0x00,
+		eZero			= 0x01,
+		eKeep			= 0x02,
+		eReplace		= 0x03,
+		eInc_Clamp		= 0x04,
+		eInc_Wrap 		= 0x05,
+		eDec_Clamp 		= 0x06,
+		eDec_Wrap 		= 0x07,
+		eInvert			= 0x08,
 	};
 
 	enum class eBlendFunc : uint8_t
 	{
-		eZero					= 0x00,
-		eOne					= 0x01,
-		eSrc_Color				= 0x02,
-		eOne_Minus_Src_Color	= 0x03,
-		eDst_Color				= 0x04,
-		eOne_Minus_Dst_Color 	= 0x05,
-		eSrc_Alpha				= 0x06,
-		eOne_Minus_Src_Alpha	= 0x07,
-		eDst_Alpha				= 0x08,
-		eOne_Minus_Dst_Alpha	= 0x09,
-		eConst_Color			= 0x0A,
-		eOne_Minus_Const_Alpha	= 0x0B,
-		eSrc_Alpha_Saturate		= 0x0C,
+		eNone					= 0x00,
+		eZero					= 0x01,
+		eOne					= 0x02,
+		eSrc_Color				= 0x03,
+		eOne_Minus_Src_Color	= 0x04,
+		eDst_Color				= 0x05,
+		eOne_Minus_Dst_Color 	= 0x06,
+		eSrc_Alpha				= 0x07,
+		eOne_Minus_Src_Alpha	= 0x08,
+		eDst_Alpha				= 0x09,
+		eOne_Minus_Dst_Alpha	= 0x0A,
+		eConst_Color			= 0x0B,
+		eOne_Minus_Const_Alpha	= 0x0C,
+		eSrc_Alpha_Saturate		= 0x0D,
 	};
 
 	enum class eBlendOp : uint8_t
