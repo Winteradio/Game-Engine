@@ -62,28 +62,28 @@ namespace wtr
 
 		if (inputStorage->IsDown(eKeyCode::eKey_W))
 		{
-			diffPosition = forward;
+			diffPosition += forward;
 		}
 
 		if (inputStorage->IsDown(eKeyCode::eKey_S))
 		{
-			diffPosition = -forward;
+			diffPosition += -forward;
 		}
 
 		if (inputStorage->IsDown(eKeyCode::eKey_A))
 		{
-			diffPosition = -right;
+			diffPosition += -right;
 		}
 
 		if (inputStorage->IsDown(eKeyCode::eKey_D))
 		{
-			diffPosition = right;
+			diffPosition += right;
 		}
 
 		if (diffPosition != fvec3(0.f))
 		{
 			const float seconds = ECS::TimeStep::ToSecond(timeStep.delta);
-			const float smoothFactor = 1.f - std::exp(-2.5f * seconds);
+			const float smoothFactor = 1.f - std::exp(-5.0f * seconds);
 
 			const fvec3 currPosition = transform->GetPosition() + diffPosition * smoothFactor;
 
@@ -107,7 +107,7 @@ namespace wtr
 
 		if (inputStorage->IsDown(eKeyCode::eKey_MouseLeft))
 		{
-			static constexpr float mouseSensitivity = 0.01f;
+			static constexpr float mouseSensitivity = 0.005f;
 
 			const float seconds = ECS::TimeStep::ToSecond(timeStep.delta);
 			const float smoothFactor = 1.f - std::exp(-5.f * seconds);

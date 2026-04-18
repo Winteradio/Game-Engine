@@ -53,12 +53,11 @@ namespace wtr
 
 	enum class eInputAction : uint8_t
 	{
-		eNone = 0,
-		eDown = 1 << 0,
-		ePress = 1 << 1,
-		eRelease = 1 << 2,
-		eRepeat = 1 << 3,
-		eEnd = 0xFF,
+		eNone		= 0x00,
+		ePress		= 0x01 << 0,
+		eRepeat		= 0x01 << 1,
+		eRelease	= 0x01 << 2,
+		eEnd		= 0xFF,
 	};
 
 	enum class eInputType : uint8_t

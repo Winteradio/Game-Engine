@@ -3,6 +3,7 @@
 
 #include <Framework/Input/InputHandler.h>
 #include <Framework/Input/InputTypes.h>
+#include <Container/include/HashMap.h>
 
 #include <queue>
 
@@ -10,20 +11,20 @@ namespace wtr
 {
 	class Win32InputHandler : public InputHandler
 	{
-		public :
-			Win32InputHandler();
-			virtual ~Win32InputHandler();
+	public :
+		Win32InputHandler();
+		virtual ~Win32InputHandler();
 
-		public :
-			void OnInputEvent(const InputDesc& inputDesc) override;
-			bool PopInputEvent() override;
-			const InputDesc& GetInputEvent() const override;
-			bool IsEmpty() const override;
+	public :
+		void OnInputEvent(const InputDesc& inputDesc) override;
+		bool PopInputEvent() override;
+		const InputDesc& GetInputEvent() const override;
+		bool IsEmpty() const override;
 
-		private :
-			std::queue<InputDesc> m_InputQueue;
+	private :
+		std::queue<InputDesc> m_inputQueue;
 
-			static constexpr size_t MAX_QUEUE_SIZE = 256;
+		static constexpr size_t MAX_QUEUE_SIZE = 256;
 	};
 };
 

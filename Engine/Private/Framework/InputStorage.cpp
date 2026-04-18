@@ -98,7 +98,7 @@ namespace wtr
 			{
 				result += " Key " + InputDesc::ToString(key) + " : ";
 
-				for (uint8_t action = static_cast<uint8_t>(eInputAction::eDown); action <= static_cast<uint8_t>(eInputAction::eRepeat); action <<= 1)
+				for (uint8_t action = static_cast<uint8_t>(eInputAction::ePress); action <= static_cast<uint8_t>(eInputAction::eRelease); action <<= 1)
 				{
 					if ((static_cast<uint8_t>(keyAction) & action) == action)
 					{
@@ -124,23 +124,28 @@ namespace wtr
 
 	void InputStorage::Prepare()
 	{
-		InputData copyData;
-		copyData = *m_CurrData;
-
+		memcpy(m_PrevData, m_CurrData, sizeof(InputData));
 		m_CurrData = m_PrevData.exchange(m_CurrData);
 
 		if (m_Swapped)
 		{
-			m_CurrData->windowSize = copyData.windowSize;
-			m_CurrData->mousePos = copyData.mousePos;
 			m_CurrData->mouseDelta = fvec2(0.f);
 			m_CurrData->mouseScroll = 0.f;
 
 			m_Swapped.exchange(false);
 		}
-		else
+
+		for (size_t index = 0; index < sizeof(m_CurrData->keyboard); ++index)
 		{
-			*m_CurrData = copyData;
+			uint8_t lowKey = m_CurrData->keyboard[index] & 0x0F;
+			lowKey = (static_cast<eInputAction>(lowKey) == eInputAction::eRelease) ? 0 : lowKey;
+
+			uint8_t highKey = (m_CurrData->keyboard[index] >> 4) & 0x0F;
+			highKey = (static_cast<eInputAction>(highKey) == eInputAction::eRelease) ? 0 : highKey;
+
+			const uint8_t keyData = (highKey << 4) | lowKey;
+
+			m_CurrData->keyboard[index] = keyData;
 		}
 	}
 
@@ -154,9 +159,9 @@ namespace wtr
 
 			if (keyIndex != 0 || keyBit != 0)
 			{
-				uint8_t& keyData = m_CurrData->keyboard[keyIndex];
-				keyData |= (static_cast<uint8_t>(inputDesc.Action) << keyBit);
-				keyData = (eInputAction::eRelease != inputDesc.Action) ? keyData | (0x01 << keyBit) : keyData & (~(0x01 << keyBit));
+				uint8_t currAction = static_cast<uint8_t>(inputDesc.Action);
+
+				m_CurrData->keyboard[keyIndex] = currAction << keyBit;
 			}
 		}
 		else if (eInputType::eMouseMove == inputDesc.Type)
@@ -179,11 +184,6 @@ namespace wtr
 
 	void InputStorage::SwapInput()
 	{
-		for (size_t index = 0; index < sizeof(m_LogicData->keyboard); ++index)
-		{
-			m_LogicData->keyboard[index] &= 0x00;
-		}
-
 		m_LogicData = m_PrevData.exchange(m_LogicData);
 		m_Swapped.exchange(true);
 	}
@@ -200,7 +200,8 @@ namespace wtr
 
 		const eInputAction keyData = static_cast<eInputAction>(m_LogicData->keyboard[keyIndex] >> keyBit);
 
-		return (keyData & eInputAction::eDown) != eInputAction::eNone;
+		return (keyData & eInputAction::ePress) != eInputAction::eNone ||
+			(keyData & eInputAction::eRepeat) != eInputAction::eNone;
 	}
 
 	bool InputStorage::IsPressed(eKeyCode key) const
