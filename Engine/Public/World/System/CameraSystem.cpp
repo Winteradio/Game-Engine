@@ -49,14 +49,13 @@ namespace wtr
 
 		const fvec3 prevRotation = transform->GetRotation();
 
-		const fvec3 up = fvec3(0.0f, 1.0f, 0.0f);
-
-		const fvec3 forward = -1.0f * fvec3(
+		const fvec3 forward = glm::normalize(- 1.0f * fvec3(
 			std::cos(prevRotation.x) * std::sin(prevRotation.y),
-			std::sin(prevRotation.x),
-			std::cos(prevRotation.x) * std::cos(prevRotation.y));
+			-1.0f * std::sin(prevRotation.x),
+			std::cos(prevRotation.x) * std::cos(prevRotation.y)));
 
-		const fvec3 right = glm::cross(forward, up);
+		const fvec3 right = glm::normalize(glm::cross(forward, fvec3(0.f, 1.f, 0.f)));
+		const fvec3 up = glm::normalize(glm::cross(right, forward));
 
 		fvec3 diffPosition = inputStorage->GetMouseScroll() * forward;
 
