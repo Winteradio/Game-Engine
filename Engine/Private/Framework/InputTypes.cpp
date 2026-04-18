@@ -121,21 +121,17 @@ namespace wtr
 		{
 			return "None";
 		}
-		else if (eInputAction::eDown == action)
-		{
-			return "Down";
-		}
 		else if (eInputAction::ePress == action)
 		{
 			return "Press";
 		}
-		else if (eInputAction::eRelease == action)
-		{
-			return "Release";
-		}
 		else if (eInputAction::eRepeat == action)
 		{
 			return "Repeat";
+		}
+		else if (eInputAction::eRelease == action)
+		{
+			return "Release";
 		}
 		else
 		{

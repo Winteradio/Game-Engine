@@ -12,8 +12,11 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 
 **Milestone: Core Framework & Basic Rendering Completed** Currently, the core backbone of the engine, asset parsers, and the foundational RHI rendering pipeline have been successfully implemented.
 
-*[26-04-17] Demonstration of MeshBatch Instancing with Normal Mapping*
+*[26-04-17] Demonstration of MeshBatch Instancing with Normal Mapping*  
 ![MeshBatch Instancing Demo](asset/screenshot/base-dragon-viewer.gif)
+
+*[26-04-18] Edit the base camera system*  
+![MeshBatch Instancing Demo](asset/screenshot/base-camera-viewer.gif)
 
 ---
 
@@ -1261,27 +1264,34 @@ flowchart TD
 
 | System | Status |
 |--------|--------|
-| ECS (Entity, Component, Node, System, Graph) | ✅ Complete |
-| Memory (Pool/Array allocators, RefPtr/ObjectPtr) | ✅ Complete |
-| Runtime Reflection (TypeInfo, PropertyInfo, MethodInfo) | ✅ Complete |
-| Container (Vector, HashMap, HashSet) | ✅ Complete |
-| RHI Layer (OpenGL 4.5, WGL) | ✅ Basic implementation |
-| RHI Command Object pattern | ✅ Complete |
-| RHI Triple Buffering (FrameExecutor) | ✅ Complete |
-| World / Commander / Scene | ✅ Complete |
-| PrimitiveProxy / LightProxy | ✅ Complete |
-| MeshBatch instancing | ✅ Complete |
-| RenderGraph / PipeLine | ✅ Basic implementation (SimpleColor) |
-| GlobalResource (Camera, GBuffer textures) | ✅ Complete |
-| Asset System (OBJ/MTL/PNG/GLSL) | ✅ Complete |
-| Async Asset loading pipeline | ✅ Complete |
-| Multi-threaded Worker + FrameGate | ✅ Complete |
-| Input System | 🚧 Planned |
-| Deferred Rendering Pipeline | 🚧 Planned |
-| GC (Mark & Sweep) full integration | 🚧 In progress |
-| DirectX 11 / 12 RHI backend | 🚧 Planned |
-| Serialization (Reflection-based JSON/Binary) | 🚧 Planned |
-| Physics engine integration | 🚧 Planned |
+| **Framework** | |
+| └ ECS (Entity, Component, Node, System, Graph) | ✅ Complete |
+| └ Memory (Pool/Array allocators, RefPtr/ObjectPtr) | ✅ Complete |
+| └ Runtime Reflection (TypeInfo, PropertyInfo, MethodInfo) | ✅ Complete |
+| └ Container (Vector, HashMap, HashSet) | ✅ Complete |
+| └ World / Commander / Scene | ✅ Complete |
+| └ GC (Mark & Sweep) full integration | 🚧 In progress |
+| └ Serialization (Reflection-based JSON/Binary) | 🚧 Planned |
+| **Multi-Threading** | |
+| └ Worker System + FrameGate | ✅ Complete |
+| **RHI** | |
+| └ RHI Layer (OpenGL 4.5, WGL) | ✅ Basic implementation |
+| └ RHI Command List | ✅ Complete |
+| └ RHI Executor (Triple Buffering, FrameExecutor) | ✅ Complete |
+| └ DirectX 11 / 12 RHI backend | 🚧 Planned |
+| **Renderer** | |
+| └ SceneProxy (PrimitiveProxy, LightProxy) | ✅ Complete |
+| └ MeshBatch Instancing | ✅ Complete |
+| └ RenderGraph / PipeLine | ✅ Basic implementation (SimpleColor) |
+| └ GlobalResource (Camera, GBuffer textures) | 🚧 In progress |
+| └ Deferred Rendering Pipeline | 🚧 Planned |
+| **Asset** | |
+| └ Asset System (OBJ, MTL) | ✅ Complete |
+| └ Async Asset loading pipeline | ✅ Complete |
+| **Input** | |
+| └ Input System | 🚧 In progress (Base complete) |
+| **Physics** | |
+| └ Physics engine integration | 🚧 Planned |
 
 ---
 
