@@ -60,8 +60,6 @@ namespace wtr
 			return false;
 		}
 
-		InitializeState();
-
 #ifdef __GL_DEBUG__
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -74,6 +72,8 @@ namespace wtr
 		);
 
 #endif
+
+		InitializeState();
 
 		return true;
 	}
@@ -357,26 +357,7 @@ namespace wtr
 		{
 			uint32_t fillMode = GetPrimitiveMode(state.fillMode);
 
-			eCullFace viewFace = eCullFace::eNone;
-			if (eCullFace::eBack == state.cullFace)
-			{
-				viewFace = eCullFace::eFront;
-			}
-			else if (eCullFace::eFront == state.cullFace)
-			{
-				viewFace = eCullFace::eBack;
-			}
-			else if (eCullFace::eFront_Back == state.cullFace)
-			{
-				viewFace = eCullFace::eNone;
-			}
-			else
-			{
-				viewFace = eCullFace::eFront_Back;
-			}
-
-			uint32_t face = GetCullFace(viewFace);
-			glPolygonMode(face, fillMode);
+			glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 		}
 
 		m_rasterizerState = state;

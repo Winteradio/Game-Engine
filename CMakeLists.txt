@@ -126,6 +126,9 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
 
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass.cpp
+
 	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.h
 	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.h
@@ -157,11 +160,17 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/PrimitiveProxy.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.cpp
+
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.h
 	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/MaterialFactory.h
+	${ENGINE_PRIVATE_DIR}/Renderer/MaterialFactory.cpp
 )
 
 set(ENGINE_RHI_PUBLIC_FILES

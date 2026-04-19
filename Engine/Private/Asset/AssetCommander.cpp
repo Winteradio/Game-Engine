@@ -137,7 +137,46 @@ namespace wtr
 			return;
 		}
 
-		// TODO : Load the texture asset
+		auto& rawBuffer = textureAsset->rawBuffer;
+		if (!rawBuffer || rawBuffer->data.Empty())
+		{
+			return;
+		}
+
+		RHITextureCreateDesc textureDesc;
+		textureDesc.width = textureAsset->width;
+		textureDesc.height = textureAsset->height;
+		textureDesc.depth = textureAsset->depth;
+		textureDesc.mipLevels = textureAsset->mipLevels;
+		textureDesc.sampleCount = textureAsset->sampleCount;
+		textureDesc.format = textureAsset->pixelFormat;
+		textureDesc.dataType = textureAsset->rawBuffer->desc.componentType;
+
+		// TODO : Determine the texture type based on the texture asset's properties
+		textureDesc.textureType = textureAsset->depth > 2 ? eTextureType::eTexture3D : eTextureType::eTexture2D;
+		textureDesc.usage = eTextureUsage::eSampled;
+		textureDesc.generateMips = false;
+		textureDesc.compressed = false;
+
+		textureDesc.faces.Resize(1);
+
+		RHITextureFace& textureFace = textureDesc.faces[0];
+		textureFace.mipMaps.Resize(textureAsset->mipLevels);
+
+		for (uint32_t mipLevel = 0; mipLevel < textureAsset->mipLevels; ++mipLevel)
+		{
+			RHITextureMipMap& mipMap = textureFace.mipMaps[mipLevel];
+			mipMap.dataSize = static_cast<uint32_t>(rawBuffer->data.Size()) / textureAsset->mipLevels;
+			mipMap.data = rawBuffer->data.Data() + (mipMap.dataSize * mipLevel);
+		}
+
+		Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(textureDesc);
+		if (!texture)
+		{
+			return;
+		}
+
+		textureAsset->texture = texture;
 	}
 
 	void AssetCommander::onLoad(Memory::RefPtr<ShaderAsset> shaderAsset, Memory::RefPtr<RHICommandList> cmdList)

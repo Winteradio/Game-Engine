@@ -55,7 +55,8 @@ namespace demo
 				continue;
 			}
 
-			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			const std::string dragonPath = "asset/mesh/3d/cube.obj";
+			//const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 
 			dragonEntity->AddComponent<wtr::SceneComponent>();
@@ -65,7 +66,7 @@ namespace demo
 			auto sceneComponent = dragonEntity->GetComponent<wtr::SceneComponent>();
 			if (sceneComponent)
 			{
-				sceneComponent->UpdatePosition({ static_cast<float>(index % 5) * 0.4f, static_cast<float>(index / 5) * 0.4f, 0.0f });
+				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), static_cast<float>(index / 5), 0.0f });
 				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
 			}
 
