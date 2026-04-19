@@ -152,23 +152,39 @@ namespace wtr
 		textureDesc.format = textureAsset->pixelFormat;
 		textureDesc.dataType = textureAsset->rawBuffer->desc.componentType;
 
-		// TODO : Determine the texture type based on the texture asset's properties
-		textureDesc.textureType = textureAsset->depth > 2 ? eTextureType::eTexture3D : eTextureType::eTexture2D;
-		textureDesc.usage = eTextureUsage::eSampled;
-		textureDesc.generateMips = false;
-		textureDesc.compressed = false;
+		auto& textureBuffer = textureAsset->rawBuffer;
+		textureDesc.faces.Resize(textureBuffer->desc.faces.Size());
 
-		textureDesc.faces.Resize(1);
-
-		RHITextureFace& textureFace = textureDesc.faces[0];
-		textureFace.mipMaps.Resize(textureAsset->mipLevels);
-
-		for (uint32_t mipLevel = 0; mipLevel < textureAsset->mipLevels; ++mipLevel)
+		for (size_t faceIndex = 0; faceIndex < textureDesc.faces.Size(); ++faceIndex)
 		{
-			RHITextureMipMap& mipMap = textureFace.mipMaps[mipLevel];
-			mipMap.dataSize = static_cast<uint32_t>(rawBuffer->data.Size()) / textureAsset->mipLevels;
-			mipMap.data = rawBuffer->data.Data() + (mipMap.dataSize * mipLevel);
+			const auto& faceBuffer = textureBuffer->desc.faces[faceIndex];
+			auto& faceDesc = textureDesc.faces[faceIndex];
+
+			faceDesc.mipMaps.Resize(faceBuffer.mipMaps.Size());
+
+			for (size_t mipIndex = 0; mipIndex < faceBuffer.mipMaps.Size(); ++mipIndex)
+			{
+				const auto& mipBuffer = faceBuffer.mipMaps[mipIndex];
+				auto& mipDesc = faceDesc.mipMaps[mipIndex];
+
+				mipDesc.data = mipBuffer.pointer;
+				mipDesc.dataSize = mipBuffer.size;
+			}
 		}
+
+		// TODO : Determine the texture type based on the texture asset's properties
+		if (textureAsset->depth == 1)
+		{
+			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCube : eTextureType::eTexture2D;
+		}
+		else
+		{
+			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCubeArray : eTextureType::eTexture3D;
+		}
+
+		textureDesc.usage = eTextureUsage::eSampled;
+		textureDesc.generateMips = textureAsset->isGenerateMips;
+		textureDesc.compressed = false;
 
 		Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(textureDesc);
 		if (!texture)

@@ -951,13 +951,13 @@ namespace wtr
 
 		if (cubeMap)
 		{
-			constexpr size_t faceCount = 6;
-			if (info.faces.Size() != faceCount)
+			constexpr size_t FACE_COUNT = 6;
+			if (info.faces.Size() != FACE_COUNT)
 			{
 				return false;
 			}
 
-			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+			for (size_t faceIndex = 0; faceIndex < FACE_COUNT; ++faceIndex)
 			{
 				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
 				{

@@ -110,7 +110,7 @@ namespace wtr
 			}
 		}
 
-		return rawState | textureState;
+		return std::max(rawState, textureState);
 	}
 
 	TextureAsset::TextureAsset()
@@ -120,9 +120,13 @@ namespace wtr
 		, width(0)
 		, height(0)
 		, depth(0)
+		, faces(0)
 		, mipLevels(0)
 		, sampleCount(0)
 		, pixelFormat(ePixelFormat::eNone)
+		, isSRGB(false)
+		, isCubemap(false)
+		, isGenerateMips(false)
 	{}
 
 	TextureAsset::TextureAsset(const std::string& path, const eExtension extension)
@@ -132,16 +136,17 @@ namespace wtr
 		, width(0)
 		, height(0)
 		, depth(0)
+		, faces(0)
 		, mipLevels(0)
 		, sampleCount(0)
 		, pixelFormat(ePixelFormat::eNone)
+		, isSRGB(false)
+		, isCubemap(false)
+		, isGenerateMips(false)
 	{}
 
 	eResourceState TextureAsset::GetResourceState() const
 	{
-		return eResourceState::eReady;
-
-		// TODO
 		if (!rawBuffer)
 		{
 			return eResourceState::eNone;
@@ -213,7 +218,7 @@ namespace wtr
 			}
 		}
 
-		return (rawState & materialState) | bufferState;
+		return std::max(rawState, std::min(bufferState, materialState));
 	}
 
 	ShaderAsset::ShaderAsset()
@@ -250,6 +255,6 @@ namespace wtr
 
 		eResourceState shaderState = shader ? shader->GetState() : eResourceState::eNone;
 
-		return shaderState >= rawState ? shaderState : rawState;
+		return std::max(rawState, shaderState);
 	}
 }

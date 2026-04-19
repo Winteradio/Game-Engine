@@ -260,8 +260,11 @@ set(ENGINE_ASSET_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Asset/GLSLParser.h
 	${ENGINE_PUBLIC_DIR}/Asset/GLSLParser.cpp
 
-	${ENGINE_PUBLIC_DIR}/Asset/StbImageParser.h
-	${ENGINE_PUBLIC_DIR}/Asset/StbImageParser.cpp
+	${ENGINE_PUBLIC_DIR}/Asset/PNGParser.h
+	${ENGINE_PUBLIC_DIR}/Asset/PNGParser.cpp
+
+	${ENGINE_PUBLIC_DIR}/Asset/StbiImage.h
+	${ENGINE_PUBLIC_DIR}/Asset/StbiImage.cpp
 )
 
 set(ENGINE_ASSET_PRIVATE_FILES

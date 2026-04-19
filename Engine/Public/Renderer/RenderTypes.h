@@ -345,6 +345,40 @@ namespace wtr
 		uint32_t count;
 	};
 
+	struct TextureMipMapDesc : RawDataDesc
+	{
+		uint32_t channels;
+
+		uint32_t width;
+		uint32_t height;
+		uint32_t depth;
+		uint32_t size;
+		
+		uint32_t level;
+	};
+
+	struct TextureFaceDesc
+	{
+		wtr::DynamicArray<TextureMipMapDesc> mipMaps;
+	};
+
+	struct TextureDataDesc
+	{
+		// The texture 2D : face 0 is the only face, and it contains all the mip levels
+		// The texture cube : face 0-5 are the 6 faces of the cube, 
+		// and each face contains all the mip levels
+		// The face 0 : the positive X face
+		// The face 1 : the negative X face
+		// The face 2 : the positive Y face
+		// The face 3 : the negative Y face
+		// The face 4 : the positive Z face
+		// The face 5 : the negative Z face
+		// The texture 3D : face 0 is the only face, and it contains all the mip levels
+		wtr::DynamicArray<TextureFaceDesc> faces;
+
+		eDataType componentType;
+	};
+
 	template<typename Desc>
 	struct BufferContainer
 	{
@@ -354,6 +388,7 @@ namespace wtr
 
 	using RawBuffer = BufferContainer<RawDataDesc>;
 	using FormattedBuffer = BufferContainer<FormattedDataDesc>;
+	using TextureBuffer = BufferContainer<TextureDataDesc>;
 
 	struct VertexKey
 	{
