@@ -137,7 +137,63 @@ namespace wtr
 			return;
 		}
 
-		// TODO : Load the texture asset
+		auto& rawBuffer = textureAsset->rawBuffer;
+		if (!rawBuffer || rawBuffer->data.Empty())
+		{
+			return;
+		}
+
+		RHITextureCreateDesc textureDesc;
+		textureDesc.width = textureAsset->width;
+		textureDesc.height = textureAsset->height;
+		textureDesc.depth = textureAsset->depth;
+		textureDesc.mipLevels = textureAsset->mipLevels;
+		textureDesc.sampleCount = textureAsset->sampleCount;
+		textureDesc.format = textureAsset->pixelFormat;
+		textureDesc.dataType = textureAsset->rawBuffer->desc.componentType;
+
+		auto& textureBuffer = textureAsset->rawBuffer;
+		textureDesc.faces.Resize(textureBuffer->desc.faces.Size());
+
+		for (size_t faceIndex = 0; faceIndex < textureDesc.faces.Size(); ++faceIndex)
+		{
+			const auto& faceBuffer = textureBuffer->desc.faces[faceIndex];
+			auto& faceDesc = textureDesc.faces[faceIndex];
+
+			faceDesc.mipMaps.Resize(faceBuffer.mipMaps.Size());
+
+			for (size_t mipIndex = 0; mipIndex < faceBuffer.mipMaps.Size(); ++mipIndex)
+			{
+				const auto& mipBuffer = faceBuffer.mipMaps[mipIndex];
+				auto& mipDesc = faceDesc.mipMaps[mipIndex];
+
+				mipDesc.level = mipBuffer.level;
+				mipDesc.data = mipBuffer.pointer;
+				mipDesc.dataSize = mipBuffer.size;
+			}
+		}
+
+		// TODO : Determine the texture type based on the texture asset's properties
+		if (textureAsset->depth == 1)
+		{
+			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCube : eTextureType::eTexture2D;
+		}
+		else
+		{
+			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCubeArray : eTextureType::eTexture3D;
+		}
+
+		textureDesc.usage = eTextureUsage::eSampled;
+		textureDesc.generateMips = textureAsset->isGenerateMips;
+		textureDesc.compressed = false;
+
+		Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(textureDesc);
+		if (!texture)
+		{
+			return;
+		}
+
+		textureAsset->texture = texture;
 	}
 
 	void AssetCommander::onLoad(Memory::RefPtr<ShaderAsset> shaderAsset, Memory::RefPtr<RHICommandList> cmdList)

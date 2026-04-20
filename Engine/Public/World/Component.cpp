@@ -7,7 +7,7 @@ namespace wtr
 {
 	SceneComponent::SceneComponent()
 		: m_position(0.f, 0.f, 0.f)
-		, m_rotation(0.f, 0.f, 0.f)
+		, m_rotation(1.f, 0.f, 0.f, 0.f)
 		, m_scale(1.f, 1.f, 1.f)
 		, m_scene(nullptr)
 	{}
@@ -24,25 +24,44 @@ namespace wtr
 
 	void SceneComponent::UpdatePosition(const fvec3& position)
 	{
-		if (position != this->m_position)
+		if ((std::abs(position.x - this->m_position.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(position.y - this->m_position.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(position.z - this->m_position.z) >= std::numeric_limits<float>::epsilon()))
 		{
 			this->m_position = position;
 			Update();
 		}
 	}
 
-	void SceneComponent::UpdateRotation(const fvec3& rotation)
+	void SceneComponent::UpdateRotation(const fquat& rotation)
 	{
-		if (rotation != this->m_rotation)
+		if ((std::abs(rotation.x - this->m_rotation.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.y - this->m_rotation.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.z - this->m_rotation.z) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.w - this->m_rotation.w) >= std::numeric_limits<float>::epsilon()))
 		{
 			this->m_rotation = rotation;
 			Update();
 		}
 	}
 
+	void SceneComponent::UpdateRotation(const fvec3& rotation)
+	{
+		const fvec3 eulerAngles = glm::eulerAngles(this->m_rotation);
+		if ((std::abs(rotation.x - eulerAngles.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.y - eulerAngles.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
+		{
+			this->m_rotation = glm::quat(rotation);
+			Update();
+		}
+	}
+
 	void SceneComponent::UpdateScale(const fvec3& scale)
 	{
-		if (scale != this->m_scale)
+		if ((std::abs(scale.x - this->m_scale.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(scale.y - this->m_scale.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(scale.z - this->m_scale.z) >= std::numeric_limits<float>::epsilon()))
 		{
 			this->m_scale = scale;
 			Update();
@@ -54,7 +73,7 @@ namespace wtr
 		return m_position;
 	}
 
-	const fvec3 SceneComponent::GetRotation() const
+	const fquat SceneComponent::GetRotation() const
 	{
 		return m_rotation;
 	}

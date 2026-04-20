@@ -100,15 +100,20 @@ namespace wtr
 	{
 		GENERATE(TextureAsset);
 	public :
-		Memory::RefPtr<FormattedBuffer> rawBuffer;
+		Memory::RefPtr<TextureBuffer> rawBuffer;
 		Memory::RefPtr<RHITexture> texture;
 
 		uint32_t width;
 		uint32_t height;
 		uint32_t depth;
+		uint32_t faces;
 		uint32_t mipLevels;
 		uint32_t sampleCount;
 		ePixelFormat pixelFormat;
+
+		bool isSRGB;
+		bool isCubemap;
+		bool isGenerateMips;
 
 		TextureAsset();
 		TextureAsset(const std::string& path, const eExtension extension);

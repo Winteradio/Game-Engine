@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <filesystem>
 
+#include <Log/include/Log.h>
+
 namespace wtr
 {
 	struct AssetCore
@@ -39,18 +41,28 @@ namespace wtr
 		const std::filesystem::path inputPath(path);
 		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
-		if (asset)
+		bool notify = false;
+		Memory::RefPtr<Asset> asset = nullptr;
 		{
-			return asset;
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			asset = core.manager.GetAsset(assetPath);
+			if (asset)
+			{
+				return asset;
+			}
+
+			asset = AssetFactory::Create(assetPath);
+			if (asset)
+			{
+				core.manager.AddAsset(assetPath, asset);
+				core.taskQueue.push(asset);
+				notify = true;
+			}
 		}
 
-		asset = AssetFactory::Create(assetPath);
-		if (asset)
+		if (notify)
 		{
-			core.manager.AddAsset(assetPath, asset);
-
-			AddTask(asset);
+			core.cvTask.notify_one();
 		}
 
 		return asset;
@@ -63,12 +75,21 @@ namespace wtr
 		const std::filesystem::path inputPath(path);
 		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
-		if (asset)
+		bool notify = false;
 		{
-			asset->SetState(eAssetState::eExpried);
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
+			if (asset)
+			{
+				asset->SetState(eAssetState::eExpried);
+				core.taskQueue.push(asset);
+				notify = true;
+			}
+		}
 
-			AddTask(asset);
+		if (notify)
+		{
+			core.cvTask.notify_one();
 		}
 		
 		core.manager.RemoveAsset(assetPath);
@@ -77,6 +98,8 @@ namespace wtr
 	void AssetSystem::Shutdown()
 	{
 		AssetCore& core = GetCore();
+		std::lock_guard<std::mutex> lock(core.mutexTask);
+
 		core.running = false;
 		core.cvTask.notify_all();
 	}
@@ -84,6 +107,8 @@ namespace wtr
 	void AssetSystem::Release(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		AssetCore& core = GetCore();
+		std::lock_guard<std::mutex> lock(core.mutexTask);
+
 		core.manager.Release(cmdList);
 	}
 
@@ -116,8 +141,9 @@ namespace wtr
 		{
 			std::lock_guard<std::mutex> lock(core.mutexTask);
 			core.taskQueue.push(asset);
-			core.cvTask.notify_one();
 		}
+
+		core.cvTask.notify_one();
 	}
 
 	Memory::RefPtr<AssetParser> AssetSystem::GetParser(const std::string& path)

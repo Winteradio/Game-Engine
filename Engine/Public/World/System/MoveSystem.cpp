@@ -16,7 +16,10 @@ namespace wtr
 			}
 
 			auto& transform = meshNode->transform;
-			transform->UpdateRotation({0.f, static_cast<float>(seconds * 0.1f), 0.f});
+			auto deltaRotation = glm::angleAxis(static_cast<float>(seconds), fvec3(0.f, 1.f, 0.f));
+			auto rotation = transform->GetRotation();
+			rotation = deltaRotation * rotation;
+			transform->UpdateRotation(rotation);
 		}
 	}
 };
