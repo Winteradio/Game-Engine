@@ -89,6 +89,7 @@ namespace wtr
 			{
 				TextureMipMapDesc& mipMapDesc = textureFace.mipMaps[mipLevel];
 
+				mipMapDesc.level = mipLevel;
 				mipMapDesc.width = textureAsset->width >> mipLevel;
 				mipMapDesc.width = mipMapDesc.width > 0 ? mipMapDesc.width : 1;
 
@@ -100,6 +101,11 @@ namespace wtr
 
 				mipMapDesc.channels = image.GetChannels();
 				mipMapDesc.size = mipMapDesc.width * mipMapDesc.height * mipMapDesc.depth * mipMapDesc.channels * (image.Is16Bit() ? sizeof(uint16_t) : sizeof(uint8_t));
+				if (dataOffset + mipMapDesc.size > textureBuffer->data.Size())
+				{
+					LOGERROR() << "[PNGParser] The calculated mip map data size exceeds the texture buffer size, the path : " << asset->path;
+					return false;
+				}
 
 				mipMapDesc.pointer = static_cast<const uint8_t*>(textureBuffer->data.Data()) + dataOffset;
 

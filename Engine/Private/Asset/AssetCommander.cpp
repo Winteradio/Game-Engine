@@ -167,6 +167,7 @@ namespace wtr
 				const auto& mipBuffer = faceBuffer.mipMaps[mipIndex];
 				auto& mipDesc = faceDesc.mipMaps[mipIndex];
 
+				mipDesc.level = mipBuffer.level;
 				mipDesc.data = mipBuffer.pointer;
 				mipDesc.dataSize = mipBuffer.size;
 			}

@@ -41,20 +41,28 @@ namespace wtr
 		const std::filesystem::path inputPath(path);
 		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 
-		std::lock_guard<std::mutex> lock(core.mutexTask);
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
-		if (asset)
+		bool notify = false;
+		Memory::RefPtr<Asset> asset = nullptr;
 		{
-			return asset;
-		}
-		else
-		{
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			asset = core.manager.GetAsset(assetPath);
+			if (asset)
+			{
+				return asset;
+			}
+
 			asset = AssetFactory::Create(assetPath);
 			if (asset)
 			{
 				core.manager.AddAsset(assetPath, asset);
 				core.taskQueue.push(asset);
+				notify = true;
 			}
+		}
+
+		if (notify)
+		{
+			core.cvTask.notify_one();
 		}
 
 		return asset;
@@ -67,12 +75,21 @@ namespace wtr
 		const std::filesystem::path inputPath(path);
 		const std::string assetPath = inputPath.is_absolute() ? path : core.assetPath + path;
 
-		std::lock_guard<std::mutex> lock(core.mutexTask);
-		Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
-		if (asset)
+		bool notify = false;
 		{
-			asset->SetState(eAssetState::eExpried);
-			core.taskQueue.push(asset);
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			Memory::RefPtr<Asset> asset = core.manager.GetAsset(assetPath);
+			if (asset)
+			{
+				asset->SetState(eAssetState::eExpried);
+				core.taskQueue.push(asset);
+				notify = true;
+			}
+		}
+
+		if (notify)
+		{
+			core.cvTask.notify_one();
 		}
 		
 		core.manager.RemoveAsset(assetPath);
