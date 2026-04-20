@@ -158,7 +158,14 @@ namespace wtr
 			template<typename T>
 			size_t operator()(const Memory::RefPtr<T>& ref) const
 			{
-				return std::hash<T*>()(&*ref);
+				if (ref)
+				{
+					return std::hash<T*>()(&*ref);
+				}
+				else
+				{
+					return 0;
+				}
 			}
 		};
 

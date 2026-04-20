@@ -16,31 +16,49 @@ namespace wtr
 
 	void RHISystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
 	{
-		m_pendingBuffers.Insert(buffer);
+		if (buffer)
+		{
+			m_pendingBuffers.Insert(buffer);
+		}
 	}
 
 	void RHISystem::RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
 	{
-		m_pendingVertexLayouts.Insert(layout);
+		if (layout)
+		{
+			m_pendingVertexLayouts.Insert(layout);
+		}
 	}
 
 	void RHISystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
 	{
-		m_pendingTextures.Insert(texture);
+		if (texture)
+		{
+			m_pendingTextures.Insert(texture);
+		}
 	}
 
 	void RHISystem::RemoveSampler(Memory::RefPtr<RHISampler> sampler)
 	{
-		m_pendingSamplers.Insert(sampler);
+		if (sampler)
+		{
+			m_pendingSamplers.Insert(sampler);
+		}
 	}
 
 	void RHISystem::RemoveShader(Memory::RefPtr<RHIShader> shader)
 	{
-		m_pendingShaders.Insert(shader);
+		if (shader)
+		{
+			m_pendingShaders.Insert(shader);
+		}
 	}
 
 	void RHISystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
 	{
-		m_pendingPipeLines.Insert(pipeline);
+		if (pipeline)
+		{
+			m_pendingPipeLines.Insert(pipeline);
+		}
 	}
 }

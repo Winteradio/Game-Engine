@@ -39,9 +39,9 @@ namespace wtr
 
 		if (m_pixels)
 		{
-			m_size = m_width * m_height * m_channels;
 			m_16bit = stbi_is_16_bit_from_memory(buffer, static_cast<int>(size)) != 0;
-		
+			m_size = m_width * m_height * m_channels * (m_16bit ? 2 : 1);
+
 			LOGINFO() << "[STDIMAGE] Succeed to load the image from the buffer, width : " << m_width
 				<< ", height : " << m_height << ", channels : " << m_channels;
 			return true;

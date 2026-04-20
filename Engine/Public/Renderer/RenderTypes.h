@@ -460,4 +460,4 @@ namespace std
 	};
 };
 
-#endif // __WTR_RENDERTYPES_H__N
+#endif // __WTR_RENDERTYPES_H__

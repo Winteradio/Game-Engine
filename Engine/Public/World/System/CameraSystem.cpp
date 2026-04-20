@@ -26,7 +26,7 @@ namespace wtr
 			if (inputStorage->IsPressed(eKeyCode::eKey_Space))
 			{
 				transform->UpdatePosition(fvec3(0.f, 0.f, 5.f));
-				transform->UpdateRotation(fvec3(0.f, 0.f, 0.f));
+				transform->UpdateRotation(fquat(1.f, 0.f, 0.f, 0.f));
 			}
 			else
 			{
@@ -108,11 +108,10 @@ namespace wtr
 			
 			const fquat prevRotation = transform->GetRotation();
 
-			const fvec3 forward = glm::normalize(prevRotation * fvec3(0.f, 0.f, -1.f));
+			const fvec3 worldUp = fvec3(0.f, 1.f, 0.f);
 			const fvec3 right = glm::normalize(prevRotation * fvec3(1.f, 0.f, 0.f));
-			const fvec3 up = glm::normalize(prevRotation * fvec3(0.f, 1.f, 0.f));
 
-			const fquat yawDelta = glm::angleAxis(-mouseDelta.x * mouseSensitivity, fvec3(0.f, 1.f, 0.f));
+			const fquat yawDelta = glm::angleAxis(-mouseDelta.x * mouseSensitivity, worldUp);
 			const fquat pitchDelta = glm::angleAxis(-mouseDelta.y * mouseSensitivity, right);
 
 			const fquat currRotation = yawDelta * pitchDelta * prevRotation;

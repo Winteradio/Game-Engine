@@ -9,8 +9,6 @@ namespace wtr
 {
 	bool PNGParser::Parse(Memory::RefPtr<Asset> asset)
 	{
-		LOGINFO() << "[PNGParser] Start to parse the asset : " << asset->path;
-
 		if (!asset)
 		{
 			LOGERROR() << "[PNGParser] Failed to parse the asset, the asset is null";
@@ -50,6 +48,8 @@ namespace wtr
 
 		const bool isSRGB = IsSRGB(fileBuffer.Data(), fileBuffer.Size());
 		textureAsset->isSRGB = isSRGB;
+		// TODO: When isSRGB is true, pixelFormat is forced to eR8G8B8A8_sRGB regardless of the actual channel count.
+		//       GetPixelFormat should be extended to support sRGB variants (e.g. eR8_sRGB, eR8G8B8_sRGB) per channel count.
 		textureAsset->pixelFormat = isSRGB ? ePixelFormat::eR8G8B8A8_sRGB : GetPixelFormat(image.GetChannels(), image.Is16Bit());
 		if (textureAsset->pixelFormat == ePixelFormat::eNone)
 		{
@@ -75,6 +75,10 @@ namespace wtr
 		memcpy(textureBuffer->data.Data(), image.GetPixels(), image.GetSize());
 
 		size_t dataOffset = 0;
+		// TODO: stbi_load_from_memory always returns 8-bit pixel data even if the source PNG is 16-bit.
+		//       To correctly load 16-bit data, stbi_load_16_from_memory must be used instead, which returns uint16_t*.
+		//       Until then, Is16Bit() reflects the source metadata only — the actual loaded data is always 8-bit.
+		//       componentType should be eUByte for 8-bit and eUShort for 16-bit, not eFloat/eUInt.
 		textureBuffer->desc.componentType = image.Is16Bit() ? eDataType::eFloat : eDataType::eUInt;
 		textureBuffer->desc.faces.Resize(textureAsset->faces);
 		for (auto& textureFace : textureBuffer->desc.faces)
@@ -164,9 +168,14 @@ namespace wtr
 			return false;
 		}
 
+		// TODO: PNG_SRGB_CHUNK_LENGTH (4) is the byte size of the chunk length field in the PNG chunk structure,
+		//       not the actual data length of the sRGB chunk (which is 1 byte — the rendering intent).
+		//       The name is misleading; consider renaming to PNG_CHUNK_LENGTH_FIELD_SIZE.
 		constexpr uint32_t PNG_SRGB_CHUNK_LENGTH = 4;
 		constexpr uint32_t PNG_SRGB_CHUNK_TYPE = 0x73524742; // "sRGB" in ASCII
 
+		// TODO: This only checks the first chunk after IHDR. The sRGB chunk may appear at any position before IDAT.
+		//       Should iterate through chunks (read length + type, advance by length + 12) until "sRGB" or "IDAT" is found.
 		offset += PNG_SRGB_CHUNK_LENGTH;
 		if (offset >= size)
 		{

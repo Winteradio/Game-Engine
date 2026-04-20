@@ -2393,27 +2393,23 @@ namespace wtr
 			}
 
 			auto* refData = buffer.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
 			}
 
 			GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
-			if (!glBuffer || glBuffer->GetID() == GL_NONE)
+			if (glBuffer && glBuffer->GetID() != GL_NONE)
 			{
-				itr = m_pendingBuffers.Erase(itr);
-				continue;
+				const uint32_t bufferID = glBuffer->GetID();
+				glDeleteBuffers(1, &bufferID);
+
+				glBuffer->SetID(GL_NONE);
+				glBuffer->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t bufferID = glBuffer->GetID();
-			glDeleteBuffers(1, &bufferID);
-
-			glBuffer->SetID(GL_NONE);
-			glBuffer->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingBuffers.Erase(itr);
 		}
 	}
 
@@ -2430,26 +2426,22 @@ namespace wtr
 			}
 			
 			auto* refData = layout.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
 			}
 
 			GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
-			if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
+			if (glVertexLayout && glVertexLayout->GetID() != GL_NONE)
 			{
-				itr = m_pendingVertexLayouts.Erase(itr);
-				continue;
+				const uint32_t bufferID = glVertexLayout->GetID();
+				glDeleteVertexArrays(1, &bufferID);
+				glVertexLayout->SetID(GL_NONE);
+				glVertexLayout->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t bufferID = glVertexLayout->GetID();
-			glDeleteVertexArrays(1, &bufferID);
-			glVertexLayout->SetID(GL_NONE);
-			glVertexLayout->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingVertexLayouts.Erase(itr);
 		}
 	}
 
@@ -2466,26 +2458,22 @@ namespace wtr
 			}
 
 			auto* refData = texture.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
 			}
 
 			GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
-			if (!glTexture || glTexture->GetID() == GL_NONE)
+			if (glTexture && glTexture->GetID() != GL_NONE)
 			{
-				itr = m_pendingTextures.Erase(itr);
-				continue;
+				const uint32_t textureID = glTexture->GetID();
+				glDeleteTextures(1, &textureID);
+				glTexture->SetID(GL_NONE);
+				glTexture->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t textureID = glTexture->GetID();
-			glDeleteTextures(1, &textureID);
-			glTexture->SetID(GL_NONE);
-			glTexture->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingTextures.Erase(itr);
 		}
 	}
 
@@ -2502,26 +2490,22 @@ namespace wtr
 			}
 
 			auto* refData = sampler.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
 			}
 
 			GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
-			if (!glSampler || glSampler->GetID() == GL_NONE)
+			if (glSampler && glSampler->GetID() != GL_NONE)
 			{
-				itr = m_pendingSamplers.Erase(itr);
-				continue;
+				const uint32_t samplerID = glSampler->GetID();
+				glDeleteSamplers(1, &samplerID);
+				glSampler->SetID(GL_NONE);
+				glSampler->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t samplerID = glSampler->GetID();
-			glDeleteSamplers(1, &samplerID);
-			glSampler->SetID(GL_NONE);
-			glSampler->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingSamplers.Erase(itr);
 		}
 	}
 
@@ -2538,26 +2522,22 @@ namespace wtr
 			}
 
 			auto* refData = shader.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
 			}
 
 			GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
-			if (!glShader || glShader->GetID() == GL_NONE)
+			if (glShader && glShader->GetID() != GL_NONE)
 			{
-				itr = m_pendingShaders.Erase(itr);
-				continue;
+				const uint32_t shaderID = glShader->GetID();
+				glDeleteShader(shaderID);
+				glShader->SetID(GL_NONE);
+				glShader->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t shaderID = glShader->GetID();
-			glDeleteShader(shaderID);
-			glShader->SetID(GL_NONE);
-			glShader->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingShaders.Erase(itr);
 		}
 	}
 
@@ -2574,7 +2554,7 @@ namespace wtr
 			}
 
 			auto* refData = pipeline.GetRefData();
-			if (!refData && refData->GetRefCount() > 1)
+			if (refData->GetRefCount() > 1)
 			{
 				itr++;
 				continue;
@@ -2583,17 +2563,13 @@ namespace wtr
 			GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
 			if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
 			{
-				itr = m_pendingPipeLines.Erase(itr);
-				continue;
+				const uint32_t pipelineID = glPipeLine->GetID();
+				glDeleteProgram(pipelineID);
+				glPipeLine->SetID(GL_NONE);
+				glPipeLine->SetState(eResourceState::eNone);
 			}
 
-			const uint32_t pipelineID = glPipeLine->GetID();
-			glDeleteProgram(pipelineID);
-			glPipeLine->SetID(GL_NONE);
-			glPipeLine->SetState(eResourceState::eNone);
-
-			itr++;
-			continue;
+			itr = m_pendingPipeLines.Erase(itr);
 		}
 	}
 }

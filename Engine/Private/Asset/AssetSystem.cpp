@@ -72,8 +72,7 @@ namespace wtr
 		if (asset)
 		{
 			asset->SetState(eAssetState::eExpried);
-
-			AddTask(asset);
+			core.taskQueue.push(asset);
 		}
 		
 		core.manager.RemoveAsset(assetPath);

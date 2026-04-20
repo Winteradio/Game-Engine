@@ -40,7 +40,7 @@ namespace wtr
 			(std::abs(rotation.z - this->m_rotation.z) >= std::numeric_limits<float>::epsilon()) ||
 			(std::abs(rotation.w - this->m_rotation.w) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_rotation = glm::quat(rotation);
+			this->m_rotation = rotation;
 			Update();
 		}
 	}
