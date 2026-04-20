@@ -93,8 +93,8 @@ namespace wtr
 
 	struct MeshBatchKey
 	{
-		ECS::UUID meshId;
-		ECS::UUID materialId;
+		ECS::UUID meshId = ECS::UUID::Null();
+		ECS::UUID materialId = ECS::UUID::Null();
 		size_t meshSection = 0;
 
 		bool operator==(const MeshBatchKey& other) const;

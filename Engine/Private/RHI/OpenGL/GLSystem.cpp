@@ -469,6 +469,7 @@ namespace wtr
 			return;
 		}
 
+		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, bufferID);
 		glBufferData(bufferType, dataSize, info.data, accessType);
 		glBindBuffer(bufferType, GL_NONE);
@@ -477,6 +478,8 @@ namespace wtr
 		glBuffer->SetState(eResourceState::eReady);
 
 		buffer->SetDesc(info);
+
+		LOGINFO() << "[GL] Buffer initialized successfully, ID: " << bufferID << ", Size: " << dataSize;
 	}
 
 	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -543,8 +546,6 @@ namespace wtr
 		}
 
 		glBindVertexArray(GL_NONE);
-		glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
 
 		glVertexLayout->SetID(vertexLayoutID);
 		glVertexLayout->SetState(eResourceState::eReady);
@@ -1177,6 +1178,7 @@ namespace wtr
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetMapAccess(info.mapAccess);
 		const bool useMapBuffer = accessType != GL_NONE;
+		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
 
 		if (useMapBuffer)
@@ -1231,6 +1233,7 @@ namespace wtr
 		const uint32_t dataType = GetDataType(info.componentType);
 		const uint32_t dataSize = info.size;
 
+		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
 		glBufferData(bufferType, dataSize, info.data, accessType);
 		glBindBuffer(bufferType, GL_NONE);
@@ -1304,7 +1307,7 @@ namespace wtr
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-
+		glBindVertexArray(GL_NONE);
 		glBindBufferBase(bufferType, slot, glBuffer->GetID());
 	}
 

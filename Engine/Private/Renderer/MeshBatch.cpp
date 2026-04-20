@@ -229,7 +229,12 @@ namespace wtr
 
 	eResourceState MeshBatch::GetResourceState() const
 	{
-		if (!m_transformBuffer && !m_refMesh && !m_refMaterial)
+		if (!m_transformBuffer || !m_vertexLayout)
+		{
+			return eResourceState::eNone;
+		}
+
+		if (!m_refMesh && !m_refMaterial)
 		{
 			return eResourceState::eNone;
 		}
@@ -238,6 +243,11 @@ namespace wtr
 		if (m_transformBuffer)
 		{
 			allState = allState & m_transformBuffer->GetState();
+		}
+
+		if (m_vertexLayout)
+		{
+			allState = allState & m_vertexLayout->GetState();
 		}
 
 		if (m_refMesh)

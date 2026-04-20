@@ -55,8 +55,7 @@ namespace demo
 				continue;
 			}
 
-			const std::string dragonPath = "asset/mesh/3d/cube.obj";
-			//const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 
 			dragonEntity->AddComponent<wtr::SceneComponent>();
@@ -72,7 +71,35 @@ namespace demo
 
 			world->scene.Attach(dragonEntity->GetNode<wtr::MeshNode>());
 
-			LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
+			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
+		}
+
+		for (size_t index = 0; index < 10; index++)
+		{
+			auto cubeEntity = world->CreateEntity();
+			if (!cubeEntity)
+			{
+				LOGERROR() << "[Game] Failed to create the cube entity";
+				continue;
+			}
+
+			const std::string cubePath = "asset/mesh/3d/cube.obj";
+			Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
+
+			cubeEntity->AddComponent<wtr::SceneComponent>();
+			cubeEntity->AddComponent<wtr::MeshComponent>(cubeAsset);
+			cubeEntity->AddNode<wtr::MeshNode>();
+
+			auto sceneComponent = cubeEntity->GetComponent<wtr::SceneComponent>();
+			if (sceneComponent)
+			{
+				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.0f, static_cast<float>(index / 5) });
+				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+			}
+
+			world->scene.Attach(cubeEntity->GetNode<wtr::MeshNode>());
+
+			//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
 		}
 
 		return true;
