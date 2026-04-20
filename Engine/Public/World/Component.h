@@ -38,10 +38,11 @@ namespace wtr
 
 		void UpdatePosition(const fvec3& position);
 		void UpdateRotation(const fvec3& rotation);
+		void UpdateRotation(const fquat& rotation);
 		void UpdateScale(const fvec3& scale);
 
 		const fvec3 GetPosition() const;
-		const fvec3 GetRotation() const;
+		const fquat GetRotation() const;
 		const fvec3 GetScale() const;
 
 	private :
@@ -49,7 +50,7 @@ namespace wtr
 
 	private :
 		fvec3 m_position;
-		fvec3 m_rotation;
+		fquat m_rotation;
 		fvec3 m_scale;
 
 		Scene* m_scene;

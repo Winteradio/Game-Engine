@@ -52,7 +52,7 @@ namespace wtr
 
 	void World::Update(const ECS::TimeStep& timeStep)
 	{
-		const auto& sortedSystems = m_systemRegistry.GetSorted();
+		const auto sortedSystems = m_systemRegistry.GetSorted();
 
 		for (auto& system : sortedSystems)
 		{

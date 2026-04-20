@@ -80,15 +80,24 @@ namespace wtr
 		{
 			m_refFrameExecutor->Execute();
 		}
+
+		if (m_refSystem)
+		{
+			m_refSystem->FlushPending();
+		}
+	}
+
+	void RHIWorker::onDestroy()
+	{
+		if (m_refSystem)
+		{
+			m_refSystem->Flush();
+			m_refSystem->ReleaseCurrent();
+		}
 	}
 
 	void RHIWorker::onNotify()
 	{
-		if (m_refSystem)
-		{
-			m_refSystem->ReleaseCurrent();
-		}
-
 		if (m_refConsumer)
 		{
 			m_refConsumer->NotifyAll();

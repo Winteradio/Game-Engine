@@ -78,6 +78,16 @@ namespace wtr
 		return true;
 	}
 
+	void GLSystem::FlushPending()
+	{
+		FlushBuffer();
+		FlushVertexLayout();
+		FlushTexture();
+		FlushShader();
+		FlushPipeLine();
+		FlushSampler();
+	}
+
 	void GLSystem::InitializeState()
 	{
 		GLboolean bvals[4];
@@ -1280,121 +1290,6 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
-	{
-		if (!buffer)
-		{
-			return;
-		}
-
-		GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
-		if (!glBuffer || glBuffer->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		const uint32_t bufferID = glBuffer->GetID();
-		glDeleteBuffers(1, &bufferID);
-
-		glBuffer->SetID(GL_NONE);
-		glBuffer->SetState(eResourceState::eNone);
-	}
-
-	void GLSystem::RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
-	{
-		if (!layout)
-		{
-			return;
-		}
-	
-		GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
-		if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
-		{
-			return;
-		}
-		
-		const uint32_t bufferID = glVertexLayout->GetID();
-		glDeleteVertexArrays(1, &bufferID);
-		
-		glVertexLayout->SetID(GL_NONE);
-		glVertexLayout->SetState(eResourceState::eNone);
-	}
-
-	void GLSystem::RemoveTexture(Memory::RefPtr<RHITexture> texture)
-	{
-		if (!texture)
-		{
-			return;
-		}
-
-		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
-		if (!glTexture || glTexture->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		const uint32_t textureID = glTexture->GetID();
-		glDeleteTextures(1, &textureID);
-		glTexture->SetID(GL_NONE);
-		glTexture->SetState(eResourceState::eNone);
-	}
-
-	void GLSystem::RemoveSampler(Memory::RefPtr<RHISampler> sampler)
-	{
-		if (!sampler)
-		{
-			return;
-		}
-
-		GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
-		if (!glSampler || glSampler->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		const uint32_t samplerID = glSampler->GetID();
-		glDeleteSamplers(1, &samplerID);
-		glSampler->SetID(GL_NONE);
-		glSampler->SetState(eResourceState::eNone);
-	}
-
-	void GLSystem::RemoveShader(Memory::RefPtr<RHIShader> shader)
-	{
-		if (!shader)
-		{
-			return;
-		}
-
-		GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
-		if (!glShader || glShader->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		glDeleteShader(glShader->GetID());
-
-		glShader->SetID(GL_NONE);
-		shader->SetState(eResourceState::eNone);
-	}
-
-	void GLSystem::RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
-	{
-		if (!pipeline)
-		{
-			return;
-		}
-
-		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
-		if (!glPipeLine)
-		{
-			return;
-		}
-
-		glDeleteProgram(glPipeLine->GetID());
-		glPipeLine->SetID(GL_NONE);
-		glPipeLine->SetState(eResourceState::eNone);
-	}
-
 	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		if (!buffer)
@@ -2483,5 +2378,222 @@ namespace wtr
 			type == GL_SAMPLER_CUBE_MAP_ARRAY ||
 			type == GL_SAMPLER_2D_MULTISAMPLE ||
 			type == GL_SAMPLER_2D_MULTISAMPLE_ARRAY;
+	}
+
+	void GLSystem::FlushBuffer()
+	{
+		auto itr = m_pendingBuffers.begin();
+		while (itr != m_pendingBuffers.end())
+		{
+			auto& buffer = *itr;
+			if (!buffer)
+			{
+				itr = m_pendingBuffers.Erase(itr);
+				continue;
+			}
+
+			auto* refData = buffer.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLBuffer* glBuffer = reinterpret_cast<GLBuffer*>(buffer->GetRawBuffer());
+			if (!glBuffer || glBuffer->GetID() == GL_NONE)
+			{
+				itr = m_pendingBuffers.Erase(itr);
+				continue;
+			}
+
+			const uint32_t bufferID = glBuffer->GetID();
+			glDeleteBuffers(1, &bufferID);
+
+			glBuffer->SetID(GL_NONE);
+			glBuffer->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
+	}
+
+	void GLSystem::FlushVertexLayout()
+	{
+		auto itr = m_pendingVertexLayouts.begin();
+		while (itr != m_pendingVertexLayouts.end())
+		{
+			auto& layout = *itr;
+			if (!layout)
+			{
+				itr = m_pendingVertexLayouts.Erase(itr);
+				continue;
+			}
+			
+			auto* refData = layout.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLVertexLayout* glVertexLayout = reinterpret_cast<GLVertexLayout*>(layout->GetRawBuffer());
+			if (!glVertexLayout || glVertexLayout->GetID() == GL_NONE)
+			{
+				itr = m_pendingVertexLayouts.Erase(itr);
+				continue;
+			}
+
+			const uint32_t bufferID = glVertexLayout->GetID();
+			glDeleteVertexArrays(1, &bufferID);
+			glVertexLayout->SetID(GL_NONE);
+			glVertexLayout->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
+	}
+
+	void GLSystem::FlushTexture()
+	{
+		auto itr = m_pendingTextures.begin();
+		while (itr != m_pendingTextures.end())
+		{
+			auto& texture = *itr;
+			if (!texture)
+			{
+				itr = m_pendingTextures.Erase(itr);
+				continue;
+			}
+
+			auto* refData = texture.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+			if (!glTexture || glTexture->GetID() == GL_NONE)
+			{
+				itr = m_pendingTextures.Erase(itr);
+				continue;
+			}
+
+			const uint32_t textureID = glTexture->GetID();
+			glDeleteTextures(1, &textureID);
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
+	}
+
+	void GLSystem::FlushSampler()
+	{
+		auto itr = m_pendingSamplers.begin();
+		while (itr != m_pendingSamplers.end())
+		{
+			auto& sampler = *itr;
+			if (!sampler)
+			{
+				itr = m_pendingSamplers.Erase(itr);
+				continue;
+			}
+
+			auto* refData = sampler.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLSampler* glSampler = reinterpret_cast<GLSampler*>(sampler->GetRawBuffer());
+			if (!glSampler || glSampler->GetID() == GL_NONE)
+			{
+				itr = m_pendingSamplers.Erase(itr);
+				continue;
+			}
+
+			const uint32_t samplerID = glSampler->GetID();
+			glDeleteSamplers(1, &samplerID);
+			glSampler->SetID(GL_NONE);
+			glSampler->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
+	}
+
+	void GLSystem::FlushShader()
+	{
+		auto itr = m_pendingShaders.begin();
+		while (itr != m_pendingShaders.end())
+		{
+			auto& shader = *itr;
+			if (!shader)
+			{
+				itr = m_pendingShaders.Erase(itr);
+				continue;
+			}
+
+			auto* refData = shader.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLShader* glShader = reinterpret_cast<GLShader*>(shader->GetRawBuffer());
+			if (!glShader || glShader->GetID() == GL_NONE)
+			{
+				itr = m_pendingShaders.Erase(itr);
+				continue;
+			}
+
+			const uint32_t shaderID = glShader->GetID();
+			glDeleteShader(shaderID);
+			glShader->SetID(GL_NONE);
+			glShader->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
+	}
+
+	void GLSystem::FlushPipeLine()
+	{
+		auto itr = m_pendingPipeLines.begin();
+		while (itr != m_pendingPipeLines.end())
+		{
+			auto& pipeline = *itr;
+			if (!pipeline)
+			{
+				itr = m_pendingPipeLines.Erase(itr);
+				continue;
+			}
+
+			auto* refData = pipeline.GetRefData();
+			if (!refData && refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
+			if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+			{
+				itr = m_pendingPipeLines.Erase(itr);
+				continue;
+			}
+
+			const uint32_t pipelineID = glPipeLine->GetID();
+			glDeleteProgram(pipelineID);
+			glPipeLine->SetID(GL_NONE);
+			glPipeLine->SetState(eResourceState::eNone);
+
+			itr++;
+			continue;
+		}
 	}
 }

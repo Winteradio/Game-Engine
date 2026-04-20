@@ -9,6 +9,8 @@ namespace wtr
 {
 	bool PNGParser::Parse(Memory::RefPtr<Asset> asset)
 	{
+		LOGINFO() << "[PNGParser] Start to parse the asset : " << asset->path;
+
 		if (!asset)
 		{
 			LOGERROR() << "[PNGParser] Failed to parse the asset, the asset is null";

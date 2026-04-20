@@ -2,6 +2,7 @@
 #define __WTR_RHISYSTEM_H__
 
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Container/include/HashSet.h>
 #include <cstdint>
 
 namespace wtr
@@ -67,7 +68,16 @@ namespace wtr
 		virtual ~RHISystem();
 
 	public :
+		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer);
+		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
+		void RemoveTexture(Memory::RefPtr<RHITexture> texture);
+		void RemoveSampler(Memory::RefPtr<RHISampler> sampler);
+		void RemoveShader(Memory::RefPtr<RHIShader> shader);
+		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+
+	public :
 		virtual bool Init(void* nativeHandle) = 0;
+		virtual void FlushPending() = 0;
 
 	public :
 		virtual void Clear(const RHIClearState& state) = 0;
@@ -108,13 +118,6 @@ namespace wtr
 		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
 
-		virtual void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) = 0;
-		virtual void RemoveTexture(Memory::RefPtr<RHITexture> texture) = 0;
-		virtual void RemoveSampler(Memory::RefPtr<RHISampler> sampler) = 0;
-		virtual void RemoveShader(Memory::RefPtr<RHIShader> shader) = 0;
-		virtual void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
-
 		virtual void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) = 0;
 		virtual void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
 		virtual void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
@@ -148,6 +151,23 @@ namespace wtr
 		virtual const uint32_t GetBlendFunc(const eBlendFunc func) const = 0;
 		virtual const uint32_t GetBlendOp(const eBlendOp op) const = 0;
 		virtual const uint32_t GetShaderType(const eShaderType type) const = 0;
+
+	protected:
+		struct RefHasher
+		{
+			template<typename T>
+			size_t operator()(const Memory::RefPtr<T>& ref) const
+			{
+				return std::hash<T*>()(&*ref);
+			}
+		};
+
+		wtr::HashSet<Memory::RefPtr<RHIBuffer>, RefHasher> m_pendingBuffers;
+		wtr::HashSet<Memory::RefPtr<RHIVertexLayout>, RefHasher> m_pendingVertexLayouts;
+		wtr::HashSet<Memory::RefPtr<RHITexture>, RefHasher> m_pendingTextures;
+		wtr::HashSet<Memory::RefPtr<RHISampler>, RefHasher> m_pendingSamplers;
+		wtr::HashSet<Memory::RefPtr<RHIShader>, RefHasher> m_pendingShaders;
+		wtr::HashSet<Memory::RefPtr<RHIPipeLine>, RefHasher> m_pendingPipeLines;
 	};
 };
 

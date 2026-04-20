@@ -32,7 +32,6 @@ namespace wtr
 
 	public :
 		wtr::HashMap<std::string, Memory::RefPtr<Asset>> m_assetMap;
-		mutable std::mutex m_mutex;
 	};
 };
 

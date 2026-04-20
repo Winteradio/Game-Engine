@@ -46,11 +46,6 @@ namespace wtr
 
 	void Worker::Stop()
 	{
-		if (!m_isRunning)
-		{
-			return;
-		}
-
 		m_isRunning = false;
 
 		onNotify();

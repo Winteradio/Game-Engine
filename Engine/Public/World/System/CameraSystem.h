@@ -16,7 +16,7 @@ namespace wtr
 
 	protected:
 		virtual const fvec3 UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform);
-		virtual const fvec3 UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform);
+		virtual const fquat UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform);
 	};
 };
 

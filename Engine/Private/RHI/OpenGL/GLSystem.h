@@ -15,6 +15,7 @@ namespace wtr
 
 	public :
 		bool Init(void* nativeHandle) override;
+		void FlushPending() override;
 
 	public :
 		void Clear(const RHIClearState& state) override;
@@ -54,13 +55,6 @@ namespace wtr
 
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
-
-		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer) override;
-		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) override;
-		void RemoveTexture(Memory::RefPtr<RHITexture> texture) override;
-		void RemoveSampler(Memory::RefPtr<RHISampler> sampler) override;
-		void RemoveShader(Memory::RefPtr<RHIShader> shader) override;
-		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) override;
 
 		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
@@ -130,6 +124,13 @@ namespace wtr
 		const ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
 
 		bool IsSampler(const int32_t type) const;
+
+		void FlushBuffer();
+		void FlushVertexLayout();
+		void FlushTexture();
+		void FlushShader();
+		void FlushPipeLine();
+		void FlushSampler();
 
 	private:
 		WGLContext m_context;

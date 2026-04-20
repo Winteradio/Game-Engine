@@ -18,15 +18,7 @@ namespace wtr
 	{}
 
 	AssetWorker::~AssetWorker()
-	{
-		for (auto& threadRef : m_threads)
-		{
-			if (threadRef)
-			{
-				threadRef->Stop();
-			}	
-		}
-	}
+	{}
 
 	void AssetWorker::SetTaskThread(const size_t count)
 	{
@@ -112,7 +104,6 @@ namespace wtr
 		AssetSystem::Release(cmdList);
 
 		m_refTaskExecutor->Submit(cmdList);
-		m_threads.Clear();
 	}
 
 	void AssetWorker::onNotify()
