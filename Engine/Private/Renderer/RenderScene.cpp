@@ -268,7 +268,7 @@ namespace wtr
 			Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
 			if (meshBatch)
 			{
-				LOGINFO() << "[RenderScene] Add the mesh batch's transform info, the mesh batch ID : " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
+				LOGINFO() << "[RenderScene] Add the mesh batch's transform info, " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
 
 				meshBatch->AddTransform(primitive->GetID(), primitive->GetTransform());
 
