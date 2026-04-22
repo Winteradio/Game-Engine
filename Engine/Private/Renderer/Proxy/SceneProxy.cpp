@@ -6,6 +6,7 @@ namespace wtr
         : m_position(0.f)
         , m_rotation(1.f, 0.f, 0.f, 0.f)
         , m_scale(1.f)
+        , m_transform(1.f)
     {}
 
     SceneProxy::~SceneProxy()
@@ -13,23 +14,61 @@ namespace wtr
 
     void SceneProxy::UpdatePosition(const fvec3 position)
     {
-        m_position = position;
+        if ((std::abs(position.x - this->m_position.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(position.y - this->m_position.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(position.z - this->m_position.z) >= std::numeric_limits<float>::epsilon()))
+        {
+            this->m_position = position;
+
+            UpdateTransform();
+        }
     }
 
     void SceneProxy::UpdateRotation(const fquat rotation)
     {
-        m_rotation = rotation;
+        if ((std::abs(rotation.x - this->m_rotation.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.y - this->m_rotation.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.z - this->m_rotation.z) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.w - this->m_rotation.w) >= std::numeric_limits<float>::epsilon()))
+        {
+            this->m_rotation = rotation;
+
+            UpdateTransform();
+        }
     }
 
     void SceneProxy::UpdateRotation(const fvec3 rotation)
     {
-        const fquat quatRotation = glm::quat(rotation);
-        m_rotation = quatRotation;
+        const fvec3 eulerAngles = glm::eulerAngles(this->m_rotation);
+        if ((std::abs(rotation.x - eulerAngles.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.y - eulerAngles.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
+        {
+            this->m_rotation = glm::quat(rotation);
+
+            UpdateTransform();
+        }
     }
 
     void SceneProxy::UpdateScale(const fvec3 scale)
     {
-        m_scale = scale;
+        if ((std::abs(scale.x - this->m_scale.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(scale.y - this->m_scale.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(scale.z - this->m_scale.z) >= std::numeric_limits<float>::epsilon()))
+        {
+            this->m_scale = scale;
+
+            UpdateTransform();
+        }
+    }
+
+    void SceneProxy::UpdateTransform()
+    {
+        const fmat4 translation = glm::translate(fmat4(1.f), m_position);
+        const fmat4 rotation = glm::toMat4(m_rotation);
+        const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
+
+        m_transform = translation * rotation * scale;
     }
 
     const fvec3 SceneProxy::GetPosition() const
@@ -49,11 +88,6 @@ namespace wtr
 
     const fmat4 SceneProxy::GetTransform() const
     {
-		const fmat4 translation = glm::translate(fmat4(1.f), m_position);
-		const fmat4 rotation = glm::toMat4(m_rotation);
-		const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
-
-		const fmat4 transform = translation * rotation * scale;
-        return transform;
+        return m_transform;
     }
 }

@@ -135,17 +135,21 @@ namespace wtr
 			m_Swapped.exchange(false);
 		}
 
+		if (!IsChanged())
+		{
+			return;
+		}
+
 		for (size_t index = 0; index < sizeof(m_CurrData->keyboard); ++index)
 		{
-			uint8_t lowKey = m_CurrData->keyboard[index] & 0x0F;
+			auto& keyData = m_CurrData->keyboard[index];
+			uint8_t lowKey = keyData & 0x0F;
 			lowKey = (static_cast<eInputAction>(lowKey) == eInputAction::eRelease) ? 0 : lowKey;
 
-			uint8_t highKey = (m_CurrData->keyboard[index] >> 4) & 0x0F;
+			uint8_t highKey = (keyData >> 4) & 0x0F;
 			highKey = (static_cast<eInputAction>(highKey) == eInputAction::eRelease) ? 0 : highKey;
 
-			const uint8_t keyData = (highKey << 4) | lowKey;
-
-			m_CurrData->keyboard[index] = keyData;
+			keyData = (highKey << 4) | lowKey;
 		}
 	}
 

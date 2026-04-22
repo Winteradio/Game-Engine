@@ -3,6 +3,7 @@
 
 #include <Framework/Window.h>
 #include <windows.h>
+#include <atomic>
 
 #pragma comment(linker, "/entry:WinMainCRTStartup")
 #pragma comment(linker, "/subsystem:console")
@@ -52,6 +53,7 @@ namespace wtr
 			int m_posY;
 
 			std::function<void()> m_closeCallback;
+			std::atomic<eWindowStatus> m_status;
 	};
 };
 

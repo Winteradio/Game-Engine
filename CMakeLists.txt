@@ -349,4 +349,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	gdi32
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLM_FORCE_INTRINSICS)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -160,8 +160,6 @@ namespace wtr
 
 	void MeshBatch::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		return;
-
 		if (!cmdList || !m_transformBuffer || !m_transformBulk || !m_refDrawCommand)
 		{
 			return;
@@ -194,6 +192,7 @@ namespace wtr
 		// TODO : Partial Update
 		updateDesc.data = m_transformBulk;
 		updateDesc.dataOffset = 0;
+		updateDesc.mapAccess = eMapAccess::eInvalidateBuffer | eMapAccess::eWrite | eMapAccess::eUnsynchronized;
 
 		const bool needResize = m_transformBuffer->GetCount() < m_transformInfos.Size();
 		if (needResize)

@@ -27,9 +27,13 @@ namespace wtr
 		const fmat4 GetTransform() const;
 
 	private :
+		void UpdateTransform();
+
+	private :
 		fvec3 m_position;
 		fquat m_rotation;
 		fvec3 m_scale;
+		fmat4 m_transform;
 	};
 
 	struct UpdateProxyInfo
