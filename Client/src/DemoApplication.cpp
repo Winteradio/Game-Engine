@@ -74,7 +74,7 @@ namespace demo
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		for (size_t index = 0; index < 10; index++)
+		for (size_t index = 0; index < 3000; index++)
 		{
 			auto cubeEntity = world->CreateEntity();
 			if (!cubeEntity)
@@ -93,7 +93,7 @@ namespace demo
 			auto sceneComponent = cubeEntity->GetComponent<wtr::SceneComponent>();
 			if (sceneComponent)
 			{
-				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.0f, static_cast<float>(index / 5) });
+				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 30), 0.0f, static_cast<float>(index / 30) });
 				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
 			}
 

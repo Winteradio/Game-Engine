@@ -84,22 +84,20 @@ namespace wtr
 
 		for (const auto& [vertexKey, rawBuffer] : meshAsset->rawBuffers)
 		{
-			if (!rawBuffer || rawBuffer->data.Empty())
+			if (!rawBuffer.bulkData || rawBuffer.bulkData->IsEmpty())
 			{
 				continue;
 			}
 
-			const auto& desc = rawBuffer->desc;
-
 			RHIBufferCreateDesc bufferDesc;
 			bufferDesc.bufferType = eBufferType::eVertex;
 			bufferDesc.accessType = eDataAccess::eStatic;
-			bufferDesc.componentType = desc.componentType;
-			bufferDesc.numComponents = desc.numComponents;
-			bufferDesc.count = desc.count;
-			bufferDesc.size = static_cast<uint32_t>(rawBuffer->data.Size());
-			bufferDesc.stride = desc.numComponents * GetDataTypeSize(desc.componentType);
-			bufferDesc.data = rawBuffer->data.Data();
+			bufferDesc.componentType = rawBuffer.componentType;
+			bufferDesc.numComponents = rawBuffer.numComponents;
+			bufferDesc.count = rawBuffer.count;
+			bufferDesc.size = static_cast<uint32_t>(rawBuffer.bulkData->GetSize());
+			bufferDesc.stride = rawBuffer.numComponents * GetDataTypeSize(rawBuffer.componentType);
+			bufferDesc.data = rawBuffer.bulkData;
 
 			Memory::RefPtr<RHIBuffer> vertexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (vertexBuffer)
@@ -108,19 +106,19 @@ namespace wtr
 			}
 		}
 
-		if (meshAsset->rawIndex && !meshAsset->rawIndex->data.Empty())
+		if (meshAsset->rawIndex.bulkData && !meshAsset->rawIndex.bulkData->IsEmpty())
 		{
-			const auto& desc = meshAsset->rawIndex->desc;
+			const auto& rawIndex = meshAsset->rawIndex;
 
 			RHIBufferCreateDesc bufferDesc;
 			bufferDesc.bufferType = eBufferType::eIndex;
 			bufferDesc.accessType = eDataAccess::eStatic;
-			bufferDesc.componentType = desc.componentType;
-			bufferDesc.numComponents = desc.numComponents;
-			bufferDesc.count = desc.count;
-			bufferDesc.size = static_cast<uint32_t>(meshAsset->rawIndex->data.Size());
-			bufferDesc.stride = desc.numComponents * GetDataTypeSize(desc.componentType);
-			bufferDesc.data = meshAsset->rawIndex->data.Data();
+			bufferDesc.componentType = rawIndex.componentType;
+			bufferDesc.numComponents = rawIndex.numComponents;
+			bufferDesc.count = rawIndex.count;
+			bufferDesc.size = static_cast<uint32_t>(rawIndex.bulkData->GetSize());
+			bufferDesc.stride = rawIndex.numComponents * GetDataTypeSize(rawIndex.componentType);
+			bufferDesc.data = rawIndex.bulkData;
 
 			Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (indexBuffer)
@@ -137,8 +135,8 @@ namespace wtr
 			return;
 		}
 
-		auto& rawBuffer = textureAsset->rawBuffer;
-		if (!rawBuffer || rawBuffer->data.Empty())
+		auto& rawTexture = textureAsset->rawTexture;
+		if (rawTexture.faces.Empty())
 		{
 			return;
 		}
@@ -150,26 +148,24 @@ namespace wtr
 		textureDesc.mipLevels = textureAsset->mipLevels;
 		textureDesc.sampleCount = textureAsset->sampleCount;
 		textureDesc.format = textureAsset->pixelFormat;
-		textureDesc.dataType = textureAsset->rawBuffer->desc.componentType;
+		textureDesc.dataType = rawTexture.componentType;
 
-		auto& textureBuffer = textureAsset->rawBuffer;
-		textureDesc.faces.Resize(textureBuffer->desc.faces.Size());
+		textureDesc.faces.Resize(rawTexture.faces.Size());
 
 		for (size_t faceIndex = 0; faceIndex < textureDesc.faces.Size(); ++faceIndex)
 		{
-			const auto& faceBuffer = textureBuffer->desc.faces[faceIndex];
+			const auto& rawFaceBuffer = rawTexture.faces[faceIndex];
 			auto& faceDesc = textureDesc.faces[faceIndex];
 
-			faceDesc.mipMaps.Resize(faceBuffer.mipMaps.Size());
+			faceDesc.mipMaps.Resize(rawFaceBuffer.mipMaps.Size());
 
-			for (size_t mipIndex = 0; mipIndex < faceBuffer.mipMaps.Size(); ++mipIndex)
+			for (size_t mipIndex = 0; mipIndex < rawFaceBuffer.mipMaps.Size(); ++mipIndex)
 			{
-				const auto& mipBuffer = faceBuffer.mipMaps[mipIndex];
-				auto& mipDesc = faceDesc.mipMaps[mipIndex];
+				const auto& rawMipBuffer = rawFaceBuffer.mipMaps[mipIndex];
+				auto& mipMap = faceDesc.mipMaps[mipIndex];
 
-				mipDesc.level = mipBuffer.level;
-				mipDesc.data = mipBuffer.pointer;
-				mipDesc.dataSize = mipBuffer.size;
+				mipMap.level = rawMipBuffer.level;
+				mipMap.data = rawMipBuffer.bulkData;
 			}
 		}
 
@@ -204,15 +200,14 @@ namespace wtr
 		}
 
 		auto& rawBuffer = shaderAsset->rawBuffer;
-		if (!rawBuffer || rawBuffer->data.Empty())
+		if (!rawBuffer.bulkData || rawBuffer.bulkData->IsEmpty())
 		{
 			return;
 		}
 
 		RHIShaderCreateDesc shaderDesc;
 		shaderDesc.shaderType = shaderAsset->GetShaderType();
-		shaderDesc.data = shaderAsset->rawBuffer->data.Data();
-		shaderDesc.dataSize = static_cast<uint32_t>(shaderAsset->rawBuffer->data.Size());
+		shaderDesc.data = rawBuffer.bulkData;
 
 		if (shaderDesc.shaderType == eShaderType::eNone)
 		{

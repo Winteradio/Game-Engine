@@ -333,19 +333,58 @@ namespace wtr
 		eMetallic		= 0x05,
 	};
 
-	struct RawDataDesc
+	class RawBulk
 	{
-		const void* pointer;
+	public :
+		RawBulk() = default;
+		virtual ~RawBulk() = default;
+
+	public :
+		virtual const void* GetPointer() const = 0;
+		virtual const size_t GetSize() const = 0;
+		virtual bool IsEmpty() const
+		{
+			return GetPointer() == nullptr || GetSize() == 0;
+		}
 	};
 
-	struct FormattedDataDesc : RawDataDesc
+	template<typename T>
+	class BulkData : public RawBulk
+	{
+	public:
+		wtr::DynamicArray<T> data;
+
+		BulkData()
+		{
+			int value = 2;
+		}
+		virtual ~BulkData() = default;
+
+	public:
+		const void* GetPointer() const override
+		{
+			return data.Data();
+		}
+
+		const size_t GetSize() const override
+		{
+			return data.Size() * sizeof(T);
+		}
+	};
+
+	struct RawBuffer
+	{
+		Memory::RefPtr<RawBulk> bulkData;
+	};
+
+	struct FormattedBuffer : RawBuffer
 	{
 		eDataType componentType;
 		uint32_t numComponents;
 		uint32_t count;
 	};
 
-	struct TextureMipMapDesc : RawDataDesc
+	struct TextureMipMapBuffer : RawBuffer
 	{
 		uint32_t channels;
 
@@ -357,12 +396,12 @@ namespace wtr
 		uint32_t level;
 	};
 
-	struct TextureFaceDesc
+	struct TextureFaceBuffer
 	{
-		wtr::DynamicArray<TextureMipMapDesc> mipMaps;
+		wtr::DynamicArray<TextureMipMapBuffer> mipMaps;
 	};
 
-	struct TextureDataDesc
+	struct TextureBuffer
 	{
 		// The texture 2D : face 0 is the only face, and it contains all the mip levels
 		// The texture cube : face 0-5 are the 6 faces of the cube, 
@@ -374,21 +413,10 @@ namespace wtr
 		// The face 4 : the positive Z face
 		// The face 5 : the negative Z face
 		// The texture 3D : face 0 is the only face, and it contains all the mip levels
-		wtr::DynamicArray<TextureFaceDesc> faces;
+		wtr::DynamicArray<TextureFaceBuffer> faces;
 
 		eDataType componentType;
 	};
-
-	template<typename Desc>
-	struct BufferContainer
-	{
-		wtr::DynamicArray<uint8_t> data;
-		Desc desc;
-	};
-
-	using RawBuffer = BufferContainer<RawDataDesc>;
-	using FormattedBuffer = BufferContainer<FormattedDataDesc>;
-	using TextureBuffer = BufferContainer<TextureDataDesc>;
 
 	struct VertexKey
 	{

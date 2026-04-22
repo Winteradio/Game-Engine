@@ -11,11 +11,9 @@ namespace wtr
 	enum class eResourceState : uint8_t
 	{
 		eNone		= 0x00,
-		eLoaded		= 0x01,
-		eDirty		= 0x02,
-		eReady		= 0x04,
-		eAll		= 0x0F,
+		eReady		= 0x01,
 		eError		= 0xF0,
+		eAll		= 0xFF,
 	};
 
 	eResourceState operator|(const eResourceState lhs, const eResourceState rhs);

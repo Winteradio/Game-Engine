@@ -63,53 +63,49 @@ namespace wtr
 		// TODO : Determine the texture's faces based on the image data, for now we can set it to 1 since the PNG image is not a cubemap
 		textureAsset->faces = 1;
 
-		textureAsset->rawBuffer = Memory::MakeRef<TextureBuffer>();
-		if (!textureAsset->rawBuffer)
-		{
-			LOGERROR() << "[PNGParser] Failed to create the texture raw buffer, the path : " << asset->path;
-			return false;
-		}
-
-		auto& textureBuffer = textureAsset->rawBuffer;
-		textureBuffer->data.Resize(image.GetSize());
-		memcpy(textureBuffer->data.Data(), image.GetPixels(), image.GetSize());
-
-		size_t dataOffset = 0;
 		// TODO: stbi_load_from_memory always returns 8-bit pixel data even if the source PNG is 16-bit.
 		//       To correctly load 16-bit data, stbi_load_16_from_memory must be used instead, which returns uint16_t*.
 		//       Until then, Is16Bit() reflects the source metadata only — the actual loaded data is always 8-bit.
 		//       componentType should be eUByte for 8-bit and eUShort for 16-bit, not eFloat/eUInt.
-		textureBuffer->desc.componentType = image.Is16Bit() ? eDataType::eFloat : eDataType::eUInt;
-		textureBuffer->desc.faces.Resize(textureAsset->faces);
-		for (auto& textureFace : textureBuffer->desc.faces)
+		size_t dataOffset = 0;
+
+		auto& textureBuffer = textureAsset->rawTexture;
+		textureBuffer.componentType = image.Is16Bit() ? eDataType::eFloat : eDataType::eUInt;
+		textureBuffer.faces.Resize(textureAsset->faces);
+		for (auto& textureFace : textureBuffer.faces)
 		{
 			textureFace.mipMaps.Resize(textureAsset->mipLevels);
 
 			for (uint32_t mipLevel = 0; mipLevel < textureAsset->mipLevels; mipLevel++)
 			{
-				TextureMipMapDesc& mipMapDesc = textureFace.mipMaps[mipLevel];
+				TextureMipMapBuffer& mipMapBuffer = textureFace.mipMaps[mipLevel];
 
-				mipMapDesc.level = mipLevel;
-				mipMapDesc.width = textureAsset->width >> mipLevel;
-				mipMapDesc.width = mipMapDesc.width > 0 ? mipMapDesc.width : 1;
+				mipMapBuffer.level = mipLevel;
+				mipMapBuffer.width = textureAsset->width >> mipLevel;
+				mipMapBuffer.width = mipMapBuffer.width > 0 ? mipMapBuffer.width : 1;
+				mipMapBuffer.height = textureAsset->height >> mipLevel;
+				mipMapBuffer.height = mipMapBuffer.height > 0 ? mipMapBuffer.height : 1;
 
-				mipMapDesc.height = textureAsset->height >> mipLevel;
-				mipMapDesc.height = mipMapDesc.height > 0 ? mipMapDesc.height : 1;
+				mipMapBuffer.depth = textureAsset->depth >> mipLevel;
+				mipMapBuffer.depth = mipMapBuffer.depth > 0 ? mipMapBuffer.depth : 1;
 
-				mipMapDesc.depth = textureAsset->depth >> mipLevel;
-				mipMapDesc.depth = mipMapDesc.depth > 0 ? mipMapDesc.depth : 1;
+				mipMapBuffer.channels = image.GetChannels();
+				mipMapBuffer.size = mipMapBuffer.width * mipMapBuffer.height * mipMapBuffer.depth * mipMapBuffer.channels * (image.Is16Bit() ? sizeof(uint16_t) : sizeof(uint8_t));
 
-				mipMapDesc.channels = image.GetChannels();
-				mipMapDesc.size = mipMapDesc.width * mipMapDesc.height * mipMapDesc.depth * mipMapDesc.channels * (image.Is16Bit() ? sizeof(uint16_t) : sizeof(uint8_t));
-				if (dataOffset + mipMapDesc.size > textureBuffer->data.Size())
+				if (dataOffset + mipMapBuffer.size > image.GetSize())
 				{
 					LOGERROR() << "[PNGParser] The calculated mip map data size exceeds the texture buffer size, the path : " << asset->path;
 					return false;
 				}
 
-				mipMapDesc.pointer = static_cast<const uint8_t*>(textureBuffer->data.Data()) + dataOffset;
+				Memory::RefPtr<BulkData<uint8_t>> bulkData = Memory::MakeRef<BulkData<uint8_t>>();
+				bulkData->data.Resize(image.GetSize());
 
-				dataOffset += mipMapDesc.size;
+				memcpy(bulkData->data.Data(), reinterpret_cast<const uint8_t*>(image.GetPixels()) + dataOffset, mipMapBuffer.size);
+				
+				mipMapBuffer.bulkData = bulkData;
+
+				dataOffset += mipMapBuffer.size;
 			}
 		}
 

@@ -161,6 +161,7 @@ namespace wtr
 			return;
 		}
 
+		bool assigned = false;
 		for (auto& taskWorker : m_threads)
 		{
 			if (!taskWorker || !taskWorker->IsWaited())
@@ -182,6 +183,7 @@ namespace wtr
 						LOGERROR() << "[AssetWorker] Failed to parse the asset : " << assetRef->path;
 						return;
 					}
+
 					assetRef->SetState(eAssetState::eLoaded);
 
 					AssetSystem::AddTask(assetRef);
@@ -190,8 +192,13 @@ namespace wtr
 			Memory::RefPtr<DefaultTask> task = Memory::MakeRef<DefaultTask>(taskFunc);
 
 			taskWorker->Set(task);
-
+			assigned = true;
 			break;
+		}
+
+		if (!assigned)
+		{
+			AssetSystem::AddTask(asset);
 		}
 	}
 

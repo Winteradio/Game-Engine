@@ -445,7 +445,7 @@ namespace wtr
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !info.data || info.size == 0)
+		if (!buffer || !info.data || info.data->IsEmpty())
 		{
 			return;
 		}
@@ -458,8 +458,9 @@ namespace wtr
 
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetDataAccess(info.accessType);
-		const uint32_t dataSize = info.size;
-		
+		const void* dataPointer = info.data->GetPointer();
+		const size_t dataSize = info.data->GetSize();
+
 		uint32_t bufferID = GL_NONE;
 		glGenBuffers(1, &bufferID);
 
@@ -471,15 +472,13 @@ namespace wtr
 
 		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, bufferID);
-		glBufferData(bufferType, dataSize, info.data, accessType);
+		glBufferData(bufferType, dataSize, dataPointer, accessType);
 		glBindBuffer(bufferType, GL_NONE);
 
 		glBuffer->SetID(bufferID);
 		glBuffer->SetState(eResourceState::eReady);
 
 		buffer->SetDesc(info);
-
-		LOGINFO() << "[GL] Buffer initialized successfully, ID: " << bufferID << ", Size: " << dataSize;
 	}
 
 	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -652,7 +651,7 @@ namespace wtr
 
 	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
 	{
-		if (!shader)
+		if (!shader || !info.data)
 		{
 			return;
 		}
@@ -663,7 +662,7 @@ namespace wtr
 			return;
 		}
 
-		const char* shaderSource = reinterpret_cast<const char*>(info.data);
+		const char* shaderSource = reinterpret_cast<const char*>(info.data->GetPointer());
 		if (!shaderSource)
 		{
 			LOGERROR() << "[GL] Failed to get shader source code, the shader type : " << static_cast<uint32_t>(info.shaderType);
@@ -678,7 +677,7 @@ namespace wtr
 		}
 
 		const uint32_t shaderID = glCreateShader(shaderType);
-		const int32_t length = static_cast<int32_t>(info.dataSize);
+		const int32_t length = static_cast<int32_t>(info.data->GetSize());
 
 		glShaderSource(shaderID, 1, &shaderSource, &length);
 		glCompileShader(shaderID);
@@ -927,17 +926,25 @@ namespace wtr
 		auto& face = info.faces.Front();
 		for (const auto& mipMap : face.mipMaps)
 		{
+			if (!mipMap.data || mipMap.data->IsEmpty())
+			{
+				continue;
+			}
+
+			const void* dataPointer = mipMap.data->GetPointer();
+			const size_t dataSize = mipMap.data->GetSize();
+
 			const uint32_t width = max(1, info.width >> mipMap.level);
 			const uint32_t height = max(1, info.height >> mipMap.level);
 			const uint32_t depth = max(1, info.depth >> mipMap.level);
 
 			if (info.compressed)
 			{
-				glCompressedTexImage1D(textureType, mipMap.level, internalFormat, width, 0, mipMap.dataSize, mipMap.data);
+				glCompressedTexImage1D(textureType, mipMap.level, internalFormat, width, 0, dataSize, dataPointer);
 			}
 			else
 			{
-				glTexImage1D(textureType, mipMap.level, internalFormat, width, 0, baseFormat, pixelDataType, mipMap.data);
+				glTexImage1D(textureType, mipMap.level, internalFormat, width, 0, baseFormat, pixelDataType, dataPointer);
 			}
 		}
 
@@ -972,16 +979,24 @@ namespace wtr
 			{
 				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
 				{
+					if (!mipMap.data || mipMap.data->IsEmpty())
+					{
+						continue;
+					}
+
+					const void* dataPointer = mipMap.data->GetPointer();
+					const size_t dataSize = mipMap.data->GetSize();
+
 					const uint32_t width = max(1, info.width >> mipMap.level);
 					const uint32_t height = max(1, info.height >> mipMap.level);
 					const uint32_t depth = max(1, info.depth >> mipMap.level);
 					if (info.compressed)
 					{
-						glCompressedTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+						glCompressedTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, dataSize, dataPointer);
 					}
 					else
 					{
-						glTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+						glTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, dataPointer);
 					}
 				}
 			}
@@ -996,17 +1011,25 @@ namespace wtr
 			auto& face = info.faces.Front();
 			for (const auto& mipMap : face.mipMaps)
 			{
+				if (!mipMap.data || mipMap.data->IsEmpty())
+				{
+					continue;
+				}
+
+				const void* dataPointer = mipMap.data->GetPointer();
+				const size_t dataSize = mipMap.data->GetSize();
+
 				const uint32_t width = max(1, info.width >> mipMap.level);
 				const uint32_t height = max(1, info.height >> mipMap.level);
 				const uint32_t depth = max(1, info.depth >> mipMap.level);
 
 				if (info.compressed)
 				{
-					glCompressedTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, mipMap.dataSize, mipMap.data);
+					glCompressedTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, dataSize, dataPointer);
 				}
 				else
 				{
-					glTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, mipMap.data);
+					glTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, dataPointer);
 				}
 			}
 		}
@@ -1042,16 +1065,24 @@ namespace wtr
 			{
 				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
 				{
+					if (!mipMap.data || mipMap.data->IsEmpty())
+					{
+						continue;
+					}
+
+					const void* dataPointer = mipMap.data->GetPointer();
+					const size_t dataSize = mipMap.data->GetSize();
+
 					const uint32_t width = max(1, info.width >> mipMap.level);
 					const uint32_t height = max(1, info.height >> mipMap.level);
 					const uint32_t depth = max(1, info.depth >> mipMap.level);
 					if (info.compressed)
 					{
-						glCompressedTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+						glCompressedTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, dataSize, dataPointer);
 					}
 					else
 					{
-						glTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+						glTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, dataPointer);
 					}
 				}
 			}
@@ -1066,17 +1097,25 @@ namespace wtr
 			auto& face = info.faces.Front();
 			for (const auto& mipMap : face.mipMaps)
 			{
+				if (!mipMap.data || mipMap.data->IsEmpty())
+				{
+					continue;
+				}
+
+				const void* dataPointer = mipMap.data->GetPointer();
+				const size_t dataSize = mipMap.data->GetSize();
+
 				const uint32_t width = max(1, info.width >> mipMap.level);
 				const uint32_t height = max(1, info.height >> mipMap.level);
 				const uint32_t depth = max(1, info.depth >> mipMap.level);
 
 				if (info.compressed)
 				{
-					glCompressedTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, mipMap.dataSize, mipMap.data);
+					glCompressedTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, dataSize, dataPointer);
 				}
 				else
 				{
-					glTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, mipMap.data);
+					glTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, dataPointer);
 				}
 			}
 		}
@@ -1152,18 +1191,12 @@ namespace wtr
 
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer)
+		if (!buffer || !info.data || info.data->IsEmpty())
 		{
 			return;
 		}
 
-		if (!info.data)
-		{
-			LOGERROR() << "[GL] Failed to update buffer, cause the data pointer is null";
-			return;
-		}
-
-		if ((info.dataOffset + info.dataSize) > buffer->GetSize())
+		if ((info.dataOffset + info.data->GetSize()) > buffer->GetSize())
 		{
 			LOGERROR() << "[GL] Buffer size is smaller than the data size, resizing the buffer";
 			return;
@@ -1181,12 +1214,14 @@ namespace wtr
 		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
 
+		const void* dataPointer = info.data->GetPointer();
+		const size_t dataSize = info.data->GetSize();
 		if (useMapBuffer)
 		{
-			void* mappedBuffer = glMapBufferRange(bufferType, info.dataOffset, info.dataSize, accessType);
+			void* mappedBuffer = glMapBufferRange(bufferType, info.dataOffset, dataSize, accessType);
 			if (mappedBuffer)
 			{
-				std::memcpy(mappedBuffer, info.data, info.dataSize);
+				std::memcpy(mappedBuffer, dataPointer, dataSize);
 			}
 			else
 			{
@@ -1197,7 +1232,7 @@ namespace wtr
 		}
 		else
 		{
-			glBufferSubData(bufferType, info.dataOffset, info.dataSize, info.data);
+			glBufferSubData(bufferType, info.dataOffset, dataSize, dataPointer);
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
@@ -1217,7 +1252,7 @@ namespace wtr
 
 	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer)
+		if (!buffer || !info.data || info.data->IsEmpty())
 		{
 			return;
 		}
@@ -1231,11 +1266,13 @@ namespace wtr
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetDataAccess(info.accessType);
 		const uint32_t dataType = GetDataType(info.componentType);
-		const uint32_t dataSize = info.size;
+
+		const void* dataPointer = info.data->GetPointer();
+		const size_t dataSize = info.data->GetSize();
 
 		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
-		glBufferData(bufferType, dataSize, info.data, accessType);
+		glBufferData(bufferType, dataSize, dataPointer, accessType);
 		glBindBuffer(bufferType, GL_NONE);
 
 		buffer->SetDesc(info);

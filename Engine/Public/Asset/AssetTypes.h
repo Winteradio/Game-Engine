@@ -100,7 +100,7 @@ namespace wtr
 	{
 		GENERATE(TextureAsset);
 	public :
-		Memory::RefPtr<TextureBuffer> rawBuffer;
+		TextureBuffer rawTexture;
 		Memory::RefPtr<RHITexture> texture;
 
 		uint32_t width;
@@ -143,13 +143,14 @@ namespace wtr
 	{
 		GENERATE(MeshAsset);
 	public:
-		wtr::HashMap<VertexKey, Memory::RefPtr<FormattedBuffer>> rawBuffers;
+		wtr::HashMap<VertexKey, FormattedBuffer> rawBuffers;		
+		FormattedBuffer rawIndex;
+
+		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
 		wtr::HashMap<VertexKey, Memory::RefPtr<RHIBuffer>> buffers;
-		Memory::RefPtr<FormattedBuffer> rawIndex;
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
-		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
 
 		MeshAsset();
 		MeshAsset(const std::string& path, const eExtension extension);
@@ -163,7 +164,7 @@ namespace wtr
 	{
 		GENERATE(ShaderAsset);
 	public :
-		Memory::RefPtr<RawBuffer> rawBuffer;
+		RawBuffer rawBuffer;
 		Memory::RefPtr<RHIShader> shader;
 
 		ShaderAsset();

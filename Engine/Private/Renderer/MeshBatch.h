@@ -29,6 +29,9 @@ namespace wtr
 	class RHIBuffer;
 	class RHIVertexLayout;
 	class RHITexture;
+
+	template<typename T>
+	class BulkData;
 };
 
 namespace wtr
@@ -64,6 +67,7 @@ namespace wtr
 		wtr::HashMap<ECS::UUID, TransformInfo> m_transformInfos;
 		Memory::RefPtr<RHIBuffer> m_transformBuffer;
 		Memory::RefPtr<RHIVertexLayout> m_vertexLayout;
+		Memory::RefPtr<BulkData<fmat4>> m_transformBulk;
 
 		Memory::RefPtr<MeshDrawCommand> m_refDrawCommand;
 		

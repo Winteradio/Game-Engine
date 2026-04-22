@@ -37,8 +37,7 @@ namespace wtr
 
 	struct RHITextureMipMap
 	{
-		const void* data = nullptr;
-		uint32_t dataSize = 0;
+		Memory::RefPtr<RawBulk> data;
 		uint32_t level = 0;
 	};
 
@@ -92,13 +91,12 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
-		const void* data = nullptr;
+		Memory::RefPtr<RawBulk> data;
 	};
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
 		uint32_t dataOffset = 0;
-		uint32_t dataSize = 0;
 
 		eMapAccess mapAccess = eMapAccess::eNone;
 	};
@@ -203,8 +201,7 @@ namespace wtr
 
 	struct RHIShaderCreateDesc : RHIShaderDesc
 	{
-		const void* data = nullptr;
-		size_t dataSize = 0;
+		Memory::RefPtr<RawBulk> data;
 	};
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>

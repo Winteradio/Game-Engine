@@ -3,11 +3,12 @@
 #include <Renderer/RenderView.h>
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIDescriptions.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
 	GlobalResource::GlobalResource()
-		: m_bufferResource{}
+		: m_cameraResource{}
 		, m_textureResource{}
 		, m_screenQuadResource{}
 	{
@@ -20,60 +21,43 @@ namespace wtr
 			return false;
 		}
 
+		if (!InitCamera(cmdList))
 		{
-			CameraData* cameraData = static_cast<CameraData*>(cmdList->Alloc<CameraData>(sizeof(CameraData)));
-			if (!cameraData)
-			{
-				return false;
-			}
-
-			RHIBufferCreateDesc desc;
-			desc.bufferType = eBufferType::eConst;
-			desc.accessType = eDataAccess::eDynamic;
-			desc.componentType = eDataType::eNone;
-			desc.numComponents = 0;
-			desc.count = 1;
-			desc.stride = sizeof(CameraData);
-			desc.size = sizeof(CameraData);
-			desc.data = cameraData;
-
-			Memory::RefPtr<RHIBuffer> cameraBuffer = cmdList->CreateBuffer(desc);
-			if (!cameraBuffer)
-			{
-				return false;
-			}
-
-			m_bufferResource.cameraBuffer = cameraBuffer;
+			return false;
 		}
 
-		// TODO : initialize the texture and quad resource
+		if (!InitTexture(cmdList))
+		{
+			return false;
+		}
+
+		if (!InitScreenQuad(cmdList))
+		{
+			return false;
+		}
 
 		return true;
 	}
 	
 	void GlobalResource::Release(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		ReleaseBuffer(cmdList);
+		ReleaseCamera(cmdList);
 		ReleaseTexture(cmdList);
 		ReleaseScreenQuad(cmdList);
 	}
 
 	void GlobalResource::UpdateCamera(const RenderView& renderView, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_bufferResource.cameraBuffer)
+		if (!cmdList || !m_cameraResource.buffer)
 		{
 			return;
 		}
 
-		CameraData* cameraData = static_cast<CameraData*>(cmdList->Alloc<CameraData>(sizeof(CameraData)));
-		if (!cameraData)
-		{
-			return;
-		}
+		m_cameraResource.camera.viewMatrix = renderView.camera.viewMatrix;
+		m_cameraResource.camera.projectionMatrix = renderView.camera.projMatrix;
+		m_cameraResource.camera.cameraPosition = renderView.camera.position;
 
-		cameraData->viewMatrix = renderView.camera.viewMatrix;
-		cameraData->projectionMatrix = renderView.camera.projMatrix;
-		cameraData->cameraPosition = renderView.camera.position;
+		memcpy(m_cameraResource.rawBuffer->data.Data(), &m_cameraResource.camera, sizeof(CameraResource::CameraData));
 		
 		RHIBufferUpdateDesc updateDesc;
 		updateDesc.bufferType = eBufferType::eConst;
@@ -81,18 +65,17 @@ namespace wtr
 		updateDesc.componentType = eDataType::eNone;
 		updateDesc.numComponents = 0;
 		updateDesc.count = 1;
-		updateDesc.stride = sizeof(CameraData);
-		updateDesc.size = sizeof(CameraData);
-		updateDesc.data = cameraData;
-		updateDesc.dataSize = sizeof(CameraData);
+		updateDesc.stride = sizeof(CameraResource::CameraData);
+		updateDesc.size = sizeof(CameraResource::CameraData);
+		updateDesc.data = m_cameraResource.rawBuffer;
 		updateDesc.mapAccess = eMapAccess::eNone;
 		
-		cmdList->UpdateBuffer(updateDesc, m_bufferResource.cameraBuffer);
+		cmdList->UpdateBuffer(updateDesc, m_cameraResource.buffer);
 	}
 
 	const Memory::RefPtr<RHIBuffer> GlobalResource::GetCameraBuffer() const
 	{
-		return m_bufferResource.cameraBuffer;
+		return m_cameraResource.buffer;
 	}
 
 	const Memory::RefPtr<RHIVertexLayout> GlobalResource::GetScreenQuad() const
@@ -100,38 +83,38 @@ namespace wtr
 		return m_screenQuadResource.vertexLayout;
 	}
 
-	bool GlobalResource::InitBuffer(Memory::RefPtr<RHICommandList> cmdList)
+	bool GlobalResource::InitCamera(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{
 			return false;
 		}
 
-		// Camera Buffer
+		if (!m_cameraResource.rawBuffer)
 		{
-			CameraData* cameraData = static_cast<CameraData*>(cmdList->Alloc<CameraData>(sizeof(CameraData)));
-			if (!cameraData)
-			{
-				return false;
-			}
+			m_cameraResource.rawBuffer = Memory::MakeRef<BulkData<uint8_t>>();
+			m_cameraResource.rawBuffer->data.Resize(sizeof(CameraResource::CameraData));
+		}
 
-			RHIBufferCreateDesc desc;
-			desc.bufferType = eBufferType::eConst;
-			desc.accessType = eDataAccess::eDynamic;
-			desc.componentType = eDataType::eNone;
-			desc.numComponents = 0;
-			desc.count = 1;
-			desc.stride = sizeof(CameraData);
-			desc.size = sizeof(CameraData);
-			desc.data = cameraData;
+		if (!m_cameraResource.buffer)
+		 {
+			 RHIBufferCreateDesc desc;
+			 desc.bufferType = eBufferType::eConst;
+			 desc.accessType = eDataAccess::eDynamic;
+			 desc.componentType = eDataType::eNone;
+			 desc.numComponents = 0;
+			 desc.count = 1;
+			 desc.stride = sizeof(CameraResource::CameraData);
+			 desc.size = sizeof(CameraResource::CameraData);
+			 desc.data = m_cameraResource.rawBuffer;
+			 
+			 Memory::RefPtr<RHIBuffer> cameraBuffer = cmdList->CreateBuffer(desc);
+			 if (!cameraBuffer)
+			 {
+				 return false;
+			 }
 
-			Memory::RefPtr<RHIBuffer> cameraBuffer = cmdList->CreateBuffer(desc);
-			if (!cameraBuffer)
-			{
-				return false;
-			}
-
-			m_bufferResource.cameraBuffer = cameraBuffer;
+			 m_cameraResource.buffer = cameraBuffer;
 		}
 
 		return true;
@@ -158,26 +141,35 @@ namespace wtr
 
 		constexpr size_t vertexCount = 4;
 		constexpr size_t indexCount = 6;
-		fvec2* positionData = static_cast<fvec2*>(cmdList->Alloc<fvec2>(sizeof(fvec2) * vertexCount));
-		fvec2* uvData = static_cast<fvec2*>(cmdList->Alloc<fvec2>(sizeof(fvec2) * vertexCount));
-		uint32_t* indexData = static_cast<uint32_t*>(cmdList->Alloc<uint32_t>(sizeof(uint32_t) * indexCount));
 
-		positionData[0] = fvec2(-1.0, -1.0);
-		positionData[1] = fvec2(1.0, -1.0);
-		positionData[2] = fvec2(1.0, 1.0);
-		positionData[3] = fvec2(-1.0, 1.0);
+		Memory::RefPtr<BulkData<fvec2>> positionData = Memory::MakeRef<BulkData<fvec2>>();
+		Memory::RefPtr<BulkData<fvec2>> uvData = Memory::MakeRef<BulkData<fvec2>>();
+		Memory::RefPtr<BulkData<uint32_t>> indexData = Memory::MakeRef<BulkData<uint32_t>>();
+		if (!positionData || !uvData || !indexData)
+		{
+			return false;
+		}
 
-		uvData[0] = fvec2(0.0, 0.0);
-		uvData[1] = fvec2(1.0, 0.0);
-		uvData[2] = fvec2(1.0, 1.0);
-		uvData[3] = fvec2(0.0, 1.0);
+		positionData->data.Resize(vertexCount);
+		uvData->data.Resize(vertexCount);
+		indexData->data.Resize(indexCount);
 
-		indexData[0] = 0;
-		indexData[1] = 1;
-		indexData[2] = 2;
-		indexData[3] = 0;
-		indexData[4] = 2;
-		indexData[5] = 3;
+		positionData->data[0] = fvec2(-1.0, -1.0);
+		positionData->data[1] = fvec2(1.0, -1.0);
+		positionData->data[2] = fvec2(1.0, 1.0);
+		positionData->data[3] = fvec2(-1.0, 1.0);
+
+		uvData->data[0] = fvec2(0.0, 0.0);
+		uvData->data[1] = fvec2(1.0, 0.0);
+		uvData->data[2] = fvec2(1.0, 1.0);
+		uvData->data[3] = fvec2(0.0, 1.0);
+
+		indexData->data[0] = 0;
+		indexData->data[1] = 1;
+		indexData->data[2] = 2;
+		indexData->data[3] = 0;
+		indexData->data[4] = 2;
+		indexData->data[5] = 3;
 
 		RHIBufferCreateDesc positionDesc;
 		positionDesc.bufferType = eBufferType::eVertex;
@@ -271,17 +263,17 @@ namespace wtr
 		return true;
 	}
 
-	void GlobalResource::ReleaseBuffer(Memory::RefPtr<RHICommandList> cmdList)
+	void GlobalResource::ReleaseCamera(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{
 			return;
 		}
 
-		if (m_bufferResource.cameraBuffer)
+		if (m_cameraResource.buffer)
 		{
-			cmdList->RemoveBuffer(m_bufferResource.cameraBuffer);
-			m_bufferResource.cameraBuffer = nullptr;
+			cmdList->RemoveBuffer(m_cameraResource.buffer);
+			m_cameraResource.buffer = nullptr;
 		}
 	}
 

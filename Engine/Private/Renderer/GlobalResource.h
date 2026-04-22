@@ -3,6 +3,9 @@
 
 #include <Framework/Math/MathTypes.h>
 #include <Memory/include/Pointer/RefPtr.h>
+#include <Renderer/RenderTypes.h>
+
+#include <cstdint>
 
 namespace wtr
 {
@@ -16,17 +19,20 @@ namespace wtr
 
 namespace wtr
 {
-	struct alignas(16) CameraData
+	struct CameraResource
 	{
-		fmat4 viewMatrix;
-		fmat4 projectionMatrix;
-		
-		fvec3 cameraPosition;
-	};
+		struct alignas(16) CameraData
+		{
+			fmat4 viewMatrix;
+			fmat4 projectionMatrix;
 
-	struct BufferResource
-	{
-		Memory::RefPtr<RHIBuffer> cameraBuffer;
+			fvec3 cameraPosition;
+		};
+
+		CameraData camera;
+
+		Memory::RefPtr<BulkData<uint8_t>> rawBuffer;
+		Memory::RefPtr<RHIBuffer> buffer;
 	};
 
 	struct TextureResource
@@ -66,16 +72,16 @@ namespace wtr
 		// TODO : Update Light
 
 	public :
-		bool InitBuffer(Memory::RefPtr<RHICommandList> cmdList);
+		bool InitCamera(Memory::RefPtr<RHICommandList> cmdList);
 		bool InitTexture(Memory::RefPtr<RHICommandList> cmdList);
 		bool InitScreenQuad(Memory::RefPtr<RHICommandList> cmdList);
 
-		void ReleaseBuffer(Memory::RefPtr<RHICommandList> cmdList);
+		void ReleaseCamera(Memory::RefPtr<RHICommandList> cmdList);
 		void ReleaseTexture(Memory::RefPtr<RHICommandList> cmdList);
 		void ReleaseScreenQuad(Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
-		BufferResource m_bufferResource;
+		CameraResource m_cameraResource;
 		TextureResource m_textureResource;
 		ScreenQuadResource m_screenQuadResource;
 	};

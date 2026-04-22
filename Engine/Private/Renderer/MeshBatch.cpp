@@ -4,6 +4,7 @@
 #include <Memory/include/Core.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
+#include <Renderer/RenderTypes.h>
 
 namespace wtr
 {
@@ -28,6 +29,17 @@ namespace wtr
 			constexpr uint32_t numComponents = 16;
 
 			const uint32_t count = static_cast<uint32_t>(m_transformInfos.Size());
+			
+			m_transformBulk = !m_transformBulk ? Memory::MakeRef<BulkData<fmat4>>() : m_transformBulk;
+			m_transformBulk->data.Reserve(count);
+			m_transformBulk->data.Clear();
+
+			for (auto& [id, transformInfo] : m_transformInfos)
+			{
+				transformInfo.dirty = false;
+				m_transformBulk->data.PushBack(transformInfo.transform);
+			}
+
 
 			// TODO : Consider the type inference using the template parameter of the container of the transform data
 			const eDataType componentType = eDataType::eFloat;
@@ -42,25 +54,7 @@ namespace wtr
 			bufferDesc.count = count;
 			bufferDesc.size = count * numComponents * GetDataTypeSize(componentType);
 			bufferDesc.stride = numComponents * GetDataTypeSize(componentType);
-
-			fmat4* transformData = reinterpret_cast<fmat4*>(cmdList->Alloc<fmat4>(bufferDesc.size));
-			if (!transformData)
-			{
-				return;
-			}
-
-			size_t index = 0;
-			auto itr = m_transformInfos.begin();
-			while (itr != m_transformInfos.end())
-			{
-				transformData[index] = itr->second.transform;
-				itr->second.dirty = false;
-
-				++index;
-				++itr;
-			}
-
-			bufferDesc.data = static_cast<const void*>(transformData);
+			bufferDesc.data = m_transformBulk;
 
 			m_transformBuffer = cmdList->CreateBuffer(bufferDesc);
 		}
@@ -108,7 +102,7 @@ namespace wtr
 
 		if (m_transformBuffer && m_vertexLayout)
 		{
-			m_refDrawCommand = Memory::MakeRef<MeshDrawCommand>();
+			m_refDrawCommand = !m_refDrawCommand ? Memory::MakeRef<MeshDrawCommand>() : m_refDrawCommand;
 			if (!m_refDrawCommand)
 			{
 				return;
@@ -166,14 +160,25 @@ namespace wtr
 
 	void MeshBatch::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		return;
+
+		if (!cmdList || !m_transformBuffer || !m_transformBulk || !m_refDrawCommand)
 		{
 			return;
 		}
 
-		if (!m_transformBuffer || !m_refDrawCommand)
+		if (!m_transformBulk.GetRefData() || m_transformBulk.GetRefData()->GetRefCount() > 1)
 		{
 			return;
+		}
+
+		m_transformBulk->data.Reserve(m_transformInfos.Size());
+		m_transformBulk->data.Clear();
+
+		for (auto& [id, transformInfo] : m_transformInfos)
+		{
+			transformInfo.dirty = false;
+			m_transformBulk->data.PushBack(transformInfo.transform);
 		}
 
 		RHIBufferUpdateDesc updateDesc;
@@ -186,33 +191,9 @@ namespace wtr
 		updateDesc.count = static_cast<uint32_t>(m_transformInfos.Size());
 		updateDesc.size = static_cast<uint32_t>(m_transformInfos.Size()) * m_transformBuffer->GetStride();
 
-		fmat4* transformData = reinterpret_cast<fmat4*>(cmdList->Alloc<fmat4>(updateDesc.size));
-		if (!transformData)
-		{
-			return;
-		}
-
-		size_t minDirtyIndex = std::numeric_limits<size_t>::max();
-		size_t maxDirtyIndex = 0;
-
-		size_t index = 0;
-		auto itr = m_transformInfos.begin();
-		while (itr != m_transformInfos.end())
-		{
-			minDirtyIndex = std::min(minDirtyIndex, index);
-			maxDirtyIndex = std::max(maxDirtyIndex, index);
-
-			transformData[index] = itr->second.transform;
-			itr->second.dirty = false;
-
-			++index;
-			++itr;
-		}
-
 		// TODO : Partial Update
-		updateDesc.data = static_cast<const void*>(transformData + minDirtyIndex);
-		updateDesc.dataOffset = minDirtyIndex * m_transformBuffer->GetStride();
-		updateDesc.dataSize = (maxDirtyIndex - minDirtyIndex + 1) * m_transformBuffer->GetStride();
+		updateDesc.data = m_transformBulk;
+		updateDesc.dataOffset = 0;
 
 		const bool needResize = m_transformBuffer->GetCount() < m_transformInfos.Size();
 		if (needResize)
@@ -271,6 +252,8 @@ namespace wtr
 		m_refDrawCommand.Reset();
 		m_refMesh.Reset();
 		m_refMaterial.Reset();
+
+		m_transformBulk.Reset();
 
 		m_sectionIndex = 0;
 	}
