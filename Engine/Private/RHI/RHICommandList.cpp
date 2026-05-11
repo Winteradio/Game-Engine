@@ -248,6 +248,11 @@ namespace wtr
 		Enqueue<RHICommandUpdateTexture>(info, texture);
 	}
 
+	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		Enqueue<RHICommandUpdateVertexLayout>(info, layout);
+	}
+
 	void RHICommandList::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		Enqueue<RHICommandResizeBuffer>(info, buffer);

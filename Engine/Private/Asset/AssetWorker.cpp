@@ -147,6 +147,10 @@ namespace wtr
 		{
 			onUnload(asset, cmdList);
 		}
+		else if (assetState == eAssetState::eDirty)
+		{
+			onUpdate(asset, cmdList);
+		}
 		else
 		{
 			LOGERROR() << "[AssetWorker] The invalid asset state : " << static_cast<uint32_t>(assetState);
@@ -220,5 +224,15 @@ namespace wtr
 		}
 
 		AssetCommander::Unload(asset, cmdList);
+	}
+
+	void AssetWorker::onUpdate(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!asset || !cmdList)
+		{
+			return;
+		}
+
+		AssetCommander::Update(asset, cmdList);
 	}
 }

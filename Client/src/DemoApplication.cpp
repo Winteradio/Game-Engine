@@ -74,8 +74,8 @@ namespace demo
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		constexpr size_t cubeCount = 30000;
-		constexpr size_t cubePerRow = 300;
+		constexpr size_t cubeCount = 1000;
+		constexpr size_t cubePerRow = 30;
 		for (size_t index = 0; index < cubeCount; index++)
 		{
 			auto cubeEntity = world->CreateEntity();
@@ -122,6 +122,7 @@ namespace demo
 			LOGERROR() << "[Game] Failed to create the render system";
 			return false;
 		}
+
 		return true;
 	}
 }

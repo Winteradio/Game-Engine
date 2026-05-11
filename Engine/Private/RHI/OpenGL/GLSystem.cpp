@@ -445,7 +445,7 @@ namespace wtr
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !info.data || info.data->IsEmpty())
+		if (!buffer || info.dataRanges.Empty())
 		{
 			return;
 		}
@@ -458,8 +458,7 @@ namespace wtr
 
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetDataAccess(info.accessType);
-		const void* dataPointer = info.data->GetPointer();
-		const size_t dataSize = info.data->GetSize();
+		const size_t dataSize = info.size;
 
 		uint32_t bufferID = GL_NONE;
 		glGenBuffers(1, &bufferID);
@@ -470,9 +469,19 @@ namespace wtr
 			return;
 		}
 
-		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, bufferID);
-		glBufferData(bufferType, dataSize, dataPointer, accessType);
+		glBufferData(bufferType, dataSize, nullptr, accessType);
+
+		for (const auto& dataRange : info.dataRanges)
+		{
+			if (!dataRange.data || dataRange.data->IsEmpty())
+			{
+				continue;
+			}
+
+			glBufferSubData(bufferType, dataRange.offset, dataRange.data->GetSize(), dataRange.data->GetPointer());
+		}
+
 		glBindBuffer(bufferType, GL_NONE);
 
 		glBuffer->SetID(bufferID);
@@ -1191,12 +1200,12 @@ namespace wtr
 
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !info.data || info.data->IsEmpty())
+		if (!buffer || info.dataRanges.Empty())
 		{
 			return;
 		}
 
-		if ((info.dataOffset + info.data->GetSize()) > buffer->GetSize())
+		if (info.size > buffer->GetSize())
 		{
 			LOGERROR() << "[GL] Buffer size is smaller than the data size, resizing the buffer";
 			return;
@@ -1211,28 +1220,35 @@ namespace wtr
 		const uint32_t bufferType = GetBufferType(info.bufferType);
 		const uint32_t accessType = GetMapAccess(info.mapAccess);
 		const bool useMapBuffer = accessType != GL_NONE;
-		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
 
-		const void* dataPointer = info.data->GetPointer();
-		const size_t dataSize = info.data->GetSize();
-		if (useMapBuffer)
+		for (const auto& dataRange : info.dataRanges)
 		{
-			void* mappedBuffer = glMapBufferRange(bufferType, info.dataOffset, dataSize, accessType);
-			if (mappedBuffer)
+			if (!dataRange.data || dataRange.data->IsEmpty())
 			{
-				std::memcpy(mappedBuffer, dataPointer, dataSize);
+				continue;
+			}
+
+			const void* dataPointer = dataRange.data->GetPointer();
+			const size_t dataSize = dataRange.data->GetSize();
+			
+			if (useMapBuffer)
+			{
+				void* mappedBuffer = glMapBufferRange(bufferType, dataRange.offset, dataSize, accessType);
+				if (mappedBuffer)
+				{
+					std::memcpy(mappedBuffer, dataPointer, dataSize);
+				}
 			}
 			else
 			{
-				LOGERROR() << "[GL] Failed to map buffer for update";
+				glBufferSubData(bufferType, dataRange.offset, dataSize, dataPointer);
 			}
-
-			glUnmapBuffer(bufferType);
 		}
-		else
+
+		if (useMapBuffer)
 		{
-			glBufferSubData(bufferType, info.dataOffset, dataSize, dataPointer);
+			glUnmapBuffer(bufferType);
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
@@ -1248,11 +1264,20 @@ namespace wtr
 		}
 
 		texture->SetDesc(info);
+
+		// TODO
+	}
+
+	void GLSystem::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		return;
+
+		// TODO
 	}
 
 	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !info.data || info.data->IsEmpty())
+		if (!buffer || info.dataRanges.Empty())
 		{
 			return;
 		}
@@ -1267,12 +1292,21 @@ namespace wtr
 		const uint32_t accessType = GetDataAccess(info.accessType);
 		const uint32_t dataType = GetDataType(info.componentType);
 
-		const void* dataPointer = info.data->GetPointer();
-		const size_t dataSize = info.data->GetSize();
+		const size_t dataSize = info.size;
 
-		glBindVertexArray(GL_NONE);
 		glBindBuffer(bufferType, glBuffer->GetID());
-		glBufferData(bufferType, dataSize, dataPointer, accessType);
+		glBufferData(bufferType, dataSize, nullptr, accessType);
+
+		for (const auto& dataRange : info.dataRanges)
+		{
+			if (!dataRange.data || dataRange.data->IsEmpty())
+			{
+				continue;
+			}
+
+			glBufferSubData(bufferType, dataRange.offset, dataRange.data->GetSize(), dataRange.data->GetPointer());
+		}
+
 		glBindBuffer(bufferType, GL_NONE);
 
 		buffer->SetDesc(info);
@@ -1344,7 +1378,6 @@ namespace wtr
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindVertexArray(GL_NONE);
 		glBindBufferBase(bufferType, slot, glBuffer->GetID());
 	}
 
@@ -1413,11 +1446,35 @@ namespace wtr
 
 		glUseProgram(glPipeLine->GetID());
 
-		SetColorState(pipeline->GetColorState());
-		SetDepthState(pipeline->GetDepthState());
-		SetBlendState(pipeline->GetBlendState());
-		SetRasterizerState(pipeline->GetRasterizerState());
-		SetStencilState(pipeline->GetStencilState());
+		auto colorState = pipeline->GetColorState();
+		if (colorState)
+		{
+			SetColorState(*colorState);
+		}
+
+		auto depthState = pipeline->GetDepthState();
+		if (depthState)
+		{
+			SetDepthState(*depthState);
+		}
+		
+		auto blendState = pipeline->GetBlendState();
+		if (blendState)
+		{
+			SetBlendState(*blendState);
+		}
+		
+		auto rasterizerState = pipeline->GetRasterizerState();
+		if (rasterizerState)
+		{
+			SetRasterizerState(*rasterizerState);
+		}
+
+		auto stencilState = pipeline->GetStencilState();
+		if (stencilState)
+		{
+			SetStencilState(*stencilState);
+		}
 	}
 
 	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
@@ -1470,7 +1527,7 @@ namespace wtr
 
 	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
-		if (info.indexCount == 0 || info.instanceCount == 0)
+		if (info.indexCount)
 		{
 			return;
 		}
@@ -1478,10 +1535,15 @@ namespace wtr
 		const uint32_t drawMode = GetDrawMode(info.drawMode);
 		const uint32_t indexType = GetDataType(info.indexType);
 
-		const bool instancing = info.instanceCount > 1;
+		const bool indirecting = info.indirectDraw;
+		const bool instancing = !indirecting && (info.instanceCount > 1);
 		const bool baseVertex = info.baseVertex != 0;
 
-		if (baseVertex)
+		if (indirecting)
+		{
+			glDrawElementsIndirect(drawMode, indexType, nullptr);
+		}
+		else if (baseVertex)
 		{
 			if (instancing)
 			{
@@ -1548,6 +1610,10 @@ namespace wtr
 		{
 			return GL_SHADER_STORAGE_BUFFER;
 		}
+		else if (eBufferType::eIndirect == buffer)
+		{
+			return GL_DRAW_INDIRECT_BUFFER;
+;		}
 		else
 		{
 			return GL_NONE;

@@ -1,24 +1,35 @@
 #ifndef __WTR_GLOBALRESOURCE_H__
 #define __WTR_GLOBALRESOURCE_H__
 
-#include <Framework/Math/MathTypes.h>
 #include <Memory/include/Pointer/RefPtr.h>
-#include <Renderer/RenderTypes.h>
-
-#include <cstdint>
 
 namespace wtr
 {
 	struct RenderView;
 
+	struct RHIPipeLineCreateDesc;
+	struct RHISamplerCreateDesc;
+
 	class RHIBuffer;
-	class RHITexture;
 	class RHIVertexLayout;
-	class RHICommandList;
+	class RHITexture;
+	class RHIPipeLine;
+	class RHISampler;
 };
 
 namespace wtr
 {
+	namespace GlobalResource
+	{
+		bool Init(Memory::RefPtr<RHICommandList> cmdLIst);
+		void Release(Memory::RefPtr<RHICommandList> cmdList);
+
+		Memory::RefPtr<RHIBuffer> GetCameraBuffer(Memory::RefPtr<RHICommandList> cmdList);
+		Memory::RefPtr<RHIVertexLayout> GetScreenQuad(Memory::RefPtr<RHICommandList> cmdList);
+		Memory::RefPtr<RHIVertexLayout> GetCube(Memory::RefPtr<RHICommandList> cmdList);
+		Memory::RefPtr<RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, const RHIPipeLineCreateDesc desc);
+		Memory::RefPtr<RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const RHISamplerCreateDesc desc);
+	};
 	struct CameraResource
 	{
 		struct alignas(16) CameraData

@@ -1,11 +1,10 @@
 #include <World/Commander.h>
 
 #include <Renderer/RenderView.h>
+#include <Renderer/RenderTask.h>
 #include <Renderer/RenderCommandList.h>
 #include <Renderer/RenderScene.h>
 #include <Renderer/Renderer.h>
-#include <Renderer/Proxy/PrimitiveProxy.h>
-#include <Renderer/Proxy/LightProxy.h>
 
 #include <World/Node.h>
 #include <Log/include/Log.h>
@@ -31,16 +30,60 @@ namespace wtr
 			return;
 		}
 
-		m_refCmdList->Enqueue([renderView](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+		RenderTask task;
+		task.func = [renderView](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
-				if (nullptr != renderer)
+				if (!renderer)
 				{
-					renderer->SetView(renderView);
+					return;
 				}
-			}
-		);
+
+				renderer->SetView(renderView);
+			};
+
+		Enqueue(std::move(task));
 	}
 
+	void Commander::Enqueue(RenderTask&& task)
+	{
+		if (!m_refCmdList)
+		{
+			return;
+		}
+
+		m_refCmdList->Enqueue(std::forward<RenderTask>(task));
+	}
+
+	void Commander::RemoveAll()
+	{
+		if (!m_refCmdList)
+		{
+			return;
+		}
+
+		RenderTask task;
+		task.func = [](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+			{
+				LOGINFO() << "[Renderer] Remove all primitive and light";
+				if (nullptr == renderer)
+				{
+					return;
+				}
+
+				auto renderScene = renderer->GetScene();
+				if (!renderScene)
+				{
+					return;
+				}
+
+				renderScene->RemoveAll(cmdList);
+			};
+
+		m_refCmdList->Enqueue(std::move(task));
+	}
+}
+
+/*
 	void Commander::AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode)
 	{
 		if (!meshNode || !m_refCmdList)
@@ -226,7 +269,7 @@ namespace wtr
 		{
 			return;
 		}
-		
+
 
 		m_refCmdList->Enqueue([entityId](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 			{
@@ -246,31 +289,4 @@ namespace wtr
 			}
 		);
 	}
-
-	void Commander::RemoveAll()
-	{
-		if (!m_refCmdList)
-		{
-			return;
-		}
-
-		m_refCmdList->Enqueue([](Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
-			{
-				LOGINFO() << "[Render] Remove all primitives and lights";
-
-				if (nullptr == renderer)
-				{
-					return;
-				}
-
-				auto renderScene = renderer->GetScene();
-				if (!renderScene)
-				{
-					return;
-				}
-
-				renderScene->RemoveAll(cmdList);
-			}
-		);
-	}
-}
+*/

@@ -32,6 +32,7 @@ namespace wtr
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
+	struct RHIVertexLayoutUpdateDesc;
 
 	struct RHIColorState;
 	struct RHIDepthState;
@@ -114,6 +115,7 @@ namespace wtr
 
 		virtual void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
 
 		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;

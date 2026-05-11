@@ -99,6 +99,14 @@ namespace wtr
 	using i64mat2 = glm::i64mat2x2;
 	using i64mat3 = glm::i64mat3x3;
 	using i64mat4 = glm::i64mat4x4;
+
+	struct ftransform
+	{
+		fvec3 position = fvec3(0.0f);
+		fquat rotation = fquat(1.0f, 0.f, 0.f, 0.f);
+		fvec3 scale = fvec3(1.0);
+	};
+
 #endif //
 };
 

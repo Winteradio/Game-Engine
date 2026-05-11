@@ -37,7 +37,7 @@ namespace wtr
 
 	struct RHITextureMipMap
 	{
-		Memory::RefPtr<RawBulk> data;
+		Memory::RefPtr<RawData> data;
 		uint32_t level = 0;
 	};
 
@@ -91,13 +91,17 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
-		Memory::RefPtr<RawBulk> data;
+		struct DataRange
+		{
+			uint32_t offset = 0;
+			Memory::RefPtr<const RawData> data;
+		};
+
+		wtr::DynamicArray<DataRange> dataRanges;
 	};
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
-		uint32_t dataOffset = 0;
-
 		eMapAccess mapAccess = eMapAccess::eNone;
 	};
 
@@ -116,6 +120,10 @@ namespace wtr
 	};
 
 	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
+	{
+	};
+
+	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
 	{
 	};
 
@@ -201,17 +209,17 @@ namespace wtr
 
 	struct RHIShaderCreateDesc : RHIShaderDesc
 	{
-		Memory::RefPtr<RawBulk> data;
+		Memory::RefPtr<RawData> data;
 	};
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
 	{
-		RHIClearState		clear;
-		RHIColorState		color;
-		RHIDepthState 		depth;
-		RHIStencilState		stencil;
-		RHIBlendState		blend;
-		RHIRasterizerState	rasterizer;
+		Memory::RefPtr<RHIClearState> clear;
+		Memory::RefPtr<RHIColorState> color;
+		Memory::RefPtr<RHIDepthState> depth;
+		Memory::RefPtr<RHIStencilState> stencil;
+		Memory::RefPtr<RHIBlendState> blend;
+		Memory::RefPtr<RHIRasterizerState> rasterizer;
 
 		RHIPipeLineDesc& operator=(const RHIPipeLineDesc& other)
 		{
@@ -231,6 +239,7 @@ namespace wtr
 		Memory::RefPtr<const RHIShader> vertexShader;
 		Memory::RefPtr<const RHIShader> geometryShader;
 		Memory::RefPtr<const RHIShader> hullShader;
+		Memory::RefPtr<const RHIShader> domainShader;
 		Memory::RefPtr<const RHIShader> computeShader;
 		Memory::RefPtr<const RHIShader> pixelShader;
 	};
@@ -244,6 +253,8 @@ namespace wtr
 		uint32_t indexOffset = 0;
 		uint32_t baseVertex = 0;
 		uint32_t instanceCount = 1;
+
+		bool indirectDraw = false;
 	};
 
 	struct RHIDispatchDesc : RHIDesc<eResourceType::ePipeLine>

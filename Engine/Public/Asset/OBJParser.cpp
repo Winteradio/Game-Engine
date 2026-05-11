@@ -308,13 +308,13 @@ namespace wtr
 			using ValueType = decltype(objMesh.pos)::ValueType;
 
 			FormattedBuffer posBuffer;
-			Memory::RefPtr<BulkData<ValueType>> bulkData = Memory::MakeRef<BulkData<ValueType>>();
+			Memory::RefPtr<ArrayData<ValueType>> bulkData = Memory::MakeRef<ArrayData<ValueType>>();
 			bulkData->data = std::move(objMesh.pos);
 
 			posBuffer.bulkData = bulkData;
 			posBuffer.componentType = eDataType::eFloat;
 			posBuffer.numComponents = ValueType::length();
-			posBuffer.count = static_cast<uint32_t>(objMesh.pos.Size());
+			posBuffer.count = static_cast<uint32_t>(bulkData->data.Size());
 
 			VertexKey posKey{ eVertexSemantic::ePosition, 0 };
 			rawBuffers[posKey] = posBuffer;
@@ -325,13 +325,13 @@ namespace wtr
 			using ValueType = decltype(objMesh.nor)::ValueType;
 
 			FormattedBuffer norBuffer;
-			Memory::RefPtr<BulkData<ValueType>> bulkData = Memory::MakeRef<BulkData<ValueType>>();
+			Memory::RefPtr<ArrayData<ValueType>> bulkData = Memory::MakeRef<ArrayData<ValueType>>();
 			bulkData->data = std::move(objMesh.nor);
 
 			norBuffer.bulkData = bulkData;
 			norBuffer.componentType = eDataType::eFloat;
 			norBuffer.numComponents = ValueType::length();
-			norBuffer.count = static_cast<uint32_t>(objMesh.nor.Size());
+			norBuffer.count = static_cast<uint32_t>(bulkData->data.Size());
 
 			VertexKey norKey{ eVertexSemantic::eNormal, 0 };
 			rawBuffers[norKey] = norBuffer;
@@ -342,13 +342,13 @@ namespace wtr
 			using ValueType = decltype(objMesh.uv)::ValueType;
 
 			FormattedBuffer uvBuffer;
-			Memory::RefPtr<BulkData<ValueType>> bulkData = Memory::MakeRef<BulkData<ValueType>>();
+			Memory::RefPtr<ArrayData<ValueType>> bulkData = Memory::MakeRef<ArrayData<ValueType>>();
 			bulkData->data = std::move(objMesh.uv);
 
 			uvBuffer.bulkData = bulkData;
 			uvBuffer.componentType = eDataType::eFloat;
 			uvBuffer.numComponents = decltype(objMesh.uv)::ValueType::length();
-			uvBuffer.count = static_cast<uint32_t>(objMesh.uv.Size());
+			uvBuffer.count = static_cast<uint32_t>(bulkData->data.Size());
 
 			VertexKey uvKey{ eVertexSemantic::eTexCoord, 0 };
 			rawBuffers[uvKey] = uvBuffer;
@@ -359,13 +359,13 @@ namespace wtr
 			using ValueType = decltype(objMesh.free)::ValueType;
 
 			FormattedBuffer freeBuffer;
-			Memory::RefPtr<BulkData<ValueType>> bulkData = Memory::MakeRef<BulkData<ValueType>>();
+			Memory::RefPtr<ArrayData<ValueType>> bulkData = Memory::MakeRef<ArrayData<ValueType>>();
 			bulkData->data = std::move(objMesh.free);
 
 			freeBuffer.bulkData = bulkData;
 			freeBuffer.componentType = eDataType::eFloat;
 			freeBuffer.numComponents = decltype(objMesh.free)::ValueType::length();
-			freeBuffer.count = static_cast<uint32_t>(objMesh.free.Size());
+			freeBuffer.count = static_cast<uint32_t>(bulkData->data.Size());
 
 			VertexKey freeKey{ eVertexSemantic::eGeneric, 0 };
 			rawBuffers[freeKey] = freeBuffer;
@@ -376,15 +376,16 @@ namespace wtr
 			using ValueType = decltype(objMesh.index)::ValueType;
 
 			FormattedBuffer indexBuffer;
-			Memory::RefPtr<BulkData<ValueType>> bulkData = Memory::MakeRef<BulkData<ValueType>>();
+			Memory::RefPtr<ArrayData<ValueType>> bulkData = Memory::MakeRef<ArrayData<ValueType>>();
 			bulkData->data = std::move(objMesh.index);
 
 			indexBuffer.bulkData = bulkData;
 			indexBuffer.componentType = eDataType::eUInt;
 			indexBuffer.numComponents = 1;
-			indexBuffer.count = static_cast<uint32_t>(objMesh.index.Size());
+			indexBuffer.count = static_cast<uint32_t>(bulkData->data.Size());
 
 			mesh->rawIndex = indexBuffer;
+			mesh->drawMode = eDrawMode::eTriangles;
 		}
 
 		if (!objMesh.groups.Empty())

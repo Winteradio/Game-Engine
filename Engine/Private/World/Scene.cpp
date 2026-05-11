@@ -1,7 +1,12 @@
 #include <World/Scene.h>
 
-#include <World/Node.h>
+#include <World/RenderNode.h>
 #include <World/Commander.h>
+
+#include <Renderer/Renderer.h>
+#include <Renderer/RenderScene.h>
+#include <Renderer/RenderTask.h>
+#include <Renderer/Proxy/SceneProxy.h>
 
 #include <Reflection/include/Utils.h>
 #include <Memory/include/Core.h>
@@ -10,7 +15,10 @@ namespace wtr
 {
 	Scene::Scene()
 		: m_refCommander(nullptr)
-		, m_sceneDatas()
+		, m_proxies()
+		, m_addedProxies()
+		, m_removedProxies()
+		, m_updatedProxies()
 	{}
 
 	Scene::~Scene()
@@ -21,54 +29,136 @@ namespace wtr
 		m_refCommander = refCommander;
 	}
 
-	void Scene::Attach(Memory::ObjectPtr<BaseNode> node)
+	void Scene::Flush()
 	{
-		if (!m_refCommander || !node)
+		FlushAdded();
+		FlushRemoved();
+		FlushUpdated();
+	}
+
+	void Scene::FlushAdded()
+	{
+		if (!m_refCommander)
 		{
 			return;
 		}
 
-		if (auto meshNode = Memory::Cast<MeshNode>(node))
+		for (const auto& id : m_addedProxies)
 		{
-			AttachNode(meshNode, meshNode->transform);
+			auto node = GetProxyNode(id);
+			if (!node)
+			{
+				continue;
+			}
 
-			m_refCommander->AddPrimitive(meshNode);
+			auto createTask = node->CreateProxy();
+			node->ClearDirty();
+
+			if (!createTask.func)
+			{
+				continue;
+			}
+
+			m_refCommander->Enqueue(std::move(createTask));
 		}
-		else if (auto lightNode = Memory::Cast<LightNode>(node))
-		{
-			AttachNode(lightNode, lightNode->transform);
 
-			m_refCommander->AddLight(lightNode);
+		m_addedProxies.Clear();
+	}
+
+	void Scene::FlushRemoved()
+	{
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		for (const auto& id : m_removedProxies)
+		{
+			auto node = GetProxyNode(id);
+			if (!node)
+			{
+				continue;
+			}
+
+			auto removeTask = node->RemoveProxy();
+			if (!removeTask.func)
+			{
+				continue;
+			}
+
+			m_refCommander->Enqueue(std::move(removeTask));
+			m_proxies.Erase(id);
+		}
+
+		m_removedProxies.Clear();
+	}
+
+	void Scene::FlushUpdated()
+	{
+		if (!m_refCommander)
+		{
+			return;
+		}
+
+		for (const auto& id : m_updatedProxies)
+		{
+			auto node = GetProxyNode(id);
+			if (!node)
+			{
+				continue;
+			}
+
+			auto updateTaskList = node->UpdateProxy();
+			node->ClearDirty();
+
+			for (auto& updateTask : updateTaskList)
+			{
+				if (!updateTask.func)
+				{
+					continue;
+				}
+
+				m_refCommander->Enqueue(std::move(updateTask));
+			}
+		}
+
+		m_updatedProxies.Clear();
+	}
+
+	Memory::ObjectPtr<ProxyNode> Scene::GetProxyNode(const ECS::UUID& id) const
+	{
+		auto itr = m_proxies.Find(id);
+		if (itr != m_proxies.End())
+		{
+			return itr->second;
 		}
 		else
 		{
-			// nothing
+			return nullptr;
 		}
 	}
 
-	void Scene::Detach(Memory::ObjectPtr<BaseNode> node)
+	void Scene::Attach(Memory::ObjectPtr<ProxyNode> node)
 	{
 		if (!m_refCommander || !node)
 		{
 			return;
 		}
 
-		if (auto meshNode = Memory::Cast<MeshNode>(node))
-		{
-			DetachNode(meshNode);
+		m_proxies[node->GetID()] = node;
+		
+		m_addedProxies.Insert(node->GetID());
+		m_removedProxies.Erase(node->GetID());
+	}
 
-			m_refCommander->RemovePrimitive(meshNode);
-		}
-		else if (auto lightNode = Memory::Cast<LightNode>(node))
+	void Scene::Detach(Memory::ObjectPtr<ProxyNode> node)
+	{
+		if (!m_refCommander || !node)
 		{
-			DetachNode(lightNode);
+			return;
+		}
 
-			m_refCommander->RemoveLight(lightNode);
-		}
-		else
-		{
-			// nothing
-		}
+		Detach(node->GetID());
 	}
 
 	void Scene::Detach(const ECS::UUID& entityId)
@@ -78,8 +168,10 @@ namespace wtr
 			return;
 		}
 
-		m_refCommander->Remove(entityId);
-		m_sceneDatas.Erase(entityId);
+		m_removedProxies.Insert(entityId);
+
+		m_addedProxies.Erase(entityId);
+		m_updatedProxies.Erase(entityId);
 	}
 
 	void Scene::DetachAll()
@@ -99,66 +191,6 @@ namespace wtr
 			return;
 		}
 
-		auto itr = m_sceneDatas.Find(entityId);
-		if (itr == m_sceneDatas.End())
-		{
-			return;
-		}
-
-		auto& scenePair = itr->second;
-
-		m_refCommander->Update(scenePair.transform);
-	}
-
-	void Scene::AttachNode(Memory::ObjectPtr<BaseNode> node, Memory::ObjectPtr<SceneComponent> transform)
-	{
-		if (!node || !transform)
-		{
-			return;
-		}
-
-		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
-
-		auto itr = m_sceneDatas.Find(node->GetID());
-		if (itr == m_sceneDatas.End())
-		{
-			ScenePair scenePair;
-			scenePair.transform = transform;
-			scenePair.transform->OnAttached(this);
-			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
-
-			m_sceneDatas[node->GetID()] = scenePair;
-		}
-		else
-		{
-			ScenePair& scenePair = itr->second;
-
-			scenePair.nodeTypes.Insert(nodeType->GetTypeHash());
-		}
-	}
-
-	void Scene::DetachNode(Memory::ObjectPtr<BaseNode> node)
-	{
-		if (!node)
-		{
-			return;
-		}
-
-		const Reflection::TypeInfo* nodeType = node->GetTypeInfo();
-		
-		auto itr = m_sceneDatas.Find(node->GetID());
-		if (itr == m_sceneDatas.End())
-		{
-			return;
-		}
-		
-		ScenePair& scenePair = itr->second;
-		scenePair.transform->OnDetached();
-		scenePair.nodeTypes.Erase(nodeType->GetTypeHash());
-		
-		if (scenePair.nodeTypes.Empty())
-		{
-			m_sceneDatas.Erase(itr);
-		}
+		m_updatedProxies.Insert(entityId);
 	}
 }

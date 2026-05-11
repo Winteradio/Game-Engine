@@ -285,6 +285,20 @@ namespace wtr
 		}
 	}
 
+	RHICommandUpdateVertexLayout::RHICommandUpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, const Memory::RefPtr<RHIVertexLayout> layout)
+		: m_info(info)
+		, m_layout(layout)
+	{
+	}
+
+	void RHICommandUpdateVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_layout)
+		{
+			system->UpdateVertexLayout(m_info, m_layout);
+		}
+	}
+
 	RHICommandResizeBuffer::RHICommandResizeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
 		: m_info(info)
 		, m_buffer(buffer)

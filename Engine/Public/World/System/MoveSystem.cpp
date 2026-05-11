@@ -1,5 +1,8 @@
 #include <World/System/MoveSystem.h>
 
+#include <Framework/Input/InputTypes.h>
+#include <Framework/Input/InputStorage.h>
+
 namespace wtr
 {
 	void MoveSystem::UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container)

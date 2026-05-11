@@ -97,7 +97,7 @@ namespace wtr
 			bufferDesc.count = rawBuffer.count;
 			bufferDesc.size = static_cast<uint32_t>(rawBuffer.bulkData->GetSize());
 			bufferDesc.stride = rawBuffer.numComponents * GetDataTypeSize(rawBuffer.componentType);
-			bufferDesc.data = rawBuffer.bulkData;
+			bufferDesc.dataRanges.PushBack({ 0, rawBuffer.bulkData });
 
 			Memory::RefPtr<RHIBuffer> vertexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (vertexBuffer)
@@ -118,7 +118,7 @@ namespace wtr
 			bufferDesc.count = rawIndex.count;
 			bufferDesc.size = static_cast<uint32_t>(rawIndex.bulkData->GetSize());
 			bufferDesc.stride = rawIndex.numComponents * GetDataTypeSize(rawIndex.componentType);
-			bufferDesc.data = rawIndex.bulkData;
+			bufferDesc.dataRanges.PushBack({ 0, rawIndex.bulkData });
 
 			Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(bufferDesc);
 			if (indexBuffer)

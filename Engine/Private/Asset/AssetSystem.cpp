@@ -68,6 +68,19 @@ namespace wtr
 		return asset;
 	}
 
+	void AssetSystem::Update(Memory::RefPtr<Asset> asset)
+	{
+		if (!asset)
+		{
+			return;
+		}
+
+		if (asset->GetState() == eAssetState::eDirty)
+		{
+			AddTask(asset);
+		}
+	}
+
 	void AssetSystem::Unload(const std::string& path)
 	{
 		AssetCore& core = GetCore();

@@ -1,28 +1,20 @@
 #ifndef __WTR_RENDERCOMMANDLIST_H__
 #define __WTR_RENDERCOMMANDLIST_H__
 
-#include <Framework/Task.h>
+#include <Memory/include/Pointer/RefPtr.h>
 #include <Container/include/LinearArena.h>
 
 #include <atomic>
 
 namespace wtr
 {
+	struct RenderTask;
 	class Renderer;
 	class RHICommandList;
 };
 
 namespace wtr
 {
-	struct RenderTask : Task<Renderer*, Memory::RefPtr<RHICommandList>>
-	{
-		using Task::Task;
-
-		RenderTask* next = nullptr;
-
-		~RenderTask() = default;
-	};
-
 	class RenderCommandList
 	{
 	public :
@@ -30,12 +22,9 @@ namespace wtr
 		virtual ~RenderCommandList();
 
 	public :
-		void Enqueue(RenderTask::Func&& func);
+		void Enqueue(RenderTask&& func);
 		void ExecuteAll(Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList);
 		void Reset();
-
-	private :
-		RenderTask* Create(RenderTask::Func&& func);
 
 	private :
 		constexpr static size_t MAX_ALLOCATOR_COUNT = 2;

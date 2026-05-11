@@ -108,6 +108,7 @@ namespace wtr
 			cmdList->SetBuffer(drawCommand->instanceBuffer, m_instanceSlot);
 			cmdList->SetVertexLayout(drawCommand->vertexLayout);
 			cmdList->DrawIndexPrimitive(drawDesc);
+			cmdList->UnsetVertexLayout(drawCommand->vertexLayout);
 		}
 	}
 

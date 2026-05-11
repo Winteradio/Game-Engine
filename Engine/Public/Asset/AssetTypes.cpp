@@ -82,6 +82,10 @@ namespace wtr
 		, textures()
 		, vectorValues()
 		, scalarValues()
+		, shadingModel(eShadingModel::eLit)
+		, blendMode(eBlendMode::eOpaque)
+		, isDoubleSided(false)
+		, isPBR(false)
 	{
 	}
 
@@ -90,6 +94,10 @@ namespace wtr
 		, textures()
 		, vectorValues()
 		, scalarValues()
+		, shadingModel(eShadingModel::eLit)
+		, blendMode(eBlendMode::eOpaque)
+		, isDoubleSided(false)
+		, isPBR(false)
 	{
 	}
 
@@ -181,6 +189,7 @@ namespace wtr
 		, index()
 		, sections()
 		, materials()
+		, drawMode(eDrawMode::eNone)
 	{
 	}
 
@@ -192,6 +201,7 @@ namespace wtr
 		, index()
 		, sections()
 		, materials()
+		, drawMode(eDrawMode::eNone)
 	{
 	}
 

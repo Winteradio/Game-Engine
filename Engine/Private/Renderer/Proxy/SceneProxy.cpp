@@ -1,16 +1,32 @@
 #include <Renderer/Proxy/SceneProxy.h>
 
+#include <Renderer/RenderScene.h>
+#include <RHI/RHIResources.h>
+
 namespace wtr
 {
-    SceneProxy::SceneProxy()
-        : m_position(0.f)
+    SceneProxy::SceneProxy(const ECS::UUID& id)
+        : ECS::Object(id)
+        , m_position(0.f)
         , m_rotation(1.f, 0.f, 0.f, 0.f)
         , m_scale(1.f)
         , m_transform(1.f)
+        , m_owner(nullptr)
+        , m_dirty(eRenderDirty::eNone)
     {}
 
     SceneProxy::~SceneProxy()
     {}
+
+    void SceneProxy::OnAttached(RenderScene* owner)
+    {
+        m_owner = owner;
+    }
+
+    void SceneProxy::OnDetached()
+    {
+        m_owner = nullptr;
+    }
 
     void SceneProxy::UpdatePosition(const fvec3 position)
     {
@@ -21,6 +37,7 @@ namespace wtr
             this->m_position = position;
 
             UpdateTransform();
+            OnUpdate();
         }
     }
 
@@ -34,6 +51,7 @@ namespace wtr
             this->m_rotation = rotation;
 
             UpdateTransform();
+            OnUpdate();
         }
     }
 
@@ -47,6 +65,7 @@ namespace wtr
             this->m_rotation = glm::quat(rotation);
 
             UpdateTransform();
+            OnUpdate();
         }
     }
 
@@ -59,16 +78,42 @@ namespace wtr
             this->m_scale = scale;
 
             UpdateTransform();
+            OnUpdate();
         }
     }
 
     void SceneProxy::UpdateTransform()
     {
-        const fmat4 translation = glm::translate(fmat4(1.f), m_position);
-        const fmat4 rotation = glm::toMat4(m_rotation);
-        const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
+		const fmat4 translation = glm::translate(fmat4(1.f), m_position);
+		const fmat4 rotation = glm::toMat4(m_rotation);
+		const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
 
-        m_transform = translation * rotation * scale;
+		m_transform = translation * rotation * scale;
+
+        SetDirty(eRenderDirty::eTransform);
+	}
+
+    void SceneProxy::SetDirty(const eRenderDirty dirty)
+    {
+        m_dirty |= dirty;
+    }
+
+    void SceneProxy::ClearDirty()
+    {
+        m_dirty = eRenderDirty::eNone;
+    }
+
+    const eRenderDirty SceneProxy::GetDirty() const
+    {
+        return m_dirty;
+    }
+
+    void SceneProxy::OnUpdate()
+    {
+        if (nullptr != m_owner)
+        {
+            m_owner->UpdateProxy(this->GetID());
+        }
     }
 
     const fvec3 SceneProxy::GetPosition() const
@@ -89,5 +134,20 @@ namespace wtr
     const fmat4 SceneProxy::GetTransform() const
     {
         return m_transform;
+	}
+
+    size_t SceneProxyHasher::operator()(const SceneProxy& proxy) const
+    {
+        return std::hash<ECS::UUID>()(proxy.GetID());
+    }
+
+    size_t SceneProxyHasher::operator()(const Memory::RefPtr<SceneProxy>& refProxy) const
+    {
+        if (!refProxy)
+        {
+            return 0;
+        }
+
+        return std::hash<ECS::UUID>()(refProxy->GetID());
     }
 }

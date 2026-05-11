@@ -48,7 +48,8 @@ namespace wtr
 		eNone		= 0x00,
 		eError		= 0x01,
 		eLoaded		= 0x10,
-		eExpried	= 0x20
+		eExpried	= 0x20,
+		eDirty		= 0x30
 	};
 
 	eAssetState operator|(const eAssetState lhs, const eAssetState rhs);
@@ -131,6 +132,11 @@ namespace wtr
 		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
 		wtr::HashMap<eScalarSlot, float> scalarValues;
 
+		eShadingModel shadingModel;
+		eBlendMode blendMode;
+		bool isDoubleSided;
+		bool isPBR;
+
 		MaterialAsset();
 		MaterialAsset(const std::string& path, const eExtension extension);
 		virtual ~MaterialAsset() = default;
@@ -151,6 +157,7 @@ namespace wtr
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
+		eDrawMode drawMode;
 
 		MeshAsset();
 		MeshAsset(const std::string& path, const eExtension extension);

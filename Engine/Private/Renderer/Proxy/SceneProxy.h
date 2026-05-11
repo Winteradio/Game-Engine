@@ -4,18 +4,35 @@
 #include <ECS/include/Object/Object.h>
 #include <Framework/Math/MathTypes.h>
 #include <Reflection/include/Type/TypeMacro.h>
+#include <Memory/include/Pointer/RefPtr.h>
 
 #include <cstdint>
+
+namespace wtr
+{
+	enum class eRenderDirty : uint8_t;
+
+	struct RawData;
+	class RenderScene;
+};
+
 namespace wtr
 {
 	class SceneProxy : public ECS::Object
 	{
 		GENERATE(SceneProxy);
 	public :
-		SceneProxy();
+		SceneProxy(const ECS::UUID& id);
 		virtual ~SceneProxy();
 
 	public :
+		virtual bool IsUploadable() const = 0;
+		virtual bool IsSyncable() const = 0;
+
+	public :
+		void OnAttached(RenderScene* owner);
+		void OnDetached();
+
 		void UpdatePosition(const fvec3 position);
 		void UpdateRotation(const fquat rotation);
 		void UpdateRotation(const fvec3 rotation);
@@ -26,22 +43,29 @@ namespace wtr
 		const fvec3 GetScale() const;
 		const fmat4 GetTransform() const;
 
-	private :
+	protected :
+		void OnUpdate();
 		void UpdateTransform();
+
+		void SetDirty(const eRenderDirty dirty);
+		void ClearDirty();
+		const eRenderDirty GetDirty() const;
 
 	private :
 		fvec3 m_position;
 		fquat m_rotation;
 		fvec3 m_scale;
 		fmat4 m_transform;
+
+		RenderScene* m_owner;
+
+		eRenderDirty m_dirty;
 	};
 
-	struct UpdateProxyInfo
+	struct SceneProxyHasher
 	{
-		const ECS::UUID id;
-		const fvec3 position;
-		const fquat rotation;
-		const fvec3 scale;
+		size_t operator()(const SceneProxy& proxy) const;
+		size_t operator()(const Memory::RefPtr<SceneProxy>& refProxy) const;
 	};
 };
 

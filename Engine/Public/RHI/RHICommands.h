@@ -348,6 +348,20 @@ namespace wtr
 		const Memory::RefPtr<RHITexture> m_texture;
 	};
 
+	class RHICommandUpdateVertexLayout : public RHICommand<RHICommandUpdateVertexLayout>
+	{
+	public:
+		RHICommandUpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, const Memory::RefPtr<RHIVertexLayout> layout);
+		~RHICommandUpdateVertexLayout() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const RHIVertexLayoutUpdateDesc m_info;
+		const Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
 	class RHICommandResizeBuffer : public RHICommand<RHICommandResizeBuffer>
 	{
 	public :

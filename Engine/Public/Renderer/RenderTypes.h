@@ -37,7 +37,8 @@ namespace wtr
 		eIndex		= 0x02,
 		eConst		= 0x03,
 		eStorage	= 0x04,
-		eStaging	= 0x05
+		eStaging	= 0x05,
+		eIndirect	= 0x06
 	};
 
 	enum class eDataAccess : uint8_t
@@ -165,8 +166,9 @@ namespace wtr
 		eVertex			= 0x01,
 		eGeometry		= 0x02,
 		eHull			= 0x03,
-		ePixel			= 0x04,
-		eCompute		= 0x05,
+		eDomain			= 0x04,
+		ePixel			= 0x05,
+		eCompute		= 0x06,
 	};
 
 	enum class eCullFace : uint8_t
@@ -333,32 +335,77 @@ namespace wtr
 		eMetallic		= 0x05,
 	};
 
-	class RawBulk
+	enum class eShadingModel : uint8_t
+	{
+		eNone		= 0x00,
+		eLit		= 0x01,
+		eUnlit		= 0x02,
+		eSubsurface	= 0x03,
+	};
+
+	enum class eBlendMode : uint8_t
+	{
+		eNone			= 0x00,
+		eOpaque			= 0x01,
+		eTransparent	= 0x02,
+		eAdditive		= 0x03,
+		eMasked			= 0x04,
+	};
+
+	enum class eLightType : uint8_t
+	{
+		eNone			= 0x00,
+		eDirectional	= 0x01,
+		ePoint			= 0x02,
+		eSpot			= 0x03,
+	};
+
+	enum class eShadowType : uint8_t
+	{
+		eNone			= 0x00,
+		eHard			= 0x01,
+		eSoft			= 0x02,
+	};
+
+	enum class eRenderDirty : uint8_t
+	{
+		eNone = 0x00,
+		eTransform = 0x01 << 0,
+		eMesh = 0x01 << 1,
+		eMaterial = 0x01 << 2,
+		eLight = 0x01 << 3,
+		eAll = eTransform | eMesh | eMaterial
+	};
+
+	class RawData
 	{
 	public :
-		RawBulk() = default;
-		virtual ~RawBulk() = default;
+		RawData();
+		virtual ~RawData() = default;
 
 	public :
 		virtual const void* GetPointer() const = 0;
 		virtual const size_t GetSize() const = 0;
-		virtual bool IsEmpty() const
-		{
-			return GetPointer() == nullptr || GetSize() == 0;
-		}
+		virtual const size_t GetCount() const = 0;
+		
+	public :
+		bool IsEmpty() const;
+		bool IsUsed() const;
+
+		void SetUsed(const bool isUsed);
+
+	private :
+		std::atomic<bool> m_isUsed{ false };
 	};
 
 	template<typename T>
-	class BulkData : public RawBulk
+	class ArrayData : public RawData
 	{
 	public:
 		wtr::DynamicArray<T> data;
 
-		BulkData()
-		{
-			int value = 2;
-		}
-		virtual ~BulkData() = default;
+		ArrayData() = default;
+		virtual ~ArrayData() = default;
 
 	public:
 		const void* GetPointer() const override
@@ -370,11 +417,46 @@ namespace wtr
 		{
 			return data.Size() * sizeof(T);
 		}
+
+		const size_t GetCount() const override
+		{
+			return data.Size();
+		}
+	};
+
+	template<typename T>
+	class ScalarData : public RawData
+	{
+	public :
+		T data;
+
+		ScalarData()
+		{}
+
+		virtual ~ScalarData()
+		{
+		}
+
+	public :
+		const void* GetPointer() const override
+		{
+			return reinterpret_cast<const void*>(&data);
+		}
+
+		const size_t GetSize() const override
+		{
+			return sizeof(T);
+		}
+
+		const size_t GetCount() const override
+		{
+			return 1;
+		}
 	};
 
 	struct RawBuffer
 	{
-		Memory::RefPtr<RawBulk> bulkData;
+		Memory::RefPtr<RawData> bulkData;
 	};
 
 	struct FormattedBuffer : RawBuffer
@@ -467,6 +549,44 @@ namespace wtr
 	inline eRenderTarget operator&(eRenderTarget a, eRenderTarget b)
 	{
 		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty operator|(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty operator&(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty operator~(eRenderDirty a)
+	{
+		return static_cast<eRenderDirty>(~static_cast<uint8_t>(a));
+	}
+
+	inline eRenderDirty operator^(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) ^ static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty& operator|=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a | b;
+		return a;
+	}
+
+	inline eRenderDirty& operator&=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a & b;
+		return a;
+	}
+
+	inline eRenderDirty& operator^=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a ^ b;
+		return a;
 	}
 
 	bool IsIntegerDataType(const eDataType dataType);

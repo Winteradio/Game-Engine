@@ -1,5 +1,6 @@
 #include <World/WorldContext.h>
 
+#include <World/Scene.h>
 #include <World/World.h>
 #include <World/WorldCommandList.h>
 #include <World/Commander.h>
@@ -95,5 +96,6 @@ namespace wtr
 		}
 
 		world->Update(timeStep);
+		world->scene.Flush();
 	}
 }
