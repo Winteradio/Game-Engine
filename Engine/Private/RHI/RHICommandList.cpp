@@ -238,6 +238,20 @@ namespace wtr
 		return refPipeLine;
 	}
 
+	Memory::RefPtr<RHIRenderTarget> RHICommandList::CreateRenderTarget(const RHIRenderTargetCreateDesc info)
+	{
+		if (!m_system)
+		{
+			return nullptr;
+		}
+
+		Memory::RefPtr<RHIRenderTarget> refRenderTarget = m_system->CreateRenderTarget(info);
+
+		Enqueue<RHICommandInitializeRenderTarget>(info, refRenderTarget);
+
+		return refRenderTarget;
+	}
+
 	void RHICommandList::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		Enqueue<RHICommandUpdateBuffer>(info, buffer);
@@ -248,7 +262,7 @@ namespace wtr
 		Enqueue<RHICommandUpdateTexture>(info, texture);
 	}
 
-	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		Enqueue<RHICommandUpdateVertexLayout>(info, layout);
 	}
@@ -293,6 +307,11 @@ namespace wtr
 		Enqueue<RHICommandRemovePipeLine>(pipeline);
 	}
 
+	void RHICommandList::RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target)
+	{
+		Enqueue<RHICommandRemoveRenderTarget>(target);
+	}
+
 	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		Enqueue<RHICommandSetBuffer>(buffer, slot);
@@ -318,6 +337,11 @@ namespace wtr
 		Enqueue<RHICommandSetPipeLine>(pipeline);
 	}
 
+	void RHICommandList::SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	{
+		Enqueue<RHICommandSetRenderTarget>(target);
+	}
+
 	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		Enqueue<RHICommandUnsetBuffer>(buffer, slot);
@@ -341,6 +365,11 @@ namespace wtr
 	void RHICommandList::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		Enqueue<RHICommandUnsetPipeLine>(pipeline);
+	}
+
+	void RHICommandList::UnsetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	{
+		Enqueue<RHICommandUnsetRenderTarget>(target);
 	}
 
 	void RHICommandList::DispatchCompute(const RHIDispatchDesc info)

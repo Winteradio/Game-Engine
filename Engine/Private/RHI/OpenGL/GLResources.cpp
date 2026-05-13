@@ -1,5 +1,8 @@
 #include <RHI/OpenGL/GLResources.h>
 
+#include <RHI/RHIResources.h>
+#include <RHI/RHIDescriptions.h>
+
 #include <glad/glad.h>
 
 namespace wtr
@@ -96,4 +99,31 @@ namespace wtr
 
 	GLPipeLine::~GLPipeLine()
 	{}
+
+	GLRenderTarget::GLRenderTarget(const RHIRenderTargetDesc& desc)
+		: RHIRenderTarget(desc)
+		, GLResource()
+	{
+		const size_t totalCount = GetColorAttachCount();
+		m_colorAttachments.Assign(totalCount, GL_NONE);
+
+		for (const auto& colorAttach : desc.colors)
+		{
+			if (colorAttach.slot >= totalCount)
+			{
+				continue;
+			}
+
+			const size_t index = static_cast<const size_t>(colorAttach.slot);
+			m_colorAttachments[index] = GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(index);
+		}
+	}
+
+	GLRenderTarget::~GLRenderTarget()
+	{}
+
+	const wtr::DynamicArray<uint32_t>& GLRenderTarget::GetColorAttachments() const
+	{
+		return m_colorAttachments;
+	}
 }

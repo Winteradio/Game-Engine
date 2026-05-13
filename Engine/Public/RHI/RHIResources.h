@@ -165,35 +165,36 @@ namespace wtr
 
 	class RHIPipeLine : public RHIResource
 	{
-		public :
-			RHIPipeLine(const RHIPipeLineDesc& desc);
-			virtual ~RHIPipeLine() = default;
+	public :
+		RHIPipeLine(const RHIPipeLineDesc& desc);
+		virtual ~RHIPipeLine() = default;
 
-		public :
-			Memory::RefPtr<const RHIClearState> GetClearState() const;
-			Memory::RefPtr<const RHIColorState> GetColorState() const;
-			Memory::RefPtr<const RHIDepthState> GetDepthState() const;
-			Memory::RefPtr<const RHIStencilState> GetStencilState() const;
-			Memory::RefPtr<const RHIBlendState> GetBlendState() const;
-			Memory::RefPtr<const RHIRasterizerState> GetRasterizerState() const;
+	public :
+		Memory::RefPtr<const RHIClearState> GetClearState() const;
+		Memory::RefPtr<const RHIColorState> GetColorState() const;
+		Memory::RefPtr<const RHIDepthState> GetDepthState() const;
+		Memory::RefPtr<const RHIStencilState> GetStencilState() const;
+		Memory::RefPtr<const RHIBlendState> GetBlendState() const;
+		Memory::RefPtr<const RHIRasterizerState> GetRasterizerState() const;
+		const RHIPipeLineDesc& GetDesc() const;
 
-			void SetDesc(const RHIPipeLineDesc& desc);
-			void SetClearState(const RHIClearState clear);
-			void SetColorState(const RHIColorState color);
-			void SetDepthState(const RHIDepthState depth);
-			void SetStencilState(const RHIStencilState stencil);
-			void SetBlendState(const RHIBlendState blend);
-			void SetRasterizerState(const RHIRasterizerState rasterizer);
+		void SetDesc(const RHIPipeLineDesc& desc);
+		void SetClearState(const RHIClearState clear);
+		void SetColorState(const RHIColorState color);
+		void SetDepthState(const RHIDepthState depth);
+		void SetStencilState(const RHIStencilState stencil);
+		void SetBlendState(const RHIBlendState blend);
+		void SetRasterizerState(const RHIRasterizerState rasterizer);
 
-			void AddSlot(const std::string& name, const RHIResourceBinding& binding);
-			bool HasSlot(const std::string& name) const;
+		void AddSlot(const std::string& name, const RHIResourceBinding& binding);
+		bool HasSlot(const std::string& name) const;
 
-			size_t GetSlotCount() const;
-			const RHIResourceBinding GetBindingSlot(const std::string& name) const;
+		size_t GetSlotCount() const;
+		const RHIResourceBinding GetBindingSlot(const std::string& name) const;
 
-		private :
-			RHIPipeLineDesc m_desc;
-			wtr::HashMap<std::string, RHIResourceBinding> m_slots;
+	private :
+		RHIPipeLineDesc m_desc;
+		wtr::HashMap<std::string, RHIResourceBinding> m_slots;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine
@@ -204,6 +205,24 @@ namespace wtr
 	class RHIComputePipeLine : public RHIPipeLine
 	{
 
+	};
+
+	class RHIRenderTarget : public RHIResource
+	{
+	public :
+		RHIRenderTarget(const RHIRenderTargetDesc& desc);
+		virtual ~RHIRenderTarget() = default;
+
+	public :
+		const RHIRenderTargetDesc& GetDesc() const;
+
+		bool HasColorAttach(const uint32_t slot) const;
+		bool HasDepthStencilAttach() const;
+
+		const size_t GetColorAttachCount() const;
+
+	private :
+		RHIRenderTargetDesc m_desc;
 	};
 };
 

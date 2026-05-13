@@ -15,6 +15,7 @@ namespace wtr
 	class RHISampler;
 	class RHIShader;
 	class RHIPipeLine;
+	class RHIRenderTarget;
 
 	struct RHIColorState;
 	struct RHIDepthState;
@@ -309,7 +310,7 @@ namespace wtr
 	class RHICommandInitializePipeLine : public RHICommand<RHICommandInitializePipeLine>
 	{
 	public :
-		RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, const Memory::RefPtr<RHIPipeLine> shader);
+		RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, const Memory::RefPtr<RHIPipeLine> pipeline);
 		~RHICommandInitializePipeLine() = default;
 
 	public :
@@ -317,7 +318,21 @@ namespace wtr
 
 	private :
 		const RHIPipeLineCreateDesc m_info;
-		const Memory::RefPtr<RHIPipeLine> m_shader;
+		const Memory::RefPtr<RHIPipeLine> m_pipeline;
+	};
+
+	class RHICommandInitializeRenderTarget : public RHICommand<RHICommandInitializeRenderTarget>
+	{
+	public :
+		RHICommandInitializeRenderTarget(const RHIRenderTargetCreateDesc info, const Memory::RefPtr<RHIRenderTarget> target);
+		~RHICommandInitializeRenderTarget() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const RHIRenderTargetCreateDesc m_info;
+		const Memory::RefPtr<RHIRenderTarget> m_target;
 	};
 
 	class RHICommandUpdateBuffer : public RHICommand<RHICommandUpdateBuffer>
@@ -468,6 +483,19 @@ namespace wtr
 		const Memory::RefPtr<RHIPipeLine> m_pipeline;
 	};
 
+	class RHICommandRemoveRenderTarget : public RHICommand<RHICommandRemoveRenderTarget>
+	{
+	public :
+		RHICommandRemoveRenderTarget(const Memory::RefPtr<RHIRenderTarget> target);
+		~RHICommandRemoveRenderTarget() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<RHIRenderTarget> m_target;
+	};
+
 	class RHICommandSetBuffer : public RHICommand<RHICommandSetBuffer>
 	{
 	public :
@@ -536,6 +564,19 @@ namespace wtr
 		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 	};
 
+	class RHICommandSetRenderTarget : public RHICommand<RHICommandSetRenderTarget>
+	{
+	public :
+		RHICommandSetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target);
+		~RHICommandSetRenderTarget() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<const RHIRenderTarget> m_target;
+	};
+
 	class RHICommandUnsetBuffer : public RHICommand<RHICommandUnsetBuffer>
 	{
 	public :
@@ -602,6 +643,19 @@ namespace wtr
 
 	private:
 		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+	};
+
+	class RHICommandUnsetRenderTarget : public RHICommand<RHICommandUnsetRenderTarget>
+	{
+	public :
+		RHICommandUnsetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target);
+		~RHICommandUnsetRenderTarget() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<const RHIRenderTarget> m_target;
 	};
 
 	class RHICommandDispatchCompute : public RHICommand<RHICommandDispatchCompute>

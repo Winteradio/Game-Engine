@@ -86,6 +86,7 @@ namespace wtr
 		FlushShader();
 		FlushPipeLine();
 		FlushSampler();
+		FlushRenderTarget();
 	}
 
 	void GLSystem::InitializeState()
@@ -443,6 +444,13 @@ namespace wtr
 		return refPipeLine;
 	}
 
+	Memory::RefPtr<RHIRenderTarget> GLSystem::CreateRenderTarget(const RHIRenderTargetDesc desc)
+	{
+		Memory::RefPtr<RHIRenderTarget> refRenderTarget = Memory::MakeRef<GLRenderTarget>(desc);
+
+		return refRenderTarget;
+	}
+
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer || info.dataRanges.Empty())
@@ -776,6 +784,131 @@ namespace wtr
 
 			pipeline->SetDesc(info);
 		}
+	}
+
+	void GLSystem::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
+	{
+		if (!target)
+		{
+			return;
+		}
+
+		GLRenderTarget* glRenderTarget = reinterpret_cast<GLRenderTarget*>(target->GetRawBuffer());
+		if (!glRenderTarget)
+		{
+			return;
+		}
+
+		GLuint frameBufferID = GL_NONE;
+		glGenFramebuffers(1, &frameBufferID);
+		if (frameBufferID == GL_NONE)
+		{
+			LOGERROR() << "[GL] Failed to create the frame buffer";
+			return;
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
+
+		for (const auto& colorAttach : info.colors)
+		{
+			if (!colorAttach.texture)
+			{
+				continue;
+			}
+
+			const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(colorAttach.texture->GetRawBuffer());
+			if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
+			{
+				continue;
+			}
+
+			const bool attached = InitializeFrameBuffer(colorAttach.texture, colorAttach.type, colorAttach.slot);
+			if (!attached)
+			{
+				LOGERROR() << "[GL] Failed to bind the texture on the color attachment for the frame buffer";
+
+				glRenderTarget->SetState(eResourceState::eError);
+				return;
+			}
+		}
+
+		if (!info.depthStencil.texture)
+		{
+			return;
+		}
+
+		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(info.depthStencil.texture->GetRawBuffer());
+		if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		if (!InitializeFrameBuffer(info.depthStencil.texture, info.depthStencil.type))
+		{
+			LOGERROR() << "[GL] Failed to bind the texture on the depth stencil attachment for the frame buffer";
+
+			glRenderTarget->SetState(eResourceState::eError);
+			return;
+		}
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			LOGERROR() << "[GL] Failed to initialize the render target, invalid the frame buffer bined by texture";
+
+			glRenderTarget->SetState(eResourceState::eError);
+			return;
+		}
+
+		glRenderTarget->SetID(frameBufferID);
+		glRenderTarget->SetState(eResourceState::eReady);
+	}
+
+	bool GLSystem::InitializeFrameBuffer(Memory::RefPtr<const RHITexture> texture, const eAttachment attach, const uint32_t slot)
+	{
+		if (!texture)
+		{
+			return false;
+		}
+
+		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
+		if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
+		{
+			return false;
+		}
+
+		const bool isColor = (attach == eAttachment::eColor);
+
+		const eTextureType textureType = glTexture->GetTextureType();
+		const GLenum glAttach = isColor ? GetColorAttachment(slot) : GetDepthStencilAttachment(attach);
+		const uint32_t glTextureType = GetTextureType(textureType);
+		const uint32_t glTextureID = glTexture->GetID();
+		const uint32_t level = GL_ZERO; // Default for the frame buffer;
+		const uint32_t zOffset = GL_ZERO; // TODO
+
+		if (textureType == eTextureType::eTexture1D)
+		{
+			glFramebufferTexture1D(GL_FRAMEBUFFER, glAttach, glTextureType, glTextureID, level);
+		}
+		else if (textureType == eTextureType::eTexture2D)
+		{
+			glFramebufferTexture2D(GL_FRAMEBUFFER, glAttach, glTextureType, glTextureID, level);
+		}
+		else
+		{
+			// TODO : Not implemented the texture format
+			/*
+			eTexture3D
+			eTextureCube
+			eTexture1DArray
+			eTexture2DArray	
+			eTextureCubeArray
+			eTextureMultisample	
+			eTextureMultisampleArray
+			*/
+			glFramebufferTexture(GL_FRAMEBUFFER, glAttach, glTextureID, level);
+		}
+
+		return true;
 	}
 
 	bool GLSystem::InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline)
@@ -1477,6 +1610,27 @@ namespace wtr
 		}
 	}
 
+	void GLSystem::SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	{
+		if (!target)
+		{
+			return;
+		}
+
+		const GLRenderTarget* glRenderTarget = reinterpret_cast<const GLRenderTarget*>(target->GetRawBuffer());
+		if (glRenderTarget == nullptr || glRenderTarget->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t attachCount = static_cast<const uint32_t>(glRenderTarget->GetColorAttachCount());
+		const wtr::DynamicArray<uint32_t>& attaches = glRenderTarget->GetColorAttachments();
+
+		// Not supported the 'GL_READ_FRAMEBUFFER'
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
+		glDrawBuffers(attachCount, attaches.Data());
+	}
+
 	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 	{
 		if (!buffer)
@@ -1518,6 +1672,11 @@ namespace wtr
 	void GLSystem::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		glUseProgram(GL_NONE);
+	}
+
+	void GLSystem::UnsetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	{
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GL_NONE);
 	}
 
 	void GLSystem::DispatchCompute(const RHIDispatchDesc info)
@@ -2261,6 +2420,34 @@ namespace wtr
 		}
 	}
 
+	const uint32_t GLSystem::GetColorAttachment(const uint32_t slot) const
+	{
+		uint32_t colorAttach = GL_COLOR_ATTACHMENT0;
+		colorAttach += slot;
+
+		return colorAttach;
+	}
+
+	const uint32_t GLSystem::GetDepthStencilAttachment(const eAttachment attach) const
+	{
+		if (attach == eAttachment::eDepth)
+		{
+			return GL_DEPTH_ATTACHMENT;
+		}
+		else if (attach == eAttachment::eStencil)
+		{
+			return GL_STENCIL_ATTACHMENT;
+		}
+		else if (attach == eAttachment::eDepthStencil)
+		{
+			return GL_DEPTH_STENCIL_ATTACHMENT;
+		}
+		else
+		{
+			return GL_NONE;
+		}
+	}
+
 	const eCompareFunc GLSystem::GetCompareFunc(const uint32_t func) const
 	{
 		if (GL_NEVER == func)
@@ -2612,6 +2799,38 @@ namespace wtr
 			}
 
 			itr = m_pendingSamplers.Erase(itr);
+		}
+	}
+
+	void GLSystem::FlushRenderTarget()
+	{
+		auto itr = m_pendingRenderTargets.begin();
+		while (itr != m_pendingRenderTargets.end())
+		{
+			auto& target = *itr;
+			if (!target)
+			{
+				itr = m_pendingRenderTargets.Erase(itr);
+				continue;
+			}
+
+			auto* refData = target.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			GLRenderTarget* glRenderTarget = reinterpret_cast<GLRenderTarget*>(target->GetRawBuffer());
+			if (glRenderTarget && glRenderTarget->GetID() != GL_NONE)
+			{
+				const uint32_t frameBufferID = glRenderTarget->GetID();
+				glDeleteFramebuffers(1, &frameBufferID);
+				glRenderTarget->SetID(GL_NONE);
+				glRenderTarget->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingRenderTargets.Erase(itr);
 		}
 	}
 

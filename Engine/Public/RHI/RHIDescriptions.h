@@ -11,6 +11,7 @@
 namespace wtr
 {
 	class RHIBuffer;
+	class RHITexture;
 	class RHIShader;
 }
 
@@ -262,6 +263,34 @@ namespace wtr
 		uint32_t groupX = 0;
 		uint32_t groupY = 0;
 		uint32_t groupZ = 0;
+	};
+
+	struct RHIAttachment
+	{
+		eAttachment type = eAttachment::eNone;
+
+		Memory::RefPtr<const RHITexture> texture;
+	};
+
+	struct RHIColorAttachment : RHIAttachment
+	{
+		uint32_t slot = 0;
+	};
+
+	struct RHIDepthStencilAttachment : RHIAttachment
+	{
+
+	};
+
+	struct RHIRenderTargetDesc : RHIDesc<eResourceType::eTarget>
+	{
+		wtr::DynamicArray<RHIColorAttachment> colors;
+		RHIDepthStencilAttachment depthStencil;
+	};
+
+	struct RHIRenderTargetCreateDesc : RHIRenderTargetDesc
+	{
+
 	};
 };
 

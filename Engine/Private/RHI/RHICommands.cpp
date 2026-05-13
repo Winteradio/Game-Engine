@@ -246,16 +246,29 @@ namespace wtr
 		}
 	}
 
-	RHICommandInitializePipeLine::RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, const Memory::RefPtr<RHIPipeLine> shader)
+	RHICommandInitializePipeLine::RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, const Memory::RefPtr<RHIPipeLine> pipeline)
 		: m_info(info)
-		, m_shader(shader)
+		, m_pipeline(pipeline)
 	{}
 
 	void RHICommandInitializePipeLine::Execute(Memory::RefPtr<RHISystem> system)
 	{
-		if (system && m_shader)
+		if (system && m_pipeline)
 		{
-			system->InitializePipeLine(m_info, m_shader);
+			system->InitializePipeLine(m_info, m_pipeline);
+		}
+	}
+
+	RHICommandInitializeRenderTarget::RHICommandInitializeRenderTarget(const RHIRenderTargetCreateDesc info, const Memory::RefPtr<RHIRenderTarget> target)
+		: m_info(info)
+		, m_target(target)
+	{}
+
+	void RHICommandInitializeRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_target)
+		{
+			system->InitializeRenderTarget(m_info, m_target);
 		}
 	}
 
@@ -399,6 +412,19 @@ namespace wtr
 		}
 	}
 
+	RHICommandRemoveRenderTarget::RHICommandRemoveRenderTarget(const Memory::RefPtr<RHIRenderTarget> target)
+		: m_target(target)
+	{
+	}
+
+	void RHICommandRemoveRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_target)
+		{
+			system->RemoveRenderTarget(m_target);
+		}
+	}
+
 	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 		: m_buffer(buffer)
 		, m_slot(slot)
@@ -467,6 +493,19 @@ namespace wtr
 		}
 	}
 
+	RHICommandSetRenderTarget::RHICommandSetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
+		: m_target(target)
+	{
+	}
+
+	void RHICommandSetRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_target)
+		{
+			system->SetRenderTarget(m_target);
+		}
+	}
+
 	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
 		: m_buffer(buffer)
 		, m_slot(slot)
@@ -532,6 +571,19 @@ namespace wtr
 		if (system && m_pipeline)
 		{
 			system->UnsetPipeLine(m_pipeline);
+		}
+	}
+
+	RHICommandUnsetRenderTarget::RHICommandUnsetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
+		: m_target(target)
+	{
+	}
+
+	void RHICommandUnsetRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_target)
+		{
+			system->SetRenderTarget(m_target);
 		}
 	}
 

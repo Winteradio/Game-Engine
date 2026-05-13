@@ -377,6 +377,11 @@ namespace wtr
 		return m_desc.rasterizer;
 	}
 
+	const RHIPipeLineDesc& RHIPipeLine::GetDesc() const
+	{
+		return m_desc;
+	}
+
 	void RHIPipeLine::SetClearState(const RHIClearState clear)
 	{
 		m_desc.clear = !m_desc.clear ? Memory::MakeRef<RHIClearState>(clear) : m_desc.clear;
@@ -468,5 +473,45 @@ namespace wtr
 		{
 			return RHIResourceBinding{};
 		}
+	}
+
+	RHIRenderTarget::RHIRenderTarget(const RHIRenderTargetDesc& desc)
+		: m_desc(desc)
+	{
+	}
+
+	const RHIRenderTargetDesc& RHIRenderTarget::GetDesc() const
+	{
+		return m_desc;
+	}
+
+	bool RHIRenderTarget::HasColorAttach(const uint32_t slot) const
+	{
+		for (const auto& color : m_desc.colors)
+		{
+			if (color.slot == slot)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool RHIRenderTarget::HasDepthStencilAttach() const
+	{
+		if (m_desc.depthStencil.texture)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	const size_t RHIRenderTarget::GetColorAttachCount() const
+	{
+		return m_desc.colors.Size();
 	}
 };

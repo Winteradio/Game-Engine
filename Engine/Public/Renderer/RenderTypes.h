@@ -28,6 +28,7 @@ namespace wtr
 		eShader		= 0x04,
 		ePipeLine	= 0x05,
 		eLayout		= 0x06,
+		eTarget		= 0x07,
 	};
 
 	enum class eBufferType : uint8_t
@@ -93,7 +94,7 @@ namespace wtr
 		eUniform		= 0x01,
 		eUniformBuffer	= 0x02,
 		eStorageBuffer 	= 0x03,
-		eSampler		= 0x04,
+		eSampler		= 0x04
 	};
 
 	enum class eTextureType : uint8_t
@@ -375,6 +376,15 @@ namespace wtr
 		eMaterial = 0x01 << 2,
 		eLight = 0x01 << 3,
 		eAll = eTransform | eMesh | eMaterial
+	};
+
+	enum class eAttachment : uint8_t
+	{
+		eNone = 0x00,
+		eColor = 0x01,
+		eDepth = 0x02,
+		eStencil = 0x03,
+		eDepthStencil = 0x04,
 	};
 
 	class RawData
