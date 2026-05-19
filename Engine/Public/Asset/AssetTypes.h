@@ -62,11 +62,14 @@ namespace wtr
 
 	struct MeshSection
 	{
-		uint32_t indexOffset = 0;
-		uint32_t indexCount = 0;
+		fvec3 minVertex = fvec3(0.f);
+		fvec3 maxVertex = fvec3(0.f);
 
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;
+
+		uint32_t indexOffset = 0;
+		uint32_t indexCount = 0;
 
 		std::string materialName;
 		std::string name;

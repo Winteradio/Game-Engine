@@ -32,15 +32,15 @@ namespace wtr
 		const eShaderType shaderType = GetShaderType(shader->name);
 		shader->SetShaderType(shaderType);
 
-		Memory::RefPtr<BulkData<uint8_t>> bulkData = Memory::MakeRef<BulkData<uint8_t>>();
-		if (!bulkData)
+		Memory::RefPtr<ArrayData<uint8_t>> arrayData = Memory::MakeRef<ArrayData<uint8_t>>();
+		if (!arrayData)
 		{
 			LOGINFO() << "[GLSL] Failed to create the bulk data for the shader asset : " << asset->path;
 			return false;
 		}
 
-		bulkData->data = std::move(fileBuffer);
-		shader->rawBuffer.bulkData = bulkData;
+		arrayData->data = std::move(fileBuffer);
+		shader->rawBuffer.bulkData = arrayData;
 
 		LOGINFO() << "[GLSL] Succeed to parse the glsl file : " << asset->path;
 

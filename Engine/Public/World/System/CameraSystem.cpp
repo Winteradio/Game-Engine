@@ -39,7 +39,7 @@ namespace wtr
 		}
 	}
 
-	const fvec3 CameraSystem::UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform)
+	const fvec3 CameraSystem::UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform)
 	{
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)
@@ -92,7 +92,7 @@ namespace wtr
 		}
 	}
 
-	const fquat CameraSystem::UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform)
+	const fquat CameraSystem::UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform)
 	{
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)

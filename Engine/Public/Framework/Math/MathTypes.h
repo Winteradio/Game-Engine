@@ -105,6 +105,15 @@ namespace wtr
 		fvec3 position = fvec3(0.0f);
 		fquat rotation = fquat(1.0f, 0.f, 0.f, 0.f);
 		fvec3 scale = fvec3(1.0);
+
+		ftransform() = default;
+
+		ftransform(const fvec3& pos, const fquat& rot, const fvec3& sca)
+			: position(pos)
+			, rotation(rot)
+			, scale(sca)
+		{
+		}
 	};
 
 #endif //

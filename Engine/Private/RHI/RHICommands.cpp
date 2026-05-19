@@ -583,7 +583,7 @@ namespace wtr
 	{
 		if (system && m_target)
 		{
-			system->SetRenderTarget(m_target);
+			system->UnsetRenderTarget(m_target);
 		}
 	}
 

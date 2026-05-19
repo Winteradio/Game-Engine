@@ -12,7 +12,7 @@ namespace wtr
 {
 	enum class eRenderDirty : uint8_t;
 
-	struct RawData;
+	class RawData;
 	class RenderScene;
 };
 

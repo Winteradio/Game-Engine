@@ -1,7 +1,8 @@
 #include <Renderer/Proxy/LightProxy.h>
 
+#include <RHI/RHICommandList.h>
 #include <RHI/RHIResources.h>
-#include <Renderer/ShaderSet.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
@@ -10,7 +11,7 @@ namespace wtr
 		, m_lightDesc()
 		, m_lightBuffer()
 		, m_shadowMap()
-		, m_shaderSet()
+		, m_shadowTarget()
 		, m_color(fvec3(1.0f))
 		, m_direction(fvec3(0.f))
 		, m_intensity(1.0f)
@@ -18,34 +19,46 @@ namespace wtr
 
 	eResourceState LightProxy::GetResourceState() const
 	{
-		if (!m_lightBuffer || m_lightBuffer->GetState() != eResourceState::eReady)
-		{
-			return eResourceState::eNone;
-		}
+		eResourceState allState = ShaderProxy::GetResourceState();
 
-		if (m_shadowMap && m_shadowMap->GetState() != eResourceState::eReady)
-		{
-			return eResourceState::eNone;
-		}
+		allState &= m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
-		if (!m_shaderSet || m_shaderSet->GetResourceState() != eResourceState::eReady)
-		{
-			return eResourceState::eNone;
-		}
+		// TODO
+		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
+		//allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
 
-		return eResourceState::eReady;
+		return allState;
 	}
 
 	bool LightProxy::IsUploadable() const
 	{
-		// TODO
-		return false;
+		return true;
 	}
 
-	bool LightProxy::IsSyncable() const
+	void LightProxy::Unload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		// TODO
-		return false;
+		if (!cmdList)
+		{
+			return;
+		}
+
+		if (m_lightBuffer)
+		{
+			cmdList->RemoveBuffer(m_lightBuffer);
+			m_lightBuffer.Reset();
+		}
+
+		if (m_shadowMap)
+		{
+			cmdList->RemoveTexture(m_shadowMap);
+			m_shadowMap.Reset();
+		}
+
+		if (m_shadowTarget)
+		{
+			cmdList->RemoveRenderTarget(m_shadowTarget);
+			m_shadowTarget.Reset();
+		}
 	}
 
 	void LightProxy::SetLightType(const eLightType lightType)
@@ -65,6 +78,9 @@ namespace wtr
 			m_lightDesc.shadowType = shadowType;
 
 			OnUpdate();
+
+			// TODO : Shadow
+			// GlobalShaderSelector를 통한 ShadowRenderTarget 변경
 		}
 	}
 
@@ -112,14 +128,9 @@ namespace wtr
 		return m_shadowMap;
 	}
 
-	Memory::RefPtr<ShaderSet> LightProxy::GetShaderSet()
+	Memory::RefPtr<const RHIRenderTarget> LightProxy::GetShadowTarget() const
 	{
-		return m_shaderSet;
-	}
-
-	Memory::RefPtr<const ShaderSet> LightProxy::GetShaderSet() const
-	{
-		return m_shaderSet;
+		return m_shadowTarget;
 	}
 
 	const LightDesc& LightProxy::GetLightDesc() const
@@ -132,6 +143,11 @@ namespace wtr
 	{
 	}
 
+	bool DirectionalLightProxy::IsSyncable() const
+	{
+		return m_directional && !m_directional->IsUsed();
+	}
+
 	void DirectionalLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
@@ -139,27 +155,57 @@ namespace wtr
 			return;
 		}
 
-		// TODO
-	}
-
-	void DirectionalLightProxy::Unload(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
+		if (!m_directional)
 		{
-			return;
+			m_directional = Memory::MakeRef<ScalarData<DirectionalLight>>();
 		}
 
-		// TODO
+		auto& data = m_directional->data;
+		data.color = m_color;
+		data.direction = m_direction;
+		data.intensity = m_intensity;
+		data.pos = GetPosition();
+
+		if (!m_lightBuffer)
+		{
+			RHIBufferCreateDesc desc;
+			desc.bufferType = eBufferType::eStorage;
+			desc.accessType = eDataAccess::eDynamic;
+			desc.componentType = eDataType::eNone;
+			desc.numComponents = 1;
+			desc.count = 1;
+			desc.size = sizeof(DirectionalLight);
+			desc.stride = sizeof(DirectionalLight);
+			desc.dataRanges.PushBack({ 0, m_directional });
+
+			Memory::RefPtr<RHIBuffer> buffer = cmdList->CreateBuffer(desc);
+			if (buffer)
+			{
+				m_lightBuffer = buffer;
+			}
+		}
+
+		// TODO : Shadow
 	}
 
 	void DirectionalLightProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_lightBuffer || !m_directional)
 		{
 			return;
 		}
 
-		// TODO
+		RHIBufferUpdateDesc desc;
+		desc.bufferType = eBufferType::eStorage;
+		desc.accessType = eDataAccess::eDynamic;
+		desc.componentType = eDataType::eNone;
+		desc.numComponents = 1;
+		desc.count = 1;
+		desc.size = sizeof(DirectionalLight);
+		desc.stride = sizeof(DirectionalLight);
+		desc.dataRanges.PushBack({ 0, m_directional });
+
+		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
 	const fmat4 DirectionalLightProxy::GetViewMatrix() const
@@ -178,15 +224,20 @@ namespace wtr
 
 	const fmat4 DirectionalLightProxy::GetProjectionMatrix() const
 	{
-		return fmat4(1.0f);
+		// TODO : Shadow
 
-		// TODO
+		return fmat4(1.0f);
 	}
 
 	PointLightProxy::PointLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
 		, m_range(0.f)
 	{
+	}
+
+	bool PointLightProxy::IsSyncable() const
+	{
+		return m_point && !m_point->IsUsed();
 	}
 
 	void PointLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
@@ -196,41 +247,72 @@ namespace wtr
 			return;
 		}
 
-		// TODO
-	}
-
-	void PointLightProxy::Unload(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
+		if (!m_point)
 		{
-			return;
+			m_point = Memory::MakeRef<ScalarData<PointLight>>();
 		}
 
-		// TODO
+		auto& data = m_point->data;
+		data.color = m_color;
+		data.direction = m_direction;
+		data.intensity = m_intensity;
+		data.range = m_range;
+		data.pos = GetPosition();
+
+		if (!m_lightBuffer)
+		{
+			RHIBufferCreateDesc desc;
+			desc.bufferType = eBufferType::eStorage;
+			desc.accessType = eDataAccess::eDynamic;
+			desc.componentType = eDataType::eNone;
+			desc.numComponents = 1;
+			desc.count = 1;
+			desc.size = sizeof(PointLight);
+			desc.stride = sizeof(PointLight);
+			desc.dataRanges.PushBack({ 0, m_point });
+
+			Memory::RefPtr<RHIBuffer> buffer = cmdList->CreateBuffer(desc);
+			if (buffer)
+			{
+				m_lightBuffer = buffer;
+			}
+		}
+
+		// TODO : Shadow
 	}
 
 	void PointLightProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_lightBuffer || !m_point)
 		{
 			return;
 		}
 
-		// TODO
+		RHIBufferUpdateDesc desc;
+		desc.bufferType = eBufferType::eStorage;
+		desc.accessType = eDataAccess::eDynamic;
+		desc.componentType = eDataType::eNone;
+		desc.numComponents = 1;
+		desc.count = 1;
+		desc.size = sizeof(PointLight);
+		desc.stride = sizeof(PointLight);
+		desc.dataRanges.PushBack({ 0, m_point });
+
+		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
 	const fmat4 PointLightProxy::GetViewMatrix() const
 	{
-		return fmat4(1.0f);
+		// TODO : Shadow
 
-		// TODO
+		return fmat4(1.0f);
 	}
 
 	const fmat4 PointLightProxy::GetProjectionMatrix() const
 	{
-		return  fmat4(1.0f);
+		// TODO : Shadow
 
-		// TODO
+		return  fmat4(1.0f);
 	}
 
 	void PointLightProxy::SetRange(const float range)
@@ -251,6 +333,11 @@ namespace wtr
 	{
 	}
 
+	bool SpotLightProxy::IsSyncable() const
+	{
+		return m_spot && !m_spot->IsUsed();
+	}
+
 	void SpotLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
@@ -258,39 +345,74 @@ namespace wtr
 			return;
 		}
 
-		// TODO
-	}
-
-	void SpotLightProxy::Unload(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
+		if (!m_spot)
 		{
-			return;
+			m_spot = Memory::MakeRef<ScalarData<SpotLight>>();
 		}
 
-		 // TODO
+		auto& data = m_spot->data;
+		data.color = m_color;
+		data.direction = m_direction;
+		data.intensity = m_intensity;
+		data.range = m_range;
+		data.innerAngle = m_innerAngle;
+		data.outerAngle = m_outerAngle;
+		data.pos = GetPosition();
+
+		if (!m_lightBuffer)
+		{
+			RHIBufferCreateDesc desc;
+			desc.bufferType = eBufferType::eStorage;
+			desc.accessType = eDataAccess::eDynamic;
+			desc.componentType = eDataType::eNone;
+			desc.numComponents = 1;
+			desc.count = 1;
+			desc.size = sizeof(SpotLight);
+			desc.stride = sizeof(SpotLight);
+			desc.dataRanges.PushBack({ 0, m_spot });
+
+			Memory::RefPtr<RHIBuffer> buffer = cmdList->CreateBuffer(desc);
+			if (buffer)
+			{
+				m_lightBuffer = buffer;
+			}
+		}
+
+		// TODO : Shadow
 	}
 
 	void SpotLightProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_lightBuffer || !m_spot)
 		{
 			return;
 		}
+
+		RHIBufferUpdateDesc desc;
+		desc.bufferType = eBufferType::eStorage;
+		desc.accessType = eDataAccess::eDynamic;
+		desc.componentType = eDataType::eNone;
+		desc.numComponents = 1;
+		desc.count = 1;
+		desc.size = sizeof(SpotLight);
+		desc.stride = sizeof(SpotLight);
+		desc.dataRanges.PushBack({ 0, m_spot });
+
+		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
 	const fmat4 SpotLightProxy::GetViewMatrix() const
 	{
-		return fmat4(1.0f);
+		// TODO : Shadow
 
-		// TODO
+		return fmat4(1.0f);
 	}
 
 	const fmat4 SpotLightProxy::GetProjectionMatrix() const
 	{
-		return fmat4(1.0f);
+		// TODO : Shadow
 
-		// TODO
+		return fmat4(1.0f);
 	}
 
 	void SpotLightProxy::SetRange(const float range)

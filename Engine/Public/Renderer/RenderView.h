@@ -21,6 +21,7 @@ namespace wtr
 			fmat4 projMatrix = fmat4(1.f);
 
 			fvec3 position = fvec3(0.f);
+			fvec3 direction = fvec3(0.f, 0.f, -1.f);
 		};
 
 		Viewport viewport;

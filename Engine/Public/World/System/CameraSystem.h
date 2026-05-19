@@ -15,8 +15,8 @@ namespace wtr
 		void UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container) override;
 
 	protected:
-		virtual const fvec3 UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform);
-		virtual const fquat UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform);
+		virtual const fvec3 UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform);
+		virtual const fquat UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform);
 	};
 };
 

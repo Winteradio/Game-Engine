@@ -24,11 +24,18 @@ namespace wtr
 		uint32_t firstInstance	= 0;
 	};
 
+	struct LocalBounding
+	{
+		fvec3 minVertex = fvec3(0.f);
+		fvec3 maxVertex = fvec3(0.f);
+	};
+
 	struct MeshDrawCommand
 	{
 		Memory::RefPtr<RHIBuffer> transform				= nullptr;
 		Memory::RefPtr<RHIBuffer> visible				= nullptr;
 		Memory::RefPtr<RHIBuffer> indirect				= nullptr;
+		Memory::RefPtr<RHIBuffer> localBounding			= nullptr;
 		Memory::RefPtr<RHIVertexLayout> vertexLayout	= nullptr;
 		Memory::RefPtr<const MaterialProxy> material	= nullptr;
 

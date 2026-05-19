@@ -144,6 +144,7 @@ namespace wtr
 		renderView.viewport.posX = view->GetPosX();
 		renderView.viewport.posY = view->GetPosY();
 
+		renderView.camera.direction = glm::normalize(cameraNode->transform->GetRotation() * fvec3(0.f, 0.f, -1.f));
 		renderView.camera.position = cameraNode->transform->GetPosition();
 		renderView.camera.viewMatrix = cameraNode->GetViewMatrix();
 		renderView.camera.projMatrix = cameraNode->GetProjectionMatrix();

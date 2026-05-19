@@ -57,6 +57,8 @@ namespace wtr
 			Memory::RefPtr<MeshBatch> GetMeshBatch(const MeshBatchKey& key);
 			const MeshBatchContainer& GetMeshBatches() const;
 
+			const ProxyContainer<LightProxy>& GetLightProxies() const;
+
 		public :
 			template<typename T>
 			Memory::RefPtr<T> GetPrimitiveProxy(const ECS::UUID& id)

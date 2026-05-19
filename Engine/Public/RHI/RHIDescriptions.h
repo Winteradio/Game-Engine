@@ -39,6 +39,9 @@ namespace wtr
 	struct RHITextureMipMap
 	{
 		Memory::RefPtr<RawData> data;
+		uint32_t xOffset = 0;
+		uint32_t yOffset = 0;
+		uint32_t zOffset = 0;
 		uint32_t level = 0;
 	};
 
@@ -49,7 +52,7 @@ namespace wtr
 
 	struct RHIResourceBinding
 	{
-		uint16_t location 	= 0; // resource binding location
+		int32_t location 	= -1; // resource binding location
 		eBindingType type 	= eBindingType::eNone; // type of the binding resource
 	};
 
@@ -133,6 +136,7 @@ namespace wtr
 		uint32_t		width = 0;
 		uint32_t		height = 0;
 		uint32_t		depth = 0;
+		uint32_t		face = 1;
 		uint32_t		mipLevels = 1;
 		uint32_t		sampleCount = 1;
 		ePixelFormat	format = ePixelFormat::eNone;
@@ -147,6 +151,7 @@ namespace wtr
 			width = other.width;
 			height = other.height;
 			depth = other.depth;
+			face = other.face;
 			mipLevels = other.mipLevels;
 			sampleCount = other.sampleCount;
 			format = other.format;
@@ -167,15 +172,6 @@ namespace wtr
 
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
-		uint32_t xOffset = 0;
-		uint32_t yOffset = 0;
-		uint32_t zOffset = 0;
-		
-		uint32_t width = 0;
-		uint32_t height = 0;
-		uint32_t depth = 0;
-		
-		uint32_t mipLevel = 0;
 	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
@@ -197,6 +193,21 @@ namespace wtr
 			wrapR = other.wrapR;
 
 			return *this;
+		}
+
+		bool operator==(const RHISamplerDesc& other) const noexcept
+		{
+			if (minFilter != other.minFilter ||
+				magFilter != other.magFilter ||
+				mipFilter != other.mipFilter ||
+				wrapS != other.wrapS ||
+				wrapT != other.wrapT ||
+				wrapR != other.wrapR)
+			{
+				return false;
+			}
+
+			return true;
 		}
 	};
 
@@ -233,6 +244,21 @@ namespace wtr
 
 			return *this;
 		}
+
+		bool operator==(const RHIPipeLineDesc& other) const noexcept
+		{
+			if (clear != other.clear ||
+				color != other.color ||
+				depth != other.depth ||
+				stencil != other.stencil ||
+				blend != other.blend ||
+				rasterizer != other.rasterizer)
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
@@ -243,6 +269,26 @@ namespace wtr
 		Memory::RefPtr<const RHIShader> domainShader;
 		Memory::RefPtr<const RHIShader> computeShader;
 		Memory::RefPtr<const RHIShader> pixelShader;
+
+		bool operator==(const RHIPipeLineCreateDesc& other) const noexcept
+		{
+			if (!RHIPipeLineDesc::operator==(other))
+			{
+				return false;
+			}
+
+			if (vertexShader != other.vertexShader ||
+				geometryShader != other.geometryShader ||
+				hullShader != other.hullShader ||
+				domainShader != other.domainShader ||
+				computeShader != other.computeShader ||
+				pixelShader != other.pixelShader)
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 
 	struct RHIDrawIndexDesc : RHIDesc<eResourceType::eLayout>

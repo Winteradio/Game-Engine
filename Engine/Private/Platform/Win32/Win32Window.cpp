@@ -111,6 +111,8 @@ namespace wtr
 
 	bool Win32Window::PollEvents()
 	{
+		Sleep(1);
+
 		MSG msg;
 		ZeroMemory(&msg, sizeof(MSG));
 

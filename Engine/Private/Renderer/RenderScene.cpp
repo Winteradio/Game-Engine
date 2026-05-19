@@ -2,6 +2,8 @@
 
 #include <Renderer/Proxy/PrimitiveProxy.h>
 #include <Renderer/Proxy/LightProxy.h>
+#include <Renderer/Proxy/MaterialProxy.h>
+#include <Renderer/GlobalRenderer.h>
 #include <Renderer/MeshBatch.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
@@ -286,7 +288,15 @@ namespace wtr
 				return;
 			}
 
-			auto refOverrideMaterialAsset = primitive->GetOverrideMaterial();
+			Memory::RefPtr<MaterialProxy> refOverrideMaterial = nullptr;
+			Memory::RefPtr<const MaterialAsset> refOverrideMaterialAsset = primitive->GetOverrideMaterial();
+			if (refOverrideMaterialAsset)
+			{
+				refOverrideMaterial = Memory::MakeRef<MaterialProxy>(primitive->GetID());
+				refOverrideMaterial->SetMaterialAsset(refOverrideMaterialAsset);
+
+				GlobalShaderSelector::SetShader(refOverrideMaterial);
+			}
 
 			const size_t endIndex = refMeshAsset->sections.Size();
 			for (size_t index = 0; index < endIndex; index++)
@@ -295,44 +305,50 @@ namespace wtr
 				Memory::RefPtr<MeshBatch> meshBatch = GetMeshBatch(batchKey);
 				if (meshBatch)
 				{
-					LOGINFO() << "[RenderScene] Add the mesh batch's transform info, " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
-
-					primitive->UpdateBatch(meshBatch);
-
-					meshBatch->AddTransform(primitive->GetID(), primitive->GetRawData());
-
 					m_updatedBatches.Insert(meshBatch);
 
-					continue;
+					LOGINFO() << "[RenderScene] Add the mesh batch's transform info, " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
 				}
-
-				Memory::RefPtr<const MaterialAsset> refMaterialAsset;
-				if (!refOverrideMaterialAsset)
+				else
 				{
-					auto itr = refMeshAsset->materials.Find(refMeshAsset->sections[index].materialName);
-					if (itr != refMeshAsset->materials.End())
+					meshBatch = Memory::MakeRef<MeshBatch>();
+					if (!meshBatch)
 					{
-						refMaterialAsset = itr->second;
+						LOGERROR() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+						continue;
 					}
-				}
 
-				meshBatch = Memory::MakeRef<MeshBatch>();
-				if (!meshBatch)
-				{
-					LOGERROR() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-					continue;
+					Memory::RefPtr<MaterialProxy> refMaterial;
+					if (refOverrideMaterialAsset)
+					{
+						refMaterial = refOverrideMaterial;
+					}
+					else
+					{
+						Memory::RefPtr<const MaterialAsset> refMaterialAsset;
+						auto itr = refMeshAsset->materials.Find(refMeshAsset->sections[index].materialName);
+						if (itr != refMeshAsset->materials.End())
+						{
+							refMaterialAsset = itr->second;
+						}
+
+						refMaterial = Memory::MakeRef<MaterialProxy>(primitive->GetID());
+						refMaterial->SetMaterialAsset(refMaterialAsset);
+
+						GlobalShaderSelector::SetShader(refMaterial);
+					}
+
+					meshBatch->SetMaterial(refMaterial);
+					meshBatch->SetMesh(refMeshAsset, index);
+
+					m_addedBatches.Insert(meshBatch);
+					m_meshBatches.Insert(std::make_pair(batchKey, meshBatch));
+
+					LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
 				}
 
 				primitive->UpdateBatch(meshBatch);
-
-				// TODO : Set the material proxy
-				meshBatch->SetMesh(refMeshAsset, index);
 				meshBatch->AddTransform(primitive->GetID(), primitive->GetRawData());
-
-				LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
-
-				m_addedBatches.Insert(meshBatch);
-				m_meshBatches.Insert(std::make_pair(batchKey, meshBatch));
 			}
 		}
 	}
@@ -426,6 +442,8 @@ namespace wtr
 		if (light)
 		{
 			light->Upload(cmdList);
+
+			GlobalShaderSelector::SetShader(light);
 		}
 	}
 
@@ -439,6 +457,8 @@ namespace wtr
 		if (light)
 		{
 			light->Sync(cmdList);
+
+			GlobalShaderSelector::SetShader(light);
 		}
 	}
 
@@ -530,6 +550,11 @@ namespace wtr
 	const RenderScene::MeshBatchContainer& RenderScene::GetMeshBatches() const
 	{
 		return m_meshBatches;
+	}
+
+	const RenderScene::ProxyContainer<LightProxy>& RenderScene::GetLightProxies() const
+	{
+		return m_lights;
 	}
 
 	const MeshBatchKey RenderScene::GetMeshBatchKey(Memory::RefPtr<PrimitiveProxy> primitive, const size_t sectionIndex)

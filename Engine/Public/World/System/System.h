@@ -24,8 +24,6 @@ namespace wtr
 	template<typename T>
 	class TypedSystem : public BaseSystem
 	{
-		static_assert(ECS::Utils::IsNode<T> && "Invalid the node type");
-
 		GENERATE(TypedSystem);
 
 	public:
@@ -35,7 +33,9 @@ namespace wtr
 		TypedSystem()
 			: BaseSystem()
 			, m_nodeType(Reflection::TypeInfo::Get<NodeType>())
-		{}
+		{
+			static_assert(ECS::Utils::IsNode<T> && "Invalid the node type");
+		}
 
 		virtual ~TypedSystem() = default;
 

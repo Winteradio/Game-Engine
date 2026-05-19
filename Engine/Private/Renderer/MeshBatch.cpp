@@ -95,7 +95,11 @@ namespace wtr
 			const eDataAccess accessType = eDataAccess::eDynamic;
 
 			Memory::RefPtr<ArrayData<uint8_t>> visibilityData = Memory::MakeRef<ArrayData<uint8_t>>();
-			visibilityData->data.Assign(totalCount, 1);
+			visibilityData->data.Resize(totalCount);
+			for (size_t index = 0; index < totalCount; index++)
+			{
+				visibilityData->data[index] = index;
+			}
 
 			RHIBufferCreateDesc bufferDesc;
 			bufferDesc.bufferType = bufferType;
@@ -147,6 +151,38 @@ namespace wtr
 			}
 		}
 
+		auto& localBounding = m_drawCommand->localBounding;
+		if (!localBounding)
+		{
+			const MeshSection& meshSection = m_refMesh->sections[m_sectionIndex];
+
+			constexpr uint32_t numComponents = 1;
+			const eDataType componentType = eDataType::eNone;
+			const eBufferType bufferType = eBufferType::eConst;
+			const eDataAccess accessType = eDataAccess::eStatic;
+
+			Memory::RefPtr<ScalarData<LocalBounding>> boudingData = Memory::MakeRef<ScalarData<LocalBounding>>();
+
+			RHIBufferCreateDesc bufferDesc;
+			bufferDesc.bufferType = bufferType;
+			bufferDesc.accessType = accessType;
+			bufferDesc.componentType = componentType;
+			bufferDesc.numComponents = numComponents;
+			bufferDesc.count = 1;
+			bufferDesc.size = sizeof(LocalBounding);
+			bufferDesc.stride = sizeof(LocalBounding);
+			bufferDesc.dataRanges.PushBack({ 0, boudingData });
+
+			localBounding = cmdList->CreateBuffer(bufferDesc);
+			if (!localBounding)
+			{
+				LOGINFO() << "[MeshBatch] Failed to create the bounding box";
+
+				Unload(cmdList);
+				return;
+			}
+		}
+
 		auto& vertexLayout = m_drawCommand->vertexLayout;
 		if (!vertexLayout)
 		{
@@ -163,12 +199,16 @@ namespace wtr
 				const eDataType componentType = buffer->GetComponentType();
 				const uint32_t componentSize = GetDataTypeSize(componentType);
 				const uint32_t numComponents = buffer->GetNumComponents();
-				const uint32_t vertexLocation = GetVertexLocation(vertexKey);
+				const int32_t vertexLocation = GetVertexLocation(vertexKey);
 				const bool integer = IsIntegerDataType(componentType);
+				if (vertexLocation == -1)
+				{
+					continue;
+				}
 
 				RHIVertexAttribute attribute;
-				attribute.location = vertexLocation;
-				attribute.offset = meshSection.minVertexIndex * vertexLocation;
+				attribute.location = static_cast<uint16_t>(vertexLocation);
+				attribute.offset = meshSection.minVertexIndex * static_cast<uint16_t>(vertexLocation);
 				attribute.normalized = false; // Assuming non-normalized data
 				attribute.integer = integer;
 				attribute.divisor = 0; // Assuming per-vertex data
@@ -207,7 +247,8 @@ namespace wtr
 		m_drawCommand->indexCount = m_refMesh->sections[m_sectionIndex].indexCount;
 		m_drawCommand->indexType = m_refMesh->index ? m_refMesh->index->GetComponentType() : eDataType::eNone;
 
-		m_drawCommand->indirectDraw = true;
+		// TODO
+		m_drawCommand->indirectDraw = false;
 		m_drawCommand->drawMode = m_refMesh->drawMode;
 
 		m_drawCommand->material = m_refMaterial;
@@ -232,6 +273,12 @@ namespace wtr
 		{
 			cmdList->RemoveBuffer(m_drawCommand->indirect);
 			m_drawCommand->indirect.Reset();
+		}
+
+		if (m_drawCommand->localBounding)
+		{
+			cmdList->RemoveBuffer(m_drawCommand->localBounding);
+			m_drawCommand->localBounding.Reset();
 		}
 
 		if (m_drawCommand->vertexLayout)
@@ -406,8 +453,12 @@ namespace wtr
 
 			const eDataType componentType = buffer->GetComponentType();
 			const uint32_t numComponents = buffer->GetNumComponents();
-			const uint32_t vertexLocation = GetVertexLocation(vertexKey);
+			const int32_t vertexLocation = GetVertexLocation(vertexKey);
 			const bool integer = IsIntegerDataType(componentType);
+			if (vertexLocation == -1)
+			{
+				continue;
+			}
 
 			if (componentType != bufferStream.attribute.componentType ||
 				numComponents != bufferStream.attribute.numComponents ||
@@ -422,7 +473,7 @@ namespace wtr
 
 		if (layoutChanged)
 		{
-			RHIVertexLayoutCreateDesc layoutDesc;
+			RHIVertexLayoutUpdateDesc layoutDesc;
 
 			for (const auto& [vertexKey, buffer] : m_refMesh->buffers)
 			{
@@ -434,8 +485,12 @@ namespace wtr
 				const eDataType componentType = buffer->GetComponentType();
 				const uint32_t componentSize = GetDataTypeSize(componentType);
 				const uint32_t numComponents = buffer->GetNumComponents();
-				const uint32_t vertexLocation = GetVertexLocation(vertexKey);
+				const int32_t vertexLocation = GetVertexLocation(vertexKey);
 				const bool integer = IsIntegerDataType(componentType);
+				if (vertexLocation == -1)
+				{
+					continue;
+				}
 
 				RHIVertexAttribute attribute;
 				attribute.location = vertexLocation;

@@ -5,7 +5,6 @@
 #include <Renderer/RenderGraph.h>
 #include <Renderer/RenderView.h>
 #include <Renderer/MeshBatch.h>
-#include <Renderer/PipeLine/PipeLine.h>
 
 #include <RHI/RHICommandList.h>
 

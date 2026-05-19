@@ -40,6 +40,46 @@ namespace wtr
 		};
 	};
 
+	size_t GetPixelSize(const ePixelFormat pixelFormat)
+	{
+		switch (pixelFormat)
+		{
+		case ePixelFormat::eR8_UNorm:
+			return 1;
+
+		case ePixelFormat::eR8G8_UNorm:
+		case ePixelFormat::eR16_Float:
+			return 2;
+
+		case ePixelFormat::eR8G8B8_UNorm:
+			return 3;
+
+		case ePixelFormat::eR8G8B8A8_UNorm:
+		case ePixelFormat::eR8G8B8A8_sRGB:
+		case ePixelFormat::eR16G16_Float:
+		case ePixelFormat::eR32_Float:
+		case ePixelFormat::eD24_S8:
+		case ePixelFormat::eD32:
+			return 4;
+
+		case ePixelFormat::eR16G16B16_Float:
+			return 6;
+
+		case ePixelFormat::eR16G16B16A16_Float:
+		case ePixelFormat::eR32G32_Float:
+			return 8;
+
+		case ePixelFormat::eR32G32B32_Float:
+			return 12;
+
+		case ePixelFormat::eR32G32B32A32_Float:
+			return 16;
+
+		default:
+			return 0;
+		}
+	}
+
 	size_t GetDataTypeSize(const eDataType dataType)
 	{
 		switch (dataType)
@@ -65,7 +105,7 @@ namespace wtr
 		};
 	};
 
-	size_t GetVertexLocation(const VertexKey& vertexKey)
+	int32_t GetVertexLocation(const VertexKey& vertexKey)
 	{
 		if (vertexKey.semanticIndex > 2)
 		{

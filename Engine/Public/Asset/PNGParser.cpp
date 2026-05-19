@@ -98,12 +98,12 @@ namespace wtr
 					return false;
 				}
 
-				Memory::RefPtr<BulkData<uint8_t>> bulkData = Memory::MakeRef<BulkData<uint8_t>>();
-				bulkData->data.Resize(image.GetSize());
+				Memory::RefPtr<ArrayData<uint8_t>> arrayData = Memory::MakeRef<ArrayData<uint8_t>>();
+				arrayData->data.Resize(image.GetSize());
 
-				memcpy(bulkData->data.Data(), reinterpret_cast<const uint8_t*>(image.GetPixels()) + dataOffset, mipMapBuffer.size);
+				memcpy(arrayData->data.Data(), reinterpret_cast<const uint8_t*>(image.GetPixels()) + dataOffset, mipMapBuffer.size);
 				
-				mipMapBuffer.bulkData = bulkData;
+				mipMapBuffer.bulkData = arrayData;
 
 				dataOffset += mipMapBuffer.size;
 			}

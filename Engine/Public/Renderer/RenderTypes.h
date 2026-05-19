@@ -313,8 +313,9 @@ namespace wtr
 		eNormal				= 0x07,
 		eRoughness			= 0x08,
 		eMetallic			= 0x09,
-		eAmbientOcclusion	= 0x10,
-		eSheen				= 0x11,
+		eAmbientOcclusion	= 0x0A,
+		eSheen				= 0x0B,
+		eEnd
 	};
 
 	enum class eVectorSlot : uint8_t
@@ -324,6 +325,7 @@ namespace wtr
 		eDiffuseColor	= 0x02,
 		eSpecularColor	= 0x03,
 		eEmissiveColor	= 0x04,
+		eEnd
 	};
 
 	enum class eScalarSlot : uint8_t
@@ -334,6 +336,7 @@ namespace wtr
 		eRefraction		= 0x03,
 		eRoughness		= 0x04,
 		eMetallic		= 0x05,
+		eEnd
 	};
 
 	enum class eShadingModel : uint8_t
@@ -385,6 +388,16 @@ namespace wtr
 		eDepth = 0x02,
 		eStencil = 0x03,
 		eDepthStencil = 0x04,
+	};
+
+	enum class eGBufferSlot : uint8_t
+	{
+		eNone = 0x00,
+		ePosition = 0x01,
+		eNormal = 0x02,
+		eAlbedo = 0x03,
+		eAlpha = 0x04,
+		eDepth = 0x05,
 	};
 
 	class RawData
@@ -601,8 +614,9 @@ namespace wtr
 
 	bool IsIntegerDataType(const eDataType dataType);
 
+	size_t GetPixelSize(const ePixelFormat pixelFormat);
 	size_t GetDataTypeSize(const eDataType dataType);
-	size_t GetVertexLocation(const VertexKey& vertexKey);
+	int32_t GetVertexLocation(const VertexKey& vertexKey);
 	const VertexKey GetVertexKey(const std::string& attributeName);
 };
 

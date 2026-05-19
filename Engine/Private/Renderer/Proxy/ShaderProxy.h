@@ -1,5 +1,5 @@
-#ifndef __WTR_SHADERSET_H__
-#define __WTR_SHADERSET_H__
+#ifndef __WTR_SHADERPROXY_H__
+#define __WTR_SHADERPROXY_H__
 
 #include <Renderer/RenderResource.h>
 #include <Renderer/ShaderState.h>
@@ -8,11 +8,11 @@
 
 namespace wtr
 {
-	class ShaderSet : public RenderResource
+	class ShaderProxy : public RenderResource
 	{
 	public:
-		ShaderSet();
-		virtual ~ShaderSet() = default;
+		ShaderProxy();
+		virtual ~ShaderProxy() = default;
 
 	public :
 		template<typename T>
@@ -23,8 +23,8 @@ namespace wtr
 			const Reflection::TypeInfo* typeInfo = T::GetStaticTypeInfo();
 			const size_t typeHash = typeInfo->GetTypeHash();
 
-			auto itr = m_shaders.find(typeHash);
-			if (itr != m_shaders.end())
+			auto itr = m_shaders.Find(typeHash);
+			if (itr != m_shaders.End())
 			{
 				return itr->second;
 			}
@@ -58,4 +58,4 @@ namespace wtr
 	};
 }
 
-#endif // __WTR_SHADERSET_H__
+#endif // __WTR_SHADERPROXY_H__

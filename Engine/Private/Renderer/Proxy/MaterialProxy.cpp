@@ -1,7 +1,6 @@
 #include <Renderer/Proxy/MaterialProxy.h>
 
 #include <Asset/AssetTypes.h>
-#include <Renderer/PipeLineState.h>
 #include <RHI/RHIResources.h>
 
 namespace wtr
@@ -13,20 +12,12 @@ namespace wtr
 
 	eResourceState MaterialProxy::GetResourceState() const
 	{
-		if (!m_materialAsset)
-		{
-			return eResourceState::eNone;
-		}
+		eResourceState allState = ShaderProxy::GetResourceState();
 
-		const auto materialState = m_materialAsset->GetResourceState();
-		const auto shaderState = ShaderProxy::GetResourceState();
+		// TODO : Override Material
+		allState &= m_materialAsset ? m_materialAsset->GetResourceState() : eResourceState::eReady;
 
-		if (materialState == eResourceState::eError || shaderState == eResourceState::eError)
-		{
-			return eResourceState::eError;
-		}
-
-		return std::min(materialState, shaderState);
+		return allState;
 	}
 
 	void MaterialProxy::SetMaterialAsset(Memory::RefPtr<const MaterialAsset> material)

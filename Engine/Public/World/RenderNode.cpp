@@ -79,6 +79,34 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
+		if (mesh && mesh->IsChanged())
+		{
+			RenderTask meshTask;
+			meshTask.func = [id = GetID(),
+				meshAsset = mesh->GetMeshAsset()
+			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+				{
+					if (!renderer || !renderer->GetScene())
+					{
+						return;
+					}
+
+					auto renderScene = renderer->GetScene();
+
+					Memory::RefPtr<StaticPrimitiveProxy> proxy = renderScene->GetPrimitiveProxy<StaticPrimitiveProxy>(id);
+					if (!proxy)
+					{
+						return;
+					}
+
+					proxy->SetMesh(meshAsset);
+					renderScene->RemoveProxy(proxy);
+					renderScene->AddProxy(proxy);
+				};
+
+			taskList.PushBack(meshTask);
+		}
+
 		if (transform && transform->IsDirty())
 		{
 			RenderTask transformTask;
@@ -108,8 +136,6 @@ namespace wtr
 
 			taskList.PushBack(transformTask);
 		}
-
-		// The mesh is constant value in the static mesh node
 
 		return taskList;
 	}
@@ -141,8 +167,13 @@ namespace wtr
 			proxy->UpdateRotation(transform->GetRotation());
 			proxy->UpdateScale(transform->GetScale());
 
-			auto instanceTransforms = transform->GetTransforms();
-			proxy->UpdateTransforms(std::move(instanceTransforms));
+			auto& instanceTransforms = transform->GetTransforms();
+			
+			proxy->SetInstanceCount(instanceTransforms.Size());
+			for (size_t index = 0; index < instanceTransforms.Size(); index++)
+			{
+				proxy->UpdateTransform(index, instanceTransforms[index]);
+			}
 		}
 
 		if (mesh)
@@ -173,6 +204,34 @@ namespace wtr
 	RenderTaskList InstancedStaticMeshNode::UpdateProxy() const
 	{
 		RenderTaskList taskList;
+
+		if (mesh && mesh->IsChanged())
+		{
+			RenderTask meshTask;
+			meshTask.func = [id = GetID(),
+				meshAsset = mesh->GetMeshAsset()
+			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
+				{
+					if (!renderer || !renderer->GetScene())
+					{
+						return;
+					}
+
+					auto renderScene = renderer->GetScene();
+
+					Memory::RefPtr<StaticPrimitiveProxy> proxy = renderScene->GetPrimitiveProxy<StaticPrimitiveProxy>(id);
+					if (!proxy)
+					{
+						return;
+					}
+
+					proxy->SetMesh(meshAsset);
+					renderScene->RemoveProxy(proxy);
+					renderScene->AddProxy(proxy);
+				};
+
+			taskList.PushBack(meshTask);
+		}
 		
 		if (transform && transform->IsDirty())
 		{
@@ -182,7 +241,7 @@ namespace wtr
 				rotation = transform->GetRotation(),
 				scale = transform->GetScale(),
 				instanceTransforms = transform->GetTransforms()
-			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdLIst) mutable
+			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdLIst)
 				{
 					if (!renderer || !renderer->GetScene())
 					{
@@ -201,7 +260,11 @@ namespace wtr
 					proxy->UpdateRotation(rotation);
 					proxy->UpdateScale(scale);
 
-					proxy->UpdateTransforms(std::move(instanceTransforms));
+					proxy->SetInstanceCount(instanceTransforms.Size());
+					for (size_t index = 0; index < instanceTransforms.Size(); index++)
+					{
+						proxy->UpdateTransform(index, instanceTransforms[index]);
+					}
 				};
 
 			taskList.PushBack(transformTask);
@@ -228,6 +291,8 @@ namespace wtr
 		RenderTask task;
 
 		return task;
+
+		// TODO
 	}
 
 	RenderTaskList DynamicMeshNode::UpdateProxy() const

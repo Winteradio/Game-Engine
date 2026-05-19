@@ -1,11 +1,13 @@
 #ifndef __WTR_MATERIALPROXY_H__
 #define __WTR_MATERIALPROXY_H__
 
-#include <ECS/include/Object/Object.h>
+#include <Renderer/Proxy/ShaderProxy.h>
 
-#include <Memory/include/Pointer/RefPtr.h>
-#include <Renderer/RenderResource.h>
 #include <Renderer/MaterialDesc.h>
+#include <Framework/Math/MathTypes.h>
+
+#include <ECS/include/Object/Object.h>
+#include <Memory/include/Pointer/RefPtr.h>
 
 namespace wtr
 {
@@ -20,7 +22,7 @@ namespace wtr
 
 namespace wtr
 {
-	class MaterialProxy : public ECS::Object, public RenderResource
+	class MaterialProxy : public ECS::Object, public ShaderProxy
 	{
 	public :
 		MaterialProxy(const ECS::UUID& id);

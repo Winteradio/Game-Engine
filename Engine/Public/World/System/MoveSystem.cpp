@@ -1,5 +1,6 @@
 #include <World/System/MoveSystem.h>
 
+#include <World/RenderNode.h>
 #include <Framework/Input/InputTypes.h>
 #include <Framework/Input/InputStorage.h>
 
@@ -23,6 +24,32 @@ namespace wtr
 			auto rotation = transform->GetRotation();
 			rotation = deltaRotation * rotation;
 			transform->UpdateRotation(rotation);
+		}
+	}
+
+	void InstancedMoveSystem::UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container)
+	{
+		auto& storage = container->GetStorage();
+
+		const double seconds = ECS::TimeStep::ToSecond(timeStep.delta);
+
+		for (auto& [id, meshNode] : storage)
+		{
+			if (!meshNode || !meshNode->transform)
+			{
+				continue;
+			}
+
+			auto& transform = meshNode->transform;
+			const size_t instanceCount = transform->GetInstanceCount();
+			for (size_t index = 0; index < instanceCount; index++)
+			{
+				auto deltaRotation = glm::angleAxis(static_cast<float>(seconds), fvec3(0.f, 1.f, 0.f));
+				auto rotation = transform->GetRotation();
+				rotation = deltaRotation * rotation;
+
+				transform->UpdateRotation(index, rotation);
+			}
 		}
 	}
 };

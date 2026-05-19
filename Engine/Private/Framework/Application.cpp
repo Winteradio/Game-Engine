@@ -107,14 +107,14 @@ namespace wtr
 
 		const auto windowDesc = GetWindowDesc();
 
-		cameraEntity->AddComponent<wtr::SceneComponent>();
+		cameraEntity->AddComponent<wtr::TransformComponent>();
 		cameraEntity->AddComponent<wtr::CameraComponent>();
 		cameraEntity->AddNode<wtr::CameraNode>();
 
-		auto sceneComponent = cameraEntity->GetComponent<wtr::SceneComponent>();
-		if (sceneComponent)
+		auto transformComponent = cameraEntity->GetComponent<wtr::TransformComponent>();
+		if (transformComponent)
 		{
-			sceneComponent->UpdatePosition({ 0.0f, 0.0f, 5.0f });
+			transformComponent->UpdatePosition({ 0.0f, 0.0f, 5.0f });
 		}
 
 		auto cameraComponent = cameraEntity->GetComponent<wtr::CameraComponent>();

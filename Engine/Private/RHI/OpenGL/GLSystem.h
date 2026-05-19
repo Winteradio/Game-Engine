@@ -86,11 +86,14 @@ namespace wtr
 		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID);
 
 		bool UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID);
 		bool UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID);
 		bool UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID);
+
+		bool ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
 
 		const uint32_t GetBufferType(const eBufferType buffer) const override;
 		const uint32_t GetDataAccess(const eDataAccess access) const override;

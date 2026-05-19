@@ -224,11 +224,18 @@ namespace wtr
 	public :
 		using ProxyComponent::ProxyComponent;
 
-		MeshComponent() = default;
+		MeshComponent();
 		virtual ~MeshComponent() = default;
 
 	public :
 		virtual Memory::RefPtr<const MeshAsset> GetMeshAsset() const = 0;
+
+		bool IsChanged() const;
+		void OnChanged();
+		void ClearChanged();
+
+	private :
+		bool m_isChanged;
 	};
 
 	class StaticMeshComponent : public MeshComponent
@@ -243,6 +250,8 @@ namespace wtr
 
 	public :
 		Memory::RefPtr<const MeshAsset> GetMeshAsset() const override;
+
+		void SetMeshAsset(Memory::RefPtr<const MeshAsset> meshAsset);
 
 	private :
 		Memory::RefPtr<const MeshAsset> m_refMesh;
@@ -266,7 +275,9 @@ namespace wtr
 		void UpdateIndex(const FormattedBuffer& indexBuffer);
 		void UpdateSection(const MeshSection& section);
 		void UpdateDrawMode(const eDrawMode drawMode);
-		void SetMaterial(const std::string& sectionName, Memory::RefPtr<const MaterialAsset> refMaterial);
+
+		void SetMeshAsset(Memory::RefPtr<MeshAsset> meshAsset);
+		void SetMaterialAsset(const std::string& sectionName, Memory::RefPtr<const MaterialAsset> refMaterial);
 
 	private :
 		Memory::RefPtr<MeshAsset> m_refMesh;

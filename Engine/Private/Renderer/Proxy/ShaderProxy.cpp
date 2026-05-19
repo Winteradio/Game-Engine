@@ -1,14 +1,14 @@
-#include <Renderer/Proxy/ShaderSet.h>
+#include <Renderer/Proxy/ShaderProxy.h>
 
 #include <RHI/RHIResources.h>
 
 namespace wtr
 {
-	ShaderSet::ShaderSet()
+	ShaderProxy::ShaderProxy()
 		: m_shaders()
 	{}
 
-	eResourceState ShaderSet::GetResourceState() const
+	eResourceState ShaderProxy::GetResourceState() const
 	{
 		if (m_shaders.Empty())
 		{
@@ -29,7 +29,7 @@ namespace wtr
 		return state;
 	}
 
-	void ShaderSet::AddShader(Memory::RefPtr<const ShaderState> shaderState)
+	void ShaderProxy::AddShader(Memory::RefPtr<const ShaderState> shaderState)
 	{
 		const Reflection::TypeInfo* typeInfo = shaderState->GetTypeInfo();
 		const size_t typeHash = typeInfo->GetTypeHash();

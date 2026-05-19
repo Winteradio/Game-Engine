@@ -370,6 +370,11 @@ namespace wtr
 		}
 	}
 
+	const float PointLightComponent::GetRange() const
+	{
+		return m_range;
+	}
+
 	SpotLightComponent::SpotLightComponent()
 		: LightComponent()
 		, m_range(1.f)
@@ -422,6 +427,27 @@ namespace wtr
 		return m_outerAngle;
 	}
 
+	MeshComponent::MeshComponent()
+		: ProxyComponent()
+		, m_isChanged(false)
+	{
+	}
+
+	bool MeshComponent::IsChanged() const
+	{
+		return m_isChanged;
+	}
+
+	void MeshComponent::OnChanged()
+	{
+		m_isChanged = true;
+	}
+
+	void MeshComponent::ClearChanged()
+	{
+		m_isChanged = false;
+	}
+
 	StaticMeshComponent::StaticMeshComponent(Memory::RefPtr<const Asset> refAsset)
 		: MeshComponent()
 		, m_refMesh(nullptr)
@@ -441,6 +467,19 @@ namespace wtr
 	Memory::RefPtr<const MeshAsset> StaticMeshComponent::GetMeshAsset() const
 	{
 		return m_refMesh;
+	}
+
+	void StaticMeshComponent::SetMeshAsset(Memory::RefPtr<const MeshAsset> meshAsset)
+	{
+		if (!meshAsset || meshAsset.Get() == m_refMesh.Get())
+		{
+			return;
+		}
+
+		m_refMesh = meshAsset;
+
+		this->OnChanged();
+		this->OnUpdate();
 	}
 
 	DynamicMeshComponent::DynamicMeshComponent(Memory::RefPtr<Asset> refAsset)
@@ -504,7 +543,20 @@ namespace wtr
 		// TODO : Update the draw mode of the mesh asset and update the mesh component.
 	}
 
-	void DynamicMeshComponent::SetMaterial(const std::string& sectionName, Memory::RefPtr<const MaterialAsset> refMaterial)
+	void DynamicMeshComponent::SetMeshAsset(Memory::RefPtr<MeshAsset> meshAsset)
+	{
+		if (!meshAsset || meshAsset.Get() != m_refMesh.Get())
+		{
+			return;
+		}
+
+		m_refMesh = meshAsset;
+
+		this->OnChanged();
+		this->OnUpdate();
+	}
+
+	void DynamicMeshComponent::SetMaterialAsset(const std::string& sectionName, Memory::RefPtr<const MaterialAsset> refMaterial)
 	{
 		if (!m_refMesh)
 		{

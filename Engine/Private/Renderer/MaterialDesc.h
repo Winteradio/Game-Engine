@@ -8,7 +8,7 @@ namespace wtr
     struct MaterialDesc
     {
         // Determines the lighting model and GBuffer layout used for this material
-        eShadingModel shadingModel = eShadingModel::eLit;
+        eShadingModel shadingModel = eShadingModel::eUnlit;
 
         // Determines which pass renders this material and how blending is applied
         // Default: Opaque (rendered in GeometryPass, no blending)

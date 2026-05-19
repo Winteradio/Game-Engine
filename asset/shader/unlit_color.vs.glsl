@@ -1,17 +1,18 @@
-#version 460 core
+#version 450 core
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 
-layout(binding = 0) uniform CameraData
+layout(binding = 0) uniform uCamera
 {
     mat4 viewMatrix;
     mat4 projMatrix;
 
     vec3 cameraPosition;
+    vec3 cameraDirection;
 };
 
-layout(binding = 1) buffer InstanceData
+layout(binding = 1) buffer uTransform
 {
     mat4 transforms[];
 };

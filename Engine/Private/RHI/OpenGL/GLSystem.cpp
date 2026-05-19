@@ -606,10 +606,6 @@ namespace wtr
 		{
 			Initialized = InitializeTexture3D(info, textureID);
 		}
-		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
-		{
-			Initialized = InitializeTextureMulti(info, textureID);
-		}
 		else
 		{
 			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
@@ -755,6 +751,7 @@ namespace wtr
 		AttachShader(info.geometryShader);
 		AttachShader(info.hullShader);
 		AttachShader(info.pixelShader);
+		AttachShader(info.domainShader);
 		AttachShader(info.computeShader);
 
 		glLinkProgram(programID);
@@ -953,13 +950,13 @@ namespace wtr
 				continue;
 			}
 
-			const uint32_t expectedLocation = GetVertexLocation(vertexKey);
+			const int32_t expectedLocation = GetVertexLocation(vertexKey);
 
 			GLint location = -1;
 			const GLenum locationProp = { GL_LOCATION };
 			glGetProgramResourceiv(programID, GL_PROGRAM_INPUT, index, 1, &locationProp, 1, nullptr, &location);
 
-			if (static_cast<uint32_t>(location) != expectedLocation)
+			if (static_cast<int16_t>(location) != expectedLocation)
 			{
 				LOGWARN() << "[GL] Vertex attribute location mismatch: " << attributeName << ", expected location: " << expectedLocation << ", actual location: " << location;
 
@@ -1002,7 +999,7 @@ namespace wtr
 				}
 
 				RHIResourceBinding bindingSlot;
-				bindingSlot.location = GL_NONE;
+				bindingSlot.location = -1;
 				bindingSlot.type = eBindingType::eNone;
 
 				if (desc.enumType == GL_UNIFORM)
@@ -1040,7 +1037,7 @@ namespace wtr
 						continue;
 					}
 
-					bindingSlot.location = static_cast<uint16_t>(bindingIndex);
+					bindingSlot.location = static_cast<int32_t>(bindingIndex);
 					bindingSlot.type = desc.bindingType;
 				}
 
@@ -1052,6 +1049,96 @@ namespace wtr
 	}
 
 	bool GLSystem::InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		RHITextureUpdateDesc update;
+		update.width = info.width;
+		update.height = info.height;
+		update.depth = info.depth;
+		update.face = info.face;
+		update.mipLevels = info.mipLevels;
+		update.sampleCount = info.sampleCount;
+		update.format = info.format;
+		update.usage = info.usage;
+		update.textureType = info.textureType;
+		update.dataType = info.dataType;
+		update.generateMips = info.generateMips;
+		update.compressed = info.compressed;
+		update.faces = info.faces;
+
+		if (!ResizeTexture1D(info, textureID))
+		{
+			return false;
+		}
+
+		if (!info.faces.Empty() && !UpdateTexture1D(update, textureID))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		RHITextureUpdateDesc update;
+		update.width = info.width;
+		update.height = info.height;
+		update.depth = info.depth;
+		update.face = info.face;
+		update.mipLevels = info.mipLevels;
+		update.sampleCount = info.sampleCount;
+		update.format = info.format;
+		update.usage = info.usage;
+		update.textureType = info.textureType;
+		update.dataType = info.dataType;
+		update.generateMips = info.generateMips;
+		update.compressed = info.compressed;
+		update.faces = info.faces;
+
+		if (!ResizeTexture2D(info, textureID))
+		{
+			return false;
+		}
+
+		if (!info.faces.Empty() && !UpdateTexture2D(update, textureID))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool GLSystem::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		RHITextureUpdateDesc update;
+		update.width = info.width;
+		update.height = info.height;
+		update.depth = info.depth;
+		update.face = info.face;
+		update.mipLevels = info.mipLevels;
+		update.sampleCount = info.sampleCount;
+		update.format = info.format;
+		update.usage = info.usage;
+		update.textureType = info.textureType;
+		update.dataType = info.dataType;
+		update.generateMips = info.generateMips;
+		update.compressed = info.compressed;
+		update.faces = info.faces;
+
+		if (!ResizeTexture3D(info, textureID))
+		{
+			return false;
+		}
+
+		if (!info.faces.Empty() && !UpdateTexture3D(update, textureID))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool GLSystem::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE || info.faces.Size() != 1)
 		{
@@ -1066,237 +1153,36 @@ namespace wtr
 		glBindTexture(textureType, textureID);
 
 		auto& face = info.faces.Front();
-		for (const auto& mipMap : face.mipMaps)
+		for (const auto& mipmap : face.mipMaps)
 		{
-			if (!mipMap.data || mipMap.data->IsEmpty())
+			if (!mipmap.data || mipmap.data->IsEmpty())
 			{
 				continue;
 			}
 
-			const void* dataPointer = mipMap.data->GetPointer();
-			const size_t dataSize = mipMap.data->GetSize();
+			const void* dataPointer = mipmap.data->GetPointer();
+			const size_t dataSize = mipmap.data->GetSize();
 
-			const uint32_t width = max(1, info.width >> mipMap.level);
-			const uint32_t height = max(1, info.height >> mipMap.level);
-			const uint32_t depth = max(1, info.depth >> mipMap.level);
+			const uint32_t width = max(1, info.width >> mipmap.level);
 
 			if (info.compressed)
 			{
-				glCompressedTexImage1D(textureType, mipMap.level, internalFormat, width, 0, dataSize, dataPointer);
+				glCompressedTexSubImage1D(textureType, mipmap.level, mipmap.xOffset, width, baseFormat, dataSize, dataPointer);
 			}
 			else
 			{
-				glTexImage1D(textureType, mipMap.level, internalFormat, width, 0, baseFormat, pixelDataType, dataPointer);
+				glTexSubImage1D(textureType, mipmap.level, mipmap.xOffset, width, baseFormat, pixelDataType, dataPointer);
 			}
 		}
+
+		if (info.generateMips)
+		{
+			glGenerateMipmap(textureType);
+		}
+
+		glBindTexture(textureType, GL_NONE);
 
 		return true;
-	}
-
-	bool GLSystem::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
-	{
-		if (textureID == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
-		const uint32_t baseFormat = GetBaseFormat(info.format);
-		const uint32_t pixelDataType = GetPixelDataType(info.format);
-
-		glBindTexture(textureType, textureID);
-
-		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP;
-
-		if (cubeMap)
-		{
-			constexpr size_t FACE_COUNT = 6;
-			if (info.faces.Size() != FACE_COUNT)
-			{
-				return false;
-			}
-
-			for (size_t faceIndex = 0; faceIndex < FACE_COUNT; ++faceIndex)
-			{
-				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
-				{
-					if (!mipMap.data || mipMap.data->IsEmpty())
-					{
-						continue;
-					}
-
-					const void* dataPointer = mipMap.data->GetPointer();
-					const size_t dataSize = mipMap.data->GetSize();
-
-					const uint32_t width = max(1, info.width >> mipMap.level);
-					const uint32_t height = max(1, info.height >> mipMap.level);
-					const uint32_t depth = max(1, info.depth >> mipMap.level);
-					if (info.compressed)
-					{
-						glCompressedTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, dataSize, dataPointer);
-					}
-					else
-					{
-						glTexImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, dataPointer);
-					}
-				}
-			}
-		}
-		else
-		{
-			if (info.faces.Size() != 1)
-			{
-				return false;
-			}
-
-			auto& face = info.faces.Front();
-			for (const auto& mipMap : face.mipMaps)
-			{
-				if (!mipMap.data || mipMap.data->IsEmpty())
-				{
-					continue;
-				}
-
-				const void* dataPointer = mipMap.data->GetPointer();
-				const size_t dataSize = mipMap.data->GetSize();
-
-				const uint32_t width = max(1, info.width >> mipMap.level);
-				const uint32_t height = max(1, info.height >> mipMap.level);
-				const uint32_t depth = max(1, info.depth >> mipMap.level);
-
-				if (info.compressed)
-				{
-					glCompressedTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, dataSize, dataPointer);
-				}
-				else
-				{
-					glTexImage2D(textureType, mipMap.level, internalFormat, width, height, 0, baseFormat, pixelDataType, dataPointer);
-				}
-			}
-		}
-
-		return true;
-	}
-
-	bool GLSystem::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
-	{
-		if (textureID == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
-		const uint32_t baseFormat = GetBaseFormat(info.format);
-		const uint32_t pixelDataType = GetPixelDataType(info.format);
-
-		glBindTexture(textureType, textureID);
-
-		const bool cubeMap = textureType == GL_TEXTURE_CUBE_MAP_ARRAY;
-
-		if (cubeMap)
-		{
-			constexpr size_t faceCount = 6;
-			if (info.faces.Size() != faceCount)
-			{
-				return false;
-			}
-
-			for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
-			{
-				for (const auto& mipMap : info.faces[faceIndex].mipMaps)
-				{
-					if (!mipMap.data || mipMap.data->IsEmpty())
-					{
-						continue;
-					}
-
-					const void* dataPointer = mipMap.data->GetPointer();
-					const size_t dataSize = mipMap.data->GetSize();
-
-					const uint32_t width = max(1, info.width >> mipMap.level);
-					const uint32_t height = max(1, info.height >> mipMap.level);
-					const uint32_t depth = max(1, info.depth >> mipMap.level);
-					if (info.compressed)
-					{
-						glCompressedTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, dataSize, dataPointer);
-					}
-					else
-					{
-						glTexImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, dataPointer);
-					}
-				}
-			}
-		}
-		else
-		{
-			if (info.faces.Size() != 1)
-			{
-				return false;
-			}
-
-			auto& face = info.faces.Front();
-			for (const auto& mipMap : face.mipMaps)
-			{
-				if (!mipMap.data || mipMap.data->IsEmpty())
-				{
-					continue;
-				}
-
-				const void* dataPointer = mipMap.data->GetPointer();
-				const size_t dataSize = mipMap.data->GetSize();
-
-				const uint32_t width = max(1, info.width >> mipMap.level);
-				const uint32_t height = max(1, info.height >> mipMap.level);
-				const uint32_t depth = max(1, info.depth >> mipMap.level);
-
-				if (info.compressed)
-				{
-					glCompressedTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, dataSize, dataPointer);
-				}
-				else
-				{
-					glTexImage3D(textureType, mipMap.level, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, dataPointer);
-				}
-			}
-		}
-
-		return true;
-	}
-
-	bool GLSystem::InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID)
-	{
-		if (textureID == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
-		const uint32_t baseFormat = GetBaseFormat(info.format);
-		const uint32_t pixelDataType = GetPixelDataType(info.format);
-
-		glBindTexture(textureType, textureID);
-
-		// TODO : Implemented yet
-		return false;
-	}
-
-	bool GLSystem::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
-	{
-		if (textureID == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
-		const uint32_t baseFormat = GetBaseFormat(info.format);
-		const uint32_t pixelDataType = GetPixelDataType(info.format);
-
-		// TODO : Implemented yet
-		return false;
 	}
 
 	bool GLSystem::UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID)
@@ -1311,8 +1197,88 @@ namespace wtr
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
-		// TODO : Implemented yet
-		return false;
+		const bool isArray = (textureType == GL_TEXTURE_1D_ARRAY);
+		const bool isCubeMap = (textureType == GL_TEXTURE_CUBE_MAP);
+		const bool isMulti = (textureType == GL_TEXTURE_2D_MULTISAMPLE);
+
+		if (!isMulti)
+		{
+			glBindTexture(textureType, textureID);
+
+			if (isCubeMap)
+			{
+				constexpr size_t FACE_COUNT = 6;
+				if (info.faces.Size() != FACE_COUNT)
+				{
+					return false;
+				}
+
+				for (size_t faceIndex = 0; faceIndex < FACE_COUNT; ++faceIndex)
+				{
+					for (const auto& mipmap : info.faces[faceIndex].mipMaps)
+					{
+						if (!mipmap.data || mipmap.data->IsEmpty())
+						{
+							continue;
+						}
+
+						const void* dataPointer = mipmap.data->GetPointer();
+						const size_t dataSize = mipmap.data->GetSize();
+
+						const uint32_t width = max(1, info.width >> mipmap.level);
+						const uint32_t height = max(1, info.height >> mipmap.level);
+						if (info.compressed)
+						{
+							glCompressedTexSubImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipmap.level, mipmap.xOffset, mipmap.yOffset, width, height, internalFormat, dataSize, dataPointer);
+						}
+						else
+						{
+							glTexSubImage2D(TEXTURE_CUBEMAP_FACES[faceIndex], mipmap.level, mipmap.xOffset, mipmap.yOffset, width, height, baseFormat, pixelDataType, dataPointer);
+						}
+					}
+				}
+			}
+			else
+			{
+				if (info.faces.Size() != 1)
+				{
+					return false;
+				}
+
+				auto& face = info.faces.Front();
+				for (const auto& mipmap : face.mipMaps)
+				{
+					if (!mipmap.data || mipmap.data->IsEmpty())
+					{
+						continue;
+					}
+
+					const void* dataPointer = mipmap.data->GetPointer();
+					const size_t dataSize = mipmap.data->GetSize();
+
+					const uint32_t width = max(1, info.width >> mipmap.level);
+					const uint32_t height = isArray ? info.height : max(1, info.height >> mipmap.level);
+
+					if (info.compressed)
+					{
+						glCompressedTexSubImage2D(textureType, mipmap.level, mipmap.xOffset, mipmap.yOffset, width, height, internalFormat, dataSize, dataPointer);
+					}
+					else
+					{
+						glTexSubImage2D(textureType, mipmap.level, mipmap.xOffset, mipmap.yOffset, width, height, baseFormat, pixelDataType, dataPointer);
+					}
+				}
+			}
+
+			if (info.generateMips)
+			{
+				glGenerateMipmap(textureType);
+			}
+
+			glBindTexture(textureType, GL_NONE);
+		}
+
+		return true;
 	}
 
 	bool GLSystem::UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID)
@@ -1327,8 +1293,90 @@ namespace wtr
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
-		// TODO : Implemented yet
-		return false;
+		const bool isArray = (textureType == GL_TEXTURE_2D_ARRAY || textureType == GL_TEXTURE_CUBE_MAP_ARRAY);
+		const bool isCubeMap = (textureType == GL_TEXTURE_CUBE_MAP_ARRAY);
+		const bool isMulti = (textureType == GL_TEXTURE_2D_MULTISAMPLE_ARRAY);
+
+		if (!isMulti)
+		{
+			glBindTexture(textureType, textureID);
+
+			if (isCubeMap)
+			{
+				constexpr size_t faceCount = 6;
+				if (info.faces.Size() != faceCount)
+				{
+					return false;
+				}
+
+				for (size_t faceIndex = 0; faceIndex < faceCount; ++faceIndex)
+				{
+					for (const auto& mipmap : info.faces[faceIndex].mipMaps)
+					{
+						if (!mipmap.data || mipmap.data->IsEmpty())
+						{
+							continue;
+						}
+
+						const void* dataPointer = mipmap.data->GetPointer();
+						const size_t dataSize = mipmap.data->GetSize();
+
+						const uint32_t width = max(1, info.width >> mipmap.level);
+						const uint32_t height = max(1, info.height >> mipmap.level);
+						const uint32_t depth = isArray ? info.depth : max(1, info.depth >> mipmap.level);
+						if (info.compressed)
+						{
+							glCompressedTexSubImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipmap.level, mipmap.xOffset, mipmap.yOffset, mipmap.zOffset, width, height, depth, baseFormat, dataSize, dataPointer);
+						}
+						else
+						{
+							glTexSubImage3D(TEXTURE_CUBEMAP_FACES[faceIndex], mipmap.level, mipmap.xOffset, mipmap.yOffset, mipmap.zOffset, width, height, depth, baseFormat, pixelDataType, dataPointer);
+						}
+					}
+				}
+			}
+			else
+			{
+				if (info.faces.Size() != 1)
+				{
+					return false;
+				}
+
+				auto& face = info.faces.Front();
+				for (const auto& mipmap : face.mipMaps)
+				{
+					if (!mipmap.data || mipmap.data->IsEmpty())
+					{
+						continue;
+					}
+
+					const void* dataPointer = mipmap.data->GetPointer();
+					const size_t dataSize = mipmap.data->GetSize();
+
+					const uint32_t width = max(1, info.width >> mipmap.level);
+					const uint32_t height = max(1, info.height >> mipmap.level);
+					const uint32_t depth = isArray ? info.depth : max(1, info.depth >> mipmap.level);
+
+					if (info.compressed)
+					{
+						glCompressedTexSubImage3D(textureType, mipmap.level, mipmap.xOffset, mipmap.yOffset, mipmap.zOffset, width, height, depth, baseFormat, dataSize, dataPointer);
+					}
+					else
+					{
+						glTexSubImage3D(textureType, mipmap.level, mipmap.xOffset, mipmap.yOffset, mipmap.zOffset, width, height, depth, baseFormat, pixelDataType, dataPointer);
+					}
+				}
+			}
+
+			if (info.generateMips)
+			{
+				glGenerateMipmap(textureType);
+			}
+
+			glBindTexture(textureType, GL_NONE);
+		}
+
+		return true;
 	}
 
 	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
@@ -1391,14 +1439,50 @@ namespace wtr
 
 	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
-		if (!texture)
+		if (!texture || info.faces.Empty())
 		{
 			return;
 		}
 
-		texture->SetDesc(info);
+		GLTexture* glTexture = reinterpret_cast<GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || (glTexture->GetID() == GL_NONE))
+		{
+			return;
+		}
 
-		// TODO
+		const uint32_t textureID = glTexture->GetID();
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+
+		bool initialized = false;
+		if (textureDimension == 1)
+		{
+			initialized = UpdateTexture1D(info, textureID);
+		}
+		else if (textureDimension == 2)
+		{
+			initialized = UpdateTexture2D(info, textureID);
+		}
+		else if (textureDimension == 3)
+		{
+			initialized = UpdateTexture3D(info, textureID);
+		}
+		else
+		{
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+		}
+
+		if (!initialized)
+		{
+			LOGERROR() << "[GL] Failed to update texture";
+
+			glDeleteTextures(1, &textureID);
+
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
+
+			texture->SetDesc(info);
+		}
 	}
 
 	void GLSystem::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -1462,29 +1546,25 @@ namespace wtr
 		const uint32_t textureType = GetTextureType(info.textureType);
 		const uint32_t textureDimension = GetTextureDimension(info.textureType);
 
-		bool Initialized = false;
+		bool initialized = false;
 		if (textureDimension == 1)
 		{
-			Initialized = InitializeTexture1D(info, textureID);
+			initialized = ResizeTexture1D(info, textureID);
 		}
 		else if (textureDimension == 2)
 		{
-			Initialized = InitializeTexture2D(info, textureID);
+			initialized = ResizeTexture2D(info, textureID);
 		}
 		else if (textureDimension == 3)
 		{
-			Initialized = InitializeTexture3D(info, textureID);
-		}
-		else if (textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE || textureType == GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY)
-		{
-			Initialized = InitializeTextureMulti(info, textureID);
+			initialized = ResizeTexture3D(info, textureID);
 		}
 		else
 		{
 			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
 		}
 
-		if (!Initialized)
+		if (!initialized)
 		{
 			LOGERROR() << "[GL] Failed to resize texture";
 
@@ -1495,6 +1575,106 @@ namespace wtr
 
 			texture->SetDesc(info);
 		}
+	}
+
+	bool GLSystem::ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		glBindTexture(textureType, textureID);
+
+		for (uint32_t mipLevel = 0; mipLevel < info.mipLevels; mipLevel++)
+		{
+			const uint32_t width = max(1, info.width >> mipLevel);
+			glTexImage1D(textureType, mipLevel, internalFormat, width, 0, baseFormat, pixelDataType, nullptr);
+		}
+
+		glBindTexture(textureType, GL_NONE);
+
+		return true;
+	}
+
+	bool GLSystem::ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		const bool isArray = (textureType == GL_TEXTURE_1D_ARRAY);
+
+		glBindTexture(textureType, textureID);
+
+		const bool isMulti = (textureType == GL_TEXTURE_2D_MULTISAMPLE_ARRAY);
+		if (isMulti)
+		{
+			glTexImage2DMultisample(textureType, info.sampleCount, internalFormat, info.width, info.height, GL_TRUE);
+		}
+		else
+		{
+			for (uint32_t mipLevel = 0; mipLevel < info.mipLevels; mipLevel++)
+			{
+				const uint32_t width = max(1, info.width >> mipLevel);
+				const uint32_t height = isArray ? info.height : max(1, info.height >> mipLevel);
+
+				glTexImage2D(textureType, mipLevel, internalFormat, width, height, 0, baseFormat, pixelDataType, nullptr);
+			}
+		}
+
+		glBindTexture(textureType, GL_NONE);
+
+		return true;
+	}
+
+	bool GLSystem::ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	{
+		if (textureID == GL_NONE)
+		{
+			return false;
+		}
+
+		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t baseFormat = GetBaseFormat(info.format);
+		const uint32_t pixelDataType = GetPixelDataType(info.format);
+
+		const bool isArray = (textureType == GL_TEXTURE_1D_ARRAY);
+
+		glBindTexture(textureType, textureID);
+
+		const bool isMulti = (textureType == GL_TEXTURE_2D_MULTISAMPLE_ARRAY);
+		if (isMulti)
+		{
+			glTexImage3DMultisample(textureType, info.sampleCount, internalFormat, info.width, info.height, info.depth, GL_TRUE);
+		}
+		else
+		{
+			for (uint32_t mipLevel = 0; mipLevel < info.mipLevels; mipLevel++)
+			{
+				const uint32_t width = max(1, info.width >> mipLevel);
+				const uint32_t height = max(1, info.height >> mipLevel);
+				const uint32_t depth = isArray ? info.depth : max(1, info.depth >> mipLevel);
+
+				glTexImage3D(textureType, mipLevel, internalFormat, width, height, depth, 0, baseFormat, pixelDataType, nullptr);
+			}
+		}
+
+		glBindTexture(textureType, GL_NONE);
+
+		return true;
 	}
 
 	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
@@ -1686,7 +1866,7 @@ namespace wtr
 
 	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
-		if (info.indexCount)
+		if (info.indexCount == 0 || info.instanceCount == 0)
 		{
 			return;
 		}
