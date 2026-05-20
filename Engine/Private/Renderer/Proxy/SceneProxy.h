@@ -1,18 +1,17 @@
 #ifndef __WTR_SCENEPROXY_H__
 #define __WTR_SCENEPROXY_H__
 
-#include <ECS/include/Object/Object.h>
-#include <Framework/Math/MathTypes.h>
-#include <Reflection/include/Type/TypeMacro.h>
+#include <Renderer/Proxy/RenderProxy.h>
 
-#include <cstdint>
+#include <Framework/Math/MathTypes.h>
+
 namespace wtr
 {
-	class SceneProxy : public ECS::Object
+	class SceneProxy : public RenderProxy
 	{
 		GENERATE(SceneProxy);
 	public :
-		SceneProxy();
+		SceneProxy(const ECS::UUID& id);
 		virtual ~SceneProxy();
 
 	public :
@@ -26,18 +25,14 @@ namespace wtr
 		const fvec3 GetScale() const;
 		const fmat4 GetTransform() const;
 
+	protected :
+		void UpdateTransform();
+
 	private :
 		fvec3 m_position;
 		fquat m_rotation;
 		fvec3 m_scale;
-	};
-
-	struct UpdateProxyInfo
-	{
-		const ECS::UUID id;
-		const fvec3 position;
-		const fquat rotation;
-		const fvec3 scale;
+		fmat4 m_transform;
 	};
 };
 

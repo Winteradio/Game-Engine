@@ -3,8 +3,11 @@
 #include <Renderer/MeshBatch.h>
 #include <Renderer/RenderScene.h>
 #include <Renderer/RenderView.h>
-#include <Renderer/GlobalResource.h>
-#include <Renderer/PipeLine/SimpleColor.h>
+#include <Renderer/GlobalRenderer.h>
+#include <Renderer/Proxy/LightProxy.h>
+#include <Renderer/RenderPass/CullingPass.h>
+#include <Renderer/RenderPass/GeometryPass.h>
+#include <Renderer/RenderPass/LightingPass.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
 
@@ -25,59 +28,52 @@ namespace wtr
 
 	bool RenderGraph::Init(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!InitResource(cmdList))
+		Memory::RefPtr<CullingPass> cullingPass = Memory::MakeRef<CullingPass>();
+		Memory::RefPtr<GeometryPass> geometryPass = Memory::MakeRef<GeometryPass>();
+		Memory::RefPtr<LightingPass> lightingPass = Memory::MakeRef<LightingPass>();
+
+		if (!cullingPass || !geometryPass || !lightingPass)
 		{
-			LOGERROR() << "[Render Graph] Failed to initialize the render graph resource";
 			return false;
 		}
 
-		if (!InitPipeLine())
-		{
-			LOGERROR() << "[Render Graph] Failed to initialize the render graph pipeline";
-			return false;
-		}
+		geometryPass->InitState();
+		lightingPass->InitState();
 
-		return true;
+		Add(cullingPass);
+		Add(geometryPass);
+		Add(lightingPass);
+
+		auto& cullingNode = GetNode(cullingPass->GetID());
+		auto& geometryNode = GetNode(geometryPass->GetID());
+		auto& lightingNode = GetNode(lightingPass->GetID());
+
+		geometryNode.SetDependency(cullingNode);
+		lightingNode.SetDependency(geometryNode);
+
+		return GlobalResource::Init(cmdList);
 	}
 
-	bool RenderGraph::InitResource(Memory::RefPtr<RHICommandList> cmdList)
+	void RenderGraph::RemoveAll(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{
-			LOGERROR() << "[Render Graph] Failed to initialize the render graph resource, cause the command list is invalid";
-			return false;
+			return;
 		}
 
-		m_globalResource = Memory::MakeRef<GlobalResource>();
-		if (!m_globalResource)
+		m_addable.Clear();
+		FlushRemovable(cmdList);
+
+		const auto& sortedNode = GetSorted();
+		for (auto& renderPass : sortedNode)
 		{
-			LOGERROR() << "[Render Graph] Failed to create the global resource";
-			return false;
+			if (renderPass)
+			{
+				renderPass->Unload(cmdList);
+			}
 		}
 
-		if (!m_globalResource->Init(cmdList))
-		{
-			LOGERROR() << "[Render Graph] Failed to initialize the global resource";
-			return false;
-		}
-
-		return true;
-	}
-
-	bool RenderGraph::InitPipeLine()
-	{
-		if (Memory::RefPtr<SimpleColor> simpleColor = Create<SimpleColor>())
-		{
-			simpleColor->Init();
-			Add(simpleColor);
-		}
-		else
-		{
-			LOGERROR() << "[Render Graph] Failed to create the simple color pipeline";
-			return false;
-		}
-
-		return true;
+		GlobalResource::Release(cmdList);
 	}
 
 	void RenderGraph::Flush(Memory::RefPtr<RHICommandList> cmdList)
@@ -96,32 +92,32 @@ namespace wtr
 		auto itr = m_addable.begin();
 		while (itr != m_addable.end())
 		{
-			auto& pipeLine = *itr;
-			if (!pipeLine)
+			auto& renderpass = *itr;
+			if (!renderpass)
 			{
-				LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is invalid";
+				LOGINFO() << "[Render Graph] Failed to add the render pass, cause the render pass is invalid";
 				itr = m_addable.Erase(itr);
 				continue;
 			}
 
-			const eResourceState state = pipeLine->GetShaderState();
+			const eResourceState state = renderpass->GetResourceState();
 			if (state == eResourceState::eReady)
 			{
 				itr = m_addable.Erase(itr);
-
-				pipeLine->Upload(cmdList);
 
 				continue;
 			}
 			else if (state == eResourceState::eError)
 			{
-				LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is in error state";
+				LOGINFO() << "[Render Graph] Failed to add the render pass, cause the render pass is in error state";
 				itr = m_addable.Erase(itr);
 
 				continue;
 			}
 			else
 			{
+				renderpass->Upload(cmdList);
+
 				itr++;
 			}
 		}
@@ -137,96 +133,99 @@ namespace wtr
 		auto itr = m_removable.begin();
 		while (itr != m_removable.end())
 		{
-			auto& pipeLine = *itr;
-			if (!pipeLine)
+			auto& renderPass = *itr;
+			if (!renderPass)
 			{
-				LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is invalid";
+				LOGINFO() << "[Render Graph] Failed to remove the render pass, cause the render pass is invalid";
 				itr = m_removable.Erase(itr);
 				continue;
 			}
 
-			const eResourceState state = pipeLine->GetResourceState();
+			const eResourceState state = renderPass->GetResourceState();
 			if (state != eResourceState::eNone)
 			{
-				pipeLine->Unload(cmdList);
+				renderPass->Unload(cmdList);
 			}
 			else
 			{
-				LOGINFO() << "[Render Graph] Failed to remove the pipeline, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << pipeLine->GetID().ToString();
+				const Reflection::TypeInfo* typeInfo = renderPass->GetTypeInfo();
+				LOGINFO() << "[Render Graph] Failed to remove the render pass, the state(" << static_cast<uint8_t>(state) << ") is invalid, ID " << typeInfo->GetTypeName();
 			}
 
 			itr = m_removable.Erase(itr);
 		}
 	}
 
-	void RenderGraph::Add(Memory::RefPtr<PipeLine> pipeLine)
+	void RenderGraph::Add(Memory::RefPtr<RenderPass> renderPass)
 	{
-		if (!pipeLine)
+		if (!renderPass)
 		{
-			LOGINFO() << "[Render Graph] Failed to add the pipeline, cause the pipeline is invalid";
+			LOGINFO() << "[Render Graph] Failed to add the render pass, cause the render pass is invalid";
 			return;
 		}
 
-		m_addable.Insert(pipeLine);
+		Super::Add(renderPass);
+		m_addable.Insert(renderPass);
 
-		LOGINFO() << "[Render Graph] Add the pipeline, ID : " << PipeLineString()(pipeLine);
+		const Reflection::TypeInfo* typeInfo = renderPass->GetTypeInfo();
+		LOGINFO() << "[Render Graph] Add the render pass, the name : " << typeInfo->GetTypeName();
 	}
 
-	void RenderGraph::Remove(Memory::RefPtr<PipeLine> pipeLine)
+	void RenderGraph::Remove(Memory::RefPtr<RenderPass> renderPass)
 	{
-		if (!pipeLine)
+		if (!renderPass)
 		{
-			LOGINFO() << "[Render Graph] Failed to remove the pipeline, cause the pipeline is invalid";
+			LOGINFO() << "[Render Graph] Failed to remove the render pass, cause the render pass is invalid";
 			return;
 		}
 
-		Super::Remove(pipeLine->GetID());
-		m_removable.Insert(pipeLine);
+		Super::Remove(renderPass->GetID());
+		m_removable.Insert(renderPass);
 
-		LOGINFO() << "[Render Graph] Remove the pipeline, ID : " << PipeLineString()(pipeLine);
+		const Reflection::TypeInfo* typeInfo = renderPass->GetTypeInfo();
+		LOGINFO() << "[Render Graph] Remove the render pass, the name : " << typeInfo->GetTypeName();
 	}
 
 	void RenderGraph::Execute(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<RenderScene> renderScene, const RenderView& renderView)
 	{
-		if (!cmdList || !renderScene || !m_globalResource)
+		if (!cmdList || !renderScene)
 		{
 			LOGERROR() << "[Render Graph] Failed to execute the render graph, cause the command list or render scene is invalid";
 			return;
 		}
 
-		m_globalResource->UpdateCamera(renderView, cmdList);
+		GlobalResource::Update(cmdList, renderView);
 
 		m_drawCommands.Clear();
 		const auto& meshBatches = renderScene->GetMeshBatches();
-		for (const auto& batchPair : meshBatches)
+		for (const auto& [id, batch] : meshBatches)
 		{
-			const auto& batch = batchPair.second;
 			if (batch && batch->GetResourceState() == eResourceState::eReady)
 			{
 				m_drawCommands.PushBack(batch->GetDrawCommand());
 			}
 		}
 
+		m_lightProxies.Clear();
+		const auto& lightProxies = renderScene->GetLightProxies();
+		for (const auto& [id, lightProxy] : lightProxies)
+		{
+			if (lightProxy && lightProxy->GetResourceState() == eResourceState::eReady)
+			{
+				m_lightProxies.PushBack(lightProxy);
+			}
+		}
+
 		cmdList->Resize(renderView.viewport.posX, renderView.viewport.posY, renderView.viewport.width, renderView.viewport.height);
 
-		for (const auto& pipeLine : GetSorted())
+		for (const auto& renderPass : GetSorted())
 		{
-			if (!pipeLine || pipeLine->GetResourceState() != eResourceState::eReady)
+			if (!renderPass || renderPass->GetResourceState() != eResourceState::eReady)
 			{
 				continue;
 			}
 
-			pipeLine->Execute(m_drawCommands, m_globalResource, cmdList);
+			renderPass->Draw(m_drawCommands, m_lightProxies, cmdList);
 		}
-	}
-
-	RenderGraph::PendingPipeLine& RenderGraph::GetAddable()
-	{
-		return m_addable;
-	}
-
-	RenderGraph::PendingPipeLine& RenderGraph::GetRemovable()
-	{
-		return m_removable;
 	}
 }

@@ -9,6 +9,7 @@ namespace wtr
 		, m_pendingSamplers()
 		, m_pendingShaders()
 		, m_pendingPipeLines()
+		, m_pendingRenderTargets()
 	{}
 
 	RHISystem::~RHISystem()
@@ -59,6 +60,14 @@ namespace wtr
 		if (pipeline)
 		{
 			m_pendingPipeLines.Insert(pipeline);
+		}
+	}
+
+	void RHISystem::RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target)
+	{
+		if (target)
+		{
+			m_pendingRenderTargets.Insert(target);
 		}
 	}
 }

@@ -13,6 +13,7 @@ namespace wtr
 	class RHISampler;
 	class RHIShader;
 	class RHIPipeLine;
+	class RHIRenderTarget;
 
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
@@ -20,6 +21,7 @@ namespace wtr
 	struct RHISamplerDesc;
 	struct RHIShaderDesc;
 	struct RHIPipeLineDesc;
+	struct RHIRenderTargetDesc;
 	struct RHIDrawIndexDesc;
 	struct RHIDispatchDesc;
 
@@ -29,9 +31,11 @@ namespace wtr
 	struct RHISamplerCreateDesc;
 	struct RHIShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
+	struct RHIRenderTargetCreateDesc;
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
+	struct RHIVertexLayoutUpdateDesc;
 
 	struct RHIColorState;
 	struct RHIDepthState;
@@ -57,6 +61,7 @@ namespace wtr
 	enum class eBlendFunc : uint8_t;
 	enum class eBlendOp : uint8_t;
 	enum class eShaderType : uint8_t;
+	enum class eAttachment : uint8_t;
 };
 
 namespace wtr
@@ -74,6 +79,7 @@ namespace wtr
 		void RemoveSampler(Memory::RefPtr<RHISampler> sampler);
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+		void RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target);
 
 	public :
 		virtual bool Init(void* nativeHandle) = 0;
@@ -104,6 +110,7 @@ namespace wtr
 		virtual Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) = 0;
+		virtual Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) = 0;
 
 		virtual void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
@@ -111,9 +118,11 @@ namespace wtr
 		virtual void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler) = 0;
 		virtual void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) = 0;
 		virtual void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
+		virtual void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) = 0;
 
 		virtual void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
 
 		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
@@ -123,12 +132,14 @@ namespace wtr
 		virtual void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
 		virtual void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) = 0;
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
+		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
 
 		virtual void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) = 0;
-		virtual void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
+		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
 		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) = 0;
-		virtual void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
+		virtual void UnsetPipeLine() = 0;
+		virtual void UnsetRenderTarget() = 0;
 
 		virtual void DispatchCompute(const RHIDispatchDesc info) = 0;
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;
@@ -151,6 +162,8 @@ namespace wtr
 		virtual const uint32_t GetBlendFunc(const eBlendFunc func) const = 0;
 		virtual const uint32_t GetBlendOp(const eBlendOp op) const = 0;
 		virtual const uint32_t GetShaderType(const eShaderType type) const = 0;
+		virtual const uint32_t GetColorAttachment(const uint32_t slost) const = 0;
+		virtual const uint32_t GetDepthStencilAttachment(const eAttachment attach) const = 0;
 
 	protected:
 		struct RefHasher
@@ -175,6 +188,7 @@ namespace wtr
 		wtr::HashSet<Memory::RefPtr<RHISampler>, RefHasher> m_pendingSamplers;
 		wtr::HashSet<Memory::RefPtr<RHIShader>, RefHasher> m_pendingShaders;
 		wtr::HashSet<Memory::RefPtr<RHIPipeLine>, RefHasher> m_pendingPipeLines;
+		wtr::HashSet<Memory::RefPtr<RHIRenderTarget>, RefHasher> m_pendingRenderTargets;
 	};
 };
 

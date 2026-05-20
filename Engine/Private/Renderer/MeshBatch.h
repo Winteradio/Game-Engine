@@ -13,22 +13,17 @@
 
 namespace wtr
 {
-	enum class eTextureSlot : uint8_t;
-	enum class eVectorSlot : uint8_t;
-	enum class eScalarSlot : uint8_t;
 	enum class eResourceState : uint8_t;
+	enum class eRenderDirty : uint8_t;
 
-	struct VertexKey;
-	struct MeshBatchKey;
+	struct DataInfo;
 	struct MeshDrawCommand;
-	struct TransformInfo;
+	struct MeshBatchKey;
+	struct ProxyInfo;
 
 	class MeshAsset;
-	class MaterialAsset;
-
-	class RHIBuffer;
-	class RHIVertexLayout;
-	class RHITexture;
+	class MaterialProxy;
+	class RawData;
 };
 
 namespace wtr
@@ -43,52 +38,53 @@ namespace wtr
 		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
+
 		eResourceState GetResourceState() const override;
 
 	public :
 		void Clear();
 
+		void SetMaterial(Memory::RefPtr<const MaterialProxy> refMaterial);
 		void SetMesh(Memory::RefPtr<const MeshAsset> refMesh, const size_t meshSection);
-		void SetMaterial(Memory::RefPtr<const MaterialAsset> refMaterial);
+		void UpdateMesh();
 
-		void AddTransform(const ECS::UUID& id, const fmat4& transform);
-		void UpdateTransform(const ECS::UUID& id, const fmat4& transform);
+		void AddTransform(const ECS::UUID& id, Memory::RefPtr<const RawData> transform);
+		void UpdateTransform(const ECS::UUID& id);
 		void RemoveTransform(const ECS::UUID& id);
 
-		const size_t GetInstanceCount() const;
+		bool HasTransform(const ECS::UUID& id) const;
+
 		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
 
 		const MeshBatchKey GetKey() const;
+		bool IsEmpty() const;
 
 	private :
-		wtr::HashMap<ECS::UUID, TransformInfo> m_transformInfos;
-		Memory::RefPtr<RHIBuffer> m_transformBuffer;
-		Memory::RefPtr<RHIVertexLayout> m_vertexLayout;
+		void SyncTransforms(Memory::RefPtr<RHICommandList> cmdList);
+		void SyncMesh(Memory::RefPtr<RHICommandList> cmdList);
+		void SyncMaterial();
 
-		Memory::RefPtr<MeshDrawCommand> m_refDrawCommand;
-		
+		void SetDirty(const eRenderDirty dirty);
+		void ClearDirty();
+
+	private :
+		wtr::HashMap<ECS::UUID, size_t> m_proxyIndices;
+		wtr::DynamicArray<ProxyInfo> m_proxyInfos;
+		Memory::RefPtr<MeshDrawCommand> m_drawCommand;
+
 		Memory::RefPtr<const MeshAsset> m_refMesh;
-		Memory::RefPtr<const MaterialAsset> m_refMaterial;
+		Memory::RefPtr<const MaterialProxy> m_refMaterial;
 		size_t m_sectionIndex;
+
+		eRenderDirty m_dirty;
 	};
 
-	struct MeshDrawCommand
+	struct ProxyInfo
 	{
-		// Mesh
-		Memory::RefPtr<const RHIVertexLayout> vertexLayout;
-		uint32_t indexOffset = 0;
-		uint32_t indexCount = 0;
-		uint32_t minVertexIndex = 0;
-		uint32_t maxVertexIndex = 0;
-
-		// Material
-		wtr::HashMap<eTextureSlot, Memory::RefPtr<const RHITexture>> textureSlots;
-		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
-		wtr::HashMap<eScalarSlot, float> scalarValues;
-
-		// Instance
-		Memory::RefPtr<const RHIBuffer> instanceBuffer;
-		uint32_t instanceCount = 0;
+		ECS::UUID id = ECS::UUID::Null();
+		bool dirty = false;
+		size_t prevCount = 0;
+		Memory::RefPtr<const RawData> transform;
 	};
 
 	struct MeshBatchKey
@@ -105,12 +101,6 @@ namespace wtr
 	{
 		size_t operator()(const MeshBatchKey& key) const;
 		size_t operator()(const Memory::RefPtr<MeshBatch>& refMeshBatch) const;
-	};
-
-	struct TransformInfo
-	{
-		fmat4 transform = fmat4(1.0);
-		bool dirty = true;
 	};
 };
 

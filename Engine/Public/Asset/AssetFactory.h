@@ -16,8 +16,8 @@ namespace wtr
 {
 	namespace AssetFactory
 	{
-		// TODO : 임의의 Type에 대해서도 생성할 수 있도록 개선 필요
 		Memory::RefPtr<Asset> Create(const std::string& path);
+		Memory::RefPtr<Asset> Create(const std::string& path, const eAsset assetType);
 		Memory::RefPtr<Asset> Create(const std::string& path, const eExtension extension);
 		eExtension GetExtension(const std::string& path);
 	};

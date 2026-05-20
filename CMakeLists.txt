@@ -89,6 +89,9 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputTypes.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.h
+
+	${ENGINE_PUBLIC_DIR}/Framework/Name.h
+	${ENGINE_PUBLIC_DIR}/Framework/Name.cpp
 )
 
 set(ENGINE_FRAMEWORK_PRIVATE_FILES	
@@ -125,14 +128,18 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderView.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderTask.h
 
-	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass.h
-	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass.cpp
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.cpp
+	
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.cpp
 
-	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.h
-	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/PipeLine.cpp
-	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.h
-	${ENGINE_PUBLIC_DIR}/Renderer/PipeLine/SimpleColor.cpp
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.cpp
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.cpp
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
@@ -151,6 +158,9 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.cpp
+
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.cpp
 
@@ -163,14 +173,26 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/MaterialProxy.cpp
 
-	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
-	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/ShaderProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/ShaderProxy.cpp
 
-	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.h
-	${ENGINE_PRIVATE_DIR}/Renderer/GlobalResource.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/GlobalRenderer.h
+	${ENGINE_PRIVATE_DIR}/Renderer/GlobalRenderer.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/LightDesc.h
+	${ENGINE_PRIVATE_DIR}/Renderer/LightFactory.h
+	${ENGINE_PRIVATE_DIR}/Renderer/LightFactory.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/MaterialDesc.h
 	${ENGINE_PRIVATE_DIR}/Renderer/MaterialFactory.h
 	${ENGINE_PRIVATE_DIR}/Renderer/MaterialFactory.cpp
+
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshDrawCommand.h
+
+	${ENGINE_PRIVATE_DIR}/Renderer/ShaderState.h
+	${ENGINE_PRIVATE_DIR}/Renderer/ShaderState.cpp
 )
 
 set(ENGINE_RHI_PUBLIC_FILES
@@ -218,6 +240,8 @@ set(ENGINE_WORLD_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/World/Entity.h
 	${ENGINE_PUBLIC_DIR}/World/Node.h
 	${ENGINE_PUBLIC_DIR}/World/Node.cpp
+	${ENGINE_PUBLIC_DIR}/World/RenderNode.h
+	${ENGINE_PUBLIC_DIR}/World/RenderNode.cpp
 	${ENGINE_PUBLIC_DIR}/World/Scene.h
 
 	${ENGINE_PUBLIC_DIR}/World/System/System.h
@@ -348,5 +372,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	opengl32
 	gdi32
 )
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLM_FORCE_INTRINSICS)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

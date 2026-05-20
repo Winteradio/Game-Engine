@@ -11,6 +11,7 @@
 namespace wtr
 {
 	class RHIBuffer;
+	class RHITexture;
 	class RHIShader;
 }
 
@@ -37,8 +38,10 @@ namespace wtr
 
 	struct RHITextureMipMap
 	{
-		const void* data = nullptr;
-		uint32_t dataSize = 0;
+		Memory::RefPtr<RawData> data;
+		uint32_t xOffset = 0;
+		uint32_t yOffset = 0;
+		uint32_t zOffset = 0;
 		uint32_t level = 0;
 	};
 
@@ -49,7 +52,7 @@ namespace wtr
 
 	struct RHIResourceBinding
 	{
-		uint16_t location 	= 0; // resource binding location
+		int32_t location 	= -1; // resource binding location
 		eBindingType type 	= eBindingType::eNone; // type of the binding resource
 	};
 
@@ -92,14 +95,17 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
-		const void* data = nullptr;
+		struct DataRange
+		{
+			uint32_t offset = 0;
+			Memory::RefPtr<const RawData> data;
+		};
+
+		wtr::DynamicArray<DataRange> dataRanges;
 	};
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
-		uint32_t dataOffset = 0;
-		uint32_t dataSize = 0;
-
 		eMapAccess mapAccess = eMapAccess::eNone;
 	};
 
@@ -121,11 +127,16 @@ namespace wtr
 	{
 	};
 
+	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
+	{
+	};
+
 	struct RHITextureDesc : RHIDesc<eResourceType::eTexture>
 	{
 		uint32_t		width = 0;
 		uint32_t		height = 0;
 		uint32_t		depth = 0;
+		uint32_t		face = 1;
 		uint32_t		mipLevels = 1;
 		uint32_t		sampleCount = 1;
 		ePixelFormat	format = ePixelFormat::eNone;
@@ -140,6 +151,7 @@ namespace wtr
 			width = other.width;
 			height = other.height;
 			depth = other.depth;
+			face = other.face;
 			mipLevels = other.mipLevels;
 			sampleCount = other.sampleCount;
 			format = other.format;
@@ -160,15 +172,6 @@ namespace wtr
 
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
-		uint32_t xOffset = 0;
-		uint32_t yOffset = 0;
-		uint32_t zOffset = 0;
-		
-		uint32_t width = 0;
-		uint32_t height = 0;
-		uint32_t depth = 0;
-		
-		uint32_t mipLevel = 0;
 	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
@@ -191,6 +194,21 @@ namespace wtr
 
 			return *this;
 		}
+
+		bool operator==(const RHISamplerDesc& other) const noexcept
+		{
+			if (minFilter != other.minFilter ||
+				magFilter != other.magFilter ||
+				mipFilter != other.mipFilter ||
+				wrapS != other.wrapS ||
+				wrapT != other.wrapT ||
+				wrapR != other.wrapR)
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 
 	struct RHISamplerCreateDesc : RHISamplerDesc
@@ -203,18 +221,17 @@ namespace wtr
 
 	struct RHIShaderCreateDesc : RHIShaderDesc
 	{
-		const void* data = nullptr;
-		size_t dataSize = 0;
+		Memory::RefPtr<RawData> data;
 	};
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
 	{
-		RHIClearState		clear;
-		RHIColorState		color;
-		RHIDepthState 		depth;
-		RHIStencilState		stencil;
-		RHIBlendState		blend;
-		RHIRasterizerState	rasterizer;
+		Memory::RefPtr<RHIClearState> clear;
+		Memory::RefPtr<RHIColorState> color;
+		Memory::RefPtr<RHIDepthState> depth;
+		Memory::RefPtr<RHIStencilState> stencil;
+		Memory::RefPtr<RHIBlendState> blend;
+		Memory::RefPtr<RHIRasterizerState> rasterizer;
 
 		RHIPipeLineDesc& operator=(const RHIPipeLineDesc& other)
 		{
@@ -227,6 +244,21 @@ namespace wtr
 
 			return *this;
 		}
+
+		bool operator==(const RHIPipeLineDesc& other) const noexcept
+		{
+			if (clear != other.clear ||
+				color != other.color ||
+				depth != other.depth ||
+				stencil != other.stencil ||
+				blend != other.blend ||
+				rasterizer != other.rasterizer)
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
@@ -234,8 +266,29 @@ namespace wtr
 		Memory::RefPtr<const RHIShader> vertexShader;
 		Memory::RefPtr<const RHIShader> geometryShader;
 		Memory::RefPtr<const RHIShader> hullShader;
+		Memory::RefPtr<const RHIShader> domainShader;
 		Memory::RefPtr<const RHIShader> computeShader;
 		Memory::RefPtr<const RHIShader> pixelShader;
+
+		bool operator==(const RHIPipeLineCreateDesc& other) const noexcept
+		{
+			if (!RHIPipeLineDesc::operator==(other))
+			{
+				return false;
+			}
+
+			if (vertexShader != other.vertexShader ||
+				geometryShader != other.geometryShader ||
+				hullShader != other.hullShader ||
+				domainShader != other.domainShader ||
+				computeShader != other.computeShader ||
+				pixelShader != other.pixelShader)
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 
 	struct RHIDrawIndexDesc : RHIDesc<eResourceType::eLayout>
@@ -247,6 +300,8 @@ namespace wtr
 		uint32_t indexOffset = 0;
 		uint32_t baseVertex = 0;
 		uint32_t instanceCount = 1;
+
+		bool indirectDraw = false;
 	};
 
 	struct RHIDispatchDesc : RHIDesc<eResourceType::ePipeLine>
@@ -254,6 +309,34 @@ namespace wtr
 		uint32_t groupX = 0;
 		uint32_t groupY = 0;
 		uint32_t groupZ = 0;
+	};
+
+	struct RHIAttachment
+	{
+		eAttachment type = eAttachment::eNone;
+
+		Memory::RefPtr<const RHITexture> texture;
+	};
+
+	struct RHIColorAttachment : RHIAttachment
+	{
+		uint32_t slot = 0;
+	};
+
+	struct RHIDepthStencilAttachment : RHIAttachment
+	{
+
+	};
+
+	struct RHIRenderTargetDesc : RHIDesc<eResourceType::eTarget>
+	{
+		wtr::DynamicArray<RHIColorAttachment> colors;
+		RHIDepthStencilAttachment depthStencil;
+	};
+
+	struct RHIRenderTargetCreateDesc : RHIRenderTargetDesc
+	{
+
 	};
 };
 

@@ -7,6 +7,12 @@ namespace wtr
 {
 	void CameraSystem::UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container)
 	{
+		auto inputStorage = GetInputStorage();
+		if (!inputStorage)
+		{
+			return;
+		}
+
 		auto& storage = container->GetStorage();
 		for (auto& [id, cameraNode] : storage)
 		{
@@ -17,13 +23,7 @@ namespace wtr
 
 			auto& transform = cameraNode->transform;
 
-			auto inputStorage = GetInputStorage();
-			if (!inputStorage)
-			{
-				continue;
-			}
-
-			if (inputStorage->IsPressed(eKeyCode::eKey_Space))
+			if (inputStorage->IsDown(eKeyCode::eKey_Space))
 			{
 				transform->UpdatePosition(fvec3(0.f, 0.f, 5.f));
 				transform->UpdateRotation(fquat(1.f, 0.f, 0.f, 0.f));
@@ -39,7 +39,7 @@ namespace wtr
 		}
 	}
 
-	const fvec3 CameraSystem::UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform)
+	const fvec3 CameraSystem::UpdatePosition(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform)
 	{
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)
@@ -92,7 +92,7 @@ namespace wtr
 		}
 	}
 
-	const fquat CameraSystem::UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<SceneComponent> transform)
+	const fquat CameraSystem::UpdateRotation(const ECS::TimeStep& timeStep, Memory::ObjectPtr<TransformComponent> transform)
 	{
 		auto inputStorage = GetInputStorage();
 		if (!inputStorage || !transform)

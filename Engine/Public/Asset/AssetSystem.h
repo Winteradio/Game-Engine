@@ -7,7 +7,7 @@
 
 namespace wtr
 {
-	enum class eExtensionType : uint8_t;
+	enum class eAsset : uint8_t;
 	class Asset;
 	class AssetParser;
 	class AssetWorker;
@@ -25,8 +25,9 @@ namespace wtr
 	public :
 		using TaskQueue = std::queue<Memory::RefPtr<Asset>>;
 
-		// TODO : 유저단에서 임의의 Asset을 생성하여 데이터를 넣을 수 있도록
+		static Memory::RefPtr<Asset> Create(const std::string& name, const eAsset type);
 		static Memory::RefPtr<Asset> Load(const std::string& path);
+		static void Update(Memory::RefPtr<Asset> asset);
 		static void Unload(const std::string& path);
 		static void Shutdown();
 

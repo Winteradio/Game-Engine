@@ -17,6 +17,7 @@ namespace wtr
 	class RHISampler;
 	class RHIShader;
 	class RHIPipeLine;
+	class RHIRenderTarget;
 
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
@@ -24,7 +25,9 @@ namespace wtr
 	struct RHISamplerDesc;
 	struct RHIShaderDesc;
 	struct RHIPipeLineDesc;
+	struct RHIRenderTargetDesc;
 	struct RHIDrawIndexDesc;
+	struct RHIDispatchDesc;
 
 	struct RHIBufferCreateDesc;
 	struct RHIVertexLayoutCreateDesc;
@@ -32,9 +35,11 @@ namespace wtr
 	struct RHISamplerCreateDesc;
 	struct RHIShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
+	struct RHIRenderTargetCreateDesc;
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
+	struct RHIVertexLayoutUpdateDesc;
 
 	struct RHIColorState;
 	struct RHIDepthState;
@@ -64,12 +69,6 @@ namespace wtr
 			}
 		}
 
-		template<typename T>
-		void* Alloc(const size_t memorySize)
-		{
-			return m_allocator.Allocate(memorySize, alignof(T));
-		}
-
 		void ExecuteAll();
 		void Reset();
 		void SetFrame(const size_t frame);
@@ -97,9 +96,11 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderCreateDesc info);
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderCreateDesc info);
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineCreateDesc info);
+		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetCreateDesc info);
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer);
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture);
+		void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
 
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
@@ -110,18 +111,22 @@ namespace wtr
 		void RemoveSampler(Memory::RefPtr<RHISampler> sampler);
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
+		void RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target);
 
 		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
 		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
 		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
+		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target);
 
 		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
-		void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
+		void UnsetVertexLayout();
 		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
-		void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
+		void UnsetPipeLine();
+		void UnsetRenderTarget();
+
 		void DispatchCompute(const RHIDispatchDesc info);
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info);
 

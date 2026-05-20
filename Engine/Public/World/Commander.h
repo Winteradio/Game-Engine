@@ -7,10 +7,7 @@
 
 namespace wtr
 {
-	class SceneComponent;
-	class MeshNode;
-	class LightNode;
-
+	struct RenderTask;
 	struct RenderView;
 	class RenderCommandList;
 };
@@ -27,15 +24,7 @@ namespace wtr
 		void SetCommand(Memory::RefPtr<RenderCommandList> refCmdList);
 		void SetView(const RenderView& renderView);
 
-		void AddPrimitive(Memory::ObjectPtr<MeshNode> meshNode);
-		void RemovePrimitive(Memory::ObjectPtr<MeshNode> meshNode);
-
-		void AddLight(Memory::ObjectPtr<LightNode> lightNode);
-		void RemoveLight(Memory::ObjectPtr<LightNode> lightNode);
-
-		void Update(Memory::ObjectPtr<SceneComponent> sceneComponent);
-		void Remove(const ECS::UUID& entityId);
-
+		void Enqueue(RenderTask&& task);
 		void RemoveAll();
 
 	private :

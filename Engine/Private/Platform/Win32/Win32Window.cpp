@@ -111,6 +111,8 @@ namespace wtr
 
 	bool Win32Window::PollEvents()
 	{
+		Sleep(1);
+
 		MSG msg;
 		ZeroMemory(&msg, sizeof(MSG));
 
@@ -140,21 +142,7 @@ namespace wtr
 
 	const eWindowStatus Win32Window::GetStatus() const
 	{
-		if (!IsWindow(m_windowHandle))
-		{
-			return eWindowStatus::eClosed;
-		}
-
-		WINDOWPLACEMENT placement;
-		placement.length = sizeof(WINDOWPLACEMENT);
-		GetWindowPlacement(m_windowHandle, &placement);
-
-		if (placement.showCmd == SW_MINIMIZE || placement.showCmd == SW_SHOWMINIMIZED)
-		{
-			return eWindowStatus::eMinimized;
-		}
-
-		return eWindowStatus::eActive;
+		return m_status;
 	}
 
 	void* Win32Window::GetNativeHandle() const
@@ -201,6 +189,7 @@ namespace wtr
 			switch (uMsg)
 			{
 				case WM_CLOSE:
+					window->m_status = eWindowStatus::eClosed;
 				case WM_DESTROY:
 				case WM_KEYDOWN:
 				case WM_KEYUP:
@@ -213,6 +202,14 @@ namespace wtr
 				case WM_RBUTTONDOWN:
 				case WM_MOUSEWHEEL:
 				case WM_SIZE:
+					if (wParam == SIZE_MINIMIZED)
+					{
+						window->m_status = eWindowStatus::eMinimized;
+					}
+					else
+					{
+						window->m_status = eWindowStatus::eActive;
+					}
 				case WM_SIZING:
 				{
 					return window->HandleMessage(uMsg, wParam, lParam);

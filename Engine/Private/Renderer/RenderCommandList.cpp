@@ -1,6 +1,7 @@
 #include <Renderer/RenderCommandList.h>
 
 #include <Renderer/Renderer.h>
+#include <Renderer/RenderTask.h>
 
 namespace wtr
 {
@@ -15,9 +16,18 @@ namespace wtr
 	RenderCommandList::~RenderCommandList()
 	{}
 
-	void RenderCommandList::Enqueue(RenderTask::Func&& func)
+	void RenderCommandList::Enqueue(RenderTask&& func)
 	{
-		RenderTask* task = Create(std::forward<RenderTask::Func>(func));
+		const size_t index = m_writeIndex.load(std::memory_order_acquire);
+		auto& allocator = m_allocator[index];
+
+		void* memory = allocator.Allocate<RenderTask>();
+		if (nullptr == memory)
+		{
+			return;
+		}
+
+		RenderTask* task = new (memory) RenderTask(std::forward<RenderTask::Func>(func));
 		if (nullptr == task)
 		{
 			return;
@@ -64,21 +74,5 @@ namespace wtr
 	void RenderCommandList::Reset()
 	{
 		m_allocator[m_readIndex].Reset();
-	}
-
-	RenderTask* RenderCommandList::Create(RenderTask::Func&& func)
-	{
-		const size_t index = m_writeIndex.load(std::memory_order_acquire);
-
-		auto& allocator = m_allocator[index];
-
-		void* memory = allocator.Allocate<RenderTask>();
-		if (nullptr == memory)
-		{
-			return nullptr;
-		}
-
-		RenderTask* task = new (memory) RenderTask(std::forward<RenderTask::Func>(func));
-		return task;
 	}
 }

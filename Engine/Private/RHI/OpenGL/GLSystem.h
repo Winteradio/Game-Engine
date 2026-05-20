@@ -42,16 +42,19 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
+		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) override;
 
-		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
-		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
-		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
-		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
-		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
-		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);
+		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
+		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
+		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
+		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler) override;
+		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) override;
+		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) override;
+		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
+		void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
 
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
@@ -61,12 +64,14 @@ namespace wtr
 		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
 		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
+		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
 
 		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
-		void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
+		void UnsetVertexLayout() override;
 		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
-		void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
+		void UnsetPipeLine() override;
+		void UnsetRenderTarget() override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
@@ -74,17 +79,21 @@ namespace wtr
 	private :
 		void InitializeState();
 
+		bool InitializeFrameBuffer(Memory::RefPtr<const RHITexture>, const eAttachment attach, const uint32_t slot = 0);
 		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
 		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
 
 		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool InitializeTextureMulti(const RHITextureCreateDesc info, const uint32_t textureID);
 
 		bool UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID);
 		bool UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID);
 		bool UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID);
+
+		bool ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
+		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
 
 		const uint32_t GetBufferType(const eBufferType buffer) const override;
 		const uint32_t GetDataAccess(const eDataAccess access) const override;
@@ -115,6 +124,9 @@ namespace wtr
 		
 		const uint32_t GetShaderType(const eShaderType type) const override;
 
+		const uint32_t GetColorAttachment(const uint32_t slot) const override;
+		const uint32_t GetDepthStencilAttachment(const eAttachment attach) const override;
+
 		const eCompareFunc GetCompareFunc(const uint32_t func) const;
 		const eStencilOp GetStencilOp(const uint32_t op) const;
 		const eBlendFunc GetBlendFunc(const uint32_t func) const;
@@ -131,6 +143,7 @@ namespace wtr
 		void FlushShader();
 		void FlushPipeLine();
 		void FlushSampler();
+		void FlushRenderTarget();
 
 	private:
 		WGLContext m_context;

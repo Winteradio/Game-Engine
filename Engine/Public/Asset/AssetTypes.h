@@ -48,7 +48,8 @@ namespace wtr
 		eNone		= 0x00,
 		eError		= 0x01,
 		eLoaded		= 0x10,
-		eExpried	= 0x20
+		eExpried	= 0x20,
+		eDirty		= 0x30
 	};
 
 	eAssetState operator|(const eAssetState lhs, const eAssetState rhs);
@@ -61,11 +62,14 @@ namespace wtr
 
 	struct MeshSection
 	{
-		uint32_t indexOffset = 0;
-		uint32_t indexCount = 0;
+		fvec3 minVertex = fvec3(0.f);
+		fvec3 maxVertex = fvec3(0.f);
 
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;
+
+		uint32_t indexOffset = 0;
+		uint32_t indexCount = 0;
 
 		std::string materialName;
 		std::string name;
@@ -100,7 +104,7 @@ namespace wtr
 	{
 		GENERATE(TextureAsset);
 	public :
-		Memory::RefPtr<TextureBuffer> rawBuffer;
+		TextureBuffer rawTexture;
 		Memory::RefPtr<RHITexture> texture;
 
 		uint32_t width;
@@ -127,9 +131,14 @@ namespace wtr
 	{
 		GENERATE(MaterialAsset);
 	public:
-		wtr::HashMap<eTextureSlot, Memory::RefPtr<const TextureAsset>> textures;
+		wtr::HashMap<eResourceSlot, Memory::RefPtr<const TextureAsset>> textures;
 		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
 		wtr::HashMap<eScalarSlot, float> scalarValues;
+
+		eShadingModel shadingModel;
+		eBlendMode blendMode;
+		bool isDoubleSided;
+		bool isPBR;
 
 		MaterialAsset();
 		MaterialAsset(const std::string& path, const eExtension extension);
@@ -143,13 +152,15 @@ namespace wtr
 	{
 		GENERATE(MeshAsset);
 	public:
-		wtr::HashMap<VertexKey, Memory::RefPtr<FormattedBuffer>> rawBuffers;
+		wtr::HashMap<VertexKey, FormattedBuffer> rawBuffers;		
+		FormattedBuffer rawIndex;
+
+		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
 		wtr::HashMap<VertexKey, Memory::RefPtr<RHIBuffer>> buffers;
-		Memory::RefPtr<FormattedBuffer> rawIndex;
 		Memory::RefPtr<RHIBuffer> index;
 
 		wtr::DynamicArray<MeshSection> sections;
-		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
+		eDrawMode drawMode;
 
 		MeshAsset();
 		MeshAsset(const std::string& path, const eExtension extension);
@@ -163,7 +174,7 @@ namespace wtr
 	{
 		GENERATE(ShaderAsset);
 	public :
-		Memory::RefPtr<RawBuffer> rawBuffer;
+		RawBuffer rawBuffer;
 		Memory::RefPtr<RHIShader> shader;
 
 		ShaderAsset();

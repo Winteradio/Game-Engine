@@ -29,6 +29,43 @@ namespace wtr
 		return Create(path, extension);
 	}
 
+	Memory::RefPtr<Asset> AssetFactory::Create(const std::string& path, const eAsset assetType)
+	{
+		Memory::RefPtr<Asset> asset = nullptr;
+		switch (assetType)
+		{
+		case eAsset::eMesh:
+			asset = Memory::MakeRef<MeshAsset>(path, eExtension::eNone);
+			break;
+
+		case eAsset::eMaterial:
+			asset = Memory::MakeRef<MaterialAsset>(path, eExtension::eNone);
+			break;
+
+		case eAsset::eTexture:
+			asset = Memory::MakeRef<TextureAsset>(path, eExtension::eNone);
+			break;
+
+		case eAsset::eShader:
+			asset = Memory::MakeRef<ShaderAsset>(path, eExtension::eNone);
+			break;
+
+		default:
+			break;
+		}
+
+		if (asset)
+		{
+			asset->name = AssetUtils::GetName(path);
+		}
+		else
+		{
+			LOGINFO() << "[AssetFactory] Unsupported asset type: " << path;
+		}
+
+		return asset;
+	}
+
 	Memory::RefPtr<Asset> AssetFactory::Create(const std::string& path, const eExtension extension)
 	{
 		const eAsset assetType = ASSET_TYPE[static_cast<size_t>(extension)].second;

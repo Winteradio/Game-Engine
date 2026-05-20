@@ -21,79 +21,92 @@ namespace wtr
 
 	class GLBuffer : public RHIBuffer, public GLResource
 	{
-		public : 
-			GLBuffer(const RHIBufferDesc& desc);
-			virtual ~GLBuffer();
+	public : 
+		GLBuffer(const RHIBufferDesc& desc);
+		virtual ~GLBuffer();
 	};
 
 	class GLVertexLayout : public RHIVertexLayout, public GLResource
 	{
-		public :
-			GLVertexLayout(const RHIVertexLayoutDesc& desc);
-			virtual ~GLVertexLayout();
+	public :
+		GLVertexLayout(const RHIVertexLayoutDesc& desc);
+		virtual ~GLVertexLayout();
 	};
 
 	class GLTexture : public RHITexture, public GLResource
 	{
-		public :
-			GLTexture(const RHITextureDesc& desc);
-			virtual ~GLTexture();
+	public :
+		GLTexture(const RHITextureDesc& desc);
+		virtual ~GLTexture();
 	};
 
 	class GLSampler : public RHISampler, public GLResource
 	{
-		public :
-			GLSampler(const RHISamplerDesc& desc);
-			virtual ~GLSampler();
+	public :
+		GLSampler(const RHISamplerDesc& desc);
+		virtual ~GLSampler();
 	};
 
 	class GLShader : public RHIShader, public GLResource
 	{
-		public :
-			GLShader(const RHIShaderDesc& desc);
-			virtual ~GLShader() = default;
+	public :
+		GLShader(const RHIShaderDesc& desc);
+		virtual ~GLShader() = default;
 	};
 
 	class GLVertexShader : public GLShader
 	{
-		public :
-			GLVertexShader(const RHIShaderDesc& desc);
-			virtual ~GLVertexShader();
+	public :
+		GLVertexShader(const RHIShaderDesc& desc);
+		virtual ~GLVertexShader();
 	};
 
 	class GLGeometryShader : public GLShader
 	{
-		public :
-			GLGeometryShader(const RHIShaderDesc& desc);
-			virtual ~GLGeometryShader();
+	public :
+		GLGeometryShader(const RHIShaderDesc& desc);
+		virtual ~GLGeometryShader();
 	};
 
 	class GLHullShader : public GLShader
 	{
-		public :
-			GLHullShader(const RHIShaderDesc& desc);
-			virtual ~GLHullShader();
+	public :
+		GLHullShader(const RHIShaderDesc& desc);
+		virtual ~GLHullShader();
 	};
 
 	class GLPixelShader : public GLShader
 	{
-		public :
-			GLPixelShader(const RHIShaderDesc& desc);
-			virtual ~GLPixelShader();
+	public :
+		GLPixelShader(const RHIShaderDesc& desc);
+		virtual ~GLPixelShader();
 	};
 
 	class GLComputeShader : public GLShader
 	{
-		public :
-			GLComputeShader(const RHIShaderDesc& desc);
-			virtual ~GLComputeShader();
+	public :
+		GLComputeShader(const RHIShaderDesc& desc);
+		virtual ~GLComputeShader();
 	};
 
 	class GLPipeLine : public RHIPipeLine, public GLResource
 	{
-		public :
-			GLPipeLine(const RHIPipeLineDesc& desc);
-			virtual ~GLPipeLine();
+	public :
+		GLPipeLine(const RHIPipeLineDesc& desc);
+		virtual ~GLPipeLine();
+	};
+
+	class GLRenderTarget : public RHIRenderTarget, public GLResource
+	{
+	public :
+		GLRenderTarget(const RHIRenderTargetDesc& desc);
+		virtual ~GLRenderTarget();
+
+	public :
+		const wtr::DynamicArray<uint32_t>& GetColorAttachments() const;
+
+	private :
+		wtr::DynamicArray<uint32_t> m_colorAttachments;
 	};
 };
 

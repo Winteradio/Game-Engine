@@ -7,13 +7,26 @@
 
 namespace wtr
 {
+	enum class eRenderPass : uint8_t;
 	enum class eResourceState : uint8_t;
+
+	class PipeLineState;
 	class RHICommandList;
 };
 
 namespace wtr
 {
-	class RenderResource
+	class RenderState
+	{
+	public:
+		RenderState() = default;
+		virtual ~RenderState() = default;
+
+	public :
+		virtual eResourceState GetResourceState() const = 0;
+	};
+
+	class RenderResource : public RenderState
 	{
 	public:
 		RenderResource() = default;
@@ -23,7 +36,6 @@ namespace wtr
 		virtual void Upload(Memory::RefPtr<RHICommandList> cmdList) {};
 		virtual void Unload(Memory::RefPtr<RHICommandList> cmdList) {};
 		virtual void Sync(Memory::RefPtr<RHICommandList> cmdList) {};
-		virtual eResourceState GetResourceState() const = 0;
 	};
 };
 

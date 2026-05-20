@@ -1,5 +1,8 @@
 #include <RHI/RHIResources.h>
 
+#include <Renderer/GlobalRenderer.h>
+#include <Memory/include/Core.h>
+
 namespace wtr
 {
 	eResourceState operator|(const eResourceState lhs, const eResourceState rhs)
@@ -99,6 +102,11 @@ namespace wtr
 		return m_desc.stride;
 	}
 
+	const RHIBufferDesc& RHIBuffer::GetDesc() const
+	{
+		return m_desc;
+	}
+
 	void RHIBuffer::SetBufferType(const eBufferType bufferType)
 	{
 		m_desc.bufferType = bufferType;
@@ -148,6 +156,11 @@ namespace wtr
 		return m_desc.vertexStreams.Size();
 	}
 
+	const RHIVertexLayoutDesc& RHIVertexLayout::GetDesc() const
+	{
+		return m_desc;
+	}
+
 	void RHIVertexLayout::SetDesc(const RHIVertexLayoutDesc& desc)
 	{
 		m_desc = desc;
@@ -195,6 +208,11 @@ namespace wtr
 	const eTextureType RHITexture::GetTextureType() const
 	{
 		return m_desc.textureType;
+	}
+
+	const RHITextureDesc& RHITexture::GetDesc() const
+	{
+		return m_desc;
 	}
 
 	void RHITexture::SetWidth(const uint32_t width)
@@ -276,6 +294,11 @@ namespace wtr
 		return m_desc.wrapR;
 	}
 
+	const RHISamplerDesc& RHISampler::GetDesc() const
+	{
+		return m_desc;
+	}
+
 	void RHISampler::SetMinFilter(const eFilterMode minFilter)
 	{
 		m_desc.minFilter = minFilter;
@@ -325,64 +348,99 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const RHIClearState RHIPipeLine::GetClearState() const
+	Memory::RefPtr<const RHIClearState> RHIPipeLine::GetClearState() const
 	{
 		return m_desc.clear;
 	}
 
-	const RHIColorState RHIPipeLine::GetColorState() const
+	Memory::RefPtr<const RHIColorState> RHIPipeLine::GetColorState() const
 	{
 		return m_desc.color;
 	}
 
-	const RHIDepthState RHIPipeLine::GetDepthState() const
+	Memory::RefPtr<const RHIDepthState> RHIPipeLine::GetDepthState() const
 	{
 		return m_desc.depth;
 	}
 
-	const RHIStencilState RHIPipeLine::GetStencilState() const
+	Memory::RefPtr<const RHIStencilState> RHIPipeLine::GetStencilState() const
 	{
 		return m_desc.stencil;
 	}
 
-	const RHIBlendState	RHIPipeLine::GetBlendState() const
+	Memory::RefPtr<const RHIBlendState> RHIPipeLine::GetBlendState() const
 	{
 		return m_desc.blend;
 	}
 
-	const RHIRasterizerState RHIPipeLine::GetRasterizerState() const
+	Memory::RefPtr<const RHIRasterizerState> RHIPipeLine::GetRasterizerState() const
 	{
 		return m_desc.rasterizer;
 	}
 
+	const RHIPipeLineDesc& RHIPipeLine::GetDesc() const
+	{
+		return m_desc;
+	}
+
 	void RHIPipeLine::SetClearState(const RHIClearState clear)
 	{
-		m_desc.clear = clear;
+		m_desc.clear = !m_desc.clear ? Memory::MakeRef<RHIClearState>(clear) : m_desc.clear;
+
+		if (m_desc.clear)
+		{
+			*m_desc.clear = clear;
+		}
 	}
 
 	void RHIPipeLine::SetColorState(const RHIColorState color)
 	{
-		m_desc.color = color;
+		m_desc.color = !m_desc.color ? Memory::MakeRef<RHIColorState>(color) : m_desc.color;
+
+		if (m_desc.color)
+		{
+			*m_desc.color = color;
+		}
 	}
 
 	void RHIPipeLine::SetDepthState(const RHIDepthState depth)
 	{
-		m_desc.depth = depth;
+		m_desc.depth = !m_desc.depth ? Memory::MakeRef<RHIDepthState>(depth) : m_desc.depth;
+
+		if (m_desc.depth)
+		{
+			*m_desc.depth = depth;
+		}
 	}
 
 	void RHIPipeLine::SetStencilState(const RHIStencilState stencil)
 	{
-		m_desc.stencil = stencil;
+		m_desc.stencil = !m_desc.stencil ? Memory::MakeRef<RHIStencilState>(stencil) : m_desc.stencil;
+
+		if (m_desc.stencil)
+		{
+			*m_desc.stencil = stencil;
+		}
 	}
 
 	void RHIPipeLine::SetBlendState(const RHIBlendState blend)
 	{
-		m_desc.blend = blend;
+		m_desc.blend = !m_desc.blend ? Memory::MakeRef<RHIBlendState>(blend) : m_desc.blend;
+
+		if (m_desc.blend)
+		{
+			*m_desc.blend = blend;
+		}
 	}
 
 	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState rasterizer)
 	{
-		m_desc.rasterizer = rasterizer;
+		m_desc.rasterizer = !m_desc.rasterizer ? Memory::MakeRef<RHIRasterizerState>(rasterizer) : m_desc.rasterizer;
+		
+		if (m_desc.rasterizer)
+		{
+			*m_desc.rasterizer = rasterizer;
+		}
 	}
 
 	void RHIPipeLine::SetDesc(const RHIPipeLineDesc& desc)
@@ -392,12 +450,27 @@ namespace wtr
 
 	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
 	{
-		m_slots.Insert(std::make_pair(name, binding));
+		const eResourceSlot slot = GetResourceSlot(name);
+		if (slot != eResourceSlot::eNone)
+		{
+			m_slots[slot] = binding;
+		}
 	}
 
 	bool RHIPipeLine::HasSlot(const std::string& name) const
 	{
-		return m_slots.Find(name) != m_slots.End();
+		const eResourceSlot slot = GetResourceSlot(name);
+		if (slot != eResourceSlot::eNone)
+		{
+			return HasSlot(slot);
+		}
+		
+		return false;
+	}
+
+	bool RHIPipeLine::HasSlot(const eResourceSlot slot) const
+	{
+		return m_slots.Find(slot) != m_slots.End();
 	}
 
 	size_t RHIPipeLine::GetSlotCount() const
@@ -407,14 +480,65 @@ namespace wtr
 
 	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const std::string& name) const
 	{
-		auto itr = m_slots.Find(name);
+		const eResourceSlot slot = GetResourceSlot(name);
+		if (slot != eResourceSlot::eNone)
+		{
+			return GetBindingSlot(slot);
+		}
+
+		return {};
+	}
+
+	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const eResourceSlot slot) const
+	{
+		auto itr = m_slots.Find(slot);
 		if (itr != m_slots.End())
 		{
 			return itr->second;
 		}
 		else
 		{
-			return RHIResourceBinding{};
+			return {};
 		}
+	}
+
+	RHIRenderTarget::RHIRenderTarget(const RHIRenderTargetDesc& desc)
+		: m_desc(desc)
+	{
+	}
+
+	const RHIRenderTargetDesc& RHIRenderTarget::GetDesc() const
+	{
+		return m_desc;
+	}
+
+	bool RHIRenderTarget::HasColorAttach(const uint32_t slot) const
+	{
+		for (const auto& color : m_desc.colors)
+		{
+			if (color.slot == slot)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool RHIRenderTarget::HasDepthStencilAttach() const
+	{
+		if (m_desc.depthStencil.texture)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	const size_t RHIRenderTarget::GetColorAttachCount() const
+	{
+		return m_desc.colors.Size();
 	}
 };

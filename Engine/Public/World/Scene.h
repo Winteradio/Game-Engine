@@ -9,8 +9,9 @@
 
 namespace wtr
 {
-	class BaseNode;
-	class SceneComponent;
+	enum class eDirtyProxy : uint8_t;
+
+	class ProxyNode;
 	class Commander;
 };
 
@@ -18,13 +19,6 @@ namespace wtr
 {
 	class Scene
 	{
-	private :
-		struct ScenePair
-		{
-			Memory::ObjectPtr<SceneComponent> transform;
-			wtr::HashSet<size_t> nodeTypes;
-		};
-
 	public :
 		Scene();
 		~Scene();
@@ -32,21 +26,30 @@ namespace wtr
 	public :
 		void SetCommander(Memory::RefPtr<Commander> refCommander);
 
-		void Attach(Memory::ObjectPtr<BaseNode> node);
-		void Detach(Memory::ObjectPtr<BaseNode> node);
+		void Flush();
+
+		void Attach(Memory::ObjectPtr<ProxyNode> node);
+		void Detach(Memory::ObjectPtr<ProxyNode> node);
 		void Detach(const ECS::UUID& entityId);
 		void DetachAll();
 		
 		void Update(const ECS::UUID& entityId);
 
 	private :
-		void AttachNode(Memory::ObjectPtr<BaseNode> node, Memory::ObjectPtr<SceneComponent> transform);
-		void DetachNode(Memory::ObjectPtr<BaseNode> node);
+		void FlushAdded();
+		void FlushRemoved();
+		void FlushUpdated();
+
+		Memory::ObjectPtr<ProxyNode> GetProxyNode(const ECS::UUID& id) const;
 
 	private :
 		Memory::RefPtr<Commander> m_refCommander;
 
-		wtr::HashMap<ECS::UUID, ScenePair> m_sceneDatas;
+		wtr::HashMap<ECS::UUID, Memory::ObjectPtr<ProxyNode>> m_proxies;
+
+		wtr::HashSet<ECS::UUID> m_addedProxies;
+		wtr::HashSet<ECS::UUID> m_removedProxies;
+		wtr::HashSet<ECS::UUID> m_updatedProxies;
 	};
 };
 

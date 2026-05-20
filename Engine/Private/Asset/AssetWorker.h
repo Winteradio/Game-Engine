@@ -36,6 +36,7 @@ namespace wtr
 		void onParse(Memory::RefPtr<Asset> asset);
 		void onLoad(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
 		void onUnload(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
+		void onUpdate(Memory::RefPtr<Asset> asset, Memory::RefPtr<RHICommandList> cmdList);
 
 	private :
 		wtr::DynamicArray<Memory::RefPtr<TaskWorker>> m_threads;

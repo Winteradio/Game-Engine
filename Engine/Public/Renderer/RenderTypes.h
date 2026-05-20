@@ -28,6 +28,7 @@ namespace wtr
 		eShader		= 0x04,
 		ePipeLine	= 0x05,
 		eLayout		= 0x06,
+		eTarget		= 0x07,
 	};
 
 	enum class eBufferType : uint8_t
@@ -37,7 +38,8 @@ namespace wtr
 		eIndex		= 0x02,
 		eConst		= 0x03,
 		eStorage	= 0x04,
-		eStaging	= 0x05
+		eStaging	= 0x05,
+		eIndirect	= 0x06
 	};
 
 	enum class eDataAccess : uint8_t
@@ -92,7 +94,7 @@ namespace wtr
 		eUniform		= 0x01,
 		eUniformBuffer	= 0x02,
 		eStorageBuffer 	= 0x03,
-		eSampler		= 0x04,
+		eSampler		= 0x04
 	};
 
 	enum class eTextureType : uint8_t
@@ -165,8 +167,9 @@ namespace wtr
 		eVertex			= 0x01,
 		eGeometry		= 0x02,
 		eHull			= 0x03,
-		ePixel			= 0x04,
-		eCompute		= 0x05,
+		eDomain			= 0x04,
+		ePixel			= 0x05,
+		eCompute		= 0x06,
 	};
 
 	enum class eCullFace : uint8_t
@@ -298,54 +301,216 @@ namespace wtr
 		eFrameBuffer	= 0x01 << 9,
 	};
 
-	enum class eTextureSlot : uint8_t
+	enum class eResourceSlot : uint8_t
 	{
-		eNone				= 0x00,
-		eAmbient			= 0x01,
-		eDiffuse			= 0x02,
-		eSpecular			= 0x03,
-		eEmissive			= 0x04,
-		eOpacity			= 0x05,
-		eBump				= 0x06,
-		eNormal				= 0x07,
-		eRoughness			= 0x08,
-		eMetallic			= 0x09,
-		eAmbientOcclusion	= 0x10,
-		eSheen				= 0x11,
+		eNone = 0x00,
+
+		// Texture - Material
+		eAmbient = 0x01,
+		eDiffuse = 0x02,
+		eSpecular = 0x03,
+		eEmissive = 0x04,
+		eOpacity = 0x05,
+		eBump = 0x06,
+		eNormal = 0x07,
+		eRoughness = 0x08,
+		eMetallic = 0x09,
+		eAmbientOcclusion = 0x0A,
+		eSheen = 0x0B,
+
+		// Texture - GBuffer
+		eGPosition = 0x0C,
+		eGNormal = 0x0D,
+		eGAlbedo = 0x0E,
+		eGDepth = 0x0F,
+
+		// Uniform - Material
+		eVector = 0x10,
+		eScalar = 0x11,
+
+		// Uniform - Camera
+		eCamera = 0x12,
+
+		// Uniform - Instance
+		eTransform = 0x13,
+		eIndirect = 0x14,
+		eVisible = 0x15,
+		eLocalBounding = 0x16,
+
+		// Uniform - Light
+		eLight = 0x17,
 	};
 
 	enum class eVectorSlot : uint8_t
 	{
-		eNone			= 0x00,
-		eAmbientColor	= 0x01,
-		eDiffuseColor	= 0x02,
-		eSpecularColor	= 0x03,
-		eEmissiveColor	= 0x04,
+		eNone = 0x00,
+		eAmbientColor = 0x01,
+		eDiffuseColor = 0x02,
+		eSpecularColor = 0x03,
+		eEmissiveColor = 0x04,
 	};
 
 	enum class eScalarSlot : uint8_t
 	{
-		eNone			= 0x00,
-		eShininess		= 0x01,
-		eOpacity		= 0x02,
-		eRefraction		= 0x03,
-		eRoughness		= 0x04,
-		eMetallic		= 0x05,
+		eNone = 0x00,
+		eShininess = 0x01,
+		eOpacity = 0x02,
+		eRefraction = 0x03,
+		eRoughness = 0x04,
+		eMetallic = 0x05,
 	};
 
-	struct RawDataDesc
+	enum class eShadingModel : uint8_t
 	{
-		const void* pointer;
+		eNone		= 0x00,
+		eLit		= 0x01,
+		eUnlit		= 0x02,
+		eSubsurface	= 0x03,
 	};
 
-	struct FormattedDataDesc : RawDataDesc
+	enum class eBlendMode : uint8_t
+	{
+		eNone			= 0x00,
+		eOpaque			= 0x01,
+		eTransparent	= 0x02,
+		eAdditive		= 0x03,
+		eMasked			= 0x04,
+	};
+
+	enum class eLightType : uint8_t
+	{
+		eNone			= 0x00,
+		eDirectional	= 0x01,
+		ePoint			= 0x02,
+		eSpot			= 0x03,
+	};
+
+	enum class eShadowType : uint8_t
+	{
+		eNone			= 0x00,
+		eHard			= 0x01,
+		eSoft			= 0x02,
+	};
+
+	enum class eRenderDirty : uint8_t
+	{
+		eNone = 0x00,
+		eTransform = 0x01 << 0,
+		eMesh = 0x01 << 1,
+		eMaterial = 0x01 << 2,
+		eLight = 0x01 << 3,
+		eAll = eTransform | eMesh | eMaterial | eLight
+	};
+
+	enum class eAttachment : uint8_t
+	{
+		eNone = 0x00,
+		eColor = 0x01,
+		eDepth = 0x02,
+		eStencil = 0x03,
+		eDepthStencil = 0x04,
+	};
+
+	enum class eGBufferSlot : uint8_t
+	{
+		eNone = 0x00,
+		ePosition = 0x01,
+		eNormal = 0x02,
+		eAlbedo = 0x03,
+		eAlpha = 0x04,
+		eDepth = 0x05,
+	};
+
+	class RawData
+	{
+	public :
+		RawData();
+		virtual ~RawData() = default;
+
+	public :
+		virtual const void* GetPointer() const = 0;
+		virtual const size_t GetSize() const = 0;
+		virtual const size_t GetCount() const = 0;
+		
+	public :
+		bool IsEmpty() const;
+		bool IsUsed() const;
+
+		void SetUsed(const bool isUsed);
+
+	private :
+		std::atomic<bool> m_isUsed{ false };
+	};
+
+	template<typename T>
+	class ArrayData : public RawData
+	{
+	public:
+		wtr::DynamicArray<T> data;
+
+		ArrayData() = default;
+		virtual ~ArrayData() = default;
+
+	public:
+		const void* GetPointer() const override
+		{
+			return data.Data();
+		}
+
+		const size_t GetSize() const override
+		{
+			return data.Size() * sizeof(T);
+		}
+
+		const size_t GetCount() const override
+		{
+			return data.Size();
+		}
+	};
+
+	template<typename T>
+	class ScalarData : public RawData
+	{
+	public :
+		T data;
+
+		ScalarData()
+		{}
+
+		virtual ~ScalarData()
+		{
+		}
+
+	public :
+		const void* GetPointer() const override
+		{
+			return reinterpret_cast<const void*>(&data);
+		}
+
+		const size_t GetSize() const override
+		{
+			return sizeof(T);
+		}
+
+		const size_t GetCount() const override
+		{
+			return 1;
+		}
+	};
+
+	struct RawBuffer
+	{
+		Memory::RefPtr<RawData> bulkData;
+	};
+
+	struct FormattedBuffer : RawBuffer
 	{
 		eDataType componentType;
 		uint32_t numComponents;
 		uint32_t count;
 	};
 
-	struct TextureMipMapDesc : RawDataDesc
+	struct TextureMipMapBuffer : RawBuffer
 	{
 		uint32_t channels;
 
@@ -357,12 +522,12 @@ namespace wtr
 		uint32_t level;
 	};
 
-	struct TextureFaceDesc
+	struct TextureFaceBuffer
 	{
-		wtr::DynamicArray<TextureMipMapDesc> mipMaps;
+		wtr::DynamicArray<TextureMipMapBuffer> mipMaps;
 	};
 
-	struct TextureDataDesc
+	struct TextureBuffer
 	{
 		// The texture 2D : face 0 is the only face, and it contains all the mip levels
 		// The texture cube : face 0-5 are the 6 faces of the cube, 
@@ -374,21 +539,10 @@ namespace wtr
 		// The face 4 : the positive Z face
 		// The face 5 : the negative Z face
 		// The texture 3D : face 0 is the only face, and it contains all the mip levels
-		wtr::DynamicArray<TextureFaceDesc> faces;
+		wtr::DynamicArray<TextureFaceBuffer> faces;
 
 		eDataType componentType;
 	};
-
-	template<typename Desc>
-	struct BufferContainer
-	{
-		wtr::DynamicArray<uint8_t> data;
-		Desc desc;
-	};
-
-	using RawBuffer = BufferContainer<RawDataDesc>;
-	using FormattedBuffer = BufferContainer<FormattedDataDesc>;
-	using TextureBuffer = BufferContainer<TextureDataDesc>;
 
 	struct VertexKey
 	{
@@ -441,11 +595,52 @@ namespace wtr
 		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
+	inline eRenderDirty operator|(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty operator&(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty operator~(eRenderDirty a)
+	{
+		return static_cast<eRenderDirty>(~static_cast<uint8_t>(a));
+	}
+
+	inline eRenderDirty operator^(eRenderDirty a, eRenderDirty b)
+	{
+		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) ^ static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty& operator|=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a | b;
+		return a;
+	}
+
+	inline eRenderDirty& operator&=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a & b;
+		return a;
+	}
+
+	inline eRenderDirty& operator^=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a ^ b;
+		return a;
+	}
+
 	bool IsIntegerDataType(const eDataType dataType);
 
+	size_t GetPixelSize(const ePixelFormat pixelFormat);
 	size_t GetDataTypeSize(const eDataType dataType);
-	size_t GetVertexLocation(const VertexKey& vertexKey);
+	int32_t GetVertexLocation(const VertexKey& vertexKey);
 	const VertexKey GetVertexKey(const std::string& attributeName);
+	const std::string GetSlotName(const eResourceSlot slot);
+	const eResourceSlot GetResourceSlot(const std::string& name);
 };
 
 namespace std

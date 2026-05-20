@@ -9,8 +9,7 @@ namespace wtr
 			return fmat4(1.f);
 		}
 
-		const fquat quaternion = glm::quat(transform->GetRotation());
-		const fmat4 rotation = glm::toMat4(quaternion);
+		const fmat4 rotation = glm::toMat4(transform->GetRotation());
 
 		const fmat4 inverseRotation = glm::transpose(rotation);
 		const fmat4 inverseTranslation = glm::translate(fmat4(1.f), -transform->GetPosition());

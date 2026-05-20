@@ -49,7 +49,8 @@ namespace wtr
 		, extension(eExtension::eNone)
 		, type(eAsset::eNone)
 		, m_state(eAssetState::eNone)
-	{}
+	{
+	}
 
 	Asset::Asset(const std::string& path, const eExtension extension, const eAsset type)
 		: id(ECS::UUID())
@@ -58,7 +59,8 @@ namespace wtr
 		, extension(extension)
 		, type(type)
 		, m_state(eAssetState::eNone)
-	{}
+	{
+	}
 
 	void Asset::SetState(const eAssetState state)
 	{
@@ -80,42 +82,60 @@ namespace wtr
 		, textures()
 		, vectorValues()
 		, scalarValues()
-	{}
+		, shadingModel(eShadingModel::eUnlit)
+		, blendMode(eBlendMode::eOpaque)
+		, isDoubleSided(false)
+		, isPBR(false)
+	{
+	}
 
 	MaterialAsset::MaterialAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eMaterial)
 		, textures()
 		, vectorValues()
 		, scalarValues()
-	{}
+		, shadingModel(eShadingModel::eUnlit)
+		, blendMode(eBlendMode::eOpaque)
+		, isDoubleSided(false)
+		, isPBR(false)
+	{
+	}
 
 	eResourceState MaterialAsset::GetResourceState() const
 	{
-		eResourceState rawState = eResourceState::eNone;
-		if (textures.Empty() && vectorValues.Empty() && scalarValues.Empty())
+		if (GetState() == eAssetState::eLoaded && textures.Empty())
 		{
 			return eResourceState::eNone;
 		}
 		else
 		{
-			rawState = eResourceState::eLoaded;
-		}
-
-		eResourceState textureState = textures.Empty() ? eResourceState::eNone : eResourceState::eAll;
-		for (const auto& [slot, texture] : textures)
-		{
-			if (texture)
+			for (const auto& [slot, texture] : textures)
 			{
-				textureState &= texture->GetResourceState();
+				if (!texture)
+				{
+					return eResourceState::eError;
+				}
+				else if (texture->GetResourceState() == eResourceState::eError)
+				{
+					return eResourceState::eError;
+				}
+				else if (texture->GetResourceState() != eResourceState::eReady)
+				{
+					return eResourceState::eNone;
+				}
+				else
+				{
+					//
+				}
 			}
 		}
 
-		return std::max(rawState, textureState);
+		return eResourceState::eReady;
 	}
 
 	TextureAsset::TextureAsset()
 		: Asset()
-		, rawBuffer()
+		, rawTexture()
 		, texture()
 		, width(0)
 		, height(0)
@@ -127,11 +147,12 @@ namespace wtr
 		, isSRGB(false)
 		, isCubemap(false)
 		, isGenerateMips(false)
-	{}
+	{
+	}
 
 	TextureAsset::TextureAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eTexture)
-		, rawBuffer()
+		, rawTexture()
 		, texture()
 		, width(0)
 		, height(0)
@@ -143,26 +164,19 @@ namespace wtr
 		, isSRGB(false)
 		, isCubemap(false)
 		, isGenerateMips(false)
-	{}
+	{
+	}
 
 	eResourceState TextureAsset::GetResourceState() const
 	{
-		if (!rawBuffer)
+		if (!texture)
 		{
 			return eResourceState::eNone;
 		}
-
-		if (rawBuffer->data.Empty())
-		{
-			return eResourceState::eError;
-		}
-
-		if (texture)
+		else
 		{
 			return texture->GetState();
 		}
-
-		return eResourceState::eError;
 	}
 
 	MeshAsset::MeshAsset()
@@ -173,6 +187,7 @@ namespace wtr
 		, index()
 		, sections()
 		, materials()
+		, drawMode(eDrawMode::eNone)
 	{
 	}
 
@@ -184,51 +199,89 @@ namespace wtr
 		, index()
 		, sections()
 		, materials()
+		, drawMode(eDrawMode::eNone)
 	{
 	}
 
 	eResourceState MeshAsset::GetResourceState() const
 	{
-		eResourceState rawState = eResourceState::eNone;
-
-		if (rawBuffers.Empty() && !rawIndex && sections.Empty())
+		if (buffers.Empty())
 		{
 			return eResourceState::eNone;
 		}
-		else
-		{
-			rawState = eResourceState::eLoaded;
-		}
 
-		eResourceState bufferState = buffers.Empty() ? eResourceState::eNone : eResourceState::eAll;
 		for (const auto& [key, buffer] : buffers)
 		{
-			if (buffer)
+			if (!buffer)
 			{
-				bufferState &= buffer->GetState();
+				return eResourceState::eError;
+			}
+			else if (buffer->GetState() == eResourceState::eError)
+			{
+				return eResourceState::eError;
+			}
+			else if (buffer->GetState() != eResourceState::eReady)
+			{
+				return eResourceState::eNone;
+			}
+			else
+			{
+				//
 			}
 		}
 
-		eResourceState materialState = materials.Empty() ? eResourceState::eNone : eResourceState::eAll;
-		for (const auto& [name, material] : materials)
+		if (index)
 		{
-			if (material)
+			if (index->GetState() == eResourceState::eError)
 			{
-				materialState &= material->GetResourceState();
+				return eResourceState::eError;
+			}
+			else if (index->GetState() != eResourceState::eReady)
+			{
+				return eResourceState::eNone;
+			}
+			else
+			{
+				//
 			}
 		}
 
-		return std::max(rawState, std::min(bufferState, materialState));
+		if (!materials.Empty())
+		{
+			for (const auto& [name, material] : materials)
+			{
+				if (!material)
+				{
+					return eResourceState::eError;
+				}
+				else if (material->GetResourceState() == eResourceState::eError)
+				{
+					return eResourceState::eError;
+				}
+				else if (material->GetResourceState() != eResourceState::eReady)
+				{
+					return eResourceState::eNone;
+				}
+				else
+				{
+					//
+				}
+			}
+		}
+
+		return eResourceState::eReady;
 	}
 
 	ShaderAsset::ShaderAsset()
 		: Asset()
 		, rawBuffer()
+		, m_shaderType(eShaderType::eNone)
 	{}
 
 	ShaderAsset::ShaderAsset(const std::string& path, const eExtension extension)
 		: Asset(path, extension, eAsset::eShader)
 		, rawBuffer()
+		, m_shaderType(eShaderType::eNone)
 	{}
 
 	void ShaderAsset::SetShaderType(const eShaderType shaderType)
@@ -243,18 +296,13 @@ namespace wtr
 
 	eResourceState ShaderAsset::GetResourceState() const
 	{
-		eResourceState rawState = eResourceState::eNone;
-		if (!rawBuffer || rawBuffer->data.Empty())
+		if (!shader)
 		{
 			return eResourceState::eNone;
 		}
 		else
 		{
-			rawState = eResourceState::eLoaded;
+			return shader->GetState();
 		}
-
-		eResourceState shaderState = shader ? shader->GetState() : eResourceState::eNone;
-
-		return std::max(rawState, shaderState);
 	}
 }

@@ -5,10 +5,9 @@
 
 #include <World/WorldContext.h>
 #include <World/Component.h>
-#include <World/Node.h>
+#include <World/RenderNode.h>
 #include <World/Entity.h>
 #include <World/System/MoveSystem.h>
-
 #include <Log/include/Log.h>
 
 namespace demo
@@ -58,23 +57,25 @@ namespace demo
 			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 
-			dragonEntity->AddComponent<wtr::SceneComponent>();
-			dragonEntity->AddComponent<wtr::MeshComponent>(dragonAsset);
-			dragonEntity->AddNode<wtr::MeshNode>();
+			dragonEntity->AddComponent<wtr::TransformComponent>();
+			dragonEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
+			dragonEntity->AddNode<wtr::StaticMeshNode>();
 
-			auto sceneComponent = dragonEntity->GetComponent<wtr::SceneComponent>();
-			if (sceneComponent)
+			auto transformComponent = dragonEntity->GetComponent<wtr::TransformComponent>();
+			if (transformComponent)
 			{
-				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), static_cast<float>(index / 5), 0.0f });
-				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+				transformComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), static_cast<float>(index / 5), 0.0f });
+				transformComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
 			}
 
-			world->scene.Attach(dragonEntity->GetNode<wtr::MeshNode>());
+			world->scene.Attach(dragonEntity->GetNode<wtr::StaticMeshNode>());
 
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		for (size_t index = 0; index < 10; index++)
+		constexpr size_t cubeCount = 1000;
+		constexpr size_t cubePerRow = 100;
+		for (size_t index = 0; index < cubeCount; index++)
 		{
 			auto cubeEntity = world->CreateEntity();
 			if (!cubeEntity)
@@ -86,18 +87,18 @@ namespace demo
 			const std::string cubePath = "asset/mesh/3d/cube.obj";
 			Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
 
-			cubeEntity->AddComponent<wtr::SceneComponent>();
-			cubeEntity->AddComponent<wtr::MeshComponent>(cubeAsset);
-			cubeEntity->AddNode<wtr::MeshNode>();
+			cubeEntity->AddComponent<wtr::TransformComponent>();
+			cubeEntity->AddComponent<wtr::StaticMeshComponent>(cubeAsset);
+			cubeEntity->AddNode<wtr::StaticMeshNode>();
 
-			auto sceneComponent = cubeEntity->GetComponent<wtr::SceneComponent>();
-			if (sceneComponent)
+			auto transformComponent = cubeEntity->GetComponent<wtr::TransformComponent>();
+			if (transformComponent)
 			{
-				sceneComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.0f, static_cast<float>(index / 5) });
-				sceneComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+				transformComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % cubePerRow), 0.0f, static_cast<float>(index / cubePerRow) });
+				transformComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
 			}
 
-			world->scene.Attach(cubeEntity->GetNode<wtr::MeshNode>());
+			world->scene.Attach(cubeEntity->GetNode<wtr::StaticMeshNode>());
 
 			//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
 		}
@@ -120,6 +121,7 @@ namespace demo
 			LOGERROR() << "[Game] Failed to create the render system";
 			return false;
 		}
+
 		return true;
 	}
 }

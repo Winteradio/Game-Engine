@@ -11,20 +11,20 @@ namespace wtr
 {
 	namespace
 	{
-		const wtr::HashMap<std::string_view, eTextureSlot> TEXTURE_TAG_MAP =
+		const wtr::HashMap<std::string_view, eResourceSlot> TEXTURE_TAG_MAP =
 		{
-			{ "map_Ka", eTextureSlot::eAmbient },
-			{ "map_Kd", eTextureSlot::eDiffuse },
-			{ "map_Ks", eTextureSlot::eSpecular },
-			{ "map_Ke", eTextureSlot::eEmissive },
-			{ "map_d", eTextureSlot::eOpacity },
-			{ "map_bump", eTextureSlot::eBump },
-			{ "bump", eTextureSlot::eBump },
-			{ "norm", eTextureSlot::eNormal },
-			{ "map_Pr", eTextureSlot::eRoughness },
-			{ "map_Pm", eTextureSlot::eMetallic },
-			{ "map_Ps", eTextureSlot::eSpecular },
-			{ "map_ao", eTextureSlot::eAmbientOcclusion }
+			{ "map_Ka", eResourceSlot::eAmbient },
+			{ "map_Kd", eResourceSlot::eDiffuse },
+			{ "map_Ks", eResourceSlot::eSpecular },
+			{ "map_Ke", eResourceSlot::eEmissive },
+			{ "map_d", eResourceSlot::eOpacity },
+			{ "map_bump", eResourceSlot::eBump },
+			{ "bump", eResourceSlot::eBump },
+			{ "norm", eResourceSlot::eNormal },
+			{ "map_Pr", eResourceSlot::eRoughness },
+			{ "map_Pm", eResourceSlot::eMetallic },
+			{ "map_Ps", eResourceSlot::eSpecular },
+			{ "map_ao", eResourceSlot::eAmbientOcclusion }
 		};
 
 		const wtr::HashMap<std::string_view, eVectorSlot> VECTOR_TAG_MAP =

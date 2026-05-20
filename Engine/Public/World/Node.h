@@ -68,7 +68,6 @@ namespace wtr
 	class BaseNode : public ECS::Node
 	{
 		GENERATE(BaseNode);
-
 	public:
 		using ECS::Node::Node;
 
@@ -79,7 +78,7 @@ namespace wtr
 	class Node : public BaseNode
 	{
 		GENERATE(Node);
-	public :
+	public:
 		using RequiredType = typename RequiredList<TypeList<>, Components...>::Type;
 		using OptionalType = typename OptionalList<TypeList<>, Components...>::Type;
 
@@ -87,61 +86,25 @@ namespace wtr
 		virtual ~Node() = default;
 	};
 
-	class LightNode : public Node<SceneComponent, LightComponent>
-	{
-		GENERATE(LightNode);
-
-	public :
-		Memory::ObjectPtr<SceneComponent> transform;
-		Memory::ObjectPtr<LightComponent> light;
-
-	public :
-		LightNode(Memory::ObjectPtr<SceneComponent> transform, Memory::ObjectPtr<LightComponent> light)
-			: Node(transform, light)
-			, transform(transform)
-			, light(light)
-		{}
-
-		virtual ~LightNode() = default;
-	};
-
-	class MeshNode : public Node<SceneComponent, MeshComponent, Optional<MaterialComponent>>
-	{
-		GENERATE(MeshNode);
-
-	public :
-		Memory::ObjectPtr<SceneComponent> transform;
-		Memory::ObjectPtr<MeshComponent> mesh;
-		Memory::ObjectPtr<MaterialComponent> overrideMaterial;
-
-	public :
-		MeshNode(Memory::ObjectPtr<SceneComponent> transform, Memory::ObjectPtr<MeshComponent> mesh, Memory::ObjectPtr<MaterialComponent> material = nullptr)
-			: Node(transform, mesh, material)
-			, transform(transform)
-			, mesh(mesh)
-			, overrideMaterial(material)
-		{}
-		virtual ~MeshNode() = default;
-	};
-
-	class CameraNode : public Node<SceneComponent, CameraComponent>
+	class CameraNode : public Node<TransformComponent, CameraComponent>
 	{
 		GENERATE(CameraNode);
 
-	public :
-		Memory::ObjectPtr<SceneComponent> transform;
+	public:
+		Memory::ObjectPtr<TransformComponent> transform;
 		Memory::ObjectPtr<CameraComponent> camera;
 
-	public :
-		CameraNode(Memory::ObjectPtr<SceneComponent> transform, Memory::ObjectPtr<CameraComponent> camera)
+	public:
+		CameraNode(Memory::ObjectPtr<TransformComponent> transform, Memory::ObjectPtr<CameraComponent> camera)
 			: Node(transform, camera)
 			, transform(transform)
 			, camera(camera)
-		{}
+		{
+		}
 
 		virtual ~CameraNode() = default;
 
-	public :
+	public:
 		const fmat4 GetViewMatrix() const;
 		const fmat4 GetProjectionMatrix() const;
 	};
