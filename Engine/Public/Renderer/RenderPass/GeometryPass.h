@@ -25,12 +25,13 @@ namespace wtr
 		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
 		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
 
+		void InitState() override;
 		void Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) override;
 		
-		bool SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand) override;
-		void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const MeshDrawCommand> drawCommand) override;
+		bool SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand);
+		void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList);
 
-		const RHIDrawIndexDesc GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) override;
+		const RHIDrawIndexDesc GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand);
 		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) override;
 
 	private :

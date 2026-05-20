@@ -67,11 +67,11 @@ namespace wtr
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
 
 		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
-		void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
+		void UnsetVertexLayout() override;
 		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
-		void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
-		void UnsetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
+		void UnsetPipeLine() override;
+		void UnsetRenderTarget() override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;

@@ -13,6 +13,8 @@
 
 #include <Log/include/Log.h>
 
+//#define DEBUG_BATCH
+
 namespace wtr
 {
 	RenderScene::RenderScene()
@@ -60,7 +62,9 @@ namespace wtr
 	{
 		if (!proxy)
 		{
+#ifdef DEBUG_BATCH
 			LOGERROR() << "[RenderScene] Failed to add the proxy, cause the proxy is invalid";
+#endif
 			return;
 		}
 
@@ -79,7 +83,9 @@ namespace wtr
 		}
 		else
 		{
+#ifdef DEBUG_BATCH
 			LOGERROR() << "[RenderScene] Failed to add the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
+#endif
 		}
 	}
 
@@ -87,14 +93,9 @@ namespace wtr
 	{
 		if (!proxy)
 		{
+#ifdef DEBUG_BATCH
 			LOGERROR() << "[RenderScene] Failed to update the proxy, cause the proxy is invalid";
-			return;
-		}
-
-		if (m_primitives.Find(proxy->GetID()) == m_primitives.End() &&
-			m_lights.Find(proxy->GetID()) == m_lights.End() && 
-			m_addedProxies.Find(proxy) == m_addedProxies.End())
-		{
+#endif
 			return;
 		}
 
@@ -120,7 +121,9 @@ namespace wtr
 	{
 		if (!proxy)
 		{
+#ifdef DEBUG_BATCH
 			LOGERROR() << "[RenderScene] Failed to remove the proxy, cause the proxy is invalid";
+#endif
 			return;
 		}
 
@@ -141,7 +144,9 @@ namespace wtr
 		}
 		else
 		{
+#ifdef DEBUG_BATCH
 			LOGERROR() << "[RenderScene] Failed to remove the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
+#endif
 		}
 	}
 
@@ -173,7 +178,9 @@ namespace wtr
 			auto& proxy = *itr;
 			if (!proxy)
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to add the proxy, cause the proxy is invalid";
+#endif
 				itr = m_addedProxies.Erase(itr);
 				continue;
 			}
@@ -194,7 +201,9 @@ namespace wtr
 			}
 			else
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to add the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
+#endif
 			}
 
 			itr = m_addedProxies.Erase(itr);
@@ -216,12 +225,14 @@ namespace wtr
 			auto& proxy = *itr;
 			if (!proxy)
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to update the proxy, cause the proxy is invalid";
+#endif
 				itr = m_updatedProxies.Erase(itr);
 				continue;
 			}
 
-			if (!proxy->IsSyncable())
+			if (!proxy->IsUploadable() || !proxy->IsSyncable())
 			{
 				itr++;
 				continue;
@@ -237,7 +248,9 @@ namespace wtr
 			}
 			else
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to update the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
+#endif
 			}
 
 			itr = m_updatedProxies.Erase(itr);
@@ -258,7 +271,9 @@ namespace wtr
 			auto& proxy = *itr;
 			if (!proxy)
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to remove the proxy, cause the proxy is invalid";
+#endif
 				itr = m_removedProxies.Erase(itr);
 				continue;
 			}
@@ -273,7 +288,9 @@ namespace wtr
 			}
 			else
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to remove the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
+#endif
 			}
 
 			itr = m_removedProxies.Erase(itr);
@@ -292,7 +309,9 @@ namespace wtr
 			auto refMeshAsset = primitive->GetMesh();
 			if (!refMeshAsset)
 			{
+#ifdef DEBUG_BATCH
 				LOGERROR() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid" << primitive->GetID().ToString();
+#endif
 				return;
 			}
 
@@ -307,14 +326,18 @@ namespace wtr
 				{
 					m_updatedBatches.Insert(meshBatch);
 
+#ifdef DEBUG_BATCH
 					LOGINFO() << "[RenderScene] Add the mesh batch's transform info, " << batchKey.ToString() << ", the primitive ID : " << primitive->GetID().ToString();
+#endif
 				}
 				else
 				{
 					meshBatch = Memory::MakeRef<MeshBatch>();
 					if (!meshBatch)
 					{
+#ifdef DEBUG_BATCH
 						LOGERROR() << "[RenderScene] Failed to add the batch, cause failed to create the mesh batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+#endif
 						continue;
 					}
 
@@ -353,7 +376,9 @@ namespace wtr
 					m_addedBatches.Insert(meshBatch);
 					m_meshBatches.Insert(std::make_pair(batchKey, meshBatch));
 
+#ifdef DEBUG_BATCH
 					LOGINFO() << "[RenderScene] Add the batch, ID : " << primitive->GetID().ToString() << ", Section Index : " << index;
+#endif
 				}
 
 				primitive->UpdateBatch(meshBatch);
@@ -374,7 +399,9 @@ namespace wtr
 			auto meshAsset = primitive->GetMesh();
 			if (!meshAsset || meshAsset->sections.Empty())
 			{
+#ifdef DEBUG_BATCH
 				LOGWARN() << "[RenderScene] Failed to update the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+#endif
 				return;
 			}
 
@@ -408,7 +435,9 @@ namespace wtr
 			auto meshAsset = primitive->GetMesh();
 			if (!meshAsset || meshAsset->sections.Empty())
 			{
+#ifdef DEBUG_BATCH
 				LOGWARN() << "[RenderScene] Failed to remove the primitive, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+#endif
 				return;
 			}
 
@@ -437,7 +466,9 @@ namespace wtr
 
 			m_primitives.Erase(primitive->GetID());
 
+#ifdef DEBUG_BATCH
 			LOGINFO() << "[RenderScene] Remove the primitive proxy, ID : " << primitive->GetID().ToString();
+#endif
 		}
 	}
 
@@ -483,7 +514,9 @@ namespace wtr
 			light->Unload(cmdList);
 			m_lights.Erase(light->GetID());
 
+#ifdef DEBUG_BATCH
 			LOGINFO() << "[RenderScene] Remove the light proxy, ID : " << light->GetID().ToString();
+#endif
 		}
 	}
 
@@ -539,7 +572,9 @@ namespace wtr
 			meshBatch->Unload(cmdList);
 			m_meshBatches.Erase(meshBatch->GetKey());
 
+#ifdef DEBUG_BATCH
 			LOGINFO() << "[RenderScene] Remove the batch, " << meshBatch->GetKey().ToString();
+#endif
 		}
 	}
 

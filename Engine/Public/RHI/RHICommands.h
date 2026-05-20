@@ -594,14 +594,11 @@ namespace wtr
 	class RHICommandUnsetVertexLayout : public RHICommand<RHICommandUnsetVertexLayout>
 	{
 	public:
-		RHICommandUnsetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout);
+		RHICommandUnsetVertexLayout();
 		~RHICommandUnsetVertexLayout() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private:
-		const Memory::RefPtr<const RHIVertexLayout> m_layout;
 	};
 
 	class RHICommandUnsetTexture : public RHICommand<RHICommandUnsetTexture>
@@ -635,27 +632,21 @@ namespace wtr
 	class RHICommandUnsetPipeLine : public RHICommand<RHICommandUnsetPipeLine>
 	{
 	public :
-		RHICommandUnsetPipeLine(const Memory::RefPtr<const RHIPipeLine> pipeline);
+		RHICommandUnsetPipeLine();
 		~RHICommandUnsetPipeLine() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 	};
 
 	class RHICommandUnsetRenderTarget : public RHICommand<RHICommandUnsetRenderTarget>
 	{
 	public :
-		RHICommandUnsetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target);
+		RHICommandUnsetRenderTarget();
 		~RHICommandUnsetRenderTarget() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const Memory::RefPtr<const RHIRenderTarget> m_target;
 	};
 
 	class RHICommandDispatchCompute : public RHICommand<RHICommandDispatchCompute>

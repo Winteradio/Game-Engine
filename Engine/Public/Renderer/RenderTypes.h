@@ -305,6 +305,7 @@ namespace wtr
 	{
 		eNone = 0x00,
 
+		// Texture - Material
 		eAmbient = 0x01,
 		eDiffuse = 0x02,
 		eSpecular = 0x03,
@@ -317,14 +318,27 @@ namespace wtr
 		eAmbientOcclusion = 0x0A,
 		eSheen = 0x0B,
 
+		// Texture - GBuffer
+		eGPosition = 0x0C,
+		eGNormal = 0x0D,
+		eGAlbedo = 0x0E,
+		eGDepth = 0x0F,
+
+		// Uniform - Material
 		eVector = 0x10,
 		eScalar = 0x11,
 
+		// Uniform - Camera
 		eCamera = 0x12,
+
+		// Uniform - Instance
 		eTransform = 0x13,
 		eIndirect = 0x14,
 		eVisible = 0x15,
-		eLocalBounding = 0x016
+		eLocalBounding = 0x16,
+
+		// Uniform - Light
+		eLight = 0x17,
 	};
 
 	enum class eVectorSlot : uint8_t

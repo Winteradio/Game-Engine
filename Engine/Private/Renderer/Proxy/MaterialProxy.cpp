@@ -14,9 +14,7 @@ namespace wtr
 
 	eResourceState MaterialProxy::GetResourceState() const
 	{
-		eResourceState allState = ShaderProxy::GetResourceState();
-
-		allState &= m_materialAsset ? m_materialAsset->GetResourceState() : eResourceState::eNone;
+		eResourceState allState = m_materialAsset ? m_materialAsset->GetResourceState() : eResourceState::eNone;
 		//allState &= m_vectorBuffer ? m_vectorBuffer->GetState() : eResourceState::eNone;
 		//allState &= m_scalarBuffer ? m_scalarBuffer->GetState() : eResourceState::eNone;
 

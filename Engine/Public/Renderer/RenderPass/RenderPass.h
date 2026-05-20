@@ -43,7 +43,7 @@ namespace wtr
 	public :
 		virtual void Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) = 0;
 		virtual bool SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
-		virtual void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
+		virtual void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList) = 0;
 
 		virtual Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) = 0;
 
@@ -75,7 +75,11 @@ namespace wtr
 		virtual ~GraphicPass() = default;
 
 	public :
+		virtual void InitState() = 0;
 		virtual const RHIDrawIndexDesc GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
+
+	public :
+		void SetState(Memory::RefPtr<RHICommandList> cmdList);
 
 	protected :
 		Memory::RefPtr<RHIClearState> m_clear;

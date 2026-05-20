@@ -45,7 +45,7 @@ namespace demo
 			return false;
 		}
 
-		for (size_t index = 0; index < 5; index++)
+		for (size_t index = 0; index < 25; index++)
 		{
 			auto dragonEntity = world->CreateEntity();
 			if (!dragonEntity)
@@ -73,8 +73,8 @@ namespace demo
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		constexpr size_t cubeCount = 5;
-		constexpr size_t cubePerRow = 1;
+		constexpr size_t cubeCount = 1000;
+		constexpr size_t cubePerRow = 100;
 		for (size_t index = 0; index < cubeCount; index++)
 		{
 			auto cubeEntity = world->CreateEntity();

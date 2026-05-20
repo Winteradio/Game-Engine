@@ -14,12 +14,12 @@
 namespace wtr
 {
 	LightingPass::LightingPass()
-		: m_target(nullptr)
 	{}
 
 	eResourceState LightingPass::GetResourceState() const
 	{
-		return m_target ? m_target->GetState() : eResourceState::eNone;
+		// TODO
+		return eResourceState::eReady;
 	}
 
 	void LightingPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
@@ -27,85 +27,6 @@ namespace wtr
 		if (!cmdList)
 		{
 			return;
-		}
-
-		if (!m_clear)
-		{
-			m_clear = Memory::MakeRef<RHIClearState>();
-		}
-
-		if (!m_color)
-		{
-			m_color = Memory::MakeRef<RHIColorState>();
-		}
-
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-		}
-
-		if (!m_stencil)
-		{
-			m_stencil = Memory::MakeRef<RHIStencilState>();
-		}
-
-		if (!m_blend)
-		{
-			m_blend = Memory::MakeRef<RHIBlendState>();
-		}
-
-		if (!m_rasterizer)
-		{
-			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-		}
-
-		if (!m_target)
-		{
-			RHIRenderTargetCreateDesc desc;
-
-			RHIColorAttachment position;
-			position.slot = 0;
-			position.type = eAttachment::eColor;
-			position.texture = GlobalResource::GetGBuffer(eGBufferSlot::ePosition);
-			if (!position.texture || position.texture->GetState() != eResourceState::eReady)
-			{
-				return;
-			}
-
-			RHIColorAttachment normal;
-			normal.slot = 1;
-			normal.type = eAttachment::eColor;
-			normal.texture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
-			if (!normal.texture || normal.texture->GetState() != eResourceState::eReady)
-			{
-				return;
-			}
-
-			RHIColorAttachment albedo;
-			albedo.slot = 2;
-			albedo.type = eAttachment::eColor;
-			albedo.texture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
-			if (!albedo.texture || albedo.texture->GetState() != eResourceState::eReady)
-			{
-				return;
-			}
-
-			RHIDepthStencilAttachment depthStencil;
-			depthStencil.type = eAttachment::eDepthStencil;
-			depthStencil.texture = GlobalResource::GetGBuffer(eGBufferSlot::eDepth);
-			if (!depthStencil.texture || depthStencil.texture->GetState() != eResourceState::eReady)
-			{
-				return;
-			}
-
-			desc.colors = { position, normal, albedo };
-			desc.depthStencil = depthStencil;
-
-			Memory::RefPtr<RHIRenderTarget> target = cmdList->CreateRenderTarget(desc);
-			if (target)
-			{
-				m_target = target;
-			}
 		}
 	}
 
@@ -115,44 +36,92 @@ namespace wtr
 		{
 			return;
 		}
+	}
 
-		if (m_target)
+	void LightingPass::InitState()
+	{
+		if (!m_clear)
 		{
-			cmdList->RemoveRenderTarget(m_target);
-			m_target.Reset();
+			m_clear = Memory::MakeRef<RHIClearState>();
+			m_clear->clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth | eClearBuffer::eStencil;
+			m_clear->depth = 1.0f;
+			m_clear->stencil = 0.f;
+			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
+		}
+
+		if (!m_depth)
+		{
+			m_depth = Memory::MakeRef<RHIDepthState>();
+			m_depth->enable = false;
 		}
 	}
 
 	void LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (lightProxies.Empty() || !cmdList)
+		if (!cmdList)
 		{
 			return;
 		}
 
-		if (!m_target || m_target->GetState() != eResourceState::eReady)
+		m_lights.Clear();
+
+		if (lightProxies.Empty())
 		{
-			return;
+			const auto lightProxy = GlobalResource::GetDefaultLight();
+			auto pipeline = GetPipeLine(cmdList, lightProxy);
+			if (pipeline && pipeline->GetState() == eResourceState::eReady)
+			{
+				m_lights[pipeline].PushBack(lightProxy);
+			}
+		}
+		else
+		{
+			for (const auto& lightProxy : lightProxies)
+			{
+				if (!lightProxy)
+				{
+					continue;
+				}
+
+				auto pipeline = GetPipeLine(cmdList, lightProxy);
+				if (!pipeline || pipeline->GetState() != eResourceState::eReady)
+				{
+					continue;
+				}
+
+				m_lights[pipeline].PushBack(lightProxy);
+			}
 		}
 
-		// TODO
-	}
+		SetState(cmdList);
 
-	bool LightingPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
-	{
-		// TODO
-
-		return true;
-	}
-
-	void LightingPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const MeshDrawCommand> drawCommand)
-	{
-		if (!cmdList || !drawCommand)
+		for (const auto& [pipeline, proxies] : m_lights)
 		{
-			return;
-		}
+			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
+			{
+				continue;
+			}
 
-		// TODO
+			cmdList->SetPipeLine(pipeline);
+
+			for (const auto& lightProxy : proxies)
+			{
+				if (!lightProxy)
+				{
+					continue;
+				}
+
+				if (SetLight(cmdList, pipeline, lightProxy) && SetCommand(cmdList, pipeline, nullptr))
+				{
+					const auto drawDesc = GetDrawCommand(nullptr);
+					cmdList->DrawIndexPrimitive(drawDesc);
+				}
+
+				UnsetCommand(cmdList);
+			}
+
+			cmdList->UnsetPipeLine();
+		}
 	}
 
 	const RHIDrawIndexDesc LightingPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
@@ -211,5 +180,91 @@ namespace wtr
 		{
 			return {};
 		}
+	}
+
+	bool LightingPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	{
+		if (!cmdList)
+		{
+			return false;
+		}
+
+		const auto layout = GlobalResource::GetQuad();
+		if (!layout || layout->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		cmdList->SetVertexLayout(layout);
+
+		return true;
+	}
+
+	void LightingPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
+		cmdList->UnsetVertexLayout();
+	}
+
+	bool LightingPass::SetLight(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const LightProxy> light)
+	{
+		if (!cmdList || !pipeline || !light || light->GetResourceState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto positionTexture = GlobalResource::GetGBuffer(eGBufferSlot::ePosition);
+		const auto normalTexture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
+		const auto albedoTexture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
+		if (!positionTexture || positionTexture->GetState() != eResourceState::eReady ||
+			!normalTexture || normalTexture->GetState() != eResourceState::eReady ||
+			!albedoTexture || albedoTexture->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto positionSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGPosition);
+		const auto normalSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGNormal);
+		const auto albedoSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGAlbedo);
+		if (!positionSampler || positionSampler->GetState() != eResourceState::eReady ||
+			!normalSampler || normalSampler->GetState() != eResourceState::eReady ||
+			!albedoSampler || albedoSampler->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto positionSlot = pipeline->GetBindingSlot(eResourceSlot::eGPosition);
+		const auto normalSlot = pipeline->GetBindingSlot(eResourceSlot::eGNormal);
+		const auto albedoSlot = pipeline->GetBindingSlot(eResourceSlot::eGAlbedo);
+		if (positionSlot.location == -1 || normalSlot.location == -1 || albedoSlot.location == -1)
+		{
+			return false;
+		}
+
+		const auto lightBuffer = light->GetLightBuffer();
+		if (!lightBuffer || lightBuffer->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto lightSlot = pipeline->GetBindingSlot(eResourceSlot::eLight);
+		if (lightSlot.location == -1)
+		{
+			return false;
+		}
+
+		cmdList->SetBuffer(lightBuffer, lightSlot.location);
+		cmdList->SetTexture(positionTexture, positionSlot.location);
+		cmdList->SetTexture(normalTexture, normalSlot.location);
+		cmdList->SetTexture(albedoTexture, albedoSlot.location);
+		cmdList->SetSampler(positionSampler, positionSlot.location);
+		cmdList->SetSampler(normalSampler, normalSlot.location);
+		cmdList->SetSampler(albedoSampler, albedoSlot.location);
+
+		return true;
 	}
 }

@@ -19,9 +19,7 @@ namespace wtr
 
 	eResourceState LightProxy::GetResourceState() const
 	{
-		eResourceState allState = ShaderProxy::GetResourceState();
-
-		allState &= m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
+		eResourceState allState = m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
 		// TODO
 		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;

@@ -499,8 +499,6 @@ namespace wtr
 
 		glBuffer->SetID(bufferID);
 		glBuffer->SetState(eResourceState::eReady);
-
-		buffer->SetDesc(info);
 	}
 
 	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -570,8 +568,6 @@ namespace wtr
 
 		glVertexLayout->SetID(vertexLayoutID);
 		glVertexLayout->SetState(eResourceState::eReady);
-
-		layout->SetDesc(info);
 	}
 
 	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -629,8 +625,6 @@ namespace wtr
 		{
 			glTexture->SetID(textureID);
 			glTexture->SetState(eResourceState::eReady);
-
-			texture->SetDesc(info);
 		}
 	}
 
@@ -663,8 +657,6 @@ namespace wtr
 
 		glSampler->SetID(samplerID);
 		glSampler->SetState(eResourceState::eReady);
-
-		sampler->SetDesc(info);
 	}
 
 	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
@@ -783,8 +775,6 @@ namespace wtr
 		else
 		{
 			glPipeLine->SetState(eResourceState::eReady);
-
-			pipeline->SetDesc(info);
 		}
 	}
 
@@ -821,6 +811,7 @@ namespace wtr
 			const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(colorAttach.texture->GetRawBuffer());
 			if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
 			{
+				LOGERROR() << "[GL] Not ready the color attachment's texture, failed to bind the frame buffer";
 				continue;
 			}
 
@@ -840,6 +831,8 @@ namespace wtr
 			const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(info.depthStencil.texture->GetRawBuffer());
 			if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
 			{
+				LOGERROR() << "[GL] Not ready the depth stencil attachment's texture, failed to bind the frame buffer";
+
 				return;
 			}
 
@@ -1029,7 +1022,12 @@ namespace wtr
 
 					if (IsSampler(results[0]))
 					{
-						bindingSlot.location = results[2];
+						const GLint uniformLocation = results[2];
+
+						GLint textureUnit = -1;
+						glGetUniformiv(programID, uniformLocation, &textureUnit);
+
+						bindingSlot.location = textureUnit;
 						bindingSlot.type = eBindingType::eSampler;
 					}
 					else
@@ -1442,8 +1440,6 @@ namespace wtr
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
-
-		buffer->SetDesc(info);
 	}
 
 	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -1489,8 +1485,6 @@ namespace wtr
 
 			glTexture->SetID(GL_NONE);
 			glTexture->SetState(eResourceState::eError);
-
-			texture->SetDesc(info);
 		}
 	}
 
@@ -1534,8 +1528,6 @@ namespace wtr
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
-
-		buffer->SetDesc(info);
 	}
 
 	void GLSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
@@ -1582,8 +1574,6 @@ namespace wtr
 			glTexture->SetID(GL_NONE);
 			glTexture->SetState(eResourceState::eError);
 		}
-
-		texture->SetDesc(info);
 	}
 
 	bool GLSystem::ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
@@ -1826,7 +1816,7 @@ namespace wtr
 		glBindBufferBase(bufferType, slot, GL_NONE);
 	}
 
-	void GLSystem::UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
+	void GLSystem::UnsetVertexLayout()
 	{
 		glBindVertexArray(GL_NONE);
 	}
@@ -1853,12 +1843,12 @@ namespace wtr
 		glBindSampler(slot, GL_NONE);
 	}
 
-	void GLSystem::UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
+	void GLSystem::UnsetPipeLine()
 	{
 		glUseProgram(GL_NONE);
 	}
 
-	void GLSystem::UnsetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	void GLSystem::UnsetRenderTarget()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GL_NONE);
 	}

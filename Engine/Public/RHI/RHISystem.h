@@ -135,11 +135,11 @@ namespace wtr
 		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
 
 		virtual void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) = 0;
-		virtual void UnsetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
+		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
 		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) = 0;
-		virtual void UnsetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
-		virtual void UnsetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
+		virtual void UnsetPipeLine() = 0;
+		virtual void UnsetRenderTarget() = 0;
 
 		virtual void DispatchCompute(const RHIDispatchDesc info) = 0;
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;

@@ -32,46 +32,6 @@ namespace wtr
 			return;
 		}
 
-		if (!m_clear)
-		{
-			m_clear = Memory::MakeRef<RHIClearState>();
-			m_clear->clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth | eClearBuffer::eStencil;
-			m_clear->depth = 1.0f;
-			m_clear->stencil = 0.f;
-			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
-		}
-
-		if (!m_color)
-		{
-			m_color = Memory::MakeRef<RHIColorState>();
-		}
-
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-			m_depth->enable = true;
-			m_depth->write = true;
-			m_depth->func = eCompareFunc::eLessEqual;
-		}
-
-		if (!m_stencil)
-		{
-			m_stencil = Memory::MakeRef<RHIStencilState>();
-		}
-
-		if (!m_blend)
-		{
-			m_blend = Memory::MakeRef<RHIBlendState>();
-		}
-
-		if (!m_rasterizer)
-		{
-			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-			m_rasterizer->cullEnable = true;
-			m_rasterizer->cullFace = eCullFace::eBack;
-			m_rasterizer->frontFace = eFrontFace::eCCW;
-		}
-
 		if (!m_target)
 		{
 			RHIRenderTargetCreateDesc desc;
@@ -136,6 +96,34 @@ namespace wtr
 		}
 	}
 
+	void GeometryPass::InitState()
+	{
+		if (!m_clear)
+		{
+			m_clear = Memory::MakeRef<RHIClearState>();
+			m_clear->clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth | eClearBuffer::eStencil;
+			m_clear->depth = 1.0f;
+			m_clear->stencil = 0.f;
+			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
+		}
+
+		if (!m_depth)
+		{
+			m_depth = Memory::MakeRef<RHIDepthState>();
+			m_depth->enable = true;
+			m_depth->write = true;
+			m_depth->func = eCompareFunc::eLessEqual;
+		}
+
+		if (!m_rasterizer)
+		{
+			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
+			m_rasterizer->cullEnable = true;
+			m_rasterizer->cullFace = eCullFace::eBack;
+			m_rasterizer->frontFace = eFrontFace::eCCW;
+		}
+	}
+
 	void GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (drawCommands.Empty() || !cmdList)
@@ -167,11 +155,7 @@ namespace wtr
 		}
 
 		cmdList->SetRenderTarget(m_target);
-
-		if (m_clear)
-		{
-			cmdList->Clear(*m_clear);
-		}
+		SetState(cmdList);
 
 		for (const auto& [pipeline, commands] : m_commands)
 		{
@@ -196,13 +180,13 @@ namespace wtr
 					cmdList->DrawIndexPrimitive(drawDesc);
 				}
 
-				UnsetCommand(cmdList, command);
+				UnsetCommand(cmdList);
 			}
 
-			cmdList->UnsetPipeLine(pipeline);
+			cmdList->UnsetPipeLine();
 		}
 
-		cmdList->UnsetRenderTarget(m_target);
+		cmdList->UnsetRenderTarget();
 	}
 
 	bool GeometryPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
@@ -313,14 +297,14 @@ namespace wtr
 		return true;
 	}
 
-	void GeometryPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	void GeometryPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !drawCommand)
+		if (!cmdList)
 		{
 			return;
 		}
 
-		cmdList->UnsetVertexLayout(drawCommand->vertexLayout);
+		cmdList->UnsetVertexLayout();
 	}
 
 	const RHIDrawIndexDesc GeometryPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)

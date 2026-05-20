@@ -380,6 +380,7 @@ namespace wtr
 			VertexKey positionKey{ eVertexSemantic::ePosition, 0 };
 			RHIVertexStream positionStream;
 			positionStream.buffer = positionBuffer;
+			positionStream.attribute.location = static_cast<uint16_t>(GetVertexLocation(positionKey));
 			positionStream.attribute.semantic = eVertexSemantic::ePosition;
 			positionStream.attribute.semanticIndex = 0;
 			positionStream.attribute.componentType = eDataType::eFloat;
@@ -392,6 +393,7 @@ namespace wtr
 			VertexKey uvKey{ eVertexSemantic::eTexCoord, 0 };
 			RHIVertexStream uvStream;
 			uvStream.buffer = uvBuffer;
+			uvStream.attribute.location = static_cast<uint16_t>(GetVertexLocation(uvKey));
 			uvStream.attribute.semantic = eVertexSemantic::eTexCoord;
 			uvStream.attribute.semanticIndex = 0;
 			uvStream.attribute.componentType = eDataType::eFloat;
@@ -917,13 +919,13 @@ namespace wtr
 			{
 				if (materialDesc.hasDiffuseMap)
 				{
-					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/unlit_texture.vs.glsl"));
-					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/unlit_texture.ps.glsl"));
+					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.vs.glsl"));
+					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.ps.glsl"));
 				}
 				else
 				{
-					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/unlit_color.vs.glsl"));
-					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/unlit_color.ps.glsl"));
+					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.vs.glsl"));
+					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.ps.glsl"));
 				}
 			}
 			else if (materialDesc.shadingModel == eShadingModel::eLit)
@@ -953,7 +955,7 @@ namespace wtr
 			if (geometryDS) material->AddShader(Memory::MakeRef<GeometryDSState>(geometryDS));
 			if (geometryPS) material->AddShader(Memory::MakeRef<GeometryPSState>(geometryPS));
 
-			//Memory::RefPtr<const ShaderAsset> computeCS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/frustum_culling.cs.glsl"));
+			//Memory::RefPtr<const ShaderAsset> computeCS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/culling.cs.glsl"));
 			//if (computeCS) material->AddShader(Memory::MakeRef<ComputeCSState>(computeCS));
 
 		}
@@ -977,7 +979,6 @@ namespace wtr
 				if (shadowPS) light->AddShader(Memory::MakeRef<ShadowPSState>(shadowPS));
 				if (lightVS)  light->AddShader(Memory::MakeRef<LightVSState>(lightVS));
 				if (lightPS)  light->AddShader(Memory::MakeRef<LightPSState>(lightPS));
-
 			}
 			else if (auto spot = Memory::Cast<SpotLightProxy>(light))
 			{
@@ -991,7 +992,6 @@ namespace wtr
 				if (shadowPS) light->AddShader(Memory::MakeRef<ShadowPSState>(shadowPS));
 				if (lightVS)  light->AddShader(Memory::MakeRef<LightVSState>(lightVS));
 				if (lightPS)  light->AddShader(Memory::MakeRef<LightPSState>(lightPS));
-
 			}
 			else if (auto point = Memory::Cast<PointLightProxy>(light))
 			{

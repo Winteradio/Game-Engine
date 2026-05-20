@@ -520,16 +520,15 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout)
-		: m_layout(layout)
+	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout()
 	{
 	}
 
 	void RHICommandUnsetVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
 	{
-		if (system && m_layout)
+		if (system)
 		{
-			system->UnsetVertexLayout(m_layout);
+			system->UnsetVertexLayout();
 		}
 	}
 
@@ -561,29 +560,27 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine(const Memory::RefPtr<const RHIPipeLine> pipeline)
-		: m_pipeline(pipeline)
+	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine()
 	{
 	}
 
 	void RHICommandUnsetPipeLine::Execute(Memory::RefPtr<RHISystem> system)
 	{
-		if (system && m_pipeline)
+		if (system)
 		{
-			system->UnsetPipeLine(m_pipeline);
+			system->UnsetPipeLine();
 		}
 	}
 
-	RHICommandUnsetRenderTarget::RHICommandUnsetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
-		: m_target(target)
+	RHICommandUnsetRenderTarget::RHICommandUnsetRenderTarget()
 	{
 	}
 
 	void RHICommandUnsetRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
 	{
-		if (system && m_target)
+		if (system)
 		{
-			system->UnsetRenderTarget(m_target);
+			system->UnsetRenderTarget();
 		}
 	}
 

@@ -68,10 +68,10 @@ namespace wtr
 					cmdList->DispatchCompute(dispatchDesc);
 				}
 
-				UnsetCommand(cmdList, command);
+				UnsetCommand(cmdList);
 			}
 
-			cmdList->UnsetPipeLine(pipeline);
+			cmdList->UnsetPipeLine();
 		}
 	}
 
@@ -116,9 +116,9 @@ namespace wtr
 		return true;
 	}
 
-	void CullingPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	void CullingPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !drawCommand)
+		if (!cmdList)
 		{
 			return;
 		}

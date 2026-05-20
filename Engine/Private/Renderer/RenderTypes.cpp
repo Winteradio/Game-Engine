@@ -185,6 +185,7 @@ namespace wtr
 
 	const std::string GetSlotName(const eResourceSlot slot)
 	{
+		// Texture - Material
 		if (slot == eResourceSlot::eAmbient)          return "tAmbient";
 		if (slot == eResourceSlot::eDiffuse)          return "tDiffuse";
 		if (slot == eResourceSlot::eSpecular)         return "tSpecular";
@@ -196,18 +197,35 @@ namespace wtr
 		if (slot == eResourceSlot::eMetallic)         return "tMetallic";
 		if (slot == eResourceSlot::eAmbientOcclusion) return "tAmbientOcclusion";
 		if (slot == eResourceSlot::eSheen)            return "tSheen";
+
+		// Texture - GBuffer
+		if (slot == eResourceSlot::eGPosition)        return "tGPosition";
+		if (slot == eResourceSlot::eGNormal)          return "tGNormal";
+		if (slot == eResourceSlot::eGAlbedo)          return "tGAlbedo";
+		if (slot == eResourceSlot::eGDepth)           return "tGDepth";
+
+		// Uniform - Material
 		if (slot == eResourceSlot::eVector)           return "uVector";
 		if (slot == eResourceSlot::eScalar)           return "uScalar";
+
+		// Uniform - Camera
 		if (slot == eResourceSlot::eCamera)           return "uCamera";
+
+		// Uniform - Instance
 		if (slot == eResourceSlot::eTransform)        return "uTransform";
 		if (slot == eResourceSlot::eIndirect)         return "uIndirect";
 		if (slot == eResourceSlot::eVisible)          return "uVisible";
-		if (slot == eResourceSlot::eLocalBounding)	  return "uLocalBounding";
+		if (slot == eResourceSlot::eLocalBounding)    return "uLocalBounding";
+
+		// Uniform - Light
+		if (slot == eResourceSlot::eLight)           return "uLight";
+
 		return "";
 	}
 
 	const eResourceSlot GetResourceSlot(const std::string& name)
 	{
+		// Texture - Material
 		if (name == "tAmbient")          return eResourceSlot::eAmbient;
 		if (name == "tDiffuse")          return eResourceSlot::eDiffuse;
 		if (name == "tSpecular")         return eResourceSlot::eSpecular;
@@ -219,13 +237,29 @@ namespace wtr
 		if (name == "tMetallic")         return eResourceSlot::eMetallic;
 		if (name == "tAmbientOcclusion") return eResourceSlot::eAmbientOcclusion;
 		if (name == "tSheen")            return eResourceSlot::eSheen;
+
+		// Texture - GBuffer
+		if (name == "tGPosition")        return eResourceSlot::eGPosition;
+		if (name == "tGNormal")          return eResourceSlot::eGNormal;
+		if (name == "tGAlbedo")          return eResourceSlot::eGAlbedo;
+		if (name == "tGDepth")           return eResourceSlot::eGDepth;
+
+		// Uniform - Material
 		if (name == "uVector")           return eResourceSlot::eVector;
 		if (name == "uScalar")           return eResourceSlot::eScalar;
+
+		// Uniform - Camera
 		if (name == "uCamera")           return eResourceSlot::eCamera;
+
+		// Uniform - Instance
 		if (name == "uTransform")        return eResourceSlot::eTransform;
 		if (name == "uIndirect")         return eResourceSlot::eIndirect;
 		if (name == "uVisible")          return eResourceSlot::eVisible;
 		if (name == "uLocalBounding")    return eResourceSlot::eLocalBounding;
+
+		// Uniform - Light
+		if (name == "uLight")			 return eResourceSlot::eLight;
+
 		return eResourceSlot::eNone;
 	}
 };

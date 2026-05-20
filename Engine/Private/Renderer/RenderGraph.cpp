@@ -37,6 +37,9 @@ namespace wtr
 			return false;
 		}
 
+		geometryPass->InitState();
+		lightingPass->InitState();
+
 		Add(cullingPass);
 		Add(geometryPass);
 		Add(lightingPass);
