@@ -10,13 +10,29 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 
 ## 📸 Current Progress & Demo
 
-**Milestone: Core Framework & Basic Rendering Completed** Currently, the core backbone of the engine, asset parsers, and the foundational RHI rendering pipeline have been successfully implemented.
+**Milestone: Deferred Rendering Completed** The full deferred rendering pipeline (CullingPass → GeometryPass → LightingPass) is now operational. GBuffer outputs (Position, Normal, Albedo) are written in the geometry pass and consumed by the lighting pass for per-light shading.
 
-*[26-04-17] Demonstration of MeshBatch Instancing with Normal Mapping*  
+*[26-05-21] Deferred Rendering — full pipeline demo*  
+![Deferred Rendering Demo](asset/screenshot/deferred-rendering.gif)
+
+*[26-05-21] GBuffer — Albedo*  
+![GBuffer Albedo](asset/screenshot/deferred-renderiing-gbuffer-albedo.png)
+
+*[26-05-21] GBuffer — Normal*  
+![GBuffer Normal](asset/screenshot/deferred-rendering-gbuffer-normal.png)
+
+*[26-05-21] GBuffer — Position*  
+![GBuffer Position](asset/screenshot/deferred-rendering-gbuffer-position.png)
+
+---
+
+**Milestone: Core Framework & Basic Rendering Completed** Core backbone, asset parsers, and foundational RHI rendering pipeline.
+
+*[26-04-17] MeshBatch Instancing with Normal Mapping*  
 ![MeshBatch Instancing Demo](asset/screenshot/base-dragon-viewer.gif)
 
-*[26-04-18] Edit the base camera system*  
-![MeshBatch Instancing Demo](asset/screenshot/base-camera-viewer.gif)
+*[26-04-18] Base camera system*  
+![Camera Demo](asset/screenshot/base-camera-viewer.gif)
 
 ---
 
@@ -139,7 +155,7 @@ Dependency directions and responsibilities of the five internal engine modules. 
 flowchart TD
     FW["Framework<br>─────────────────<br>Engine · Window<br>Worker · FrameGate<br>Input · Task · Application"]
     WO["World<br>─────────────────<br>ECS wrapper layer<br>Entity · Component · Node<br>System · Commander<br>Scene · WorldContext"]
-    RD["Renderer<br>─────────────────<br>PrimitiveProxy · LightProxy<br>RenderScene · MeshBatch<br>RenderGraph · PipeLine<br>GlobalResource"]
+    RD["Renderer<br>─────────────────<br>PrimitiveProxy · LightProxy<br>MaterialProxy · ShaderProxy<br>RenderScene · MeshBatch<br>RenderGraph · RenderPass<br>GlobalRenderer"]
     RI["RHI<br>─────────────────<br>RHISystem (GLSystem)<br>RHIResources · RHICommandList<br>RHIFrameExecutor · RHITaskExecutor<br>RHI Command Objects (45+)"]
     AS["Asset<br>─────────────────<br>AssetSystem · AssetFactory<br>OBJ / MTL / PNG / GLSL Parsers<br>Async 3-stage pipeline"]
 
@@ -479,7 +495,7 @@ classDiagram
 
 ### 3. Renderer — Rendering Abstraction Layer
 
-References Unreal Engine's `FScene`, `FPrimitiveSceneProxy`, `FMeshBatch`, and `FRenderingCompositePassContext`. World objects are never passed directly to the renderer — they are converted into **Proxy** objects. `RenderScene` reorganizes these Proxies into `MeshBatch` instances to implement instancing.
+References Unreal Engine's `FScene`, `FPrimitiveSceneProxy`, `FMeshBatch`, and `FRenderingCompositePassContext`. World objects are never passed directly to the renderer — they are converted into **Proxy** objects. `RenderScene` reorganizes these Proxies into `MeshBatch` instances to implement instancing. The render pipeline is now **Deferred Rendering**: CullingPass (GPU compute frustum culling) → GeometryPass (GBuffer fill) → LightingPass (per-light shading).
 
 ```mermaid
 classDiagram
@@ -502,59 +518,76 @@ classDiagram
         - HashMap~UUID_RefPtr_PrimitiveProxy~ m_primitives
         - HashMap~UUID_RefPtr_LightProxy~ m_lights
         - HashMap~MeshBatchKey_RefPtr_MeshBatch~ m_meshBatches
-        - DynamicArray~RefPtr_PrimitiveProxy~ m_pendingPrimitives
+        - HashSet~RefPtr_MeshBatch~ m_updatedBatches
         + Flush(cmdList) void
         + UpdateProxy(updateInfo, cmdList) void
         + AddPrimitive(primitive) void
         + RemovePrimitive(id, cmdList) void
         + AddLight(light) void
         + RemoveLight(id) void
-        + AddBatch(primitive, cmdList) void
-        + UpdateBatch(primitive, cmdList) void
-        + RemoveBatch(primitive, cmdList) void
         + GetMeshBatch(key) RefPtr~MeshBatch~
     }
 
     class RenderGraph {
-        <<ECS::Graph~PipeLine~>>
-        - HashSet~RefPtr_PipeLine~ m_addable
-        - HashSet~RefPtr_PipeLine~ m_removable
-        - RefPtr~GlobalResource~ m_globalResource
+        - DynamicArray~RefPtr_RenderPass~ m_passes
         - DynamicArray~RefPtr_MeshDrawCommand~ m_drawCommands
         + Init(cmdList) bool
         + Execute(cmdList, renderScene, renderView) void
         + Flush(cmdList) void
-        + Add(pipeline) void
-        + Remove(pipeline) void
     }
 
-    class GlobalResource {
-        + CameraData cameraData
-        + BufferResource bufferResource
-        + TextureResource textureResource
-        + ScreenQuadResource screenQuadResource
+    class GlobalRenderer {
         + Init(cmdList) bool
         + UpdateCamera(renderView, cmdList) void
-        + GetCameraBuffer() RefPtr~RHIBuffer~
-        + GetScreenQuad() RefPtr~RHIVertexLayout~
+        + GetCamera() RefPtr~const_RHIBuffer~
+        + GetGBuffer(slot) RefPtr~const_RHITexture~
+        + GetSampler(cmdList, slot) RefPtr~const_RHISampler~
+        + GetPipeLine(cmdList, desc) RefPtr~const_RHIPipeLine~
+        + GetQuad() RefPtr~const_RHIVertexLayout~
+        + GetDefaultLight() RefPtr~const_LightProxy~
+    }
+    note for GlobalRenderer "Consolidates GlobalResource + GlobalPipeLine + GlobalSampler"
+
+    class RenderPass {
+        <<abstract>>
+        - RefPtr~RHIClearState~ m_clear
+        - RefPtr~RHIColorState~ m_color
+        - RefPtr~RHIDepthState~ m_depth
+        - RefPtr~RHIStencilState~ m_stencil
+        - RefPtr~RHIBlendState~ m_blend
+        - RefPtr~RHIRasterizerState~ m_rasterizer
+        + GetResourceState() eResourceState
+        + Draw(drawCommands, lightProxies, cmdList) void
+        # InitState() void
+        # SetState(cmdList) void
+        # GetPipeLine(cmdList, shader) RefPtr~const_RHIPipeLine~
+        # SetCommand(cmdList, pipeline, drawCommand) bool
+        # UnsetCommand(cmdList) void
     }
 
-    class PipeLine {
-        <<ECS::Object, RenderResource>>
-        - RefPtr~RHIPipeLine~ m_pipeLine
-        - bool m_prepared
-        + Execute(commands, globalResource, cmdList) void
-        + Init() void
-        + Prepare() void
-        + Draw(commands, globalResource, cmdList) void
-        + GetShaderState() eResourceState
+    class CullingPass {
+        - uint32_t m_groupX/Y/Z
+        - HashMap~pipeline_commands~ m_commands
+        + Draw(drawCommands, lightProxies, cmdList) void
+        # GetDispatchCommand() RHIDispatchDesc
     }
+    note for CullingPass "GPU compute frustum culling\nvia compute shader dispatch"
 
-    class SimpleColor {
-        + Init() void
-        + Prepare() void
-        + Draw(commands, globalResource, cmdList) void
+    class GeometryPass {
+        - HashMap~pipeline_commands~ m_commands
+        + Draw(drawCommands, lightProxies, cmdList) void
+        # SetCommand(cmdList, pipeline, drawCommand) bool
+        # GetDrawCommand(drawCommand) RHIDrawIndexDesc
     }
+    note for GeometryPass "Fills GBuffer: Position / Normal / Albedo / Depth"
+
+    class LightingPass {
+        - HashMap~pipeline_proxies~ m_lights
+        + Draw(drawCommands, lightProxies, cmdList) void
+        # SetLight(cmdList, pipeline, light) bool
+        # GetDrawCommand(drawCommand) RHIDrawIndexDesc
+    }
+    note for LightingPass "Deferred shading pass\nscreen-quad draw per light"
 
     class RenderCommandList {
         - atomic~RenderTask*~ m_head
@@ -579,19 +612,41 @@ classDiagram
 
     class PrimitiveProxy {
         - RefPtr~const_MeshAsset~ m_refMesh
-        - RefPtr~const_MaterialAsset~ m_refOverrideMaterial
+        - RefPtr~MaterialProxy~ m_refMaterialProxy
         + SetMesh(refMesh) void
-        + SetOverrideMaterial(refMaterial) void
         + GetMesh() RefPtr~const_MeshAsset~
+        + GetMaterialProxy() RefPtr~MaterialProxy~
     }
 
+    class InstancedPrimitiveProxy {
+        + Draw(cmdList) void
+    }
+    note for InstancedPrimitiveProxy "GPU instanced draw path\nCurrently ~30% perf vs non-instanced\nunder optimization"
+
+    class MaterialProxy {
+        - RefPtr~ShaderProxy~ m_shaderProxy
+        - HashMap~slot_texture~ m_textures
+        + GetShader() RefPtr~ShaderProxy~
+        + GetTexture(slot) RefPtr~const_RHITexture~
+    }
+
+    class ShaderProxy {
+        - HashMap~type_ShaderAsset~ m_shaders
+        + GetShader~T~() RefPtr~ShaderAsset~
+    }
+    note for ShaderProxy "Renamed from ShaderSet\nHolds typed shader asset refs\n(VS, PS, CS, GS, HS)"
+
     class LightProxy {
+        - RefPtr~RHIBuffer~ m_lightBuffer
+        - RefPtr~ShaderProxy~ m_shaderProxy
+        + GetLightBuffer() RefPtr~const_RHIBuffer~
+        + GetShaderProxy() RefPtr~const_ShaderProxy~
+        + GetResourceState() eResourceState
     }
 
     class MeshBatch {
         - HashMap~UUID_TransformInfo~ m_transformInfos
-        - RefPtr~RHIBuffer~ m_transformBuffer
-        - RefPtr~MeshDrawCommand~ m_refDrawCommand
+        - RefPtr~MeshDrawCommand~ m_drawCommand
         - RefPtr~const_MeshAsset~ m_refMesh
         - RefPtr~const_MaterialAsset~ m_refMaterial
         - size_t m_sectionIndex
@@ -606,13 +661,12 @@ classDiagram
     }
 
     class MeshDrawCommand {
+        + RefPtr~const_ShaderProxy~ material
         + RefPtr~RHIVertexLayout~ vertexLayout
-        + uint32_t indexOffset
-        + uint32_t indexCount
-        + HashMap~eTextureSlot_RefPtr_RHITexture~ textureSlots
-        + HashMap~eVectorSlot_fvec3~ vectorValues
-        + HashMap~eScalarSlot_float~ scalarValues
-        + RefPtr~RHIBuffer~ instanceBuffer
+        + RefPtr~RHIBuffer~ transform
+        + RefPtr~RHIBuffer~ indirect
+        + RefPtr~RHIBuffer~ visible
+        + RefPtr~RHIBuffer~ localBounding
         + uint32_t instanceCount
     }
 
@@ -621,14 +675,6 @@ classDiagram
         + UUID materialId
         + size_t meshSection
         + operator==() bool
-    }
-
-    class UpdateProxyInfo {
-        <<struct>>
-        + UUID id
-        + fvec3 position
-        + fvec3 rotation
-        + fvec3 scale
     }
 
     class RenderView {
@@ -642,10 +688,11 @@ classDiagram
     Renderer *-- RenderGraph
     Renderer *-- RenderCommandList
 
-    RenderGraph *-- GlobalResource
-    RenderGraph *-- PipeLine
+    RenderGraph *-- RenderPass
 
-    PipeLine <|-- SimpleColor
+    RenderPass <|-- CullingPass
+    RenderPass <|-- GeometryPass
+    RenderPass <|-- LightingPass
 
     RenderScene o-- PrimitiveProxy
     RenderScene o-- LightProxy
@@ -654,8 +701,14 @@ classDiagram
     SceneProxy <|-- PrimitiveProxy
     SceneProxy <|-- LightProxy
 
+    PrimitiveProxy <|-- InstancedPrimitiveProxy
+    PrimitiveProxy *-- MaterialProxy
+    MaterialProxy *-- ShaderProxy
+    LightProxy *-- ShaderProxy
+
     MeshBatch *-- MeshDrawCommand
     MeshBatch ..> MeshBatchKey : keyed by
+    MeshDrawCommand ..> ShaderProxy : material ref
 ```
 
 ---
@@ -1201,13 +1254,13 @@ flowchart TD
         MeshBatch["MeshBatch<br>(grouped by Mesh+Material+Section key)"]
         MeshDrawCommand["MeshDrawCommand<br>(VBO, IBO, instance buffer, texture slots)"]
         RenderGraph[RenderGraph]
-        PipeLine["PipeLine<br>(SimpleColor / Deferred planned)"]
+        RenderPass["RenderPass<br>(CullingPass → GeometryPass → LightingPass)"]
 
         RenderScene --> PrimitiveProxy
         PrimitiveProxy --> MeshBatch
         MeshBatch --> MeshDrawCommand
         MeshDrawCommand --> RenderGraph
-        RenderGraph --> PipeLine
+        RenderGraph --> RenderPass
     end
 
     subgraph RHILayer["RHI Layer"]
@@ -1215,7 +1268,7 @@ flowchart TD
         RHISystem["RHISystem<br>(GLSystem)"]
         GPU["GPU<br>(OpenGL 4.5)"]
 
-        PipeLine --> RHICommandList
+        RenderPass --> RHICommandList
         RHICommandList --> RHISystem
         RHISystem --> GPU
     end
@@ -1253,7 +1306,17 @@ flowchart TD
 * **Problem** : Loading large OBJ/PNG files blocks the main loop, and GPU uploads must run exclusively in the RHI thread context
 * **Solution** : Separated into 3 stages: Parse (TaskWorker pool, parallel CPU) → Load (AssetWorker, GPU format conversion) → Upload (RHITaskExecutor, GPU upload). `atomic<eAssetState>` tracks state transitions safely, and MeshBatch only references `RHIBuffer` once asset state is `eReady`
 
-### 6. Zero-Allocation Render Command Queue
+### 6. Deferred Rendering — RenderPass Architecture
+
+* **Problem** : The single `PipeLine` abstraction could not express multi-pass rendering (geometry fill + lighting) or compute dispatch passes cleanly
+* **Solution** : Replaced the `PipeLine` system with a `RenderPass` hierarchy: `CullingPass` (GPU compute frustum culling via compute shader), `GeometryPass` (fills GBuffer: Position, Normal, Albedo, Depth into FBO-backed `RHIRenderTarget`), and `LightingPass` (screen-quad draw per light sampling GBuffers). `GlobalRenderer` consolidates the formerly separate `GlobalResource`, `GlobalPipeLine`, and `GlobalSampler` into a single facade. Pipeline state objects (depth, blend, rasterizer, clear) are now owned by each `RenderPass` rather than being global
+
+### 7. PrimitiveProxy Split
+
+* **Problem** : The original `PrimitiveProxy` conflated scene-data representation with draw-call generation, making it hard to add GPU-driven instanced drawing
+* **Solution** : Separated into `PrimitiveProxy` (scene representation, transform, material binding) and `InstancedPrimitiveProxy` (GPU instanced draw path using indirect draw buffers). The instanced path is functional but currently performs at ~30% of the non-instanced baseline — the bottleneck is under investigation (likely deferred rendering GBuffer overhead or indirect buffer update frequency)
+
+### 8. Zero-Allocation Render Command Queue
 
 * **Problem** : Allocating RenderTasks with `new` every frame accumulates heap fragmentation and allocation overhead
 * **Solution** : `RenderCommandList` runs two `LinearArena` instances in a ping-pong fashion. The write index is atomically swapped so the Producer (World) writes to one buffer while the Consumer (Renderer) drains the other — a Zero-Alloc design
@@ -1281,10 +1344,16 @@ flowchart TD
 | └ DirectX 11 / 12 RHI backend | 🚧 Planned |
 | **Renderer** | |
 | └ SceneProxy (PrimitiveProxy, LightProxy) | ✅ Complete |
+| └ MaterialProxy / ShaderProxy | ✅ Complete |
 | └ MeshBatch Instancing | ✅ Complete |
-| └ RenderGraph / PipeLine | ✅ Basic implementation (SimpleColor) |
-| └ GlobalResource (Camera, GBuffer textures) | 🚧 In progress |
-| └ Deferred Rendering Pipeline | 🚧 Planned |
+| └ InstancedPrimitiveProxy (GPU instanced draw) | 🚧 In progress (~30% perf, under optimization) |
+| └ RenderGraph / RenderPass | ✅ Complete |
+| └ CullingPass (GPU compute frustum culling) | ✅ Complete |
+| └ GeometryPass (GBuffer fill) | ✅ Complete |
+| └ LightingPass (deferred shading) | ✅ Complete |
+| └ GlobalRenderer (Camera, GBuffer, Sampler, PipeLine) | ✅ Complete |
+| └ Deferred Rendering Pipeline | ✅ Complete |
+| └ RenderTarget (FBO-backed render target) | ✅ Complete |
 | **Asset** | |
 | └ Asset System (OBJ, MTL) | ✅ Complete |
 | └ Async Asset loading pipeline | ✅ Complete |
