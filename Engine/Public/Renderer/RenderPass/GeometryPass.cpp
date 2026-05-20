@@ -1,5 +1,7 @@
 #include <Renderer/RenderPass/GeometryPass.h>
 
+#include <Asset/AssetTypes.h>
+
 #include <Renderer/GlobalRenderer.h>
 #include <Renderer/MeshDrawCommand.h>
 #include <Renderer/Proxy/MaterialProxy.h>
@@ -33,6 +35,10 @@ namespace wtr
 		if (!m_clear)
 		{
 			m_clear = Memory::MakeRef<RHIClearState>();
+			m_clear->clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth | eClearBuffer::eStencil;
+			m_clear->depth = 1.0f;
+			m_clear->stencil = 0.f;
+			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
 		}
 
 		if (!m_color)
@@ -43,6 +49,9 @@ namespace wtr
 		if (!m_depth)
 		{
 			m_depth = Memory::MakeRef<RHIDepthState>();
+			m_depth->enable = true;
+			m_depth->write = true;
+			m_depth->func = eCompareFunc::eLessEqual;
 		}
 
 		if (!m_stencil)
@@ -58,6 +67,9 @@ namespace wtr
 		if (!m_rasterizer)
 		{
 			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
+			m_rasterizer->cullEnable = true;
+			m_rasterizer->cullFace = eCullFace::eBack;
+			m_rasterizer->frontFace = eFrontFace::eCCW;
 		}
 
 		if (!m_target)
@@ -156,6 +168,11 @@ namespace wtr
 
 		cmdList->SetRenderTarget(m_target);
 
+		if (m_clear)
+		{
+			cmdList->Clear(*m_clear);
+		}
+
 		for (const auto& [pipeline, commands] : m_commands)
 		{
 			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
@@ -212,8 +229,8 @@ namespace wtr
 			cmdList->SetBuffer(visibleBuffer, visible.location);
 		}
 
-		const RHIResourceBinding camera = pipeline->GetBindingSlot("uCamera");
-		const RHIResourceBinding transform = pipeline->GetBindingSlot("uTransform");
+		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
+		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
 
 		if (camera.location == -1 || transform.location == -1)
 		{
@@ -228,10 +245,70 @@ namespace wtr
 			return false;
 		}
 
+		const auto vertexLayout = drawCommand->vertexLayout;
+		if (!vertexLayout || vertexLayout->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
 		cmdList->SetBuffer(cameraBuffer, camera.location);
 		cmdList->SetBuffer(transformBuffer, transform.location);
-
 		cmdList->SetVertexLayout(drawCommand->vertexLayout);
+
+		return SetMaterial(cmdList, pipeline, drawCommand->material);
+	}
+
+	bool GeometryPass::SetMaterial(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MaterialProxy> material)
+	{
+		if (!cmdList || !pipeline || !material || material->GetResourceState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto materialAsset = material->GetMaterial();
+		if (materialAsset)
+		{
+			for (const auto& [slot, textureAsset] : materialAsset->textures)
+			{
+				if (!textureAsset || textureAsset->GetResourceState() != eResourceState::eReady)
+				{
+					continue;
+				}
+
+				const auto textureSlot = pipeline->GetBindingSlot(slot);
+				if (textureSlot.location == -1)
+				{
+					continue;
+				}
+
+				const auto sampler = GlobalResource::GetSampler(cmdList, slot);
+				if (sampler && sampler->GetState() == eResourceState::eReady)
+				{
+					cmdList->SetTexture(textureAsset->texture, textureSlot.location);
+					cmdList->SetSampler(sampler, textureSlot.location);
+				}
+			}
+		}
+
+		const auto vectorBuffer = material->GetVectorBuffer();
+		if (vectorBuffer && vectorBuffer->GetState() == eResourceState::eReady)
+		{
+			const auto vectorSlot = pipeline->GetBindingSlot(eResourceSlot::eVector);
+			if (vectorSlot.location != -1)
+			{
+				cmdList->SetBuffer(vectorBuffer, vectorSlot.location);
+			}
+		}
+
+		const auto scalarBuffer = material->GetScalarBuffer();
+		if (scalarBuffer && scalarBuffer->GetState() == eResourceState::eReady)
+		{
+			const auto scalarSlot = pipeline->GetBindingSlot(eResourceSlot::eScalar);
+			if (scalarSlot.location != -1)
+			{
+				cmdList->SetBuffer(scalarBuffer, scalarSlot.location);
+			}
+		}
 
 		return true;
 	}

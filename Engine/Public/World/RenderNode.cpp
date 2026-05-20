@@ -30,6 +30,32 @@ namespace wtr
 		return task;
 	}
 
+	void StaticMeshNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (mesh)
+		{
+			mesh->OnAttached(scene);
+		}
+	}
+
+	void StaticMeshNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (mesh)
+		{
+			mesh->OnDetached();
+		}
+	}
+
 	RenderTask StaticMeshNode::CreateProxy() const
 	{
 		Memory::RefPtr<StaticPrimitiveProxy> proxy = Memory::MakeRef<StaticPrimitiveProxy>(GetID());
@@ -105,6 +131,8 @@ namespace wtr
 				};
 
 			taskList.PushBack(meshTask);
+
+			mesh->ClearChanged();
 		}
 
 		if (transform && transform->IsDirty())
@@ -150,6 +178,32 @@ namespace wtr
 		if (mesh)
 		{
 			mesh->ClearDirty();
+		}
+	}
+
+	void InstancedStaticMeshNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (mesh)
+		{
+			mesh->OnAttached(scene);
+		}
+	}
+
+	void InstancedStaticMeshNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (mesh)
+		{
+			mesh->OnDetached();
 		}
 	}
 
@@ -231,6 +285,8 @@ namespace wtr
 				};
 
 			taskList.PushBack(meshTask);
+
+			mesh->ClearChanged();
 		}
 		
 		if (transform && transform->IsDirty())
@@ -286,6 +342,32 @@ namespace wtr
 		}
 	}
 
+	void DynamicMeshNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (mesh)
+		{
+			mesh->OnAttached(scene);
+		}
+	}
+
+	void DynamicMeshNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (mesh)
+		{
+			mesh->OnDetached();
+		}
+	}
+
 	RenderTask DynamicMeshNode::CreateProxy() const
 	{
 		RenderTask task;
@@ -312,6 +394,32 @@ namespace wtr
 		if (mesh)
 		{
 			mesh->ClearDirty();
+		}
+	}
+
+	void DirectionalLightNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (light)
+		{
+			light->OnAttached(scene);
+		}
+	}
+
+	void DirectionalLightNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (light)
+		{
+			light->OnDetached();
 		}
 	}
 
@@ -436,6 +544,32 @@ namespace wtr
 		}
 	}
 
+	void PointLightNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (light)
+		{
+			light->OnAttached(scene);
+		}
+	}
+
+	void PointLightNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (light)
+		{
+			light->OnDetached();
+		}
+	}
+
 	RenderTask PointLightNode::CreateProxy() const
 	{
 		Memory::RefPtr<PointLightProxy> proxy = Memory::MakeRef<PointLightProxy>(GetID());
@@ -556,6 +690,32 @@ namespace wtr
 		if (light)
 		{
 			light->ClearDirty();
+		}
+	}
+
+	void SpotLightNode::OnAttached(Scene* scene)
+	{
+		if (transform)
+		{
+			transform->OnAttached(scene);
+		}
+
+		if (light)
+		{
+			light->OnAttached(scene);
+		}
+	}
+
+	void SpotLightNode::OnDetached()
+	{
+		if (transform)
+		{
+			transform->OnDetached();
+		}
+
+		if (light)
+		{
+			light->OnDetached();
 		}
 	}
 

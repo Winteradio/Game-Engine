@@ -23,7 +23,6 @@ namespace wtr
 	{
 		if (nullptr != m_scene)
 		{
-			m_scene->Detach(GetID());
 			m_scene = nullptr;
 		}
 	}
@@ -429,7 +428,6 @@ namespace wtr
 
 	MeshComponent::MeshComponent()
 		: ProxyComponent()
-		, m_isChanged(false)
 	{
 	}
 
@@ -461,6 +459,8 @@ namespace wtr
 		if (refMesh)
 		{
 			m_refMesh = refMesh;
+
+			this->IsChanged();
 		}
 	}
 
@@ -495,6 +495,8 @@ namespace wtr
 		if (refMesh)
 		{
 			m_refMesh = refMesh;
+
+			this->IsChanged();
 		}
 	}
 
@@ -567,7 +569,7 @@ namespace wtr
 	}
 
 	MaterialComponent::MaterialComponent(Memory::RefPtr<Asset> refAsset)
-		: BaseComponent()
+		: ProxyComponent()
 		, m_refMaterial(nullptr)
 	{
 		if (!refAsset)
@@ -585,5 +587,89 @@ namespace wtr
 	Memory::RefPtr<const MaterialAsset> MaterialComponent::GetMaterialAsset() const
 	{
 		return m_refMaterial;
+	}
+
+	void MaterialComponent::UpdateVector(const eVectorSlot slot, const fvec3& value)
+	{
+		if (!m_refMaterial)
+		{
+			return;
+		}
+
+		auto itr = m_refMaterial->vectorValues.Find(slot);
+		if (itr == m_refMaterial->vectorValues.End())
+		{
+			m_refMaterial->vectorValues[slot] = value;
+
+			this->OnUpdate();
+		}
+		else
+		{
+			auto& prevValue = itr->second;
+			if ((std::abs(prevValue.x - value.x) >= std::numeric_limits<float>::epsilon()) ||
+				(std::abs(prevValue.y - value.y) >= std::numeric_limits<float>::epsilon()) ||
+				(std::abs(prevValue.z - value.z) >= std::numeric_limits<float>::epsilon()))
+			{
+				prevValue = value;
+
+				this->OnUpdate();
+			}
+		}
+	}
+
+	void MaterialComponent::UpdateScalar(const eScalarSlot slot, const float value)
+	{
+		if (!m_refMaterial)
+		{
+			return;
+		}
+
+		auto itr = m_refMaterial->scalarValues.Find(slot);
+		if (itr == m_refMaterial->scalarValues.End())
+		{
+			m_refMaterial->scalarValues[slot] = value;
+
+			this->OnUpdate();
+		}
+		else
+		{
+			auto& prevValue = itr->second;
+			if ((std::abs(prevValue - value) >= std::numeric_limits<float>::epsilon()))
+			{
+				prevValue = value;
+
+				this->OnUpdate();
+			}
+		}
+	}
+
+	void MaterialComponent::SetShadingModel(const eShadingModel shading)
+	{
+		if (!m_refMaterial)
+		{
+			return;
+		}
+
+		if (shading != m_refMaterial->shadingModel)
+		{
+			m_refMaterial->shadingModel = shading;
+
+			this->OnUpdate();
+		}
+	}
+
+	void MaterialComponent::SetBlendMode(const eBlendMode blend)
+	{
+		// TODO
+	}
+
+	void MaterialComponent::SetDoubleSide(const bool doubleSide)
+	{
+		// TODO
+	}
+
+	void MaterialComponent::SetPBR(const bool pbr)
+	{
+		// TODO
 	}
 }

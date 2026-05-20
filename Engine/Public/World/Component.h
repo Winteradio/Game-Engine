@@ -283,12 +283,12 @@ namespace wtr
 		Memory::RefPtr<MeshAsset> m_refMesh;
 	};
 	
-	class MaterialComponent : public BaseComponent
+	class MaterialComponent : public ProxyComponent
 	{
 		GENERATE(MaterialComponent);
 
 	public :
-		using BaseComponent::BaseComponent;
+		using ProxyComponent::ProxyComponent;
 
 		MaterialComponent() = default;
 		MaterialComponent(Memory::RefPtr<Asset> refAsset);
@@ -296,6 +296,15 @@ namespace wtr
 
 	public :
 		virtual Memory::RefPtr<const MaterialAsset> GetMaterialAsset() const;
+
+	public :
+		void UpdateVector(const eVectorSlot slot, const fvec3& value);
+		void UpdateScalar(const eScalarSlot slot, const float value);
+
+		void SetShadingModel(const eShadingModel shading);
+		void SetBlendMode(const eBlendMode blend);
+		void SetDoubleSide(const bool doubleSide);
+		void SetPBR(const bool pbr);
 
 	private :
 		Memory::RefPtr<MaterialAsset> m_refMaterial;

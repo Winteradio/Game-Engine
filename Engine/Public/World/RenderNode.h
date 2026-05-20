@@ -5,6 +5,7 @@
 
 namespace wtr
 {
+	class Scene;
 	class SceneProxy;
 	struct RenderTask;
 
@@ -22,6 +23,9 @@ namespace wtr
 		virtual ~ProxyNode() = default;
 
 	public :
+		virtual void OnAttached(Scene* scene) = 0;
+		virtual void OnDetached() = 0;
+
 		virtual RenderTask CreateProxy() const = 0;
 		virtual RenderTaskList UpdateProxy() const = 0;
 		virtual RenderTask RemoveProxy() const;
@@ -43,12 +47,12 @@ namespace wtr
 	class StaticMeshNode : public RenderNode<TransformComponent, StaticMeshComponent, Optional<MaterialComponent>>
 	{
 		GENERATE(StaticMeshNode);
-	public:
+	public :
 		Memory::ObjectPtr<TransformComponent> transform;
 		Memory::ObjectPtr<StaticMeshComponent> mesh;
 		Memory::ObjectPtr<MaterialComponent> overrideMaterial;
 
-	public:
+	public :
 		StaticMeshNode(Memory::ObjectPtr<TransformComponent> transform, 
 			Memory::ObjectPtr<StaticMeshComponent> mesh, 
 			Memory::ObjectPtr<MaterialComponent> material = nullptr)
@@ -61,7 +65,10 @@ namespace wtr
 
 		virtual ~StaticMeshNode() = default;
 
-	public:
+	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;
@@ -70,12 +77,12 @@ namespace wtr
 	class InstancedStaticMeshNode : public RenderNode<InstancedTransformComponent, StaticMeshComponent, Optional<MaterialComponent>>
 	{
 		GENERATE(InstancedStaticMeshNode);
-	public:
+	public :
 		Memory::ObjectPtr<InstancedTransformComponent> transform;
 		Memory::ObjectPtr<StaticMeshComponent> mesh;
 		Memory::ObjectPtr<MaterialComponent> overrideMaterial;
 
-	public:
+	public :
 		InstancedStaticMeshNode(Memory::ObjectPtr<InstancedTransformComponent> transform, 
 			Memory::ObjectPtr<StaticMeshComponent> mesh, 
 			Memory::ObjectPtr<MaterialComponent> material = nullptr)
@@ -88,7 +95,10 @@ namespace wtr
 
 		virtual ~InstancedStaticMeshNode() = default;
 
-	public:
+	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;
@@ -97,12 +107,12 @@ namespace wtr
 	class DynamicMeshNode : public RenderNode<TransformComponent, DynamicMeshComponent, Optional<MaterialComponent>>
 	{
 		GENERATE(DynamicMeshNode);
-	public:
+	public :
 		Memory::ObjectPtr<TransformComponent> transform;
 		Memory::ObjectPtr<DynamicMeshComponent> mesh;
 		Memory::ObjectPtr<MaterialComponent> overrideMaterial;
 
-	public:
+	public :
 		DynamicMeshNode(Memory::ObjectPtr<TransformComponent> transform, 
 			Memory::ObjectPtr<DynamicMeshComponent> mesh, 
 			Memory::ObjectPtr<MaterialComponent> material = nullptr)
@@ -115,7 +125,10 @@ namespace wtr
 
 		virtual ~DynamicMeshNode() = default;
 
-	public:
+	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;
@@ -139,6 +152,9 @@ namespace wtr
 		virtual ~DirectionalLightNode() = default;
 
 	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;
@@ -162,6 +178,9 @@ namespace wtr
 		virtual ~PointLightNode() = default;
 
 	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;
@@ -185,6 +204,9 @@ namespace wtr
 		virtual ~SpotLightNode() = default;
 
 	public :
+		void OnAttached(Scene* scene) override;
+		void OnDetached() override;
+
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
 		void ClearDirty() override;

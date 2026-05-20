@@ -34,6 +34,9 @@ namespace wtr
 		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) override;
 
 	private :
+		bool SetMaterial(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MaterialProxy> material);
+
+	private :
 		Memory::RefPtr<RHIRenderTarget> m_target;
 	};
 }

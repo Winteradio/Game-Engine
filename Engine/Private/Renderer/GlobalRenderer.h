@@ -7,6 +7,7 @@
 
 namespace wtr
 {
+	enum class eResourceSlot : uint8_t;
 	enum class eGBufferSlot : uint8_t;
 
 	struct RenderView;
@@ -123,7 +124,10 @@ namespace wtr
 		Memory::RefPtr<const RHITexture> GetGBuffer(const eGBufferSlot slot);
 		Memory::RefPtr<const RHIVertexLayout> GetQuad();
 		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, const RHIPipeLineCreateDesc desc);
+		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const eResourceSlot slot);
 		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const RHISamplerCreateDesc desc);
+		Memory::RefPtr<const MaterialProxy> GetDefaultMaterial();
+		Memory::RefPtr<const LightProxy> GetDefaultLight();
 	};
 
 	namespace GlobalShaderSelector

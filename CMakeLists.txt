@@ -158,6 +158,9 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.h
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderWorker.cpp
 
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.h
+	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/RenderProxy.cpp
+
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.h
 	${ENGINE_PRIVATE_DIR}/Renderer/Proxy/SceneProxy.cpp
 

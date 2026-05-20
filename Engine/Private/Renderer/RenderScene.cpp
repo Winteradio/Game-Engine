@@ -91,6 +91,13 @@ namespace wtr
 			return;
 		}
 
+		if (m_primitives.Find(proxy->GetID()) == m_primitives.End() &&
+			m_lights.Find(proxy->GetID()) == m_lights.End() && 
+			m_addedProxies.Find(proxy) == m_addedProxies.End())
+		{
+			return;
+		}
+
 		m_updatedProxies.Insert(proxy);
 	}
 
@@ -232,6 +239,7 @@ namespace wtr
 			{
 				LOGERROR() << "[RenderScene] Failed to update the proxy, cause the proxy type is invalid, ID : " << proxy->GetID().ToString();
 			}
+
 			itr = m_updatedProxies.Erase(itr);
 		}
 
@@ -288,15 +296,7 @@ namespace wtr
 				return;
 			}
 
-			Memory::RefPtr<MaterialProxy> refOverrideMaterial = nullptr;
-			Memory::RefPtr<const MaterialAsset> refOverrideMaterialAsset = primitive->GetOverrideMaterial();
-			if (refOverrideMaterialAsset)
-			{
-				refOverrideMaterial = Memory::MakeRef<MaterialProxy>(primitive->GetID());
-				refOverrideMaterial->SetMaterialAsset(refOverrideMaterialAsset);
-
-				GlobalShaderSelector::SetShader(refOverrideMaterial);
-			}
+			Memory::RefPtr<const MaterialAsset> refOverrideMaterial = primitive->GetOverrideMaterial();
 
 			const size_t endIndex = refMeshAsset->sections.Size();
 			for (size_t index = 0; index < endIndex; index++)
@@ -318,27 +318,36 @@ namespace wtr
 						continue;
 					}
 
-					Memory::RefPtr<MaterialProxy> refMaterial;
-					if (refOverrideMaterialAsset)
+					Memory::RefPtr<const MaterialProxy> refMaterialProxy = nullptr;
+					Memory::RefPtr<const MaterialAsset> refMaterial;
+					if (refOverrideMaterial)
 					{
 						refMaterial = refOverrideMaterial;
 					}
 					else
 					{
-						Memory::RefPtr<const MaterialAsset> refMaterialAsset;
 						auto itr = refMeshAsset->materials.Find(refMeshAsset->sections[index].materialName);
 						if (itr != refMeshAsset->materials.End())
 						{
-							refMaterialAsset = itr->second;
+							refMaterial = itr->second;
 						}
-
-						refMaterial = Memory::MakeRef<MaterialProxy>(primitive->GetID());
-						refMaterial->SetMaterialAsset(refMaterialAsset);
-
-						GlobalShaderSelector::SetShader(refMaterial);
 					}
 
-					meshBatch->SetMaterial(refMaterial);
+					if (refMaterial)
+					{
+						Memory::RefPtr<MaterialProxy> materialProxy = Memory::MakeRef<MaterialProxy>(primitive->GetID());
+						materialProxy->SetMaterialAsset(refMaterial);
+
+						GlobalShaderSelector::SetShader(materialProxy);
+
+						refMaterialProxy = materialProxy;
+					}
+					else
+					{
+						refMaterialProxy = GlobalResource::GetDefaultMaterial();
+					}
+
+					meshBatch->SetMaterial(refMaterialProxy);
 					meshBatch->SetMesh(refMeshAsset, index);
 
 					m_addedBatches.Insert(meshBatch);
@@ -365,7 +374,7 @@ namespace wtr
 			auto meshAsset = primitive->GetMesh();
 			if (!meshAsset || meshAsset->sections.Empty())
 			{
-				LOGWARN() << "[RenderScene] Failed to add the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
+				LOGWARN() << "[RenderScene] Failed to update the batch, cause the mesh asset is invalid, ID : " << primitive->GetID().ToString();
 				return;
 			}
 

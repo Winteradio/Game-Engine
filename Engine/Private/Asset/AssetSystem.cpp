@@ -34,6 +34,29 @@ namespace wtr
 		return core;
 	}
 
+	Memory::RefPtr<Asset> AssetSystem::Create(const std::string& name, const eAsset type)
+	{
+		AssetCore& core = GetCore();
+
+		Memory::RefPtr<Asset> asset = nullptr;
+		{
+			std::lock_guard<std::mutex> lock(core.mutexTask);
+			asset = core.manager.GetAsset(name);
+			if (asset)
+			{
+				return asset;
+			}
+
+			asset = AssetFactory::Create(name, type);
+			if (asset)
+			{
+				core.manager.AddAsset(name, asset);
+			}
+		}
+
+		return asset;
+	}
+
 	Memory::RefPtr<Asset> AssetSystem::Load(const std::string& path)
 	{
 		AssetCore& core = GetCore();

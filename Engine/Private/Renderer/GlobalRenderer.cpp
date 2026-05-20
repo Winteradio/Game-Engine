@@ -515,6 +515,9 @@ namespace wtr
 			GBufferContainer gBuffers;
 			PipeLineContainer pipelines;
 			SamplerContainer samplers;
+
+			Memory::RefPtr<MaterialProxy> material;
+			Memory::RefPtr<LightProxy> light;
 		};
 
 		ResourceData& GetData()
@@ -541,7 +544,7 @@ namespace wtr
 				{
 					desc.width = 1;
 					desc.height = 1;
-					desc.depth = 0;
+					desc.depth = 1;
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
@@ -556,7 +559,7 @@ namespace wtr
 				{
 					desc.width = 1;
 					desc.height = 1;
-					desc.depth = 0;
+					desc.depth = 1;
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
@@ -571,7 +574,7 @@ namespace wtr
 				{
 					desc.width = 1;
 					desc.height = 1;
-					desc.depth = 0;
+					desc.depth = 1;
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
@@ -586,7 +589,7 @@ namespace wtr
 				{
 					desc.width = 1;
 					desc.height = 1;
-					desc.depth = 0;
+					desc.depth = 1;
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
@@ -601,7 +604,7 @@ namespace wtr
 				{
 					desc.width = 1;
 					desc.height = 1;
-					desc.depth = 0;
+					desc.depth = 1;
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
@@ -636,6 +639,16 @@ namespace wtr
 			data.camera.Upload(cmdList);
 			data.quad.Upload(cmdList);
 
+			Memory::RefPtr<MaterialAsset> defaultMaterial = Memory::Cast<MaterialAsset>(AssetSystem::Create("default", eAsset::eMaterial));
+			data.material = Memory::MakeRef<MaterialProxy>(ECS::UUID::Null());
+			data.material->Upload(cmdList);
+			data.material->SetMaterialAsset(defaultMaterial);
+			GlobalShaderSelector::SetShader(data.material);
+
+			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
+			data.light->Upload(cmdList);
+			GlobalShaderSelector::SetShader(data.light);
+
 			return InitGBuffer(cmdList);
 		}
 
@@ -644,6 +657,8 @@ namespace wtr
 			auto& data = GetData();
 			data.camera.Unload(cmdList);
 			data.quad.Unload(cmdList);
+			data.material->Unload(cmdList);
+			data.light->Unload(cmdList);
 
 			for (auto& [slot, gBuffer] : data.gBuffers)
 			{
@@ -805,6 +820,43 @@ namespace wtr
 			}
 		}
 
+		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const eResourceSlot slot)
+		{
+			if (!cmdList)
+			{
+				return {};
+			}
+
+			if (slot == eResourceSlot::eVector ||
+				slot == eResourceSlot::eScalar ||
+				slot == eResourceSlot::eNone)
+			{
+				return nullptr;
+			}
+
+			RHISamplerCreateDesc desc;
+			desc.minFilter = eFilterMode::eLinear;
+			desc.magFilter = eFilterMode::eLinear;
+			desc.mipFilter = eFilterMode::eLinear;
+
+			switch (slot)
+			{
+			case eResourceSlot::eOpacity:
+				desc.wrapS = eWrapMode::eClampToEdge;
+				desc.wrapT = eWrapMode::eClampToEdge;
+				desc.wrapR = eWrapMode::eClampToEdge;
+				break;
+
+			default:
+				desc.wrapS = eWrapMode::eRepeat;
+				desc.wrapT = eWrapMode::eRepeat;
+				desc.wrapR = eWrapMode::eRepeat;
+				break;
+			}
+
+			return GetSampler(cmdList, desc);
+		}
+
 		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const RHISamplerCreateDesc desc)
 		{
 			if (!cmdList)
@@ -828,45 +880,24 @@ namespace wtr
 				return {};
 			}
 		}
+
+		Memory::RefPtr<const MaterialProxy> GetDefaultMaterial()
+		{
+			auto& data = GetData();
+			
+			return data.material;
+		}
+
+		Memory::RefPtr<const LightProxy> GetDefaultLight()
+		{
+			auto& data = GetData();
+
+			return data.light;
+		}
 	}
 
 	namespace GlobalShaderSelector
 	{
-		const std::string GetSlotName(const eTextureSlot slot)
-		{
-			if (slot == eTextureSlot::eAmbient)          return "uAmbientMap";
-			if (slot == eTextureSlot::eDiffuse)          return "uDiffuseMap";
-			if (slot == eTextureSlot::eSpecular)         return "uSpecularMap";
-			if (slot == eTextureSlot::eEmissive)         return "uEmissiveMap";
-			if (slot == eTextureSlot::eOpacity)          return "uOpacityMap";
-			if (slot == eTextureSlot::eBump)             return "uBumpMap";
-			if (slot == eTextureSlot::eNormal)           return "uNormalMap";
-			if (slot == eTextureSlot::eRoughness)        return "uRoughnessMap";
-			if (slot == eTextureSlot::eMetallic)         return "uMetallicMap";
-			if (slot == eTextureSlot::eAmbientOcclusion) return "uAmbientOcclusionMap";
-			if (slot == eTextureSlot::eSheen)            return "uSheenMap";
-			return "";
-		}
-
-		const std::string GetSlotName(const eVectorSlot slot)
-		{
-			if (slot == eVectorSlot::eAmbientColor)  return "uAmbientColorValue";
-			if (slot == eVectorSlot::eDiffuseColor)  return "uDiffuseColorValue";
-			if (slot == eVectorSlot::eSpecularColor) return "uSpecularColorValue";
-			if (slot == eVectorSlot::eEmissiveColor) return "uEmissiveColorValue";
-			return "";
-		}
-
-		const std::string GetSlotName(const eScalarSlot slot)
-		{
-			if (slot == eScalarSlot::eShininess)  return "uShininessValue";
-			if (slot == eScalarSlot::eOpacity)    return "uOpacityValue";
-			if (slot == eScalarSlot::eRefraction) return "uRefractionValue";
-			if (slot == eScalarSlot::eRoughness)  return "uRoughnessValue";
-			if (slot == eScalarSlot::eMetallic)   return "uMetallicValue";
-			return "";
-		}
-
 		void SetShader(Memory::RefPtr<MaterialProxy> material)
 		{
 			if (!material)

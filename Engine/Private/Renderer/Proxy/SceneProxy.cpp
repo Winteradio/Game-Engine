@@ -6,27 +6,15 @@
 namespace wtr
 {
     SceneProxy::SceneProxy(const ECS::UUID& id)
-        : ECS::Object(id)
+        : RenderProxy(id)
         , m_position(0.f)
         , m_rotation(1.f, 0.f, 0.f, 0.f)
         , m_scale(1.f)
         , m_transform(1.f)
-        , m_owner(nullptr)
-        , m_dirty(eRenderDirty::eNone)
     {}
 
     SceneProxy::~SceneProxy()
     {}
-
-    void SceneProxy::OnAttached(RenderScene* owner)
-    {
-        m_owner = owner;
-    }
-
-    void SceneProxy::OnDetached()
-    {
-        m_owner = nullptr;
-    }
 
     void SceneProxy::UpdatePosition(const fvec3 position)
     {
@@ -93,29 +81,6 @@ namespace wtr
         SetDirty(eRenderDirty::eTransform);
 	}
 
-    void SceneProxy::SetDirty(const eRenderDirty dirty)
-    {
-        m_dirty |= dirty;
-    }
-
-    void SceneProxy::ClearDirty()
-    {
-        m_dirty = eRenderDirty::eNone;
-    }
-
-    const eRenderDirty SceneProxy::GetDirty() const
-    {
-        return m_dirty;
-    }
-
-    void SceneProxy::OnUpdate()
-    {
-        if (nullptr != m_owner)
-        {
-            m_owner->UpdateProxy(this->GetID());
-        }
-    }
-
     const fvec3 SceneProxy::GetPosition() const
     {
         return m_position;
@@ -135,19 +100,4 @@ namespace wtr
     {
         return m_transform;
 	}
-
-    size_t SceneProxyHasher::operator()(const SceneProxy& proxy) const
-    {
-        return std::hash<ECS::UUID>()(proxy.GetID());
-    }
-
-    size_t SceneProxyHasher::operator()(const Memory::RefPtr<SceneProxy>& refProxy) const
-    {
-        if (!refProxy)
-        {
-            return 0;
-        }
-
-        return std::hash<ECS::UUID>()(refProxy->GetID());
-    }
 }

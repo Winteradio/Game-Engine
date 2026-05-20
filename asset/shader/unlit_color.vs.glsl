@@ -18,6 +18,7 @@ layout(binding = 1) buffer uTransform
 };
 
 out vec3 outNormal;
+out vec3 outPosition;
 
 void main()
 {
@@ -32,5 +33,6 @@ void main()
     mat3 validAffin = affin * valid + mat3(1.0 - valid);
     mat3 normalTransform = transpose(inverse(validAffin));
 
+    outPosition = mat3(transform) * position;
     outNormal = normalize(normalTransform * normal);
 }

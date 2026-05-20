@@ -301,42 +301,49 @@ namespace wtr
 		eFrameBuffer	= 0x01 << 9,
 	};
 
-	enum class eTextureSlot : uint8_t
+	enum class eResourceSlot : uint8_t
 	{
-		eNone				= 0x00,
-		eAmbient			= 0x01,
-		eDiffuse			= 0x02,
-		eSpecular			= 0x03,
-		eEmissive			= 0x04,
-		eOpacity			= 0x05,
-		eBump				= 0x06,
-		eNormal				= 0x07,
-		eRoughness			= 0x08,
-		eMetallic			= 0x09,
-		eAmbientOcclusion	= 0x0A,
-		eSheen				= 0x0B,
-		eEnd
+		eNone = 0x00,
+
+		eAmbient = 0x01,
+		eDiffuse = 0x02,
+		eSpecular = 0x03,
+		eEmissive = 0x04,
+		eOpacity = 0x05,
+		eBump = 0x06,
+		eNormal = 0x07,
+		eRoughness = 0x08,
+		eMetallic = 0x09,
+		eAmbientOcclusion = 0x0A,
+		eSheen = 0x0B,
+
+		eVector = 0x10,
+		eScalar = 0x11,
+
+		eCamera = 0x12,
+		eTransform = 0x13,
+		eIndirect = 0x14,
+		eVisible = 0x15,
+		eLocalBounding = 0x016
 	};
 
 	enum class eVectorSlot : uint8_t
 	{
-		eNone			= 0x00,
-		eAmbientColor	= 0x01,
-		eDiffuseColor	= 0x02,
-		eSpecularColor	= 0x03,
-		eEmissiveColor	= 0x04,
-		eEnd
+		eNone = 0x00,
+		eAmbientColor = 0x01,
+		eDiffuseColor = 0x02,
+		eSpecularColor = 0x03,
+		eEmissiveColor = 0x04,
 	};
 
 	enum class eScalarSlot : uint8_t
 	{
-		eNone			= 0x00,
-		eShininess		= 0x01,
-		eOpacity		= 0x02,
-		eRefraction		= 0x03,
-		eRoughness		= 0x04,
-		eMetallic		= 0x05,
-		eEnd
+		eNone = 0x00,
+		eShininess = 0x01,
+		eOpacity = 0x02,
+		eRefraction = 0x03,
+		eRoughness = 0x04,
+		eMetallic = 0x05,
 	};
 
 	enum class eShadingModel : uint8_t
@@ -378,7 +385,7 @@ namespace wtr
 		eMesh = 0x01 << 1,
 		eMaterial = 0x01 << 2,
 		eLight = 0x01 << 3,
-		eAll = eTransform | eMesh | eMaterial
+		eAll = eTransform | eMesh | eMaterial | eLight
 	};
 
 	enum class eAttachment : uint8_t
@@ -618,6 +625,8 @@ namespace wtr
 	size_t GetDataTypeSize(const eDataType dataType);
 	int32_t GetVertexLocation(const VertexKey& vertexKey);
 	const VertexKey GetVertexKey(const std::string& attributeName);
+	const std::string GetSlotName(const eResourceSlot slot);
+	const eResourceSlot GetResourceSlot(const std::string& name);
 };
 
 namespace std

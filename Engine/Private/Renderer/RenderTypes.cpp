@@ -182,4 +182,50 @@ namespace wtr
 
 		return { eVertexSemantic::eNone, 0xFF };
 	}
+
+	const std::string GetSlotName(const eResourceSlot slot)
+	{
+		if (slot == eResourceSlot::eAmbient)          return "tAmbient";
+		if (slot == eResourceSlot::eDiffuse)          return "tDiffuse";
+		if (slot == eResourceSlot::eSpecular)         return "tSpecular";
+		if (slot == eResourceSlot::eEmissive)         return "tEmissive";
+		if (slot == eResourceSlot::eOpacity)          return "tOpacity";
+		if (slot == eResourceSlot::eBump)             return "tBump";
+		if (slot == eResourceSlot::eNormal)           return "tNormal";
+		if (slot == eResourceSlot::eRoughness)        return "tRoughness";
+		if (slot == eResourceSlot::eMetallic)         return "tMetallic";
+		if (slot == eResourceSlot::eAmbientOcclusion) return "tAmbientOcclusion";
+		if (slot == eResourceSlot::eSheen)            return "tSheen";
+		if (slot == eResourceSlot::eVector)           return "uVector";
+		if (slot == eResourceSlot::eScalar)           return "uScalar";
+		if (slot == eResourceSlot::eCamera)           return "uCamera";
+		if (slot == eResourceSlot::eTransform)        return "uTransform";
+		if (slot == eResourceSlot::eIndirect)         return "uIndirect";
+		if (slot == eResourceSlot::eVisible)          return "uVisible";
+		if (slot == eResourceSlot::eLocalBounding)	  return "uLocalBounding";
+		return "";
+	}
+
+	const eResourceSlot GetResourceSlot(const std::string& name)
+	{
+		if (name == "tAmbient")          return eResourceSlot::eAmbient;
+		if (name == "tDiffuse")          return eResourceSlot::eDiffuse;
+		if (name == "tSpecular")         return eResourceSlot::eSpecular;
+		if (name == "tEmissive")         return eResourceSlot::eEmissive;
+		if (name == "tOpacity")          return eResourceSlot::eOpacity;
+		if (name == "tBump")             return eResourceSlot::eBump;
+		if (name == "tNormal")           return eResourceSlot::eNormal;
+		if (name == "tRoughness")        return eResourceSlot::eRoughness;
+		if (name == "tMetallic")         return eResourceSlot::eMetallic;
+		if (name == "tAmbientOcclusion") return eResourceSlot::eAmbientOcclusion;
+		if (name == "tSheen")            return eResourceSlot::eSheen;
+		if (name == "uVector")           return eResourceSlot::eVector;
+		if (name == "uScalar")           return eResourceSlot::eScalar;
+		if (name == "uCamera")           return eResourceSlot::eCamera;
+		if (name == "uTransform")        return eResourceSlot::eTransform;
+		if (name == "uIndirect")         return eResourceSlot::eIndirect;
+		if (name == "uVisible")          return eResourceSlot::eVisible;
+		if (name == "uLocalBounding")    return eResourceSlot::eLocalBounding;
+		return eResourceSlot::eNone;
+	}
 };

@@ -61,16 +61,21 @@ namespace wtr
 		}
 
 #ifdef __GL_DEBUG__
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(
-			[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-			{
-				LOGERROR() << "[GL] Error : " << message;
-			},
-			nullptr
-		);
+		m_context.MakeCurrent();
 
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(
+				[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+				{
+					if (severity == GL_DEBUG_SEVERITY_HIGH) LOGERROR() << "[GL] Error : " << message;
+					else if (severity == GL_DEBUG_SEVERITY_MEDIUM) LOGWARN() << "[GL] Warn : " << message;
+					else LOGINFO() << "[GL] Info : " << message;
+				},
+				nullptr
+			);
+
+		m_context.ReleaseCurrent();
 #endif
 
 		InitializeState();
@@ -824,38 +829,45 @@ namespace wtr
 			{
 				LOGERROR() << "[GL] Failed to bind the texture on the color attachment for the frame buffer";
 
+				glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 				glRenderTarget->SetState(eResourceState::eError);
 				return;
 			}
 		}
 
-		if (!info.depthStencil.texture)
+		if (info.depthStencil.texture)
 		{
-			return;
-		}
+			const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(info.depthStencil.texture->GetRawBuffer());
+			if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
+			{
+				return;
+			}
 
-		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(info.depthStencil.texture->GetRawBuffer());
-		if (glTexture == nullptr || glTexture->GetID() == GL_NONE)
-		{
-			return;
-		}
+			if (!InitializeFrameBuffer(info.depthStencil.texture, info.depthStencil.type))
+			{
+				LOGERROR() << "[GL] Failed to bind the texture on the depth stencil attachment for the frame buffer";
 
-		if (!InitializeFrameBuffer(info.depthStencil.texture, info.depthStencil.type))
-		{
-			LOGERROR() << "[GL] Failed to bind the texture on the depth stencil attachment for the frame buffer";
-
-			glRenderTarget->SetState(eResourceState::eError);
-			return;
+				glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+				glRenderTarget->SetState(eResourceState::eError);
+				return;
+			}
 		}
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
 			LOGERROR() << "[GL] Failed to initialize the render target, invalid the frame buffer bined by texture";
 
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 			glRenderTarget->SetState(eResourceState::eError);
 			return;
 		}
 
+		const uint32_t attachCount = static_cast<const uint32_t>(glRenderTarget->GetColorAttachCount());
+		const wtr::DynamicArray<uint32_t>& attaches = glRenderTarget->GetColorAttachments();
+
+		glDrawBuffers(attachCount, attaches.Data());
+
+		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 		glRenderTarget->SetID(frameBufferID);
 		glRenderTarget->SetState(eResourceState::eReady);
 	}
@@ -1420,16 +1432,13 @@ namespace wtr
 				{
 					std::memcpy(mappedBuffer, dataPointer, dataSize);
 				}
+
+				glUnmapBuffer(bufferType);
 			}
 			else
 			{
 				glBufferSubData(bufferType, dataRange.offset, dataSize, dataPointer);
 			}
-		}
-
-		if (useMapBuffer)
-		{
-			glUnmapBuffer(bufferType);
 		}
 
 		glBindBuffer(bufferType, GL_NONE);
@@ -1572,9 +1581,9 @@ namespace wtr
 
 			glTexture->SetID(GL_NONE);
 			glTexture->SetState(eResourceState::eError);
-
-			texture->SetDesc(info);
 		}
+
+		texture->SetDesc(info);
 	}
 
 	bool GLSystem::ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
@@ -1803,12 +1812,7 @@ namespace wtr
 			return;
 		}
 
-		const uint32_t attachCount = static_cast<const uint32_t>(glRenderTarget->GetColorAttachCount());
-		const wtr::DynamicArray<uint32_t>& attaches = glRenderTarget->GetColorAttachments();
-
-		// Not supported the 'GL_READ_FRAMEBUFFER'
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
-		glDrawBuffers(attachCount, attaches.Data());
 	}
 
 	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)

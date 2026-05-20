@@ -18,6 +18,7 @@ namespace wtr
 
 	enum class eRenderDirty : uint8_t;
 
+	class RawData;
 	class MeshBatch;
 	class MeshAsset;
 	class MaterialAsset;

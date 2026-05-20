@@ -2,6 +2,8 @@
 
 #include <Asset/AssetTypes.h>
 #include <RHI/RHIResources.h>
+#include <RHI/RHIDescriptions.h>
+#include <RHI/RHICommandList.h>
 
 namespace wtr
 {
@@ -14,10 +16,47 @@ namespace wtr
 	{
 		eResourceState allState = ShaderProxy::GetResourceState();
 
-		// TODO : Override Material
-		allState &= m_materialAsset ? m_materialAsset->GetResourceState() : eResourceState::eReady;
+		allState &= m_materialAsset ? m_materialAsset->GetResourceState() : eResourceState::eNone;
+		//allState &= m_vectorBuffer ? m_vectorBuffer->GetState() : eResourceState::eNone;
+		//allState &= m_scalarBuffer ? m_scalarBuffer->GetState() : eResourceState::eNone;
 
 		return allState;
+	}
+
+	void MaterialProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+	}
+
+	void MaterialProxy::Unload(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+	}
+
+	void MaterialProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
+		{
+			return;
+		}
+
+		if (m_vectorBuffer)
+		{
+			cmdList->RemoveBuffer(m_vectorBuffer);
+			m_vectorBuffer.Reset();
+		}
+
+		if (m_scalarBuffer)
+		{
+			cmdList->RemoveBuffer(m_scalarBuffer);
+			m_scalarBuffer.Reset();
+		}
 	}
 
 	void MaterialProxy::SetMaterialAsset(Memory::RefPtr<const MaterialAsset> material)
@@ -29,26 +68,41 @@ namespace wtr
 
 		m_materialAsset = material;
 
-		// Update the material description
-		m_materialDesc.shadingModel = material->shadingModel;
-		m_materialDesc.blendMode = material->blendMode;
-		m_materialDesc.isDoubleSided = material->isDoubleSided;
-		m_materialDesc.isPBR = material->isPBR;
-
-		m_materialDesc.hasAmbientMap = material->textures.Contains(eTextureSlot::eAmbient);
-		m_materialDesc.hasDiffuseMap = material->textures.Contains(eTextureSlot::eDiffuse);
-		m_materialDesc.hasSpecularMap = material->textures.Contains(eTextureSlot::eSpecular);
-		m_materialDesc.hasEmissiveMap = material->textures.Contains(eTextureSlot::eEmissive);
-		m_materialDesc.hasOpacityMap = material->textures.Contains(eTextureSlot::eOpacity);
-		m_materialDesc.hasBumpMap = material->textures.Contains(eTextureSlot::eBump);
-		m_materialDesc.hasNormalMap = material->textures.Contains(eTextureSlot::eNormal);
-		m_materialDesc.hasRoughnessMap = material->textures.Contains(eTextureSlot::eRoughness);
-		m_materialDesc.hasMetallicMap = material->textures.Contains(eTextureSlot::eMetallic);
-		m_materialDesc.hasAmbientOcclusionMap = material->textures.Contains(eTextureSlot::eAmbientOcclusion);
-		m_materialDesc.hasSheenMap = material->textures.Contains(eTextureSlot::eSheen);
+		UpdateMaterialDesc();
 	}
 
-	Memory::RefPtr<const TextureAsset> MaterialProxy::GetTexture(const eTextureSlot slot) const
+	void MaterialProxy::UpdateMaterialDesc()
+	{
+		if (!m_materialAsset)
+		{
+			return;
+		}
+
+		// Update the material description
+		m_materialDesc.shadingModel = m_materialAsset->shadingModel;
+		m_materialDesc.blendMode = m_materialAsset->blendMode;
+		m_materialDesc.isDoubleSided = m_materialAsset->isDoubleSided;
+		m_materialDesc.isPBR = m_materialAsset->isPBR;
+
+		m_materialDesc.hasAmbientMap = m_materialAsset->textures.Contains(eResourceSlot::eAmbient);
+		m_materialDesc.hasDiffuseMap = m_materialAsset->textures.Contains(eResourceSlot::eDiffuse);
+		m_materialDesc.hasSpecularMap = m_materialAsset->textures.Contains(eResourceSlot::eSpecular);
+		m_materialDesc.hasEmissiveMap = m_materialAsset->textures.Contains(eResourceSlot::eEmissive);
+		m_materialDesc.hasOpacityMap = m_materialAsset->textures.Contains(eResourceSlot::eOpacity);
+		m_materialDesc.hasBumpMap = m_materialAsset->textures.Contains(eResourceSlot::eBump);
+		m_materialDesc.hasNormalMap = m_materialAsset->textures.Contains(eResourceSlot::eNormal);
+		m_materialDesc.hasRoughnessMap = m_materialAsset->textures.Contains(eResourceSlot::eRoughness);
+		m_materialDesc.hasMetallicMap = m_materialAsset->textures.Contains(eResourceSlot::eMetallic);
+		m_materialDesc.hasAmbientOcclusionMap = m_materialAsset->textures.Contains(eResourceSlot::eAmbientOcclusion);
+		m_materialDesc.hasSheenMap = m_materialAsset->textures.Contains(eResourceSlot::eSheen);
+	}
+
+	const MaterialDesc& MaterialProxy::GetMaterialDesc() const
+	{
+		return m_materialDesc;
+	}
+
+	Memory::RefPtr<const TextureAsset> MaterialProxy::GetTexture(const eResourceSlot slot) const
 	{
 		if (!m_materialAsset)
 		{
@@ -64,40 +118,18 @@ namespace wtr
 		return nullptr;
 	}
 
-	const MaterialDesc& MaterialProxy::GetMaterialDesc() const
+	Memory::RefPtr<const MaterialAsset> MaterialProxy::GetMaterial() const
 	{
-		return m_materialDesc;
+		return m_materialAsset;
 	}
 
-	const fvec3 MaterialProxy::GetVector(const eVectorSlot slot) const
+	Memory::RefPtr<const RHIBuffer> MaterialProxy::GetVectorBuffer() const
 	{
-		if (!m_materialAsset)
-		{
-			return fvec3(0.0f);
-		}
-
-		auto itr = m_materialAsset->vectorValues.Find(slot);
-		if (itr != m_materialAsset->vectorValues.End())
-		{
-			return itr->second;
-		}
-
-		return fvec3(0.0f);
+		return m_vectorBuffer;
 	}
 
-	const float MaterialProxy::GetScalar(const eScalarSlot slot) const
+	Memory::RefPtr<const RHIBuffer> MaterialProxy::GetScalarBuffer() const
 	{
-		if (!m_materialAsset)
-		{
-			return 0.0f;
-		}
-
-		auto itr = m_materialAsset->scalarValues.Find(slot);
-		if (itr != m_materialAsset->scalarValues.End())
-		{
-			return itr->second;
-		}
-
-		return 0.0f;
+		return m_scalarBuffer;
 	}
 }

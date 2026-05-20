@@ -131,7 +131,7 @@ namespace wtr
 	{
 		GENERATE(MaterialAsset);
 	public:
-		wtr::HashMap<eTextureSlot, Memory::RefPtr<const TextureAsset>> textures;
+		wtr::HashMap<eResourceSlot, Memory::RefPtr<const TextureAsset>> textures;
 		wtr::HashMap<eVectorSlot, fvec3> vectorValues;
 		wtr::HashMap<eScalarSlot, float> scalarValues;
 

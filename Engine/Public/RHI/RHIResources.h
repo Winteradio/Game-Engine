@@ -188,13 +188,15 @@ namespace wtr
 
 		void AddSlot(const std::string& name, const RHIResourceBinding& binding);
 		bool HasSlot(const std::string& name) const;
+		bool HasSlot(const eResourceSlot slot) const;
 
 		size_t GetSlotCount() const;
 		const RHIResourceBinding GetBindingSlot(const std::string& name) const;
+		const RHIResourceBinding GetBindingSlot(const eResourceSlot slot) const;
 
 	private :
 		RHIPipeLineDesc m_desc;
-		wtr::HashMap<std::string, RHIResourceBinding> m_slots;
+		wtr::HashMap<eResourceSlot, RHIResourceBinding> m_slots;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine

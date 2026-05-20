@@ -401,7 +401,7 @@ namespace wtr
 		}
 		else
 		{
-			// Transform Buffer Updates
+			// Transform Buffer Updates			
 			RHIBufferDesc prevDesc = m_drawCommand->transform->GetDesc();
 
 			RHIBufferUpdateDesc bufferDesc;
@@ -413,7 +413,7 @@ namespace wtr
 			bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
 			bufferDesc.stride = prevDesc.stride;
 			bufferDesc.dataRanges = std::move(dataRanges);
-			bufferDesc.mapAccess = eMapAccess::eInvalidateBuffer;
+			bufferDesc.mapAccess = eMapAccess::eInvalidateRange | eMapAccess::eWrite;
 
 			cmdList->UpdateBuffer(bufferDesc, m_drawCommand->transform);
 		}

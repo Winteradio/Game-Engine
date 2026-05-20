@@ -73,7 +73,6 @@ namespace demo
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		/*
 		constexpr size_t cubeCount = 5;
 		constexpr size_t cubePerRow = 1;
 		for (size_t index = 0; index < cubeCount; index++)
@@ -103,7 +102,6 @@ namespace demo
 
 			//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
 		}
-		*/
 
 		return true;
 	}

@@ -14,7 +14,7 @@ namespace wtr
 	class PrimitiveProxy;
 	class LightProxy;
 
-	struct SceneProxyHasher;
+	struct ProxyHasher;
 	struct UpdateProxyInfo;
 
 	class MeshBatch;
@@ -35,7 +35,7 @@ namespace wtr
 
 			using MeshBatchContainer = wtr::HashMap<MeshBatchKey, Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 
-			using PendingProxy = wtr::HashSet<Memory::RefPtr<SceneProxy>, SceneProxyHasher>;
+			using PendingProxy = wtr::HashSet<Memory::RefPtr<SceneProxy>, ProxyHasher>;
 			using PendingBatch = wtr::HashSet<Memory::RefPtr<MeshBatch>, MeshBatchHasher>;
 			
 		public:

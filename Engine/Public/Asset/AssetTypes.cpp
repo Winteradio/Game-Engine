@@ -103,7 +103,7 @@ namespace wtr
 
 	eResourceState MaterialAsset::GetResourceState() const
 	{
-		if (textures.Empty())
+		if (GetState() == eAssetState::eLoaded && textures.Empty())
 		{
 			return eResourceState::eNone;
 		}
@@ -129,8 +129,6 @@ namespace wtr
 				}
 			}
 		}
-
-		// TODO : If the vector or scalar value is not valid, return error states.
 
 		return eResourceState::eReady;
 	}

@@ -82,11 +82,11 @@ namespace wtr
 			return false;
 		}
 
-		const RHIResourceBinding camera = pipeline->GetBindingSlot("uCamera");
-		const RHIResourceBinding indirect = pipeline->GetBindingSlot("uIndirect");
-		const RHIResourceBinding visible = pipeline->GetBindingSlot("uVisible");
-		const RHIResourceBinding transform = pipeline->GetBindingSlot("uTransform");
-		const RHIResourceBinding localBouding = pipeline->GetBindingSlot("uLocalBouding");
+		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
+		const RHIResourceBinding indirect = pipeline->GetBindingSlot(eResourceSlot::eIndirect);
+		const RHIResourceBinding visible = pipeline->GetBindingSlot(eResourceSlot::eVisible);
+		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
+		const RHIResourceBinding localBouding = pipeline->GetBindingSlot(eResourceSlot::eLocalBounding);
 
 		if (camera.location == 0 || indirect.location == 0 || visible.location == 0 || transform.location == 0 || localBouding.location == 0)
 		{

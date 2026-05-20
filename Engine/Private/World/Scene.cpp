@@ -145,6 +145,8 @@ namespace wtr
 			return;
 		}
 
+		node->OnAttached(this);
+
 		m_proxies[node->GetID()] = node;
 		
 		m_addedProxies.Insert(node->GetID());
@@ -158,6 +160,7 @@ namespace wtr
 			return;
 		}
 
+		node->OnDetached();
 		Detach(node->GetID());
 	}
 
@@ -172,6 +175,7 @@ namespace wtr
 
 		m_addedProxies.Erase(entityId);
 		m_updatedProxies.Erase(entityId);
+		m_proxies.Erase(entityId);
 	}
 
 	void Scene::DetachAll()
@@ -181,6 +185,13 @@ namespace wtr
 			return;
 		}
 
+		for (const auto& [id, proxy] : m_proxies)
+		{
+			if (proxy)
+			{
+				proxy->OnDetached();
+			}
+		}
 		m_refCommander->RemoveAll();
 	}
 
