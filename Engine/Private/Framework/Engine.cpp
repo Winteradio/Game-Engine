@@ -49,9 +49,7 @@ namespace wtr
 	{}
 
 	Engine::~Engine()
-	{
-		Shutdown();
-	}
+	{}
 
 	bool Engine::Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc)
 	{
