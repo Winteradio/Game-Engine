@@ -36,6 +36,7 @@ namespace wtr
 
 	protected :
 		void onUpdate() override;
+		void onDestroy() override;
 		void onNotify() override;
 
 	private :

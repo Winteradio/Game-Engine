@@ -348,12 +348,6 @@ namespace wtr
 
 		AssetSystem::Shutdown();
 
-		if (m_worldContext)
-		{
-			m_worldContext->Clear();
-			m_worldContext.Reset();
-		}
-
 		if (m_updateGate)
 		{
 			m_updateGate->NotifyAll();
