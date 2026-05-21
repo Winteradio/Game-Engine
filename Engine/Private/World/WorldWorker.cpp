@@ -82,6 +82,15 @@ namespace wtr
 		}
 	}
 
+	void WorldWorker::onDestroy()
+	{
+		if (m_refWorldContext)
+		{
+			m_refWorldContext->Clear();
+			m_refWorldContext.Reset();
+		}
+	}
+
 	void WorldWorker::onNotify()
 	{
 		if (m_refProducer)

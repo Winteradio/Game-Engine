@@ -18,17 +18,7 @@ namespace wtr
 	{}
 
 	AssetWorker::~AssetWorker()
-	{
-		Stop();
-
-		for (auto& threadRef : m_threads)
-		{
-			if (threadRef)
-			{
-				threadRef->Stop();
-			}
-		}
-	}
+	{}
 
 	void AssetWorker::SetTaskThread(const size_t count)
 	{

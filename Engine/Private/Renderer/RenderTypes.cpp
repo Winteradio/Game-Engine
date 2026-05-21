@@ -1,6 +1,7 @@
 #include <Renderer/RenderTypes.h>
 
 #include <Container/include/HashMap.h>
+#include <algorithm>
 
 namespace wtr
 {

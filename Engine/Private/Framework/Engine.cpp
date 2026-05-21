@@ -49,9 +49,7 @@ namespace wtr
 	{}
 
 	Engine::~Engine()
-	{
-		Shutdown();
-	}
+	{}
 
 	bool Engine::Init(const WindowDesc& windowDesc, const RenderDesc& renderDesc)
 	{
@@ -347,12 +345,6 @@ namespace wtr
 		LOGINFO() << "[Engine] Shutting down Engine";
 
 		AssetSystem::Shutdown();
-
-		if (m_worldContext)
-		{
-			m_worldContext->Clear();
-			m_worldContext.Reset();
-		}
 
 		if (m_updateGate)
 		{
