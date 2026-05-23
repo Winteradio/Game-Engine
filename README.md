@@ -15,41 +15,43 @@ Per-instance `OnUpdate()` dirty-tracking storm eliminated. Previously, each of 1
 Result: 1,000,000 instances at **~22 FPS (Debug)**. Previous baseline: 1,000,000 instances at 5.4 FPS (185ms/frame).
 
 *[26-05-24] Hash Storm Fix - 1,000,000 Cube in debug mode*
-![GPU Compute](asset/screenshot/gpu-computue-trs-1m-cubes.gif)
+
+<img src="asset/screenshot/gpu-computue-trs-1m-cubes.gif" width="700" />
 
 ---
 
 **Milestone: TransformPass — GPU Compute TRS (×10 Throughput)** TRS matrix computation (position/rotation/scale → mat4) moved from CPU (GLM scalar) to GPU via Compute Shader (`TransformPass`, `local_size_x = 64`).  
 The render pipeline is now **TransformPass → GeometryPass → LightingPass**. Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release). Previous baseline: 30,000 instances fell below 10 FPS in Debug.
 
-*[26-05-24] GPU Compute TRS - 500,000 Cube in the release mode*  
-![GPU Compute](asset/screenshot/gpu-compute-trs.gif)
+*[26-05-24] GPU Compute TRS - 500,000 Cube in the release mode*
+
+<img src="asset/screenshot/gpu-compute-trs.gif" width="700" />
 
 ---
 
 **Milestone: Deferred Rendering Completed** The full deferred rendering pipeline is operational. GBuffer outputs (Position, Normal, Albedo) are written in the geometry pass and consumed by the lighting pass for per-light shading.
 
-*[26-05-21] Deferred Rendering — full pipeline demo*  
-![Deferred Rendering Demo](asset/screenshot/deferred-rendering.gif)
+*[26-05-21] Deferred Rendering — full pipeline demo*
 
-*[26-05-21] GBuffer — Albedo*  
-![GBuffer Albedo](asset/screenshot/deferred-renderiing-gbuffer-albedo.png)
+<img src="asset/screenshot/deferred-rendering.gif" width="700" />
 
-*[26-05-21] GBuffer — Normal*  
-![GBuffer Normal](asset/screenshot/deferred-rendering-gbuffer-normal.png)
+*[26-05-21] GBuffer — Albedo / Normal / Position*
 
-*[26-05-21] GBuffer — Position*  
-![GBuffer Position](asset/screenshot/deferred-rendering-gbuffer-position.png)
+| Albedo | Normal | Position |
+|:------:|:------:|:--------:|
+| <img src="asset/screenshot/deferred-renderiing-gbuffer-albedo.png" width="230" /> | <img src="asset/screenshot/deferred-rendering-gbuffer-normal.png" width="230" /> | <img src="asset/screenshot/deferred-rendering-gbuffer-position.png" width="230" /> |
 
 ---
 
 **Milestone: Core Framework & Basic Rendering Completed** Core backbone, asset parsers, and foundational RHI rendering pipeline.
 
-*[26-04-17] MeshBatch Instancing with Normal Mapping*  
-![MeshBatch Instancing Demo](asset/screenshot/base-dragon-viewer.gif)
+*[26-04-17] MeshBatch Instancing with Normal Mapping*
 
-*[26-04-18] Base camera system*  
-![Camera Demo](asset/screenshot/base-camera-viewer.gif)
+<img src="asset/screenshot/base-dragon-viewer.gif" width="700" />
+
+*[26-04-18] Base camera system*
+
+<img src="asset/screenshot/base-camera-viewer.gif" width="700" />
 
 ---
 
