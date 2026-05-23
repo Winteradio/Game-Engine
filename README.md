@@ -10,6 +10,15 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 
 ## 📸 Current Progress & Demo
 
+**Milestone: Hash Storm Fix — 1,000,000 Instance Dirty Tracking Optimization (×4.2 Throughput)**
+Per-instance `OnUpdate()` dirty-tracking storm eliminated. Previously, each of 1,000,000 `UpdateRotation()` calls unconditionally triggered `OnUpdate()` → `Scene::Update()` → `HashSet::Insert` in the World layer and `RenderScene::m_updatedProxies.Insert()` in the Renderer layer — 2,000,000 hash operations per frame (World: 15.37%, RenderScene: 20.30% of frame time). A single dirty-state guard (`if (!IsDirty()) OnUpdate()`) in `InstancedTransformComponent` and `InstancedStaticPrimitiveProxy` collapsed this to 1 call per frame regardless of instance count.
+Result: 1,000,000 instances at **~22 FPS (Debug)**. Previous baseline: 1,000,000 instances at 5.4 FPS (185ms/frame).
+
+*[26-05-24] Hash Storm Fix - 1,000,000 Cube in debug mode*
+![GPU Compute](asset/screenshot/gpu-computue-trs-1m-cubes.gif)
+
+---
+
 **Milestone: TransformPass — GPU Compute TRS (×10 Throughput)** TRS matrix computation (position/rotation/scale → mat4) moved from CPU (GLM scalar) to GPU via Compute Shader (`TransformPass`, `local_size_x = 64`).  
 The render pipeline is now **TransformPass → GeometryPass → LightingPass**. Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release). Previous baseline: 30,000 instances fell below 10 FPS in Debug.
 
@@ -1531,6 +1540,12 @@ flowchart TD
 * **Problem** : Allocating RenderTasks with `new` every frame accumulates heap fragmentation and allocation overhead
 * **Solution** : `RenderCommandList` runs two `LinearArena` instances in a ping-pong fashion. The write index is atomically swapped so the Producer (World) writes to one buffer while the Consumer (Renderer) drains the other — a Zero-Alloc design
 
+### 10. Per-Instance Dirty Tracking Hash Storm
+
+* **Problem** : `InstancedTransformComponent::AddInstance()` and `InstancedStaticPrimitiveProxy::UpdateTransform()` called `OnUpdate()` unconditionally on every instance mutation. With 1,000,000 instances per frame, this triggered 2,000,000 `HashSet::Insert` operations per frame — one in `Scene::Update()` (World layer, 15.37% of frame time) and one in `RenderScene::m_updatedProxies.Insert()` (Renderer layer, 20.30% of frame time). Frame time: 185 ms (~5.4 FPS Debug)
+* **Solution** : Added a dirty-state guard — `OnUpdate()` is only called when the proxy is not already dirty (`if (!IsDirty()) OnUpdate()`). Regardless of how many instances are mutated in one frame, the proxy is inserted into the update set exactly once. The 2,000,000 hash operations per frame collapsed to 1 call
+* **Result** : 1,000,000 instances at **~22 FPS (Debug)** — ×4.2 throughput improvement (185 ms → ~45 ms per frame)
+
 ---
 
 ## Implementation Status
@@ -1556,7 +1571,7 @@ flowchart TD
 | └ SceneProxy (PrimitiveProxy, LightProxy) | ✅ Complete |
 | └ MaterialProxy / ShaderProxy | ✅ Complete |
 | └ MeshBatch Instancing | ✅ Complete |
-| └ InstancedPrimitiveProxy (GPU instanced draw) | 🚧 In progress (~30% perf, under optimization) |
+| └ InstancedPrimitiveProxy (GPU instanced draw) | ✅ Complete (1M instances ~22 FPS Debug, ×4.2 Hash Storm fix) |
 | └ RenderGraph / RenderPass (ComputePass / GraphicPass hierarchy) | ✅ Complete |
 | └ TransformPass (GPU compute TRS → mat4, 500k instances @ 20 FPS Release) | ✅ Complete |
 | └ CullingPass (GPU compute frustum culling) | 🚧 Stub — pass-through, shader not implemented |
