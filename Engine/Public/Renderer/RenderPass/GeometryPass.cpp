@@ -124,16 +124,16 @@ namespace wtr
 		}
 	}
 
-	void GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	bool GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (drawCommands.Empty() || !cmdList)
+		if (!cmdList || !m_target || m_target->GetState() != eResourceState::eReady)
 		{
-			return;
+			return false;
 		}
 
-		if (!m_target || m_target->GetState() != eResourceState::eReady)
+		if (drawCommands.Empty())
 		{
-			return;
+			return true;
 		}
 
 		m_commands.Clear();
@@ -187,6 +187,8 @@ namespace wtr
 		}
 
 		cmdList->UnsetRenderTarget();
+
+		return true;
 	}
 
 	bool GeometryPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)

@@ -1,5 +1,5 @@
-#ifndef __WTR_CULLINGPASS_H__
-#define __WTR_CULLINGPASS_H__
+#ifndef __WTR_TRANSFORMPASS_H__
+#define __WTR_TRANSFORMPASS_H__
 
 #include <Renderer/RenderPass/RenderPass.h>
 
@@ -10,12 +10,12 @@ namespace wtr
 
 namespace wtr
 {
-	class CullingPass : public ComputePass
+	class TransformPass : public ComputePass
 	{
-		GENERATE(CullingPass);
+		GENERATE(TransformPass);
 	public:
-		CullingPass();
-		virtual ~CullingPass() = default;
+		TransformPass();
+		virtual ~TransformPass() = default;
 
 	public:
 		eResourceState GetResourceState() const override;
@@ -28,4 +28,4 @@ namespace wtr
 	};
 };
 
-#endif // __WTR_CULLINGPASS_H__
+#endif // __WTR_TRANSFORMPASS_H__

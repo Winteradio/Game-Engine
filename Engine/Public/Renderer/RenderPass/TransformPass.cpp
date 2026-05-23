@@ -1,32 +1,50 @@
-#include <Renderer/RenderPass/CullingPass.h>
+#include <Renderer/RenderPass/TransformPass.h>
+
+#include <Asset/AssetSystem.h>
+#include <Asset/AssetTypes.h>
 
 #include <Renderer/GlobalRenderer.h>
 #include <Renderer/MeshDrawCommand.h>
+#include <Renderer/ShaderState.h>
 
 #include <RHI/RHIDescriptions.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
 
+#include <Memory/include/Core.h>
+#include <Log/include/Log.h>
+
 namespace wtr
 {
-	CullingPass::CullingPass()
-		: ComputePass(64,64,64)
+	TransformPass::TransformPass()
+		: ComputePass(64, 64, 64)
 	{
 	}
 
-	eResourceState CullingPass::GetResourceState() const
+	eResourceState TransformPass::GetResourceState() const
 	{
-		return eResourceState::eReady;
+		return m_computeShader ? m_computeShader->GetResourceState() : eResourceState::eNone;
 	}
 
-	void CullingPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
+	void TransformPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		return;
+		if (!cmdList || m_computeShader)
+		{
+			return;
+		}
+
+		Memory::RefPtr<const ShaderAsset> computeShader = Memory::Cast<const ShaderAsset>(AssetSystem::Load("asset/shader/transform.cs.glsl"));
+		if (!computeShader)
+		{
+			LOGERROR() << "[TransformPass] Failed to load the compute shader";
+		}
+
+		m_computeShader = Memory::MakeRef<ShaderState>(computeShader);
 	}
 
-	bool CullingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	bool TransformPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_computeShader || m_computeShader->GetResourceState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -36,10 +54,37 @@ namespace wtr
 			return true;
 		}
 
+		auto pipeline = GetPipeLine(cmdList);
+		if (!pipeline || pipeline->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		cmdList->SetPipeLine(pipeline);
+
+		for (const auto& command : drawCommands)
+		{
+			if (!command)
+			{
+				continue;
+			}
+
+
+			if (SetCommand(cmdList, pipeline, command))
+			{
+				const auto dispatchDesc = GetDispatchCommand();
+				cmdList->DispatchCompute(dispatchDesc);
+			}
+
+			UnsetCommand(cmdList);
+		}
+
+		cmdList->UnsetPipeLine();
+
 		return true;
 	}
 
-	bool CullingPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	bool TransformPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		if (!cmdList || !pipeline || !drawCommand)
 		{
@@ -80,7 +125,7 @@ namespace wtr
 		return true;
 	}
 
-	void CullingPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList)
+	void TransformPass::UnsetCommand(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{

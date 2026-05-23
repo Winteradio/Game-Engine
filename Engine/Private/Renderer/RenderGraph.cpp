@@ -5,6 +5,7 @@
 #include <Renderer/RenderView.h>
 #include <Renderer/GlobalRenderer.h>
 #include <Renderer/Proxy/LightProxy.h>
+#include <Renderer/RenderPass/TransformPass.h>
 #include <Renderer/RenderPass/CullingPass.h>
 #include <Renderer/RenderPass/GeometryPass.h>
 #include <Renderer/RenderPass/LightingPass.h>
@@ -28,11 +29,13 @@ namespace wtr
 
 	bool RenderGraph::Init(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		Memory::RefPtr<CullingPass> cullingPass = Memory::MakeRef<CullingPass>();
+		Memory::RefPtr<TransformPass> transformPass = Memory::MakeRef<TransformPass>();
+		//Memory::RefPtr<CullingPass> cullingPass = Memory::MakeRef<CullingPass>();
 		Memory::RefPtr<GeometryPass> geometryPass = Memory::MakeRef<GeometryPass>();
 		Memory::RefPtr<LightingPass> lightingPass = Memory::MakeRef<LightingPass>();
 
-		if (!cullingPass || !geometryPass || !lightingPass)
+		if (!transformPass || !geometryPass || !lightingPass)
+		//if (!transformPass || !cullingPass || !geometryPass || !lightingPass)
 		{
 			return false;
 		}
@@ -40,15 +43,17 @@ namespace wtr
 		geometryPass->InitState();
 		lightingPass->InitState();
 
-		Add(cullingPass);
+		Add(transformPass);
+		//Add(cullingPass);
 		Add(geometryPass);
 		Add(lightingPass);
 
-		auto& cullingNode = GetNode(cullingPass->GetID());
+		auto& transformNode = GetNode(transformPass->GetID());
+		//auto& cullingNode = GetNode(cullingPass->GetID());
 		auto& geometryNode = GetNode(geometryPass->GetID());
 		auto& lightingNode = GetNode(lightingPass->GetID());
 
-		geometryNode.SetDependency(cullingNode);
+		geometryNode.SetDependency(transformNode);
 		lightingNode.SetDependency(geometryNode);
 
 		return GlobalResource::Init(cmdList);
@@ -222,10 +227,13 @@ namespace wtr
 		{
 			if (!renderPass || renderPass->GetResourceState() != eResourceState::eReady)
 			{
-				continue;
+				break;
 			}
 
-			renderPass->Draw(m_drawCommands, m_lightProxies, cmdList);
+			if (!renderPass->Draw(m_drawCommands, m_lightProxies, cmdList))
+			{
+				break;
+			}
 		}
 	}
 }

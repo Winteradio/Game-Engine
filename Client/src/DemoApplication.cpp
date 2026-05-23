@@ -73,35 +73,43 @@ namespace demo
 			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
 		}
 
-		constexpr size_t cubeCount = 1000;
-		constexpr size_t cubePerRow = 100;
-		for (size_t index = 0; index < cubeCount; index++)
+		auto cubeEntity = world->CreateEntity();
+		if (!cubeEntity)
 		{
-			auto cubeEntity = world->CreateEntity();
-			if (!cubeEntity)
-			{
-				LOGERROR() << "[Game] Failed to create the cube entity";
-				continue;
-			}
-
-			const std::string cubePath = "asset/mesh/3d/cube.obj";
-			Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
-
-			cubeEntity->AddComponent<wtr::TransformComponent>();
-			cubeEntity->AddComponent<wtr::StaticMeshComponent>(cubeAsset);
-			cubeEntity->AddNode<wtr::StaticMeshNode>();
-
-			auto transformComponent = cubeEntity->GetComponent<wtr::TransformComponent>();
-			if (transformComponent)
-			{
-				transformComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % cubePerRow), 0.0f, static_cast<float>(index / cubePerRow) });
-				transformComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
-			}
-
-			world->scene.Attach(cubeEntity->GetNode<wtr::StaticMeshNode>());
-
-			//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
+			LOGERROR() << "[Game] Failed to create the cube entity";
+			return false;
 		}
+
+		const std::string cubePath = "asset/mesh/3d/cube.obj";
+		Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
+
+		cubeEntity->AddComponent<wtr::InstancedTransformComponent>();
+		cubeEntity->AddComponent<wtr::StaticMeshComponent>(cubeAsset);
+		cubeEntity->AddNode<wtr::InstancedStaticMeshNode>();
+
+		auto transformComponent = cubeEntity->GetComponent<wtr::InstancedTransformComponent>();
+		if (transformComponent)
+		{
+			constexpr size_t cubeCount = 100000;
+			constexpr size_t cubePerRow = 100;
+			constexpr size_t cubePerLow = 100;
+
+			for (size_t index = 0; index < cubeCount; index++)
+			{
+				const wtr::fvec3 position = { (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % cubePerRow), static_cast<float>(index / (cubePerRow * cubePerLow)), static_cast<float>((index / cubePerLow)% cubePerRow)};
+				const wtr::fquat rotation = { 1.f, 0.f, 0.f, 0.f };
+				const wtr::fvec3 scale = { 0.5f, 0.5f, 0.5f };
+				transformComponent->AddInstance(position, rotation, scale);
+			}
+		}
+
+		world->scene.Attach(cubeEntity->GetNode<wtr::InstancedStaticMeshNode>());
+
+		//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
+
+		constexpr size_t cubeCount = 30000;
+		constexpr size_t cubePerRow = 100;
+
 
 		return true;
 	}
@@ -117,6 +125,13 @@ namespace demo
 
 		auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
 		if (!moveSystem)
+		{
+			LOGERROR() << "[Game] Failed to create the render system";
+			return false;
+		}
+
+		auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
+		if (!instancedMoveSystem)
 		{
 			LOGERROR() << "[Game] Failed to create the render system";
 			return false;

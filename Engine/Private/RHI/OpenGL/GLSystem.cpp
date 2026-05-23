@@ -1413,28 +1413,41 @@ namespace wtr
 		const bool useMapBuffer = accessType != GL_NONE;
 		glBindBuffer(bufferType, glBuffer->GetID());
 
-		for (const auto& dataRange : info.dataRanges)
+		if (useMapBuffer)
 		{
-			if (!dataRange.data || dataRange.data->IsEmpty())
+			void* mappedBuffer = glMapBufferRange(bufferType, 0, info.size, accessType);
+			if (mappedBuffer != nullptr)
 			{
-				continue;
+				for (const auto& dataRange : info.dataRanges)
+				{
+					if (!dataRange.data || dataRange.data->IsEmpty())
+					{
+						continue;
+					}
+
+					const void* dataPointer = dataRange.data->GetPointer();
+					const size_t dataSize = dataRange.data->GetSize();
+
+					char* offsetPointer = reinterpret_cast<char*>(mappedBuffer) + dataRange.offset;
+
+					std::memcpy(offsetPointer, dataPointer, dataSize);
+				}
 			}
 
-			const void* dataPointer = dataRange.data->GetPointer();
-			const size_t dataSize = dataRange.data->GetSize();
-			
-			if (useMapBuffer)
+			glUnmapBuffer(bufferType);
+		}
+		else
+		{
+			for (const auto& dataRange : info.dataRanges)
 			{
-				void* mappedBuffer = glMapBufferRange(bufferType, dataRange.offset, dataSize, accessType);
-				if (mappedBuffer)
+				if (!dataRange.data || dataRange.data->IsEmpty())
 				{
-					std::memcpy(mappedBuffer, dataPointer, dataSize);
+					continue;
 				}
 
-				glUnmapBuffer(bufferType);
-			}
-			else
-			{
+				const void* dataPointer = dataRange.data->GetPointer();
+				const size_t dataSize = dataRange.data->GetSize();
+
 				glBufferSubData(bufferType, dataRange.offset, dataSize, dataPointer);
 			}
 		}
@@ -1497,7 +1510,7 @@ namespace wtr
 
 	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || info.dataRanges.Empty())
+		if (!buffer)
 		{
 			return;
 		}
@@ -1515,7 +1528,10 @@ namespace wtr
 		const size_t dataSize = info.size;
 
 		glBindBuffer(bufferType, glBuffer->GetID());
-		glBufferData(bufferType, dataSize, nullptr, accessType);
+		if (dataSize > glBuffer->GetSize())
+		{
+			glBufferData(bufferType, dataSize, nullptr, accessType);
+		}
 
 		for (const auto& dataRange : info.dataRanges)
 		{

@@ -1,6 +1,9 @@
 #include <Renderer/RenderPass/RenderPass.h>
 
 #include <RHI/RHICommandList.h>
+#include <RHI/RHIResources.h>
+#include <Renderer/ShaderState.h>
+#include <Renderer/GlobalRenderer.h>
 
 namespace wtr
 {
@@ -9,6 +12,34 @@ namespace wtr
 		, m_groupY(groupY)
 		, m_groupZ(groupZ)
 	{
+	}
+
+	const RHIDispatchDesc ComputePass::GetDispatchCommand()
+	{
+		RHIDispatchDesc desc;
+		desc.groupX = m_groupX;
+		desc.groupY = m_groupY;
+		desc.groupZ = m_groupZ;
+
+		return desc;
+	}
+
+	Memory::RefPtr<const RHIPipeLine> ComputePass::GetPipeLine(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList || !m_computeShader)
+		{
+			return {};
+		}
+
+		RHIPipeLineCreateDesc desc;
+		desc.computeShader = m_computeShader->GetShader();
+		Memory::RefPtr<const RHIPipeLine> pipeline = GlobalResource::GetPipeLine(cmdList, desc);
+		if (!pipeline || pipeline->GetState() != eResourceState::eReady)
+		{
+			return {};
+		}
+
+		return pipeline;
 	}
 
 	void GraphicPass::SetState(Memory::RefPtr<RHICommandList> cmdList)

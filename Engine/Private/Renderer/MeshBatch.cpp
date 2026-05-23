@@ -413,7 +413,7 @@ namespace wtr
 			bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
 			bufferDesc.stride = prevDesc.stride;
 			bufferDesc.dataRanges = std::move(dataRanges);
-			bufferDesc.mapAccess = eMapAccess::eInvalidateRange | eMapAccess::eWrite;
+			bufferDesc.mapAccess = eMapAccess::eInvalidateBuffer | eMapAccess::eWrite;
 
 			cmdList->UpdateBuffer(bufferDesc, m_drawCommand->transform);
 		}

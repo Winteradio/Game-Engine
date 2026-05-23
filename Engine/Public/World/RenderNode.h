@@ -2,6 +2,7 @@
 #define __WTR_RENDERNODE_H__
 
 #include <World/Node.h>
+#include <Container/include/HashSet.h>
 
 namespace wtr
 {
@@ -32,7 +33,7 @@ namespace wtr
 		virtual void ClearDirty() = 0;
 	};
 
-	template<typename ... Components>
+	template<typename... Components>
 	class RenderNode : public ProxyNode
 	{
 		GENERATE(RenderNode);
@@ -42,6 +43,8 @@ namespace wtr
 
 		explicit RenderNode(Memory::ObjectPtr<typename RemoveOptional<Components>::Type>...) {}
 		virtual ~RenderNode() = default;
+
+		static inline wtr::HashSet<const Reflection::TypeInfo*> COMPONENT_TYPES = { Reflection::TypeInfo::Get<typename RemoveOptional<Components>::Type>()... };
 	};
 
 	class StaticMeshNode : public RenderNode<TransformComponent, StaticMeshComponent, Optional<MaterialComponent>>

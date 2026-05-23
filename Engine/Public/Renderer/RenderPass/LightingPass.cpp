@@ -56,11 +56,11 @@ namespace wtr
 		}
 	}
 
-	void LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	bool LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{
-			return;
+			return false;
 		}
 
 		m_lights.Clear();
@@ -122,6 +122,8 @@ namespace wtr
 
 			cmdList->UnsetPipeLine();
 		}
+
+		return true;
 	}
 
 	const RHIDrawIndexDesc LightingPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
