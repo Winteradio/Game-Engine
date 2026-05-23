@@ -20,6 +20,8 @@ namespace wtr
 
 			AssetCommander::Unload(asset, cmdList);
 		}
+
+		m_assetMap.Clear();
 	}
 
 	void AssetManager::AddAsset(const std::string& path, Memory::RefPtr<Asset> asset)

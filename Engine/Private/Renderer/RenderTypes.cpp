@@ -6,23 +6,12 @@
 namespace wtr
 {
 	RawData::RawData()
-		: m_isUsed(false)
 	{
 	}
 
 	bool RawData::IsEmpty() const
 	{
 		return (GetPointer() == nullptr) || (GetSize() == 0);
-	}
-
-	bool RawData::IsUsed() const
-	{
-		return m_isUsed.load(std::memory_order_acquire);
-	}
-
-	void RawData::SetUsed(const bool isUsed)
-	{
-		m_isUsed.store(isUsed, std::memory_order_release);
 	}
 
 	bool IsIntegerDataType(const eDataType dataType)

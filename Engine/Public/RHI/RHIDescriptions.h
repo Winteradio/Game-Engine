@@ -75,7 +75,7 @@ namespace wtr
 		uint32_t dimension = 0;
 		uint32_t offset = 0;
 
-		Memory::RefPtr<const RawData> rawData;
+		Memory::RefPtr<const RawData> data;
 	};
 
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
