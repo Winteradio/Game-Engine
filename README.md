@@ -10,7 +10,14 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 
 ## 📸 Current Progress & Demo
 
-**Milestone: Deferred Rendering Completed** The full deferred rendering pipeline (CullingPass → GeometryPass → LightingPass) is now operational. GBuffer outputs (Position, Normal, Albedo) are written in the geometry pass and consumed by the lighting pass for per-light shading.
+**Milestone: TransformPass — GPU Compute TRS (×10 Throughput)** TRS matrix computation (position/rotation/scale → mat4) moved from CPU (GLM scalar) to GPU via Compute Shader (`TransformPass`, `local_size_x = 64`). The render pipeline is now **TransformPass → GeometryPass → LightingPass**. Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release). Previous baseline: 30,000 instances fell below 10 FPS in Debug.
+
+---
+
+**Milestone: Deferred Rendering Completed** The full deferred rendering pipeline is operational. GBuffer outputs (Position, Normal, Albedo) are written in the geometry pass and consumed by the lighting pass for per-light shading.
+
+*[26-05-24] GPU Compute TRS - 500,000 Cube in the release mode*  
+![GPU Compute](asset/screenshot/gpu-compute-trs.gif)
 
 *[26-05-21] Deferred Rendering — full pipeline demo*  
 ![Deferred Rendering Demo](asset/screenshot/deferred-rendering.gif)
@@ -314,7 +321,7 @@ classDiagram
 
 ### 2. World — ECS Game Logic Layer
 
-References Unreal Engine's `UWorld`, `AActor`, `UActorComponent` structure. `Entity` acts as the `Actor`, `Component` holds data, and `Node` handles component composition. `Commander` is the one-way data bridge from World → Renderer.
+References Unreal Engine's `UWorld`, `AActor`, `UActorComponent` structure. `Entity` acts as the `Actor`, `Component` holds data, and `Node` handles component composition. `Commander` is the one-way data bridge from World → Renderer. Components are split into **data components** (`TransformComponent`, `CameraComponent`) and **proxy components** (`ProxyComponent` subclasses) that notify `Scene` on change. Nodes are specialized: `StaticMeshNode`, `InstancedStaticMeshNode`, `DynamicMeshNode`, `CameraNode`, and three light node types.
 
 ```mermaid
 classDiagram
@@ -323,7 +330,6 @@ classDiagram
         + RefPtr~ViewController~ views
         + RefPtr~PlayerController~ players
         + RefPtr~Commander~ commander
-        - RefPtr~WorldCommandList~ m_refCommandList
         + Init() bool
         + Clear() void
         + Prepare() void
@@ -333,11 +339,7 @@ classDiagram
     class World {
         <<ECS::Object>>
         + Scene scene
-        - ObjectStorage~Entity~ m_entityStorage
-        - Registry~BaseComponent~ m_componentContainer
-        - Registry~BaseNode~ m_nodeContainer
-        - Graph~BaseSystem~ m_systemRegistry
-        + Init(refCommander) bool
+        + Init(commander) bool
         + Update(timeStep) void
         + CreateEntity() ObjectPtr~Entity~
         + CreateComponent~T~(...) ObjectPtr~T~
@@ -360,22 +362,22 @@ classDiagram
 
     class Scene {
         - RefPtr~Commander~ m_refCommander
-        - HashMap~UUID_ScenePair~ m_sceneDatas
-        + Attach(node) void
-        + Detach(node) void
-        + Detach(entityId) void
-        + Update(entityId) void
+        - HashMap~UUID_ProxyNode~ m_proxies
+        - HashSet~added_removed_updated~
+        + SetCommander(commander) void
+        + Flush() void
+        + Attach(proxyNode) void
+        + Detach(proxyNode) void
+        + Detach(uuid) void
+        + DetachAll() void
+        + Update(uuid) void
     }
 
     class Commander {
         - RefPtr~RenderCommandList~ m_refCmdList
+        + SetCommand(cmdList) void
         + SetView(renderView) void
-        + AddPrimitive(meshNode) void
-        + RemovePrimitive(meshNode) void
-        + AddLight(lightNode) void
-        + RemoveLight(lightNode) void
-        + Update(sceneComponent) void
-        + Remove(entityId) void
+        + Enqueue(renderTask) void
         + RemoveAll() void
     }
 
@@ -383,64 +385,128 @@ classDiagram
         <<ECS::Component>>
     }
 
-    class SceneComponent {
-        - fvec3 m_position
-        - fvec3 m_rotation
-        - fvec3 m_scale
-        - Scene* m_scene
+    class TransformComponent {
+        - ftransform m_transform
         + UpdatePosition(pos) void
         + UpdateRotation(rot) void
         + UpdateScale(scale) void
-        + OnAttached() void
+        + GetPosition() fvec3
+        + GetRotation() fvec3
+        + GetScale() fvec3
+        + GetTransform() ftransform
+    }
+
+    class ProxyComponent {
+        <<abstract>>
+        + OnAttached(scene) void
         + OnDetached() void
+        + ClearDirty() void
+        + IsDirty() bool
     }
 
     class CameraComponent {
-        + float fov
         + float nearPlane
         + float farPlane
+        + float fovY
         + float width
         + float height
         + bool perspective
     }
 
-    class MeshComponent {
-        + RefPtr~MeshAsset~ meshAsset
+    class InstancedTransformComponent {
+        - DynamicArray~ftransform~ m_instanceTransforms
+        + AddInstance(transform) void
+        + RemoveInstance(index) void
+        + GetInstanceCount() size_t
+    }
+
+    class StaticMeshComponent {
+        + SetMeshAsset(meshAsset) void
+        + GetMeshAsset() RefPtr~MeshAsset~
+        + IsChanged() bool
+        + ClearChanged() void
+    }
+
+    class DynamicMeshComponent {
+        + UpdateVertex(key, buffer) void
+        + UpdateIndex(buffer) void
+        + UpdateSection(sections) void
+        + UpdateDrawMode(mode) void
     }
 
     class MaterialComponent {
-        + RefPtr~MaterialAsset~ materialAsset
+        + UpdateVector(slot, value) void
+        + UpdateScalar(slot, value) void
+        + SetShadingModel(model) void
+        + SetBlendMode(mode) void
+        + SetDoubleSide(flag) void
+        + SetPBR(flag) void
     }
 
     class LightComponent {
-        + fvec3 direction
+        + SetLightType(type) void
+        + SetColor(color) void
+        + SetDirection(dir) void
+        + SetIntensity(intensity) void
+        + GetLightDesc() LightDesc
     }
 
-    class ColorComponent {
-        + float red
-        + float green
-        + float blue
-        + float alpha
+    class DirectionalLightComponent {
+    }
+
+    class PointLightComponent {
+        + SetRange(range) void
+        + GetRange() float
+    }
+
+    class SpotLightComponent {
+        + SetRange(range) void
+        + SetInnerAngle(angle) void
+        + SetOuterAngle(angle) void
     }
 
     class BaseNode {
         <<ECS::Node>>
     }
 
-    class MeshNode {
-        + ObjectPtr~SceneComponent~ transform
-        + ObjectPtr~MeshComponent~ mesh
+    class CameraNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~CameraComponent~ camera
+        + GetViewMatrix() fmat4
+        + GetProjectionMatrix() fmat4
+    }
+
+    class StaticMeshNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~StaticMeshComponent~ mesh
         + ObjectPtr~MaterialComponent~ overrideMaterial
     }
 
-    class CameraNode {
-        + ObjectPtr~SceneComponent~ transform
-        + ObjectPtr~CameraComponent~ camera
+    class InstancedStaticMeshNode {
+        + ObjectPtr~InstancedTransformComponent~ transform
+        + ObjectPtr~StaticMeshComponent~ mesh
+        + ObjectPtr~MaterialComponent~ overrideMaterial
     }
 
-    class LightNode {
-        + ObjectPtr~SceneComponent~ transform
-        + ObjectPtr~LightComponent~ light
+    class DynamicMeshNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~DynamicMeshComponent~ mesh
+        + ObjectPtr~MaterialComponent~ overrideMaterial
+    }
+
+    class DirectionalLightNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~DirectionalLightComponent~ light
+    }
+
+    class PointLightNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~PointLightComponent~ light
+    }
+
+    class SpotLightNode {
+        + ObjectPtr~TransformComponent~ transform
+        + ObjectPtr~SpotLightComponent~ light
     }
 
     class BaseSystem {
@@ -449,10 +515,21 @@ classDiagram
 
     class TypedSystem~T~ {
         # UpdateInternal(timeStep, container) void
+        + GetNodeType() TypeInfo
     }
 
     class InputSystem~T~ {
         # RefPtr~InputStorage~ inputStorage
+        + SetInputStorage(storage) void
+    }
+
+    class CameraSystem {
+    }
+
+    class MoveSystem {
+    }
+
+    class InstancedMoveSystem {
     }
 
     WorldContext *-- World
@@ -463,29 +540,53 @@ classDiagram
 
     Entity ..> World : uses
 
-    BaseComponent <|-- SceneComponent
+    BaseComponent <|-- TransformComponent
+    BaseComponent <|-- ProxyComponent
     BaseComponent <|-- CameraComponent
-    BaseComponent <|-- MeshComponent
-    BaseComponent <|-- MaterialComponent
-    BaseComponent <|-- LightComponent
-    BaseComponent <|-- ColorComponent
+    BaseComponent <|-- InstancedTransformComponent
+    ProxyComponent <|-- StaticMeshComponent
+    ProxyComponent <|-- DynamicMeshComponent
+    ProxyComponent <|-- MaterialComponent
+    ProxyComponent <|-- LightComponent
+    LightComponent <|-- DirectionalLightComponent
+    LightComponent <|-- PointLightComponent
+    LightComponent <|-- SpotLightComponent
 
-    BaseNode <|-- MeshNode
     BaseNode <|-- CameraNode
-    BaseNode <|-- LightNode
+    BaseNode <|-- StaticMeshNode
+    BaseNode <|-- InstancedStaticMeshNode
+    BaseNode <|-- DynamicMeshNode
+    BaseNode <|-- DirectionalLightNode
+    BaseNode <|-- PointLightNode
+    BaseNode <|-- SpotLightNode
 
-    MeshNode o-- SceneComponent
-    MeshNode o-- MeshComponent
-    MeshNode o-- MaterialComponent
+    StaticMeshNode o-- TransformComponent
+    StaticMeshNode o-- StaticMeshComponent
+    StaticMeshNode o-- MaterialComponent
 
-    CameraNode o-- SceneComponent
+    InstancedStaticMeshNode o-- InstancedTransformComponent
+    InstancedStaticMeshNode o-- StaticMeshComponent
+
+    DynamicMeshNode o-- TransformComponent
+    DynamicMeshNode o-- DynamicMeshComponent
+
+    CameraNode o-- TransformComponent
     CameraNode o-- CameraComponent
 
-    LightNode o-- SceneComponent
-    LightNode o-- LightComponent
+    DirectionalLightNode o-- TransformComponent
+    DirectionalLightNode o-- DirectionalLightComponent
+
+    PointLightNode o-- TransformComponent
+    PointLightNode o-- PointLightComponent
+
+    SpotLightNode o-- TransformComponent
+    SpotLightNode o-- SpotLightComponent
 
     BaseSystem <|-- TypedSystem
+    TypedSystem <|-- MoveSystem
+    TypedSystem <|-- InstancedMoveSystem
     TypedSystem <|-- InputSystem
+    InputSystem <|-- CameraSystem
 
     Scene ..> Commander : uses
     Commander ..> RenderCommandList : enqueues
@@ -495,7 +596,7 @@ classDiagram
 
 ### 3. Renderer — Rendering Abstraction Layer
 
-References Unreal Engine's `FScene`, `FPrimitiveSceneProxy`, `FMeshBatch`, and `FRenderingCompositePassContext`. World objects are never passed directly to the renderer — they are converted into **Proxy** objects. `RenderScene` reorganizes these Proxies into `MeshBatch` instances to implement instancing. The render pipeline is now **Deferred Rendering**: CullingPass (GPU compute frustum culling) → GeometryPass (GBuffer fill) → LightingPass (per-light shading).
+References Unreal Engine's `FScene`, `FPrimitiveSceneProxy`, `FMeshBatch`, and `FRenderingCompositePassContext`. World objects are never passed directly to the renderer — they are converted into **Proxy** objects. `RenderScene` reorganizes these Proxies into `MeshBatch` instances to implement instancing. The render pipeline is **TransformPass (GPU compute TRS) → GeometryPass (GBuffer fill) → LightingPass (per-light shading)**. `RenderPass` is split into `ComputePass` (compute shader dispatch) and `GraphicPass` (draw-call pipeline) abstract bases.
 
 ```mermaid
 classDiagram
@@ -536,54 +637,80 @@ classDiagram
         + Flush(cmdList) void
     }
 
-    class GlobalRenderer {
+    class GlobalResource {
+        <<namespace>>
         + Init(cmdList) bool
-        + UpdateCamera(renderView, cmdList) void
+        + Release(cmdList) void
+        + Update(cmdList, renderView) void
         + GetCamera() RefPtr~const_RHIBuffer~
         + GetGBuffer(slot) RefPtr~const_RHITexture~
-        + GetSampler(cmdList, slot) RefPtr~const_RHISampler~
-        + GetPipeLine(cmdList, desc) RefPtr~const_RHIPipeLine~
         + GetQuad() RefPtr~const_RHIVertexLayout~
+        + GetPipeLine(cmdList, desc) RefPtr~const_RHIPipeLine~
+        + GetSampler(cmdList, slot) RefPtr~const_RHISampler~
+        + GetDefaultMaterial() RefPtr~const_MaterialProxy~
         + GetDefaultLight() RefPtr~const_LightProxy~
     }
-    note for GlobalRenderer "Consolidates GlobalResource + GlobalPipeLine + GlobalSampler"
+    note for GlobalResource "Static namespace (not a class)\nCamera UBO · GBuffer textures\nDefault material/light proxies"
 
     class RenderPass {
         <<abstract>>
-        - RefPtr~RHIClearState~ m_clear
-        - RefPtr~RHIColorState~ m_color
-        - RefPtr~RHIDepthState~ m_depth
-        - RefPtr~RHIStencilState~ m_stencil
-        - RefPtr~RHIBlendState~ m_blend
-        - RefPtr~RHIRasterizerState~ m_rasterizer
         + GetResourceState() eResourceState
-        + Draw(drawCommands, lightProxies, cmdList) void
-        # InitState() void
-        # SetState(cmdList) void
-        # GetPipeLine(cmdList, shader) RefPtr~const_RHIPipeLine~
+        + Draw(drawCommands, lightProxies, cmdList) bool
+        + Upload(cmdList) void
+        + Unload(cmdList) void
         # SetCommand(cmdList, pipeline, drawCommand) bool
         # UnsetCommand(cmdList) void
     }
 
-    class CullingPass {
-        - uint32_t m_groupX/Y/Z
-        - HashMap~pipeline_commands~ m_commands
-        + Draw(drawCommands, lightProxies, cmdList) void
-        # GetDispatchCommand() RHIDispatchDesc
+    class ComputePass {
+        <<abstract>>
+        # uint32_t m_groupX
+        # uint32_t m_groupY
+        # uint32_t m_groupZ
+        # RefPtr~ShaderState~ m_computeShader
+        + GetDispatchCommand(drawCommand) RHIDispatchDesc
+        + GetPipeLine(cmdList) RefPtr~const_RHIPipeLine~
     }
-    note for CullingPass "GPU compute frustum culling\nvia compute shader dispatch"
+
+    class GraphicPass {
+        <<abstract>>
+        # RefPtr~RHIClearState~ m_clear
+        # RefPtr~RHIColorState~ m_color
+        # RefPtr~RHIDepthState~ m_depth
+        # RefPtr~RHIStencilState~ m_stencil
+        # RefPtr~RHIBlendState~ m_blend
+        # RefPtr~RHIRasterizerState~ m_rasterizer
+        + InitState() void
+        + SetState(cmdList) void
+        + GetDrawCommand(drawCommand) RHIDrawIndexDesc
+        + GetPipeLine(cmdList, shader) RefPtr~const_RHIPipeLine~
+    }
+
+    class TransformPass {
+        + GetResourceState() eResourceState
+        + Upload(cmdList) void
+        + Draw(drawCommands, lightProxies, cmdList) bool
+        # SetCommand(cmdList, pipeline, drawCommand) bool
+        # GetDispatchCommand(drawCommand) RHIDispatchDesc
+    }
+    note for TransformPass "GPU compute TRS → mat4\nlocal_size_x=64 per instance\nRawTransform(pos+rot+scale) → mat4"
+
+    class CullingPass {
+        + Draw(drawCommands, lightProxies, cmdList) bool
+        # GetDispatchCommand(drawCommand) RHIDispatchDesc
+    }
+    note for CullingPass "STUB — not yet implemented\nGetResourceState() hard-returns eReady\nDraw() is a pass-through no-op\nCompute shader not loaded"
 
     class GeometryPass {
-        - HashMap~pipeline_commands~ m_commands
-        + Draw(drawCommands, lightProxies, cmdList) void
+        + Draw(drawCommands, lightProxies, cmdList) bool
         # SetCommand(cmdList, pipeline, drawCommand) bool
         # GetDrawCommand(drawCommand) RHIDrawIndexDesc
+        + GetPipeLine(cmdList, shader) RefPtr~const_RHIPipeLine~
     }
     note for GeometryPass "Fills GBuffer: Position / Normal / Albedo / Depth"
 
     class LightingPass {
-        - HashMap~pipeline_proxies~ m_lights
-        + Draw(drawCommands, lightProxies, cmdList) void
+        + Draw(drawCommands, lightProxies, cmdList) bool
         # SetLight(cmdList, pipeline, light) bool
         # GetDrawCommand(drawCommand) RHIDrawIndexDesc
     }
@@ -611,37 +738,87 @@ classDiagram
     }
 
     class PrimitiveProxy {
-        - RefPtr~const_MeshAsset~ m_refMesh
-        - RefPtr~MaterialProxy~ m_refMaterialProxy
-        + SetMesh(refMesh) void
+        <<abstract>>
+        + GetRawData() RefPtr~RawData~
+        + UpdateBatch(cmdList) void
+        + IsUploadable() bool
+        + SetMesh(meshAsset) void
+        + SetOverrideMaterial(materialAsset) void
         + GetMesh() RefPtr~const_MeshAsset~
-        + GetMaterialProxy() RefPtr~MaterialProxy~
+        + GetOverrideMaterial() RefPtr~const_MaterialProxy~
     }
 
-    class InstancedPrimitiveProxy {
-        + Draw(cmdList) void
+    class SinglePrimitiveProxy {
+        <<abstract>>
+        - ScalarData~ftransform~ m_transform
+        + IsSyncable() bool
     }
-    note for InstancedPrimitiveProxy "GPU instanced draw path\nCurrently ~30% perf vs non-instanced\nunder optimization"
+
+    class StaticPrimitiveProxy {
+        + UpdateBatch(cmdList) void
+    }
+
+    class DynamicPrimitiveProxy {
+        + UpdateBatch(cmdList) void
+        + UpdateMesh(cmdList) void
+    }
+
+    class InstancedStaticPrimitiveProxy {
+        - DynamicArray~ftransform~ m_transforms
+        - ArrayData~ftransform~ m_rawData
+        + IsSyncable() bool
+        + UpdateBatch(cmdList) void
+        + SetInstanceCount(count) void
+        + UpdateTransform(index, transform) void
+        + GetInstanceCount() size_t
+    }
 
     class MaterialProxy {
-        - RefPtr~ShaderProxy~ m_shaderProxy
-        - HashMap~slot_texture~ m_textures
-        + GetShader() RefPtr~ShaderProxy~
+        + SetMaterialAsset(asset) void
+        + UpdateMaterialDesc(desc) void
+        + GetMaterialDesc() MaterialDesc
+        + GetVectorBuffer() RefPtr~const_RHIBuffer~
+        + GetScalarBuffer() RefPtr~const_RHIBuffer~
         + GetTexture(slot) RefPtr~const_RHITexture~
     }
 
     class ShaderProxy {
-        - HashMap~type_ShaderAsset~ m_shaders
-        + GetShader~T~() RefPtr~ShaderAsset~
+        - HashMap~typeHash_ShaderState~ m_shaders
+        + AddShader(state) void
+        + GetShader~T~() RefPtr~const_ShaderState~
+        + HasShader~T~() bool
     }
-    note for ShaderProxy "Renamed from ShaderSet\nHolds typed shader asset refs\n(VS, PS, CS, GS, HS)"
+    note for ShaderProxy "Holds typed shader asset refs\n(VS, PS, CS, GS, HS) keyed by type hash"
 
     class LightProxy {
+        <<abstract>>
+        - LightDesc m_desc
         - RefPtr~RHIBuffer~ m_lightBuffer
-        - RefPtr~ShaderProxy~ m_shaderProxy
+        - RefPtr~RHITexture~ m_shadowMap
+        - RefPtr~RHIRenderTarget~ m_shadowTarget
+        + SetLightType(type) void
+        + SetColor/Direction/Intensity() void
         + GetLightBuffer() RefPtr~const_RHIBuffer~
-        + GetShaderProxy() RefPtr~const_ShaderProxy~
+        + GetShadowMap() RefPtr~const_RHITexture~
         + GetResourceState() eResourceState
+    }
+
+    class DirectionalLightProxy {
+        + GetViewMatrix() fmat4
+        + GetProjectionMatrix() fmat4
+        + Upload(cmdList) void
+        + Sync(cmdList) void
+        + IsSyncable() bool
+    }
+
+    class PointLightProxy {
+        + SetRange(range) void
+    }
+
+    class SpotLightProxy {
+        + SetRange(range) void
+        + SetInnerAngle(angle) void
+        + SetOuterAngle(angle) void
     }
 
     class MeshBatch {
@@ -661,14 +838,18 @@ classDiagram
     }
 
     class MeshDrawCommand {
-        + RefPtr~const_ShaderProxy~ material
-        + RefPtr~RHIVertexLayout~ vertexLayout
+        + RefPtr~RHIBuffer~ rawTransform
         + RefPtr~RHIBuffer~ transform
         + RefPtr~RHIBuffer~ indirect
         + RefPtr~RHIBuffer~ visible
         + RefPtr~RHIBuffer~ localBounding
-        + uint32_t instanceCount
+        + RefPtr~RHIVertexLayout~ vertexLayout
+        + RefPtr~const_MaterialProxy~ material
+        + size_t instanceCount
+        + bool indirectDraw
+        + eDrawMode drawMode
     }
+    note for MeshDrawCommand "rawTransform: CPU uploads raw TRS per instance\ntransform: GPU-computed mat4 (TransformPass output)"
 
     class MeshBatchKey {
         + UUID meshId
@@ -679,10 +860,10 @@ classDiagram
 
     class RenderView {
         <<struct>>
-        + fmat4 viewMatrix
-        + fmat4 projectionMatrix
-        + fvec3 cameraPosition
+        + Viewport viewport
+        + Camera camera
     }
+    note for RenderView "Viewport: posX, posY, width, height\nCamera: viewMatrix, projMatrix\n        position, direction"
 
     Renderer *-- RenderScene
     Renderer *-- RenderGraph
@@ -690,9 +871,12 @@ classDiagram
 
     RenderGraph *-- RenderPass
 
-    RenderPass <|-- CullingPass
-    RenderPass <|-- GeometryPass
-    RenderPass <|-- LightingPass
+    RenderPass <|-- ComputePass
+    RenderPass <|-- GraphicPass
+    ComputePass <|-- TransformPass
+    ComputePass <|-- CullingPass
+    GraphicPass <|-- GeometryPass
+    GraphicPass <|-- LightingPass
 
     RenderScene o-- PrimitiveProxy
     RenderScene o-- LightProxy
@@ -701,14 +885,22 @@ classDiagram
     SceneProxy <|-- PrimitiveProxy
     SceneProxy <|-- LightProxy
 
-    PrimitiveProxy <|-- InstancedPrimitiveProxy
+    PrimitiveProxy <|-- SinglePrimitiveProxy
+    PrimitiveProxy <|-- InstancedStaticPrimitiveProxy
+    SinglePrimitiveProxy <|-- StaticPrimitiveProxy
+    SinglePrimitiveProxy <|-- DynamicPrimitiveProxy
+
+    LightProxy <|-- DirectionalLightProxy
+    LightProxy <|-- PointLightProxy
+    LightProxy <|-- SpotLightProxy
+
     PrimitiveProxy *-- MaterialProxy
     MaterialProxy *-- ShaderProxy
     LightProxy *-- ShaderProxy
 
     MeshBatch *-- MeshDrawCommand
     MeshBatch ..> MeshBatchKey : keyed by
-    MeshDrawCommand ..> ShaderProxy : material ref
+    MeshDrawCommand ..> MaterialProxy : material ref
 ```
 
 ---
@@ -898,6 +1090,7 @@ classDiagram
         + RefPtr~RHIBuffer~ index
         + DynamicArray~MeshSection~ sections
         + HashMap~string_RefPtr_MaterialAsset~ materials
+        + eDrawMode drawMode
         + GetResourceState() eResourceState
     }
 
@@ -905,15 +1098,25 @@ classDiagram
         + HashMap~eTextureSlot_RefPtr_TextureAsset~ textures
         + HashMap~eVectorSlot_fvec3~ vectorValues
         + HashMap~eScalarSlot_float~ scalarValues
+        + eShadingModel shadingModel
+        + eBlendMode blendMode
+        + bool isDoubleSided
+        + bool isPBR
         + GetResourceState() eResourceState
     }
 
     class TextureAsset {
-        + RefPtr~FormattedBuffer~ rawBuffer
+        + TextureBuffer rawTexture
         + RefPtr~RHITexture~ texture
         + uint32_t width
         + uint32_t height
+        + uint32_t depth
+        + uint32_t faces
+        + uint32_t mipLevels
         + ePixelFormat pixelFormat
+        + bool isSRGB
+        + bool isCubemap
+        + bool isGenerateMips
         + GetResourceState() eResourceState
     }
 
@@ -926,14 +1129,14 @@ classDiagram
     }
 
     class AssetSystem {
+        <<static singleton>>
+        + Create(name, type) static RefPtr~Asset~
         + Load(path) static RefPtr~Asset~
+        + Update(asset) static void
         + Unload(path) static void
         + Shutdown() static void
-        + GetTask() static TaskQueue
-        + AddTask(asset) static void
-        + Release(cmdList) static void
-        + GetParser(path) static RefPtr~AssetParser~
     }
+    note for AssetSystem "Private constructor — static-only API\nGetTask/AddTask/Release: friend AssetWorker only"
 
     class AssetFactory {
         + Create(path) RefPtr~Asset~
@@ -970,12 +1173,13 @@ classDiagram
 
     class MeshSection {
         <<struct>>
-        + uint32_t indexOffset
-        + uint32_t indexCount
+        + uint32_t minVertex
+        + uint32_t maxVertex
         + uint32_t minVertexIndex
         + uint32_t maxVertexIndex
+        + uint32_t indexOffset
+        + uint32_t indexCount
         + string materialName
-        + string name
     }
 
     Asset <|-- MeshAsset
@@ -1230,16 +1434,15 @@ flowchart TD
 flowchart TD
     subgraph WorldLayer["World Layer"]
         Entity[Entity]
-        SceneComponent["SceneComponent<br>(position/rotation/scale)"]
-        MeshComponent["MeshComponent<br>(MeshAsset ref)"]
-        MaterialComponent["MaterialComponent<br>(MaterialAsset ref)"]
+        TransformComponent["TransformComponent<br>(position/rotation/scale)"]
+        ProxyComponent["ProxyComponent<br>(StaticMeshComponent/MaterialComponent/LightComponent)"]
         Scene[Scene]
         Commander[Commander]
 
-        Entity --> SceneComponent
-        Entity --> MeshComponent
-        Entity --> MaterialComponent
-        SceneComponent --> Scene
+        Entity --> TransformComponent
+        Entity --> ProxyComponent
+        TransformComponent --> Scene
+        ProxyComponent --> Scene
         Scene --> Commander
     end
 
@@ -1252,9 +1455,9 @@ flowchart TD
         RenderScene[RenderScene]
         PrimitiveProxy["PrimitiveProxy<br>(SceneProxy + Mesh/Material)"]
         MeshBatch["MeshBatch<br>(grouped by Mesh+Material+Section key)"]
-        MeshDrawCommand["MeshDrawCommand<br>(VBO, IBO, instance buffer, texture slots)"]
+        MeshDrawCommand["MeshDrawCommand<br>(rawTransform, transform, VBO, IBO, indirect)"]
         RenderGraph[RenderGraph]
-        RenderPass["RenderPass<br>(CullingPass → GeometryPass → LightingPass)"]
+        RenderPass["RenderPass<br>(TransformPass → GeometryPass → LightingPass)"]
 
         RenderScene --> PrimitiveProxy
         PrimitiveProxy --> MeshBatch
@@ -1311,12 +1514,18 @@ flowchart TD
 * **Problem** : The single `PipeLine` abstraction could not express multi-pass rendering (geometry fill + lighting) or compute dispatch passes cleanly
 * **Solution** : Replaced the `PipeLine` system with a `RenderPass` hierarchy: `CullingPass` (GPU compute frustum culling via compute shader), `GeometryPass` (fills GBuffer: Position, Normal, Albedo, Depth into FBO-backed `RHIRenderTarget`), and `LightingPass` (screen-quad draw per light sampling GBuffers). `GlobalRenderer` consolidates the formerly separate `GlobalResource`, `GlobalPipeLine`, and `GlobalSampler` into a single facade. Pipeline state objects (depth, blend, rasterizer, clear) are now owned by each `RenderPass` rather than being global
 
-### 7. PrimitiveProxy Split
+### 7. GPU Compute TRS — TransformPass
 
-* **Problem** : The original `PrimitiveProxy` conflated scene-data representation with draw-call generation, making it hard to add GPU-driven instanced drawing
-* **Solution** : Separated into `PrimitiveProxy` (scene representation, transform, material binding) and `InstancedPrimitiveProxy` (GPU instanced draw path using indirect draw buffers). The instanced path is functional but currently performs at ~30% of the non-instanced baseline — the bottleneck is under investigation (likely deferred rendering GBuffer overhead or indirect buffer update frequency)
+* **Problem** : CPU-side GLM matrix computation (position/rotation/scale → mat4) per instance per frame became the dominant bottleneck at large instance counts (30,000 instances < 10 FPS Debug)
+* **Solution** : Added `TransformPass` (a `ComputePass` subclass) that dispatches a GLSL compute shader (`transform.cs.glsl`, `local_size_x = 64`). Each invocation reads one `RawTransform` (vec3 position, vec4 quaternion, vec3 scale) from an SSBO and writes a column-major mat4 to a second SSBO. `MeshDrawCommand` now carries both `rawTransform` (CPU-uploaded TRS) and `transform` (GPU-written mat4). Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release) — approximately ×10 throughput improvement
+* **RenderPass split** : `RenderPass` base was factored into `ComputePass` (compute shader dispatch path) and `GraphicPass` (indexed draw path) to cleanly separate the two execution models. `CullingPass` is `ComputePass`-derived but temporarily disabled; `GeometryPass` and `LightingPass` are `GraphicPass`-derived
 
-### 8. Zero-Allocation Render Command Queue
+### 8. PrimitiveProxy / LightProxy Type Hierarchy
+
+* **Problem** : The original `PrimitiveProxy` conflated scene-data representation with draw-call generation. A single light proxy type could not express directional/point/spot semantics differently
+* **Solution** : `PrimitiveProxy` (abstract base) → `SinglePrimitiveProxy` (one transform per proxy) → `StaticPrimitiveProxy` / `DynamicPrimitiveProxy`; and `InstancedStaticPrimitiveProxy` (multi-transform, `ArrayData<ftransform>` raw data). `LightProxy` (abstract base) → `DirectionalLightProxy` / `PointLightProxy` / `SpotLightProxy`. Each carries its own shadow map, shadow target, and view/projection matrix logic
+
+### 9. Zero-Allocation Render Command Queue
 
 * **Problem** : Allocating RenderTasks with `new` every frame accumulates heap fragmentation and allocation overhead
 * **Solution** : `RenderCommandList` runs two `LinearArena` instances in a ping-pong fashion. The write index is atomically swapped so the Producer (World) writes to one buffer while the Consumer (Renderer) drains the other — a Zero-Alloc design
@@ -1347,8 +1556,9 @@ flowchart TD
 | └ MaterialProxy / ShaderProxy | ✅ Complete |
 | └ MeshBatch Instancing | ✅ Complete |
 | └ InstancedPrimitiveProxy (GPU instanced draw) | 🚧 In progress (~30% perf, under optimization) |
-| └ RenderGraph / RenderPass | ✅ Complete |
-| └ CullingPass (GPU compute frustum culling) | ✅ Complete |
+| └ RenderGraph / RenderPass (ComputePass / GraphicPass hierarchy) | ✅ Complete |
+| └ TransformPass (GPU compute TRS → mat4, 500k instances @ 20 FPS Release) | ✅ Complete |
+| └ CullingPass (GPU compute frustum culling) | 🚧 Stub — pass-through, shader not implemented |
 | └ GeometryPass (GBuffer fill) | ✅ Complete |
 | └ LightingPass (deferred shading) | ✅ Complete |
 | └ GlobalRenderer (Camera, GBuffer, Sampler, PipeLine) | ✅ Complete |
