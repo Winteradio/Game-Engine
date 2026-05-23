@@ -116,9 +116,6 @@ namespace wtr
 		const size_t GetInstanceCount() const;
 
 	private :
-		wtr::DynamicArray<ftransform> m_instanceTransforms;
-		wtr::HashSet<size_t> m_dirtyInstances;
-
 		Memory::RefPtr<ArrayData<ftransform>> m_transformData;
 	};
 

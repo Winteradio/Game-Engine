@@ -143,7 +143,7 @@ namespace wtr
 
 	bool DirectionalLightProxy::IsSyncable() const
 	{
-		return m_directional && !m_directional->IsUsed();
+		return m_directional;
 	}
 
 	void DirectionalLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
@@ -235,7 +235,7 @@ namespace wtr
 
 	bool PointLightProxy::IsSyncable() const
 	{
-		return m_point && !m_point->IsUsed();
+		return m_point;
 	}
 
 	void PointLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
@@ -333,7 +333,7 @@ namespace wtr
 
 	bool SpotLightProxy::IsSyncable() const
 	{
-		return m_spot && !m_spot->IsUsed();
+		return m_spot;
 	}
 
 	void SpotLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)

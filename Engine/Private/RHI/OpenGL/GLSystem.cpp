@@ -1705,7 +1705,7 @@ namespace wtr
 			return;
 		}
 
-		if (!info.rawData || info.rawData->GetSize() == 0 || info.rawData->GetPointer() == nullptr)
+		if (!info.data || info.data->IsEmpty())
 		{
 			return;
 		}
@@ -1718,9 +1718,9 @@ namespace wtr
 
 		const uint32_t dataDimension = info.dimension;
 		const uint32_t dataType = GetDataType(info.dataType);
-		const uint32_t dataCount = info.rawData->GetCount();
-		const uint32_t dataSize = info.rawData->GetSize();
-		const void* data = info.rawData->GetPointer();
+		const uint32_t dataCount = info.data->GetCount();
+		const uint32_t dataSize = info.data->GetSize();
+		const void* data = info.data->GetPointer();
 
 		const uint32_t expectedSize = GetDataTypeSize(info.dataType) * dataDimension * dataCount;
 		if (expectedSize != dataSize)

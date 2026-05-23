@@ -29,9 +29,10 @@ namespace wtr
 
 	void ProxyComponent::OnUpdate()
 	{
+		const bool wasDirty = IsDirty();
 		m_isDirty = true;
 
-		if (m_scene)
+		if (m_scene && !wasDirty)
 		{
 			m_scene->Update(GetID());
 		}

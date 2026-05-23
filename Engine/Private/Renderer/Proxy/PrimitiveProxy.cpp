@@ -73,7 +73,7 @@ namespace wtr
 
 	bool SinglePrimitiveProxy::IsSyncable() const
 	{
-		return m_transformData && !m_transformData->IsUsed();
+		return m_transformData;
 	}
 
 	StaticPrimitiveProxy::StaticPrimitiveProxy(const ECS::UUID& id)
@@ -134,15 +134,17 @@ namespace wtr
 		{
 			m_refMesh = refMesh;
 
-			this->SetDirty(eRenderDirty::eMesh);
-			this->OnUpdate();
+			const bool needDirty = this->GetDirty() != eRenderDirty::eMesh;
+			if (needDirty)
+			{
+				this->SetDirty(eRenderDirty::eMesh);
+				this->OnUpdate();
+			}
 		}
 	}
 
 	InstancedStaticPrimitiveProxy::InstancedStaticPrimitiveProxy(const ECS::UUID& id)
 		: PrimitiveProxy(id)
-		, m_instanceTransforms()
-		, m_dirtyInstances()
 		, m_transformData(Memory::MakeRef<ArrayData<ftransform>>())
 	{
 	}
@@ -154,7 +156,7 @@ namespace wtr
 
 	bool InstancedStaticPrimitiveProxy::IsSyncable() const
 	{
-		return m_transformData && !m_transformData->IsUsed();
+		return m_transformData;
 	}
 
 	void InstancedStaticPrimitiveProxy::UpdateBatch(Memory::RefPtr<MeshBatch> meshBatch)
@@ -167,20 +169,6 @@ namespace wtr
 		const bool transformDirty = (this->GetDirty() & eRenderDirty::eTransform) == eRenderDirty::eTransform;
 		if (transformDirty)
 		{
-			m_transformData->data.Resize(m_instanceTransforms.Size());
-
-			for (const auto& dirtyInstance : m_dirtyInstances)
-			{
-				if (dirtyInstance >= m_instanceTransforms.Size())
-				{
-					continue;
-				}
-
-				m_transformData->data[dirtyInstance] = m_instanceTransforms[dirtyInstance];
-			}
-
-			m_dirtyInstances.Clear();
-
 			meshBatch->UpdateTransform(this->GetID());
 		}
 
@@ -189,31 +177,43 @@ namespace wtr
 
 	void InstancedStaticPrimitiveProxy::SetInstanceCount(const size_t instanceCount)
 	{
-		if (m_instanceTransforms.Size() != instanceCount)
+		if (!m_transformData)
 		{
-			m_instanceTransforms.Resize(instanceCount);
+			return;
+		}
 
-			this->SetDirty(eRenderDirty::eTransform);
-			this->OnUpdate();
+		if (m_transformData->data.Size() != instanceCount)
+		{
+			m_transformData->data.Resize(instanceCount);
+
+			const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+			if (needDirty)
+			{
+				this->SetDirty(eRenderDirty::eTransform);
+				this->OnUpdate();
+			}
 		}
 	}
 
 	void InstancedStaticPrimitiveProxy::UpdateTransform(const size_t instanceIndex, const ftransform& transform)
 	{
-		if (instanceIndex >= m_instanceTransforms.Size())
+		if (!m_transformData || instanceIndex >= m_transformData->data.Size())
 		{
 			return;
 		}
 
-		m_instanceTransforms[instanceIndex] = transform;
-		m_dirtyInstances.Insert(instanceIndex);
+		m_transformData->data[instanceIndex] = transform;
 
-		this->SetDirty(eRenderDirty::eTransform);
-		this->OnUpdate();
+		const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+		if (needDirty)
+		{
+			this->SetDirty(eRenderDirty::eTransform);
+			this->OnUpdate();
+		}
 	}
 
 	const size_t InstancedStaticPrimitiveProxy::GetInstanceCount() const
 	{
-		return m_instanceTransforms.Size();
+		return m_transformData ? m_transformData->data.Size() : 0;
 	}
 }

@@ -122,7 +122,7 @@ namespace wtr
 		info.dataType = eDataType::eUInt;
 		info.dimension = 1;
 		info.offset = 0;
-		info.rawData = instanceCount;
+		info.data = instanceCount;
 
 		cmdList->SetBuffer(pipeline, rawTransformBuffer, eResourceSlot::eRawTransform);
 		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);

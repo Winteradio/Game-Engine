@@ -437,12 +437,6 @@ namespace wtr
 		
 	public :
 		bool IsEmpty() const;
-		bool IsUsed() const;
-
-		void SetUsed(const bool isUsed);
-
-	private :
-		std::atomic<bool> m_isUsed{ false };
 	};
 
 	template<typename T>

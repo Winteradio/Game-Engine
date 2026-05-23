@@ -90,7 +90,7 @@ namespace demo
 		auto transformComponent = cubeEntity->GetComponent<wtr::InstancedTransformComponent>();
 		if (transformComponent)
 		{
-			constexpr size_t cubeCount = 100000;
+			constexpr size_t cubeCount = 1000000;
 			constexpr size_t cubePerRow = 100;
 			constexpr size_t cubePerLow = 100;
 
@@ -106,10 +106,6 @@ namespace demo
 		world->scene.Attach(cubeEntity->GetNode<wtr::InstancedStaticMeshNode>());
 
 		//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
-
-		constexpr size_t cubeCount = 30000;
-		constexpr size_t cubePerRow = 100;
-
 
 		return true;
 	}

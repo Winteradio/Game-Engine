@@ -20,8 +20,13 @@ namespace wtr
             (std::abs(position.z - m_transform.position.z) >= std::numeric_limits<float>::epsilon()))
         {
             this->m_transform.position = position;
-            this->SetDirty(eRenderDirty::eTransform);
-            this->OnUpdate();
+
+            const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+            if (needDirty)
+            {
+                this->SetDirty(eRenderDirty::eTransform);
+                this->OnUpdate();
+            }
         }
     }
 
@@ -33,8 +38,13 @@ namespace wtr
             (std::abs(rotation.w - m_transform.rotation.w) >= std::numeric_limits<float>::epsilon()))
         {
             this->m_transform.rotation = rotation;
-            this->SetDirty(eRenderDirty::eTransform);
-            this->OnUpdate();
+
+            const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+            if (needDirty)
+            {
+                this->SetDirty(eRenderDirty::eTransform);
+                this->OnUpdate();
+            }
         }
     }
 
@@ -46,8 +56,13 @@ namespace wtr
             (std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
         {
             this->m_transform.rotation = glm::quat(rotation);
-            this->SetDirty(eRenderDirty::eTransform);
-            this->OnUpdate();
+
+            const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+            if (needDirty)
+            {
+                this->SetDirty(eRenderDirty::eTransform);
+                this->OnUpdate();
+            }
         }
     }
 
@@ -58,8 +73,13 @@ namespace wtr
             (std::abs(scale.z - m_transform.scale.z) >= std::numeric_limits<float>::epsilon()))
         {
             this->m_transform.scale = scale;
-            this->SetDirty(eRenderDirty::eTransform);
-            this->OnUpdate();
+
+            const bool needDirty = this->GetDirty() != eRenderDirty::eTransform;
+            if (needDirty)
+            {
+                this->SetDirty(eRenderDirty::eTransform);
+                this->OnUpdate();
+            }
         }
     }
 
