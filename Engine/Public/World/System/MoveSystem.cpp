@@ -41,11 +41,12 @@ namespace wtr
 			}
 
 			auto& transform = meshNode->transform;
+			auto deltaRotation = glm::angleAxis(static_cast<float>(seconds), fvec3(0.f, 1.f, 0.f));
+
 			const size_t instanceCount = transform->GetInstanceCount();
 			for (size_t index = 0; index < instanceCount; index++)
 			{
-				auto deltaRotation = glm::angleAxis(static_cast<float>(seconds), fvec3(0.f, 1.f, 0.f));
-				auto rotation = transform->GetRotation();
+				auto rotation = transform->GetRotation(index);
 				rotation = deltaRotation * rotation;
 
 				transform->UpdateRotation(index, rotation);

@@ -1,6 +1,5 @@
 #include <Renderer/RenderPass/CullingPass.h>
 
-#include <Renderer/Proxy/MaterialProxy.h>
 #include <Renderer/GlobalRenderer.h>
 #include <Renderer/MeshDrawCommand.h>
 
@@ -20,75 +19,34 @@ namespace wtr
 		return eResourceState::eReady;
 	}
 
-	void CullingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	const RHIDispatchDesc CullingPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
-		if (drawCommands.Empty() || !cmdList)
+		return {};
+	}
+
+	void CullingPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
+	{
+		return;
+	}
+
+	bool CullingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	{
+		if (!cmdList)
 		{
-			return;
+			return false;
 		}
 
-		m_commands.Clear();
-
-		for (const auto& drawCommand : drawCommands)
+		if (drawCommands.Empty())
 		{
-			if (!drawCommand)
-			{
-				continue;
-			}
-
-			auto pipeline = GetPipeLine(cmdList, drawCommand->material);
-			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
-			{
-				continue;
-			}
-
-			m_commands[pipeline].PushBack(drawCommand);
+			return true;
 		}
 
-		for (const auto& [pipeline, commands] : m_commands)
-		{
-			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
-			{
-				continue;
-			}
-
-			cmdList->SetPipeLine(pipeline);
-
-			for (const auto& command : commands)
-			{
-				if (!command)
-				{
-					continue;
-				}
-
-
-				if (SetCommand(cmdList, pipeline, command))
-				{
-					const auto dispatchDesc = GetDispatchCommand();
-					cmdList->DispatchCompute(dispatchDesc);
-				}
-
-				UnsetCommand(cmdList);
-			}
-
-			cmdList->UnsetPipeLine();
-		}
+		return true;
 	}
 
 	bool CullingPass::SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		if (!cmdList || !pipeline || !drawCommand)
-		{
-			return false;
-		}
-
-		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
-		const RHIResourceBinding indirect = pipeline->GetBindingSlot(eResourceSlot::eIndirect);
-		const RHIResourceBinding visible = pipeline->GetBindingSlot(eResourceSlot::eVisible);
-		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
-		const RHIResourceBinding localBouding = pipeline->GetBindingSlot(eResourceSlot::eLocalBounding);
-
-		if (camera.location == 0 || indirect.location == 0 || visible.location == 0 || transform.location == 0 || localBouding.location == 0)
 		{
 			return false;
 		}
@@ -107,11 +65,11 @@ namespace wtr
 			return false;
 		}
 
-		cmdList->SetBuffer(cameraBuffer, camera.location);
-		cmdList->SetBuffer(indirectBuffer, indirect.location);
-		cmdList->SetBuffer(visibleBuffer, visible.location);
-		cmdList->SetBuffer(transformBuffer, transform.location);
-		cmdList->SetBuffer(boudingBoxBuffer, localBouding.location);
+		cmdList->SetBuffer(pipeline, cameraBuffer, eResourceSlot::eCamera);
+		cmdList->SetBuffer(pipeline, indirectBuffer, eResourceSlot::eIndirect);
+		cmdList->SetBuffer(pipeline, visibleBuffer, eResourceSlot::eVisible);
+		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);
+		cmdList->SetBuffer(pipeline, boudingBoxBuffer, eResourceSlot::eLocalBounding);
 
 		return true;
 	}
@@ -121,43 +79,6 @@ namespace wtr
 		if (!cmdList)
 		{
 			return;
-		}
-	}
-
-	const RHIDispatchDesc CullingPass::GetDispatchCommand()
-	{
-		RHIDispatchDesc desc;
-		desc.groupX = m_groupX;
-		desc.groupY = m_groupY;
-		desc.groupZ = m_groupZ;
-
-		return desc;
-	}
-
-	Memory::RefPtr<const RHIPipeLine> CullingPass::GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy)
-	{
-		if (!cmdList || !shaderProxy)
-		{
-			return {};
-		}
-
-		auto csAsset = shaderProxy->GetShader<ComputeCSState>();
-		if (!csAsset || csAsset->GetResourceState() != eResourceState::eReady)
-		{
-			return {};
-		}
-
-		RHIPipeLineCreateDesc desc;
-		desc.computeShader = csAsset ? csAsset->GetShader() : nullptr;
-
-		Memory::RefPtr<const RHIPipeLine> pipeline = GlobalResource::GetPipeLine(cmdList, desc);
-		if (!pipeline || pipeline->GetState() != eResourceState::eReady)
-		{
-			return {};
-		}
-		else
-		{
-			return pipeline;
 		}
 	}
 }

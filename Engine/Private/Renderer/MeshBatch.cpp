@@ -50,12 +50,40 @@ namespace wtr
 				continue;
 			}
 
-			const uint32_t offset = dataRanges.Empty() ? 0 : dataRanges.Back().offset + static_cast<uint32_t>(dataRanges.Back().data->GetSize());
+			const uint32_t offset = !dataRanges.Empty() ? dataRanges.Back().offset + static_cast<uint32_t>(dataRanges.Back().data->GetSize()) : 0;
 			dataRanges.PushBack({ offset, proxyInfo.transform});
 
 			totalCount += proxyInfo.transform->GetCount();
 
 			proxyInfo.dirty = false;
+		}
+
+		auto& rawTransform = m_drawCommand->rawTransform;
+		if (!rawTransform)
+		{
+			constexpr uint32_t numComponents = 1;
+			const eDataType componentType = eDataType::eNone;
+			const eBufferType bufferType = eBufferType::eStorage;
+			const eDataAccess accessType = eDataAccess::eDynamic;
+
+			RHIBufferCreateDesc bufferDesc;
+			bufferDesc.bufferType = bufferType;
+			bufferDesc.accessType = accessType;
+			bufferDesc.componentType = componentType;
+			bufferDesc.numComponents = numComponents;
+			bufferDesc.count = totalCount;
+			bufferDesc.size = totalCount * sizeof(ftransform);
+			bufferDesc.stride = sizeof(ftransform);
+			bufferDesc.dataRanges = dataRanges;
+
+			rawTransform = cmdList->CreateBuffer(bufferDesc);
+			if (!rawTransform)
+			{
+				LOGINFO() << "[MeshBatch] Failed to create the transform buffer";
+
+				Unload(cmdList);
+				return;
+			}
 		}
 
 		auto& transform = m_drawCommand->transform;
@@ -74,7 +102,6 @@ namespace wtr
 			bufferDesc.count = totalCount;
 			bufferDesc.size = totalCount * numComponents * GetDataTypeSize(componentType);
 			bufferDesc.stride = numComponents * GetDataTypeSize(componentType);
-			bufferDesc.dataRanges = std::move(dataRanges);
 
 			transform  = cmdList->CreateBuffer(bufferDesc);
 			if (!transform)
@@ -94,13 +121,6 @@ namespace wtr
 			const eBufferType bufferType = eBufferType::eStorage;
 			const eDataAccess accessType = eDataAccess::eDynamic;
 
-			Memory::RefPtr<ArrayData<uint8_t>> visibilityData = Memory::MakeRef<ArrayData<uint8_t>>();
-			visibilityData->data.Resize(totalCount);
-			for (size_t index = 0; index < totalCount; index++)
-			{
-				visibilityData->data[index] = index;
-			}
-
 			RHIBufferCreateDesc bufferDesc;
 			bufferDesc.bufferType = bufferType;
 			bufferDesc.accessType = accessType;
@@ -109,7 +129,6 @@ namespace wtr
 			bufferDesc.count = totalCount;
 			bufferDesc.size = totalCount * numComponents * GetDataTypeSize(componentType);
 			bufferDesc.stride = numComponents * GetDataTypeSize(componentType);
-			bufferDesc.dataRanges.PushBack({ 0, visibilityData });
 
 			visible = cmdList->CreateBuffer(bufferDesc);
 			if (!visible)
@@ -263,6 +282,12 @@ namespace wtr
 			return;
 		}
 
+		if (m_drawCommand->rawTransform)
+		{
+			cmdList->RemoveBuffer(m_drawCommand->rawTransform);
+			m_drawCommand->rawTransform.Reset();
+		}
+
 		if (m_drawCommand->transform)
 		{
 			cmdList->RemoveBuffer(m_drawCommand->transform);
@@ -362,6 +387,23 @@ namespace wtr
 
 		if (resize)
 		{
+			// RawTransform Buffer Resizes
+			{
+				RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
+
+				RHIBufferCreateDesc bufferDesc;
+				bufferDesc.bufferType = prevDesc.bufferType;
+				bufferDesc.accessType = prevDesc.accessType;
+				bufferDesc.componentType = prevDesc.componentType;
+				bufferDesc.numComponents = prevDesc.numComponents;
+				bufferDesc.count = totalCount;
+				bufferDesc.size = totalCount * sizeof(ftransform);
+				bufferDesc.stride = sizeof(ftransform);
+				bufferDesc.dataRanges = std::move(dataRanges);
+
+				cmdList->ResizeBuffer(bufferDesc, m_drawCommand->rawTransform);
+			}
+
 			// Transform Buffer Resizes
 			{
 				RHIBufferDesc prevDesc = m_drawCommand->transform->GetDesc();
@@ -374,16 +416,12 @@ namespace wtr
 				bufferDesc.count = totalCount;
 				bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
 				bufferDesc.stride = prevDesc.stride;
-				bufferDesc.dataRanges = std::move(dataRanges);
 
 				cmdList->ResizeBuffer(bufferDesc, m_drawCommand->transform);
 			}
 
 			// Visible Buffer Resizes
 			{
-				Memory::RefPtr<ArrayData<uint8_t>> visibilityData = Memory::MakeRef<ArrayData<uint8_t>>();
-				visibilityData->data.Assign(totalCount, 1);
-
 				RHIBufferDesc prevDesc = m_drawCommand->visible->GetDesc();
 
 				RHIBufferCreateDesc bufferDesc;
@@ -394,15 +432,14 @@ namespace wtr
 				bufferDesc.count = totalCount;
 				bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
 				bufferDesc.stride = prevDesc.stride;
-				bufferDesc.dataRanges.PushBack({ 0, visibilityData });
 
 				cmdList->ResizeBuffer(bufferDesc, m_drawCommand->visible);
 			}
 		}
 		else
 		{
-			// Transform Buffer Updates			
-			RHIBufferDesc prevDesc = m_drawCommand->transform->GetDesc();
+			// RawTransform Buffer Updates			
+			RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
 
 			RHIBufferUpdateDesc bufferDesc;
 			bufferDesc.bufferType = prevDesc.bufferType;
@@ -410,12 +447,12 @@ namespace wtr
 			bufferDesc.componentType = prevDesc.componentType;
 			bufferDesc.numComponents = prevDesc.numComponents;
 			bufferDesc.count = totalCount;
-			bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
-			bufferDesc.stride = prevDesc.stride;
+			bufferDesc.size = totalCount * sizeof(ftransform);
+			bufferDesc.stride = sizeof(ftransform);
 			bufferDesc.dataRanges = std::move(dataRanges);
-			bufferDesc.mapAccess = eMapAccess::eInvalidateRange | eMapAccess::eWrite;
+			bufferDesc.mapAccess = eMapAccess::eInvalidateBuffer | eMapAccess::eWrite;
 
-			cmdList->UpdateBuffer(bufferDesc, m_drawCommand->transform);
+			cmdList->UpdateBuffer(bufferDesc, m_drawCommand->rawTransform);
 		}
 	}
 

@@ -56,11 +56,11 @@ namespace wtr
 		}
 	}
 
-	void LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
+	bool LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList)
 		{
-			return;
+			return false;
 		}
 
 		m_lights.Clear();
@@ -122,6 +122,8 @@ namespace wtr
 
 			cmdList->UnsetPipeLine();
 		}
+
+		return true;
 	}
 
 	const RHIDrawIndexDesc LightingPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
@@ -237,33 +239,19 @@ namespace wtr
 			return false;
 		}
 
-		const auto positionSlot = pipeline->GetBindingSlot(eResourceSlot::eGPosition);
-		const auto normalSlot = pipeline->GetBindingSlot(eResourceSlot::eGNormal);
-		const auto albedoSlot = pipeline->GetBindingSlot(eResourceSlot::eGAlbedo);
-		if (positionSlot.location == -1 || normalSlot.location == -1 || albedoSlot.location == -1)
-		{
-			return false;
-		}
-
 		const auto lightBuffer = light->GetLightBuffer();
 		if (!lightBuffer || lightBuffer->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
 
-		const auto lightSlot = pipeline->GetBindingSlot(eResourceSlot::eLight);
-		if (lightSlot.location == -1)
-		{
-			return false;
-		}
-
-		cmdList->SetBuffer(lightBuffer, lightSlot.location);
-		cmdList->SetTexture(positionTexture, positionSlot.location);
-		cmdList->SetTexture(normalTexture, normalSlot.location);
-		cmdList->SetTexture(albedoTexture, albedoSlot.location);
-		cmdList->SetSampler(positionSampler, positionSlot.location);
-		cmdList->SetSampler(normalSampler, normalSlot.location);
-		cmdList->SetSampler(albedoSampler, albedoSlot.location);
+		cmdList->SetBuffer(pipeline, lightBuffer, eResourceSlot::eLight);
+		cmdList->SetTexture(pipeline, positionTexture, eResourceSlot::eGPosition);
+		cmdList->SetSampler(pipeline, positionSampler, eResourceSlot::eGPosition);
+		cmdList->SetTexture(pipeline, normalTexture, eResourceSlot::eGNormal);
+		cmdList->SetSampler(pipeline, normalSampler, eResourceSlot::eGNormal);
+		cmdList->SetTexture(pipeline, albedoTexture, eResourceSlot::eGAlbedo);
+		cmdList->SetSampler(pipeline, albedoSampler, eResourceSlot::eGAlbedo);
 
 		return true;
 	}

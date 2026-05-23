@@ -68,6 +68,16 @@ namespace wtr
 		Desc desc;
 	};
 
+	struct RHIConstDesc : RHIDesc<eResourceType::eConst>
+	{
+		eDataType dataType = eDataType::eNone;
+
+		uint32_t dimension = 0;
+		uint32_t offset = 0;
+
+		Memory::RefPtr<const RawData> rawData;
+	};
+
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
 	{
 		eBufferType bufferType = eBufferType::eNone;

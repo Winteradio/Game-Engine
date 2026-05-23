@@ -133,6 +133,8 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.cpp
 	
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/TransformPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/TransformPass.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.cpp
 

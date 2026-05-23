@@ -62,7 +62,7 @@ namespace wtr
 		bool IsSyncable() const override;
 
 	protected :
-		Memory::RefPtr<ScalarData<fmat4>> m_transformData;
+		Memory::RefPtr<ScalarData<ftransform>> m_transformData;
 	};
 
 	class StaticPrimitiveProxy : public SinglePrimitiveProxy
@@ -119,7 +119,7 @@ namespace wtr
 		wtr::DynamicArray<ftransform> m_instanceTransforms;
 		wtr::HashSet<size_t> m_dirtyInstances;
 
-		Memory::RefPtr<ArrayData<fmat4>> m_transformData;
+		Memory::RefPtr<ArrayData<ftransform>> m_transformData;
 	};
 
 	struct PrimitiveProxyHasher

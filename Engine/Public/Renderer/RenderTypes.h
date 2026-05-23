@@ -29,6 +29,7 @@ namespace wtr
 		ePipeLine	= 0x05,
 		eLayout		= 0x06,
 		eTarget		= 0x07,
+		eConst		= 0x08,
 	};
 
 	enum class eBufferType : uint8_t
@@ -332,10 +333,12 @@ namespace wtr
 		eCamera = 0x12,
 
 		// Uniform - Instance
-		eTransform = 0x13,
-		eIndirect = 0x14,
-		eVisible = 0x15,
-		eLocalBounding = 0x16,
+		eInstanceCount = 0x13,
+		eRawTransform = 0x14,
+		eTransform = 0x15,
+		eIndirect = 0x16,
+		eVisible = 0x17,
+		eLocalBounding = 0x18,
 
 		// Uniform - Light
 		eLight = 0x17,

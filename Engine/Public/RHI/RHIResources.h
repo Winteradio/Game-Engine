@@ -196,7 +196,7 @@ namespace wtr
 
 	private :
 		RHIPipeLineDesc m_desc;
-		wtr::HashMap<eResourceSlot, RHIResourceBinding> m_slots;
+		wtr::HashMap<std::string, RHIResourceBinding> m_slots;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine

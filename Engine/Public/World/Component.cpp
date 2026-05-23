@@ -49,70 +49,68 @@ namespace wtr
 
 	TransformComponent::TransformComponent()
 		: ProxyComponent()
-		, m_position(0.f, 0.f, 0.f)
-		, m_rotation(1.f, 0.f, 0.f, 0.f)
-		, m_scale(1.f, 1.f, 1.f)
+		, m_transform()
 	{}
 
 	void TransformComponent::UpdatePosition(const fvec3& position)
 	{
-		if ((std::abs(position.x - this->m_position.x) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(position.y - this->m_position.y) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(position.z - this->m_position.z) >= std::numeric_limits<float>::epsilon()))
+		if ((std::abs(position.x - m_transform.position.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(position.y - m_transform.position.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(position.z - m_transform.position.z) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_position = position;
+			this->m_transform.position = position;
 			this->OnUpdate();
 		}
 	}
 
 	void TransformComponent::UpdateRotation(const fquat& rotation)
 	{
-		if ((std::abs(rotation.x - this->m_rotation.x) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(rotation.y - this->m_rotation.y) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(rotation.z - this->m_rotation.z) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(rotation.w - this->m_rotation.w) >= std::numeric_limits<float>::epsilon()))
+		if ((std::abs(rotation.x - m_transform.rotation.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.y - m_transform.rotation.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.z - m_transform.rotation.z) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(rotation.w - m_transform.rotation.w) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_rotation = rotation;
+			this->m_transform.rotation = rotation;
 			this->OnUpdate();
 		}
 	}
 
 	void TransformComponent::UpdateRotation(const fvec3& rotation)
 	{
-		const fvec3 eulerAngles = glm::eulerAngles(this->m_rotation);
+		const fvec3 eulerAngles = glm::eulerAngles(m_transform.rotation);
 		if ((std::abs(rotation.x - eulerAngles.x) >= std::numeric_limits<float>::epsilon()) ||
 			(std::abs(rotation.y - eulerAngles.y) >= std::numeric_limits<float>::epsilon()) ||
 			(std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_rotation = glm::quat(rotation);
+			this->m_transform.rotation = glm::quat(rotation);
 			this->OnUpdate();
 		}
 	}
 
 	void TransformComponent::UpdateScale(const fvec3& scale)
 	{
-		if ((std::abs(scale.x - this->m_scale.x) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(scale.y - this->m_scale.y) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(scale.z - this->m_scale.z) >= std::numeric_limits<float>::epsilon()))
+		if ((std::abs(scale.x - m_transform.scale.x) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(scale.y - m_transform.scale.y) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(scale.z - m_transform.scale.z) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_scale = scale;
+			this->m_transform.scale = scale;
 			this->OnUpdate();
 		}
 	}
 
-	const fvec3 TransformComponent::GetPosition() const
+	const fvec3& TransformComponent::GetPosition() const
 	{
-		return m_position;
+		return m_transform.position;
 	}
 
-	const fquat TransformComponent::GetRotation() const
+	const fquat& TransformComponent::GetRotation() const
 	{
-		return m_rotation;
+		return m_transform.rotation;
 	}
 
-	const fvec3 TransformComponent::GetScale() const
+	const fvec3& TransformComponent::GetScale() const
 	{
-		return m_scale;
+		return m_transform.scale;
 	}
 
 	InstancedTransformComponent::InstancedTransformComponent()
@@ -218,44 +216,45 @@ namespace wtr
 		}
 	}
 
-	const fvec3 InstancedTransformComponent::GetPosition(const size_t instanceIndex) const
+	const fvec3& InstancedTransformComponent::GetPosition(const size_t instanceIndex) const
 	{
 		if (instanceIndex >= m_instanceTransforms.Size())
 		{
-			return fvec3(0.f, 0.f, 0.f);
+			return NULL_TRANSFORM.position;
 		}
 
 		auto& transform = m_instanceTransforms[instanceIndex];
 		return transform.position;
 	}
 
-	const fquat InstancedTransformComponent::GetRotation(const size_t instanceIndex) const
+	const fquat& InstancedTransformComponent::GetRotation(const size_t instanceIndex) const
 	{
 		if (instanceIndex >= m_instanceTransforms.Size())
 		{
-			return fquat(1.f, 0.f, 0.f, 0.f);
+			return NULL_TRANSFORM.rotation;
 		}
 	
 		auto& transform = m_instanceTransforms[instanceIndex];
 		return transform.rotation;
 	}
 
-	const fvec3 InstancedTransformComponent::GetScale(const size_t instanceIndex) const
+	const fvec3& InstancedTransformComponent::GetScale(const size_t instanceIndex) const
 	{
 		if (instanceIndex >= m_instanceTransforms.Size())
 		{
-			return fvec3(1.f, 1.f, 1.f);
+			return NULL_TRANSFORM.scale;
 		}
 	
 		auto& transform = m_instanceTransforms[instanceIndex];
 		return transform.scale;
 	}
 
-	const ftransform InstancedTransformComponent::GetTransform(const size_t instanceIndex) const
+	const ftransform& InstancedTransformComponent::GetTransform(const size_t instanceIndex) const
 	{
 		if (instanceIndex >= m_instanceTransforms.Size())
 		{
-			return {};
+			static ftransform null;
+			return null;
 		}
 
 		return m_instanceTransforms[instanceIndex];

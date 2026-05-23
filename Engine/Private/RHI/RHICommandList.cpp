@@ -332,24 +332,73 @@ namespace wtr
 		Enqueue<RHICommandRemoveRenderTarget>(target);
 	}
 
-	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	void RHICommandList::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const eResourceSlot slot)
 	{
-		Enqueue<RHICommandSetBuffer>(buffer, slot);
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandSetConstant>(pipeline, info, slotName);
+	}
+
+	void RHICommandList::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName)
+	{
+		Enqueue<RHICommandSetConstant>(pipeline, info, slotName);
+	}
+
+	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandSetBuffer>(pipeline, buffer, slotName);
+	}
+
+	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	{
+		Enqueue<RHICommandSetBuffer>(pipeline, buffer, slotName);
+	}
+
+	void RHICommandList::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandSetTexture>(pipeline, texture, slotName);
+	}
+
+	void RHICommandList::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	{
+		Enqueue<RHICommandSetTexture>(pipeline, texture, slotName);
+	}
+
+	void RHICommandList::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandSetSampler>(pipeline, sampler, slotName);
+	}
+
+	void RHICommandList::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	{
+		Enqueue<RHICommandSetSampler>(pipeline, sampler, slotName);
 	}
 
 	void RHICommandList::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
 		Enqueue<RHICommandSetVertexLayout>(layout);
-	}
-
-	void RHICommandList::SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
-	{
-		Enqueue<RHICommandSetTexture>(texture, slot);
-	}
-
-	void RHICommandList::SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
-	{
-		Enqueue<RHICommandSetSampler>(sampler, slot);
 	}
 
 	void RHICommandList::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
@@ -362,24 +411,73 @@ namespace wtr
 		Enqueue<RHICommandSetRenderTarget>(target);
 	}
 
-	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	void RHICommandList::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const eResourceSlot slot)
 	{
-		Enqueue<RHICommandUnsetBuffer>(buffer, slot);
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandUnsetConstant>(pipeline, slotName);
+	}
+
+	void RHICommandList::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
+	{
+		Enqueue<RHICommandUnsetConstant>(pipeline, slotName);
+	}
+
+	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandUnsetBuffer>(pipeline, buffer, slotName);
+	}
+
+	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	{
+		Enqueue<RHICommandUnsetBuffer>(pipeline, buffer, slotName);
+	}
+
+	void RHICommandList::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandUnsetTexture>(pipeline, texture, slotName);
+	}
+
+	void RHICommandList::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	{
+		Enqueue<RHICommandUnsetTexture>(pipeline, texture, slotName);
+	}
+
+	void RHICommandList::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const eResourceSlot slot)
+	{
+		const std::string slotName = GetSlotName(slot);
+		if (slotName.empty())
+		{
+			return;
+		}
+
+		Enqueue<RHICommandUnsetSampler>(pipeline, sampler, slotName);
+	}
+
+	void RHICommandList::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	{
+		Enqueue<RHICommandUnsetSampler>(pipeline, sampler, slotName);
 	}
 
 	void RHICommandList::UnsetVertexLayout()
 	{
 		Enqueue<RHICommandUnsetVertexLayout>();
-	}
-
-	void RHICommandList::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
-	{
-		Enqueue<RHICommandUnsetTexture>(texture, slot);
-	}
-
-	void RHICommandList::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
-	{
-		Enqueue<RHICommandUnsetSampler>(sampler, slot);
 	}
 
 	void RHICommandList::UnsetPipeLine()

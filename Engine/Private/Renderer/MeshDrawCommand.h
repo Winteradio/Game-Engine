@@ -32,6 +32,7 @@ namespace wtr
 
 	struct MeshDrawCommand
 	{
+		Memory::RefPtr<RHIBuffer> rawTransform			= nullptr;
 		Memory::RefPtr<RHIBuffer> transform				= nullptr;
 		Memory::RefPtr<RHIBuffer> visible				= nullptr;
 		Memory::RefPtr<RHIBuffer> indirect				= nullptr;

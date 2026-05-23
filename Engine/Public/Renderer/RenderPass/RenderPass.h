@@ -15,6 +15,7 @@ namespace wtr
 	struct MeshDrawCommand;
 	class LightProxy;
 	class ShaderProxy;
+	class ShaderState;
 
 	struct RHIClearState;
 	struct RHIColorState;
@@ -41,14 +42,9 @@ namespace wtr
 		virtual ~RenderPass() = default;
 
 	public :
-		virtual void Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) = 0;
+		virtual bool Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) = 0;
 		virtual bool SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
 		virtual void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList) = 0;
-
-		virtual Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) = 0;
-
-	protected :
-		wtr::HashMap<Memory::RefPtr<const RHIPipeLine>, MeshDrawCommands> m_commands;
 	};
 
 	class ComputePass : public RenderPass
@@ -59,12 +55,17 @@ namespace wtr
 		virtual ~ComputePass() = default;
 
 	public :
-		virtual const RHIDispatchDesc GetDispatchCommand() = 0;
+		virtual const RHIDispatchDesc GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
+		
+	public :
+		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList);
 
 	protected :
 		uint32_t m_groupX;
 		uint32_t m_groupY;
 		uint32_t m_groupZ;
+
+		Memory::RefPtr<ShaderState> m_computeShader;
 	};
 
 	class GraphicPass : public RenderPass
@@ -77,6 +78,7 @@ namespace wtr
 	public :
 		virtual void InitState() = 0;
 		virtual const RHIDrawIndexDesc GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
+		virtual Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) = 0;
 
 	public :
 		void SetState(Memory::RefPtr<RHICommandList> cmdList);

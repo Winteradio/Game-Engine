@@ -26,7 +26,7 @@ namespace wtr
 		void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
 
 		void InitState() override;
-		void Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) override;
+		bool Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) override;
 		
 		bool SetCommand(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MeshDrawCommand> drawCommand);
 		void UnsetCommand(Memory::RefPtr<RHICommandList> cmdList);
@@ -39,6 +39,8 @@ namespace wtr
 
 	private :
 		Memory::RefPtr<RHIRenderTarget> m_target;
+
+		wtr::HashMap<Memory::RefPtr<const RHIPipeLine>, MeshDrawCommands> m_commands;
 	};
 }
 
