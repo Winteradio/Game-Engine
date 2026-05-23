@@ -14,7 +14,7 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 Per-instance `OnUpdate()` dirty-tracking storm eliminated. Previously, each of 1,000,000 `UpdateRotation()` calls unconditionally triggered `OnUpdate()` → `Scene::Update()` → `HashSet::Insert` in the World layer and `RenderScene::m_updatedProxies.Insert()` in the Renderer layer — 2,000,000 hash operations per frame (World: 15.37%, RenderScene: 20.30% of frame time). A single dirty-state guard (`if (!IsDirty()) OnUpdate()`) in `InstancedTransformComponent` and `InstancedStaticPrimitiveProxy` collapsed this to 1 call per frame regardless of instance count.
 Result: 1,000,000 instances at **~22 FPS (Release)**. Previous baseline: 1,000,000 instances at 5.4 FPS (185ms/frame).
 
-*[26-05-24] Hash Storm Fix - 1,000,000 Cube in debug mode*
+*[26-05-24] Hash Storm Fix - 1,000,000 Cube in release mode*
 
 <img src="asset/screenshot/gpu-computue-trs-1m-cubes.gif" width="700" />
 
