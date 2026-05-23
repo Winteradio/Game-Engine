@@ -200,9 +200,6 @@ namespace wtr
 
 		if (drawCommand->indirectDraw)
 		{
-			const RHIResourceBinding indirect = pipeline->GetBindingSlot("uIndirect");
-			const RHIResourceBinding visible = pipeline->GetBindingSlot("uVisible");
-
 			const auto indirectBuffer = drawCommand->indirect;
 			const auto visibleBuffer = drawCommand->visible;
 			if (!indirectBuffer || indirectBuffer->GetState() != eResourceState::eReady || 
@@ -211,16 +208,8 @@ namespace wtr
 				return false;
 			}
 
-			cmdList->SetBuffer(indirectBuffer, indirect.location);
-			cmdList->SetBuffer(visibleBuffer, visible.location);
-		}
-
-		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
-		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
-
-		if (camera.location == -1 || transform.location == -1)
-		{
-			return false;
+			cmdList->SetBuffer(pipeline, indirectBuffer, eResourceSlot::eIndirect);
+			cmdList->SetBuffer(pipeline, visibleBuffer, eResourceSlot::eVisible);
 		}
 
 		const auto cameraBuffer = GlobalResource::GetCamera();
@@ -237,8 +226,8 @@ namespace wtr
 			return false;
 		}
 
-		cmdList->SetBuffer(cameraBuffer, camera.location);
-		cmdList->SetBuffer(transformBuffer, transform.location);
+		cmdList->SetBuffer(pipeline, cameraBuffer, eResourceSlot::eCamera);
+		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);
 		cmdList->SetVertexLayout(drawCommand->vertexLayout);
 
 		return SetMaterial(cmdList, pipeline, drawCommand->material);
@@ -261,39 +250,27 @@ namespace wtr
 					continue;
 				}
 
-				const auto textureSlot = pipeline->GetBindingSlot(slot);
-				if (textureSlot.location == -1)
+				const auto sampler = GlobalResource::GetSampler(cmdList, slot);
+				if (!sampler || sampler->GetState() != eResourceState::eReady)
 				{
 					continue;
 				}
 
-				const auto sampler = GlobalResource::GetSampler(cmdList, slot);
-				if (sampler && sampler->GetState() == eResourceState::eReady)
-				{
-					cmdList->SetTexture(textureAsset->texture, textureSlot.location);
-					cmdList->SetSampler(sampler, textureSlot.location);
-				}
+				cmdList->SetTexture(pipeline, textureAsset->texture, slot);
+				cmdList->SetSampler(pipeline, sampler, slot);
 			}
 		}
 
 		const auto vectorBuffer = material->GetVectorBuffer();
 		if (vectorBuffer && vectorBuffer->GetState() == eResourceState::eReady)
 		{
-			const auto vectorSlot = pipeline->GetBindingSlot(eResourceSlot::eVector);
-			if (vectorSlot.location != -1)
-			{
-				cmdList->SetBuffer(vectorBuffer, vectorSlot.location);
-			}
+			cmdList->SetBuffer(pipeline, vectorBuffer, eResourceSlot::eVector);
 		}
 
 		const auto scalarBuffer = material->GetScalarBuffer();
 		if (scalarBuffer && scalarBuffer->GetState() == eResourceState::eReady)
 		{
-			const auto scalarSlot = pipeline->GetBindingSlot(eResourceSlot::eScalar);
-			if (scalarSlot.location != -1)
-			{
-				cmdList->SetBuffer(scalarBuffer, scalarSlot.location);
-			}
+			cmdList->SetBuffer(pipeline, scalarBuffer, eResourceSlot::eScalar);
 		}
 
 		return true;

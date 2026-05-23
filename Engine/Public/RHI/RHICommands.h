@@ -496,18 +496,64 @@ namespace wtr
 		const Memory::RefPtr<RHIRenderTarget> m_target;
 	};
 
+	class RHICommandSetConstant : public RHICommand<RHICommandSetConstant>
+	{
+	public :
+		RHICommandSetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName);
+		~RHICommandSetConstant() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const RHIConstDesc m_info;
+		const std::string m_slotName;
+	};
+
 	class RHICommandSetBuffer : public RHICommand<RHICommandSetBuffer>
 	{
 	public :
-		RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
+		RHICommandSetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
 		~RHICommandSetBuffer() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHIBuffer> m_buffer;
-		const uint32_t m_slot;
+		const std::string m_slotName;
+	};
+
+	class RHICommandSetTexture : public RHICommand<RHICommandSetTexture>
+	{
+	public :
+		RHICommandSetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		~RHICommandSetTexture() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const Memory::RefPtr<const RHITexture> m_texture;
+		const std::string m_slotName;
+	};
+
+	class RHICommandSetSampler : public RHICommand<RHICommandSetSampler>
+	{
+	public :
+		RHICommandSetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+		~RHICommandSetSampler() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const Memory::RefPtr<const RHISampler> m_sampler;
+		const std::string m_slotName;
 	};
 
 	class RHICommandSetVertexLayout : public RHICommand<RHICommandSetVertexLayout>
@@ -521,34 +567,6 @@ namespace wtr
 
 	private:
 		const Memory::RefPtr<const RHIVertexLayout> m_layout;
-	};
-
-	class RHICommandSetTexture : public RHICommand<RHICommandSetTexture>
-	{
-	public :
-		RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
-		~RHICommandSetTexture() = default;
-
-	public:
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private:
-		const Memory::RefPtr<const RHITexture> m_texture;
-		const uint32_t m_slot;
-	};
-
-	class RHICommandSetSampler : public RHICommand<RHICommandSetSampler>
-	{
-	public :
-		RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
-		~RHICommandSetSampler() = default;
-
-	public:
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private:
-		const Memory::RefPtr<const RHISampler> m_sampler;
-		const uint32_t m_slot;
 	};
 
 	class RHICommandSetPipeLine : public RHICommand<RHICommandSetPipeLine>
@@ -577,18 +595,63 @@ namespace wtr
 		const Memory::RefPtr<const RHIRenderTarget> m_target;
 	};
 
+	class RHICommandUnsetConstant : public RHICommand<RHICommandUnsetConstant>
+	{
+	public :
+		RHICommandUnsetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName);
+		~RHICommandUnsetConstant() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const std::string m_slotName;
+	};
+
 	class RHICommandUnsetBuffer : public RHICommand<RHICommandUnsetBuffer>
 	{
 	public :
-		RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
+		RHICommandUnsetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
 		~RHICommandUnsetBuffer() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHIBuffer> m_buffer;
-		const uint32_t m_slot;
+		const std::string m_slotName;
+	};
+
+	class RHICommandUnsetTexture : public RHICommand<RHICommandUnsetTexture>
+	{
+	public :
+		RHICommandUnsetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		~RHICommandUnsetTexture() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const Memory::RefPtr<const RHITexture> m_texture;
+		const std::string m_slotName;
+	};
+
+	class RHICommandUnsetSampler : public RHICommand<RHICommandUnsetSampler>
+	{
+	public :
+		RHICommandUnsetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+		~RHICommandUnsetSampler() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
+		const Memory::RefPtr<const RHISampler> m_sampler;
+		const std::string m_slotName;
 	};
 
 	class RHICommandUnsetVertexLayout : public RHICommand<RHICommandUnsetVertexLayout>
@@ -599,34 +662,6 @@ namespace wtr
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
-	};
-
-	class RHICommandUnsetTexture : public RHICommand<RHICommandUnsetTexture>
-	{
-	public :
-		RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
-		~RHICommandUnsetTexture() = default;
-
-	public:
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const Memory::RefPtr<const RHITexture> m_texture;
-		const uint32_t m_slot;
-	};
-
-	class RHICommandUnsetSampler : public RHICommand<RHICommandUnsetSampler>
-	{
-	public :
-		RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
-		~RHICommandUnsetSampler() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private:
-		const Memory::RefPtr<const RHISampler> m_sampler;
-		const uint32_t m_slot;
 	};
 
 	class RHICommandUnsetPipeLine : public RHICommand<RHICommandUnsetPipeLine>

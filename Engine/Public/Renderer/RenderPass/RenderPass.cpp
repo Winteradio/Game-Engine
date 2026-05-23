@@ -14,16 +14,6 @@ namespace wtr
 	{
 	}
 
-	const RHIDispatchDesc ComputePass::GetDispatchCommand()
-	{
-		RHIDispatchDesc desc;
-		desc.groupX = m_groupX;
-		desc.groupY = m_groupY;
-		desc.groupZ = m_groupZ;
-
-		return desc;
-	}
-
 	Memory::RefPtr<const RHIPipeLine> ComputePass::GetPipeLine(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList || !m_computeShader)

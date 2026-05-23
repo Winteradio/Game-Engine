@@ -84,14 +84,12 @@ namespace wtr
 		void UpdateRotation(const fquat& rotation);
 		void UpdateScale(const fvec3& scale);
 
-		const fvec3 GetPosition() const;
-		const fquat GetRotation() const;
-		const fvec3 GetScale() const;
+		const fvec3& GetPosition() const;
+		const fquat& GetRotation() const;
+		const fvec3& GetScale() const;
 
 	private :
-		fvec3 m_position;
-		fquat m_rotation;
-		fvec3 m_scale;
+		ftransform m_transform;
 	};
 
 	class InstancedTransformComponent : public TransformComponent
@@ -119,15 +117,17 @@ namespace wtr
 		void UpdateRotation(const size_t instanceIndex, const fquat& rotation);
 		void UpdateScale(const size_t instanceIndex, const fvec3& scale);
 
-		const fvec3 GetPosition(const size_t instanceIndex) const;
-		const fquat GetRotation(const size_t instanceIndex) const;
-		const fvec3 GetScale(const size_t instanceIndex) const;
-		const ftransform GetTransform(const size_t instanceIndex) const;
+		const fvec3& GetPosition(const size_t instanceIndex) const;
+		const fquat& GetRotation(const size_t instanceIndex) const;
+		const fvec3& GetScale(const size_t instanceIndex) const;
+		const ftransform& GetTransform(const size_t instanceIndex) const;
 
 		const wtr::DynamicArray<ftransform>& GetTransforms() const;
 
 	private :
 		wtr::DynamicArray<ftransform> m_instanceTransforms;
+
+		static inline const ftransform NULL_TRANSFORM = ftransform();
 	};
 
 	class LightComponent : public ProxyComponent

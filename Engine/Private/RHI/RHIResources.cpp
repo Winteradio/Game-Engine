@@ -450,11 +450,12 @@ namespace wtr
 
 	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
 	{
-		const eResourceSlot slot = GetResourceSlot(name);
-		if (slot != eResourceSlot::eNone)
+		if (name.empty())
 		{
-			m_slots[slot] = binding;
+			return;
 		}
+
+		m_slots[name] = binding;
 	}
 
 	bool RHIPipeLine::HasSlot(const std::string& name) const
@@ -470,7 +471,8 @@ namespace wtr
 
 	bool RHIPipeLine::HasSlot(const eResourceSlot slot) const
 	{
-		return m_slots.Find(slot) != m_slots.End();
+		const std::string slotName = GetSlotName(slot);
+		return m_slots.Find(slotName) != m_slots.End();
 	}
 
 	size_t RHIPipeLine::GetSlotCount() const
@@ -491,7 +493,9 @@ namespace wtr
 
 	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const eResourceSlot slot) const
 	{
-		auto itr = m_slots.Find(slot);
+		const std::string slotName = GetSlotName(slot);
+
+		auto itr = m_slots.Find(slotName);
 		if (itr != m_slots.End())
 		{
 			return itr->second;

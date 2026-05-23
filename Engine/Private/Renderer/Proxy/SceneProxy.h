@@ -20,19 +20,13 @@ namespace wtr
 		void UpdateRotation(const fvec3 rotation);
 		void UpdateScale(const fvec3 scale);
 
-		const fvec3 GetPosition() const;
-		const fquat GetRotation() const;
-		const fvec3 GetScale() const;
-		const fmat4 GetTransform() const;
-
-	protected :
-		void UpdateTransform();
+		const fvec3& GetPosition() const;
+		const fquat& GetRotation() const;
+		const fvec3& GetScale() const;
+		const ftransform& GetTransform() const;
 
 	private :
-		fvec3 m_position;
-		fquat m_rotation;
-		fvec3 m_scale;
-		fmat4 m_transform;
+		ftransform m_transform;
 	};
 };
 

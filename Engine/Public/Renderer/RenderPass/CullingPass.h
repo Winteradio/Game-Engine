@@ -20,6 +20,8 @@ namespace wtr
 	public:
 		eResourceState GetResourceState() const override;
 
+		const RHIDispatchDesc GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) override;
+
 		void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
 		bool Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList) override;
 

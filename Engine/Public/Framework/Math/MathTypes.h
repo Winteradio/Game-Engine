@@ -102,9 +102,9 @@ namespace wtr
 
 	struct ftransform
 	{
-		fvec3 position = fvec3(0.0f);
-		fquat rotation = fquat(1.0f, 0.f, 0.f, 0.f);
-		fvec3 scale = fvec3(1.0);
+		alignas(16) fvec3 position = fvec3(0.0f);
+		alignas(16) fquat rotation = fquat(1.0f, 0.f, 0.f, 0.f);
+		alignas(16) fvec3 scale = fvec3(1.0);
 
 		ftransform() = default;
 

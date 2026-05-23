@@ -55,7 +55,9 @@ namespace wtr
 		virtual ~ComputePass() = default;
 
 	public :
-		const RHIDispatchDesc GetDispatchCommand();
+		virtual const RHIDispatchDesc GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
+		
+	public :
 		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList);
 
 	protected :

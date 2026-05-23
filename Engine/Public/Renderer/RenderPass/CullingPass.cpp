@@ -19,6 +19,11 @@ namespace wtr
 		return eResourceState::eReady;
 	}
 
+	const RHIDispatchDesc CullingPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	{
+		return {};
+	}
+
 	void CullingPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		return;
@@ -46,17 +51,6 @@ namespace wtr
 			return false;
 		}
 
-		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
-		const RHIResourceBinding indirect = pipeline->GetBindingSlot(eResourceSlot::eIndirect);
-		const RHIResourceBinding visible = pipeline->GetBindingSlot(eResourceSlot::eVisible);
-		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
-		const RHIResourceBinding localBouding = pipeline->GetBindingSlot(eResourceSlot::eLocalBounding);
-
-		if (camera.location == 0 || indirect.location == 0 || visible.location == 0 || transform.location == 0 || localBouding.location == 0)
-		{
-			return false;
-		}
-
 		const auto cameraBuffer = GlobalResource::GetCamera();
 		const auto indirectBuffer = drawCommand->indirect;
 		const auto visibleBuffer = drawCommand->visible;
@@ -71,11 +65,11 @@ namespace wtr
 			return false;
 		}
 
-		cmdList->SetBuffer(cameraBuffer, camera.location);
-		cmdList->SetBuffer(indirectBuffer, indirect.location);
-		cmdList->SetBuffer(visibleBuffer, visible.location);
-		cmdList->SetBuffer(transformBuffer, transform.location);
-		cmdList->SetBuffer(boudingBoxBuffer, localBouding.location);
+		cmdList->SetBuffer(pipeline, cameraBuffer, eResourceSlot::eCamera);
+		cmdList->SetBuffer(pipeline, indirectBuffer, eResourceSlot::eIndirect);
+		cmdList->SetBuffer(pipeline, visibleBuffer, eResourceSlot::eVisible);
+		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);
+		cmdList->SetBuffer(pipeline, boudingBoxBuffer, eResourceSlot::eLocalBounding);
 
 		return true;
 	}

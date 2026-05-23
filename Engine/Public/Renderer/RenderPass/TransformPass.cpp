@@ -26,6 +26,22 @@ namespace wtr
 		return m_computeShader ? m_computeShader->GetResourceState() : eResourceState::eNone;
 	}
 
+	const RHIDispatchDesc TransformPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	{
+		if (!drawCommand)
+		{
+			return {};
+		}
+
+		constexpr uint32_t threadCount = 64;
+		RHIDispatchDesc desc;
+		desc.groupX = (drawCommand->instanceCount + threadCount - 1) / threadCount;
+		desc.groupY = 1;
+		desc.groupZ = 1;
+
+		return desc;
+	}
+
 	void TransformPass::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		if (!cmdList || m_computeShader)
@@ -72,7 +88,7 @@ namespace wtr
 
 			if (SetCommand(cmdList, pipeline, command))
 			{
-				const auto dispatchDesc = GetDispatchCommand();
+				const auto dispatchDesc = GetDispatchCommand(command);
 				cmdList->DispatchCompute(dispatchDesc);
 			}
 
@@ -91,36 +107,26 @@ namespace wtr
 			return false;
 		}
 
-		const RHIResourceBinding camera = pipeline->GetBindingSlot(eResourceSlot::eCamera);
-		const RHIResourceBinding indirect = pipeline->GetBindingSlot(eResourceSlot::eIndirect);
-		const RHIResourceBinding visible = pipeline->GetBindingSlot(eResourceSlot::eVisible);
-		const RHIResourceBinding transform = pipeline->GetBindingSlot(eResourceSlot::eTransform);
-		const RHIResourceBinding localBouding = pipeline->GetBindingSlot(eResourceSlot::eLocalBounding);
-
-		if (camera.location == 0 || indirect.location == 0 || visible.location == 0 || transform.location == 0 || localBouding.location == 0)
-		{
-			return false;
-		}
-
-		const auto cameraBuffer = GlobalResource::GetCamera();
-		const auto indirectBuffer = drawCommand->indirect;
-		const auto visibleBuffer = drawCommand->visible;
+		const auto rawTransformBuffer = drawCommand->rawTransform;
 		const auto transformBuffer = drawCommand->transform;
-		const auto boudingBoxBuffer = drawCommand->localBounding;
-		if (!cameraBuffer || cameraBuffer->GetState() != eResourceState::eReady ||
-			!indirectBuffer || indirectBuffer->GetState() != eResourceState::eReady ||
-			!visibleBuffer || visibleBuffer->GetState() != eResourceState::eReady ||
-			!transformBuffer || transformBuffer->GetState() != eResourceState::eReady ||
-			!boudingBoxBuffer || boudingBoxBuffer->GetState() != eResourceState::eReady)
+		if (!rawTransformBuffer || rawTransformBuffer->GetState() != eResourceState::eReady ||
+			!transformBuffer || transformBuffer->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
 
-		cmdList->SetBuffer(cameraBuffer, camera.location);
-		cmdList->SetBuffer(indirectBuffer, indirect.location);
-		cmdList->SetBuffer(visibleBuffer, visible.location);
-		cmdList->SetBuffer(transformBuffer, transform.location);
-		cmdList->SetBuffer(boudingBoxBuffer, localBouding.location);
+		Memory::RefPtr<ScalarData<uint32_t>> instanceCount = Memory::MakeRef<ScalarData<uint32_t>>();
+		instanceCount->data = static_cast<uint32_t>(drawCommand->instanceCount);
+
+		RHIConstDesc info;
+		info.dataType = eDataType::eUInt;
+		info.dimension = 1;
+		info.offset = 0;
+		info.rawData = instanceCount;
+
+		cmdList->SetBuffer(pipeline, rawTransformBuffer, eResourceSlot::eRawTransform);
+		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);
+		cmdList->SetConstant(pipeline, info, eResourceSlot::eInstanceCount);
 
 		return true;
 	}

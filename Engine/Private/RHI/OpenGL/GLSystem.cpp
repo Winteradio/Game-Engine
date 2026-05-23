@@ -458,7 +458,7 @@ namespace wtr
 
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || info.dataRanges.Empty())
+		if (!buffer)
 		{
 			return;
 		}
@@ -1528,7 +1528,7 @@ namespace wtr
 		const size_t dataSize = info.size;
 
 		glBindBuffer(bufferType, glBuffer->GetID());
-		if (dataSize > glBuffer->GetSize())
+		if ((dataSize > glBuffer->GetSize()) || (dataSize < (glBuffer->GetSize() / 4)))
 		{
 			glBufferData(bufferType, dataSize, nullptr, accessType);
 		}
@@ -1692,13 +1692,155 @@ namespace wtr
 		return true;
 	}
 
-	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	void GLSystem::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName)
 	{
-		if (!buffer)
+		if (!pipeline || slotName.empty())
 		{
 			return;
 		}
-	
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eUniform)
+		{
+			return;
+		}
+
+		if (!info.rawData || info.rawData->GetSize() == 0 || info.rawData->GetPointer() == nullptr)
+		{
+			return;
+		}
+
+		if (info.dimension > 4)
+		{
+			LOGWARN() << "[GL] The dimension over than 4 (matrix) is not supported";
+			return;
+		}
+
+		const uint32_t dataDimension = info.dimension;
+		const uint32_t dataType = GetDataType(info.dataType);
+		const uint32_t dataCount = info.rawData->GetCount();
+		const uint32_t dataSize = info.rawData->GetSize();
+		const void* data = info.rawData->GetPointer();
+
+		const uint32_t expectedSize = GetDataTypeSize(info.dataType) * dataDimension * dataCount;
+		if (expectedSize != dataSize)
+		{
+			LOGWARN() << "[GL] The constant buffer size is same as the expected size";
+			return;
+		}
+
+		if (dataType == GL_INT)
+		{
+			if (dataDimension == 1)
+			{
+				glUniform1iv(binding.location, dataCount, static_cast<const GLint*>(data));
+			}
+			else if (dataDimension == 2)
+			{
+				glUniform2iv(binding.location, dataCount, static_cast<const GLint*>(data));
+			}
+			else if (dataDimension == 3)
+			{
+				glUniform3iv(binding.location, dataCount, static_cast<const GLint*>(data));
+			}
+			else if (dataDimension == 4)
+			{
+				glUniform4iv(binding.location, dataCount, static_cast<const GLint*>(data));
+			}
+			else
+			{
+				// nothing
+			}
+		}
+		else if (dataType == GL_UNSIGNED_INT)
+		{
+			if (dataDimension == 1)
+			{
+				glUniform1uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+			}
+			else if (dataDimension == 2)
+			{
+				glUniform2uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+			}
+			else if (dataDimension == 3)
+			{
+				glUniform3uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+			}
+			else if (dataDimension == 4)
+			{
+				glUniform4uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+			}
+			else
+			{
+				// nothing
+			}
+		}
+		else if (dataType == GL_FLOAT)
+		{
+			if (dataDimension == 1)
+			{
+				glUniform1fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+			}
+			else if (dataDimension == 2)
+			{
+				glUniform2fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+			}
+			else if (dataDimension == 3)
+			{
+				glUniform3fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+			}
+			else if (dataDimension == 4)
+			{
+				glUniform4fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+			}
+			else
+			{
+				// nothing
+			}
+		}
+		else if (dataType == GL_DOUBLE)
+		{
+			if (dataDimension == 1)
+			{
+				glUniform1dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+			}
+			else if (dataDimension == 2)
+			{
+				glUniform2dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+			}
+			else if (dataDimension == 3)
+			{
+				glUniform3dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+			}
+			else if (dataDimension == 4)
+			{
+				glUniform4dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+			}
+			else
+			{
+				// nothing
+			}
+		}
+		else
+		{
+			// GL_BYTE, GL_SHORT Data type must be converted to the GL_INT
+			// GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, Data type must be converted to the GL_UNSIGNED_INT
+		}
+	}
+
+	void GLSystem::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	{
+		if (!pipeline || !buffer || slotName.empty())
+		{
+			return;
+		}
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || (binding.type != eBindingType::eStorageBuffer && binding.type != eBindingType::eUniformBuffer))
+		{
+			return;
+		}
+
 		const GLBuffer* glBuffer = reinterpret_cast<const GLBuffer*>(buffer->GetRawBuffer());
 		if (!glBuffer || glBuffer->GetID() == GL_NONE)
 		{
@@ -1706,7 +1848,53 @@ namespace wtr
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindBufferBase(bufferType, slot, glBuffer->GetID());
+		glBindBufferBase(bufferType, binding.location, glBuffer->GetID());
+	}
+
+	void GLSystem::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	{
+		if (!pipeline || !texture || slotName.empty())
+		{
+			return;
+		}
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		{
+			return;
+		}
+
+		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
+		if (!glTexture || glTexture->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		glActiveTexture(GL_TEXTURE0 + binding.location);
+		glBindTexture(textureType, glTexture->GetID());
+	}
+
+	void GLSystem::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	{
+		if (!pipeline || !sampler || slotName.empty())
+		{
+			return;
+		}
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		{
+			return;
+		}
+
+		const GLSampler* glSampler = reinterpret_cast<const GLSampler*>(sampler->GetRawBuffer());
+		if (!glSampler || glSampler->GetID() == GL_NONE)
+		{
+			return;
+		}
+
+		glBindSampler(binding.location, glSampler->GetID());
 	}
 
 	void GLSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
@@ -1723,40 +1911,6 @@ namespace wtr
 		}
 
 		glBindVertexArray(glVertexLayout->GetID());
-	}
-
-	void GLSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
-	{
-		if (!texture)
-		{
-			return;
-		}
-
-		const GLTexture* glTexture = reinterpret_cast<const GLTexture*>(texture->GetRawBuffer());
-		if (!glTexture || glTexture->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		const uint32_t textureType = GetTextureType(texture->GetTextureType());
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(textureType, glTexture->GetID());
-	}
-
-	void GLSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
-	{
-		if (!sampler)
-		{
-			return;
-		}
-
-		const GLSampler* glSampler = reinterpret_cast<const GLSampler*>(sampler->GetRawBuffer());
-		if (!glSampler || glSampler->GetID() == GL_NONE)
-		{
-			return;
-		}
-
-		glBindSampler(slot, glSampler->GetID());
 	}
 
 	void GLSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
@@ -1821,42 +1975,76 @@ namespace wtr
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
 	}
 
-	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot)
+	void GLSystem::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
 	{
-		if (!buffer)
+		if (!pipeline || slotName.empty())
+		{
+			return;
+		}
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eUniform)
+		{
+			return;
+		}
+
+		// TODO
+	}
+
+	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	{
+		if (!pipeline || !buffer || slotName.empty())
+		{
+			return;
+		}
+
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || (binding.type != eBindingType::eStorageBuffer && binding.type != eBindingType::eUniformBuffer))
 		{
 			return;
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindBufferBase(bufferType, slot, GL_NONE);
+		glBindBufferBase(bufferType, binding.location, GL_NONE);
 	}
 
-	void GLSystem::UnsetVertexLayout()
+	void GLSystem::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
 	{
-		glBindVertexArray(GL_NONE);
-	}
+		if (!pipeline || !texture || slotName.empty())
+		{
+			return;
+		}
 
-	void GLSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot)
-	{
-		if (!texture)
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eSampler)
 		{
 			return;
 		}
 
 		const uint32_t textureType = GetTextureType(texture->GetTextureType());
-		glActiveTexture(GL_TEXTURE0 + slot);
+		glActiveTexture(GL_TEXTURE0 + binding.location);
 		glBindTexture(textureType, GL_NONE);
 	}
 
-	void GLSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot)
+	void GLSystem::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
 	{
-		if (!sampler)
+		if (!pipeline || !sampler || slotName.empty())
 		{
 			return;
 		}
 
-		glBindSampler(slot, GL_NONE);
+		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
+		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		{
+			return;
+		}
+
+		glBindSampler(binding.location, GL_NONE);
+	}
+
+	void GLSystem::UnsetVertexLayout()
+	{
+		glBindVertexArray(GL_NONE);
 	}
 
 	void GLSystem::UnsetPipeLine()

@@ -15,6 +15,7 @@ namespace wtr
 	class RHIPipeLine;
 	class RHIRenderTarget;
 
+	struct RHIConstDesc;
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
 	struct RHITextureDesc;
@@ -62,6 +63,7 @@ namespace wtr
 	enum class eBlendOp : uint8_t;
 	enum class eShaderType : uint8_t;
 	enum class eAttachment : uint8_t;
+	enum class eResourceSlot : uint8_t;
 };
 
 namespace wtr
@@ -127,17 +129,21 @@ namespace wtr
 		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
 
-		virtual void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) = 0;
+		virtual void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName) = 0;
+		virtual void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) = 0;
+		virtual void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) = 0;
+		virtual void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) = 0;
+
+		virtual void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName) = 0;
+		virtual void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) = 0;
+		virtual void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) = 0;
+		virtual void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) = 0;
+
 		virtual void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
-		virtual void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
-		virtual void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) = 0;
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
 		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
 
-		virtual void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) = 0;
 		virtual void UnsetVertexLayout() = 0;
-		virtual void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) = 0;
-		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) = 0;
 		virtual void UnsetPipeLine() = 0;
 		virtual void UnsetRenderTarget() = 0;
 

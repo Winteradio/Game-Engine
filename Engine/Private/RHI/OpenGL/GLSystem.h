@@ -59,17 +59,21 @@ namespace wtr
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
-		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
+		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName) override;
+		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
+		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
+		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+
+		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName) override;
+		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
+		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
+		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
-		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
-		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
 
-		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot) override;
 		void UnsetVertexLayout() override;
-		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot) override;
-		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot) override;
 		void UnsetPipeLine() override;
 		void UnsetRenderTarget() override;
 

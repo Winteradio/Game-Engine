@@ -7,10 +7,7 @@ namespace wtr
 {
     SceneProxy::SceneProxy(const ECS::UUID& id)
         : RenderProxy(id)
-        , m_position(0.f)
-        , m_rotation(1.f, 0.f, 0.f, 0.f)
-        , m_scale(1.f)
-        , m_transform(1.f)
+        , m_transform()
     {}
 
     SceneProxy::~SceneProxy()
@@ -18,86 +15,71 @@ namespace wtr
 
     void SceneProxy::UpdatePosition(const fvec3 position)
     {
-        if ((std::abs(position.x - this->m_position.x) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(position.y - this->m_position.y) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(position.z - this->m_position.z) >= std::numeric_limits<float>::epsilon()))
+        if ((std::abs(position.x - m_transform.position.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(position.y - m_transform.position.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(position.z - m_transform.position.z) >= std::numeric_limits<float>::epsilon()))
         {
-            this->m_position = position;
-
-            UpdateTransform();
-            OnUpdate();
+            this->m_transform.position = position;
+            this->SetDirty(eRenderDirty::eTransform);
+            this->OnUpdate();
         }
     }
 
     void SceneProxy::UpdateRotation(const fquat rotation)
     {
-        if ((std::abs(rotation.x - this->m_rotation.x) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(rotation.y - this->m_rotation.y) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(rotation.z - this->m_rotation.z) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(rotation.w - this->m_rotation.w) >= std::numeric_limits<float>::epsilon()))
+        if ((std::abs(rotation.x - m_transform.rotation.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.y - m_transform.rotation.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.z - m_transform.rotation.z) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(rotation.w - m_transform.rotation.w) >= std::numeric_limits<float>::epsilon()))
         {
-            this->m_rotation = rotation;
-
-            UpdateTransform();
-            OnUpdate();
+            this->m_transform.rotation = rotation;
+            this->SetDirty(eRenderDirty::eTransform);
+            this->OnUpdate();
         }
     }
 
     void SceneProxy::UpdateRotation(const fvec3 rotation)
     {
-        const fvec3 eulerAngles = glm::eulerAngles(this->m_rotation);
+        const fvec3 eulerAngles = glm::eulerAngles(m_transform.rotation);
         if ((std::abs(rotation.x - eulerAngles.x) >= std::numeric_limits<float>::epsilon()) ||
             (std::abs(rotation.y - eulerAngles.y) >= std::numeric_limits<float>::epsilon()) ||
             (std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
         {
-            this->m_rotation = glm::quat(rotation);
-
-            UpdateTransform();
-            OnUpdate();
+            this->m_transform.rotation = glm::quat(rotation);
+            this->SetDirty(eRenderDirty::eTransform);
+            this->OnUpdate();
         }
     }
 
     void SceneProxy::UpdateScale(const fvec3 scale)
     {
-        if ((std::abs(scale.x - this->m_scale.x) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(scale.y - this->m_scale.y) >= std::numeric_limits<float>::epsilon()) ||
-            (std::abs(scale.z - this->m_scale.z) >= std::numeric_limits<float>::epsilon()))
+        if ((std::abs(scale.x - m_transform.scale.x) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(scale.y - m_transform.scale.y) >= std::numeric_limits<float>::epsilon()) ||
+            (std::abs(scale.z - m_transform.scale.z) >= std::numeric_limits<float>::epsilon()))
         {
-            this->m_scale = scale;
-
-            UpdateTransform();
-            OnUpdate();
+            this->m_transform.scale = scale;
+            this->SetDirty(eRenderDirty::eTransform);
+            this->OnUpdate();
         }
     }
 
-    void SceneProxy::UpdateTransform()
+    const fvec3& SceneProxy::GetPosition() const
     {
-		const fmat4 translation = glm::translate(fmat4(1.f), m_position);
-		const fmat4 rotation = glm::toMat4(m_rotation);
-		const fmat4 scale = glm::scale(fmat4(1.f), m_scale);
-
-		m_transform = translation * rotation * scale;
-
-        SetDirty(eRenderDirty::eTransform);
-	}
-
-    const fvec3 SceneProxy::GetPosition() const
-    {
-        return m_position;
+        return m_transform.position;
     }
 
-    const fquat SceneProxy::GetRotation() const
+    const fquat& SceneProxy::GetRotation() const
     {
-        return m_rotation;
+        return m_transform.rotation;
     }
 
-    const fvec3 SceneProxy::GetScale() const
+    const fvec3& SceneProxy::GetScale() const
     {
-        return m_scale;
+        return m_transform.scale;
     }
 
-    const fmat4 SceneProxy::GetTransform() const
+    const ftransform& SceneProxy::GetTransform() const
     {
         return m_transform;
-	}
+    }
 }

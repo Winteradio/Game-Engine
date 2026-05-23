@@ -381,8 +381,8 @@ namespace wtr
 #endif
 				}
 
-				primitive->UpdateBatch(meshBatch);
 				meshBatch->AddTransform(primitive->GetID(), primitive->GetRawData());
+				primitive->UpdateBatch(meshBatch);
 			}
 		}
 	}

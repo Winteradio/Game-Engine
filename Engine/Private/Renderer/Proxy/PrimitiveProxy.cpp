@@ -63,7 +63,7 @@ namespace wtr
 
 	SinglePrimitiveProxy::SinglePrimitiveProxy(const ECS::UUID& id)
 		: PrimitiveProxy(id)
-		, m_transformData(Memory::MakeRef<ScalarData<fmat4>>())
+		, m_transformData(Memory::MakeRef<ScalarData<ftransform>>())
 	{}
 
 	Memory::RefPtr<const RawData> SinglePrimitiveProxy::GetRawData() const
@@ -143,7 +143,7 @@ namespace wtr
 		: PrimitiveProxy(id)
 		, m_instanceTransforms()
 		, m_dirtyInstances()
-		, m_transformData(Memory::MakeRef<ArrayData<fmat4>>())
+		, m_transformData(Memory::MakeRef<ArrayData<ftransform>>())
 	{
 	}
 
@@ -176,13 +176,7 @@ namespace wtr
 					continue;
 				}
 
-				const ftransform& transform = m_instanceTransforms[dirtyInstance];
-				const glm::mat4 rootTransform = GetTransform();
-				const glm::mat4 translation = glm::translate(glm::mat4(1.0f), transform.position);
-				const glm::mat4 rotation = glm::toMat4(transform.rotation);
-				const glm::mat4 scale = glm::scale(glm::mat4(1.0f), transform.scale);
-
-				m_transformData->data[dirtyInstance] = rootTransform * translation * rotation * scale;
+				m_transformData->data[dirtyInstance] = m_instanceTransforms[dirtyInstance];
 			}
 
 			m_dirtyInstances.Clear();

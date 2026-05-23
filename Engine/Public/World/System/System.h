@@ -43,8 +43,10 @@ namespace wtr
 		void Update(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ECS::BaseContainer<BaseNode>> container) override
 		{
 			Memory::ObjectPtr<ContainerType> nodeContainer = Memory::Cast<ContainerType>(container);
-			
-			UpdateInternal(timeStep, nodeContainer);
+			if (nodeContainer)
+			{
+				UpdateInternal(timeStep, nodeContainer);
+			}
 		}
 
 		const Reflection::TypeInfo* GetNodeType() const override

@@ -19,6 +19,7 @@ namespace wtr
 	class RHIPipeLine;
 	class RHIRenderTarget;
 
+	struct RHIConstDesc;
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
 	struct RHITextureDesc;
@@ -113,17 +114,31 @@ namespace wtr
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
 		void RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target);
 
-		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
+		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const eResourceSlot slot);
+		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const eResourceSlot slot);
+		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const eResourceSlot slot);
+		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const eResourceSlot slot);
+
+		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName);
+		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
+		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+
+		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const eResourceSlot slot);
+		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const eResourceSlot slot);
+		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const eResourceSlot slot);
+		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const eResourceSlot slot);
+
+		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName);
+		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
+		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
-		void SetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
-		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target);
 
-		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t slot);
 		void UnsetVertexLayout();
-		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const uint32_t slot);
-		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t slot);
 		void UnsetPipeLine();
 		void UnsetRenderTarget();
 
