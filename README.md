@@ -10,14 +10,15 @@ Every core layer of the engine is directly controlled — from STL-free custom c
 
 ## 📸 Current Progress & Demo
 
-**Milestone: TransformPass — GPU Compute TRS (×10 Throughput)** TRS matrix computation (position/rotation/scale → mat4) moved from CPU (GLM scalar) to GPU via Compute Shader (`TransformPass`, `local_size_x = 64`). The render pipeline is now **TransformPass → GeometryPass → LightingPass**. Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release). Previous baseline: 30,000 instances fell below 10 FPS in Debug.
+**Milestone: TransformPass — GPU Compute TRS (×10 Throughput)** TRS matrix computation (position/rotation/scale → mat4) moved from CPU (GLM scalar) to GPU via Compute Shader (`TransformPass`, `local_size_x = 64`).  
+The render pipeline is now **TransformPass → GeometryPass → LightingPass**. Result: 100,000 instances at ~20 FPS (Debug), 500,000 instances at ~20 FPS (Release). Previous baseline: 30,000 instances fell below 10 FPS in Debug.
+
+*[26-05-24] GPU Compute TRS - 500,000 Cube in the release mode*  
+![GPU Compute](asset/screenshot/gpu-compute-trs.gif)
 
 ---
 
 **Milestone: Deferred Rendering Completed** The full deferred rendering pipeline is operational. GBuffer outputs (Position, Normal, Albedo) are written in the geometry pass and consumed by the lighting pass for per-light shading.
-
-*[26-05-24] GPU Compute TRS - 500,000 Cube in the release mode*  
-![GPU Compute](asset/screenshot/gpu-compute-trs.gif)
 
 *[26-05-21] Deferred Rendering — full pipeline demo*  
 ![Deferred Rendering Demo](asset/screenshot/deferred-rendering.gif)
