@@ -13,6 +13,21 @@
 
 namespace wtr
 {
+	bool Scene::NodeID::operator==(const NodeID& other) const
+	{
+		if (this != &other)
+		{
+			return id == other.id && typeInfo == other.typeInfo;
+		}
+
+		return true;
+	}
+
+	bool Scene::NodeID::operator!=(const NodeID& other) const
+	{
+		return !(*this == other);
+	}
+
 	Scene::Scene()
 		: m_refCommander(nullptr)
 		, m_proxies()
@@ -125,7 +140,7 @@ namespace wtr
 		m_updatedProxies.Clear();
 	}
 
-	Memory::ObjectPtr<ProxyNode> Scene::GetProxyNode(const ECS::UUID& id) const
+	Memory::ObjectPtr<ProxyNode> Scene::GetProxyNode(const NodeID& id) const
 	{
 		auto itr = m_proxies.Find(id);
 		if (itr != m_proxies.End())
@@ -147,10 +162,12 @@ namespace wtr
 
 		node->OnAttached(this);
 
-		m_proxies[node->GetID()] = node;
+		NodeID nodeID = { node->GetID(), node->GetTypeInfo() };
+		m_proxies[nodeID] = node;
+		m_proxyIDs[node->GetID()].Insert(nodeID);
 		
-		m_addedProxies.Insert(node->GetID());
-		m_removedProxies.Erase(node->GetID());
+		m_addedProxies.Insert(nodeID);
+		m_removedProxies.Erase(nodeID);
 	}
 
 	void Scene::Detach(Memory::ObjectPtr<ProxyNode> node)
@@ -171,11 +188,20 @@ namespace wtr
 			return;
 		}
 
-		m_removedProxies.Insert(entityId);
+		auto itr = m_proxyIDs.Find(entityId);
+		if (itr == m_proxyIDs.End())
+		{
+			return;
+		}
 
-		m_addedProxies.Erase(entityId);
-		m_updatedProxies.Erase(entityId);
-		m_proxies.Erase(entityId);
+		for (const auto& proxyID : itr->second)
+		{
+			m_removedProxies.Insert(proxyID);
+
+			m_addedProxies.Erase(proxyID);
+			m_updatedProxies.Erase(proxyID);
+			m_proxies.Erase(proxyID);
+		}
 	}
 
 	void Scene::DetachAll()
@@ -192,16 +218,36 @@ namespace wtr
 				proxy->OnDetached();
 			}
 		}
+
 		m_refCommander->RemoveAll();
 	}
 
-	void Scene::Update(const ECS::UUID& entityId)
+	void Scene::Update(const ECS::UUID& entityId, const Reflection::TypeInfo* componentType)
 	{
 		if (!m_refCommander)
 		{
 			return;
 		}
 
-		m_updatedProxies.Insert(entityId);
+		auto itr = m_proxyIDs.Find(entityId);
+		if (itr == m_proxyIDs.End())
+		{
+			return;
+		}
+
+		for (const auto& proxyID : itr->second)
+		{
+			auto& proxyNode = m_proxies[proxyID];
+			if (!proxyNode)
+			{
+				continue;
+			}
+
+			const auto& componentSet = proxyNode->GetComponentSet();
+			if (componentSet.Find(componentType) != componentSet.End())
+			{
+				m_updatedProxies.Insert(proxyID);
+			}
+		}
 	}
 }

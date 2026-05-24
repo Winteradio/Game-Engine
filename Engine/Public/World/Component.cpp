@@ -34,7 +34,7 @@ namespace wtr
 
 		if (m_scene && !wasDirty)
 		{
-			m_scene->Update(GetID());
+			m_scene->Update(GetID(), this->GetTypeInfo());
 		}
 	}
 
@@ -271,7 +271,6 @@ namespace wtr
 		, m_lightType(eLightType::eDirectional)
 		, m_shadowType(eShadowType::eSoft)
 		, m_color(1.f, 1.f, 1.f)
-		, m_direction(0.f, 0.f, 0.f)
 		, m_intensity(1.f)
 	{}
 
@@ -307,18 +306,6 @@ namespace wtr
 		}
 	}
 
-	void LightComponent::UpdateDirection(const fvec3& direction)
-	{
-		if ((std::abs(direction.x - m_direction.x) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(direction.y - m_direction.y) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(direction.z - m_direction.z) >= std::numeric_limits<float>::epsilon()))
-		{
-			m_direction = direction;
-	
-			this->OnUpdate();
-		}
-	}
-
 	void LightComponent::UpdateIntensity(const float intensity)
 	{
 		if (std::abs(intensity - m_intensity) >= std::numeric_limits<float>::epsilon())
@@ -342,11 +329,6 @@ namespace wtr
 	const fvec3 LightComponent::GetColor() const
 	{
 		return m_color;
-	}
-
-	const fvec3 LightComponent::GetDirection() const
-	{
-		return m_direction;
 	}
 
 	const float LightComponent::GetIntensity() const

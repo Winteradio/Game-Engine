@@ -108,7 +108,7 @@ namespace wtr
 		virtual ~InstancedTransformComponent() = default;
 
 	public:
-		void AddInstance(const fvec3& position, const fquat& rotation, const fvec3& scale);
+		void AddInstance(const fvec3& position = fvec3(0.f), const fquat& rotation = fquat(1.f, 0.f, 0.f, 0.f), const fvec3& scale = fvec3(1.f, 1.f, 1.f));
 		void RemoveInstance(const size_t instanceIndex);
 		const size_t GetInstanceCount() const;
 
@@ -145,13 +145,11 @@ namespace wtr
 		void SetShadowType(const eShadowType shadowType);
 
 		void UpdateColor(const fvec3& color);
-		void UpdateDirection(const fvec3& direction);
 		void UpdateIntensity(const float intensity);
 
 		const eLightType GetLightType() const;
 		const eShadowType GetShadowType() const;
 		const fvec3 GetColor() const;
-		const fvec3 GetDirection() const;
 		const float GetIntensity() const;
 
 	private :
@@ -159,7 +157,6 @@ namespace wtr
 		eShadowType m_shadowType;
 
 		fvec3 m_color;
-		fvec3 m_direction;
 		float m_intensity;
 	};
 

@@ -20,6 +20,15 @@ namespace wtr
 	class Scene
 	{
 	public :
+		struct NodeID
+		{
+			ECS::UUID id;
+			const Reflection::TypeInfo* typeInfo;
+
+			bool operator==(const NodeID& other) const;
+			bool operator!=(const NodeID& other) const;
+		};
+
 		Scene();
 		~Scene();
 
@@ -33,23 +42,40 @@ namespace wtr
 		void Detach(const ECS::UUID& entityId);
 		void DetachAll();
 		
-		void Update(const ECS::UUID& entityId);
+		void Update(const ECS::UUID& entityId, const Reflection::TypeInfo* componentType);
 
 	private :
 		void FlushAdded();
 		void FlushRemoved();
 		void FlushUpdated();
 
-		Memory::ObjectPtr<ProxyNode> GetProxyNode(const ECS::UUID& id) const;
+		Memory::ObjectPtr<ProxyNode> GetProxyNode(const NodeID& id) const;
 
 	private :
 		Memory::RefPtr<Commander> m_refCommander;
 
-		wtr::HashMap<ECS::UUID, Memory::ObjectPtr<ProxyNode>> m_proxies;
+		wtr::HashMap<NodeID, Memory::ObjectPtr<ProxyNode>> m_proxies;
+		wtr::HashMap<ECS::UUID, wtr::HashSet<NodeID>> m_proxyIDs;
 
-		wtr::HashSet<ECS::UUID> m_addedProxies;
-		wtr::HashSet<ECS::UUID> m_removedProxies;
-		wtr::HashSet<ECS::UUID> m_updatedProxies;
+		wtr::HashSet<NodeID> m_addedProxies;
+		wtr::HashSet<NodeID> m_removedProxies;
+		wtr::HashSet<NodeID> m_updatedProxies;
+	};
+};
+
+namespace std
+{
+	template<>
+	struct hash<wtr::Scene::NodeID>
+	{
+		size_t operator()(const wtr::Scene::NodeID& id) const
+		{
+			size_t seed = std::hash<ECS::UUID>()(id.id);
+			seed ^= std::hash<const Reflection::TypeInfo*>()(id.typeInfo)
+				+ 0x9e3779b9 + (seed << 6) + (seed >> 2);
+
+			return seed;
+		}
 	};
 };
 

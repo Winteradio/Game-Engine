@@ -20,6 +20,7 @@ namespace wtr
 		GENERATE(ProxyNode);
 	public :
 		using BaseNode::BaseNode;
+		using COMPONENT_SET = wtr::HashSet<const Reflection::TypeInfo*>;
 
 		virtual ~ProxyNode() = default;
 
@@ -31,6 +32,8 @@ namespace wtr
 		virtual RenderTaskList UpdateProxy() const = 0;
 		virtual RenderTask RemoveProxy() const;
 		virtual void ClearDirty() = 0;
+
+		virtual const COMPONENT_SET& GetComponentSet() const = 0;
 	};
 
 	template<typename... Components>
@@ -44,7 +47,14 @@ namespace wtr
 		explicit RenderNode(Memory::ObjectPtr<typename RemoveOptional<Components>::Type>...) {}
 		virtual ~RenderNode() = default;
 
-		static inline wtr::HashSet<const Reflection::TypeInfo*> COMPONENT_TYPES = { Reflection::TypeInfo::Get<typename RemoveOptional<Components>::Type>()... };
+	public :
+		const COMPONENT_SET& GetComponentSet() const override
+		{
+			return COMPONENTS;
+		}
+
+	private :
+		static inline COMPONENT_SET COMPONENTS = { Reflection::TypeInfo::Get<typename RemoveOptional<Components>::Type>()... };
 	};
 
 	class StaticMeshNode : public RenderNode<TransformComponent, StaticMeshComponent, Optional<MaterialComponent>>

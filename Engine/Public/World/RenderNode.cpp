@@ -273,7 +273,7 @@ namespace wtr
 
 					auto renderScene = renderer->GetScene();
 
-					Memory::RefPtr<StaticPrimitiveProxy> proxy = renderScene->GetPrimitiveProxy<StaticPrimitiveProxy>(id);
+					Memory::RefPtr<InstancedStaticPrimitiveProxy> proxy = renderScene->GetPrimitiveProxy<InstancedStaticPrimitiveProxy>(id);
 					if (!proxy)
 					{
 						return;
@@ -442,7 +442,6 @@ namespace wtr
 			proxy->SetLightType(light->GetLightType());
 			proxy->SetShadowType(light->GetShadowType());
 			proxy->SetColor(light->GetColor());
-			proxy->SetDirection(light->GetDirection());
 			proxy->SetIntensity(light->GetIntensity());
 		}
 
@@ -501,7 +500,6 @@ namespace wtr
 				lightType = light->GetLightType(),
 				shadowType = light->GetShadowType(),
 				color = light->GetColor(),
-				direction = light->GetDirection(),
 				intensity = light->GetIntensity()
 			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
 				{
@@ -521,7 +519,6 @@ namespace wtr
 					proxy->SetLightType(lightType);
 					proxy->SetShadowType(shadowType);
 					proxy->SetColor(color);
-					proxy->SetDirection(direction);
 					proxy->SetIntensity(intensity);
 				};
 
@@ -589,7 +586,6 @@ namespace wtr
 			proxy->SetLightType(light->GetLightType());
 			proxy->SetShadowType(light->GetShadowType());
 			proxy->SetColor(light->GetColor());
-			proxy->SetDirection(light->GetDirection());
 			proxy->SetIntensity(light->GetIntensity());
 			proxy->SetRange(light->GetRange());
 		}
@@ -648,7 +644,6 @@ namespace wtr
 				lightType = light->GetLightType(),
 				shadowType = light->GetShadowType(),
 				color = light->GetColor(),
-				direction = light->GetDirection(),
 				intensity = light->GetIntensity(),
 				range = light->GetRange()
 			] (Renderer* renderer, Memory::RefPtr<RHICommandList> cmdList)
@@ -669,7 +664,6 @@ namespace wtr
 					proxy->SetLightType(lightType);
 					proxy->SetShadowType(shadowType);
 					proxy->SetColor(color);
-					proxy->SetDirection(direction);
 					proxy->SetIntensity(intensity);
 					proxy->SetRange(range);
 				};
@@ -736,7 +730,6 @@ namespace wtr
 		if (light)
 		{
 			proxy->SetColor(light->GetColor());
-			proxy->SetDirection(light->GetDirection());
 			proxy->SetIntensity(light->GetIntensity());
 			proxy->SetRange(light->GetRange());
 			proxy->SetInnerAngle(light->GetInnerAngle());
@@ -797,7 +790,6 @@ namespace wtr
 				lightType = light->GetLightType(),
 				shadowType = light->GetShadowType(),
 				color = light->GetColor(),
-				direction = light->GetDirection(),
 				intensity = light->GetIntensity(),
 				range = light->GetRange(),
 				innerAngle = light->GetInnerAngle(),
@@ -820,7 +812,6 @@ namespace wtr
 					proxy->SetLightType(lightType);
 					proxy->SetShadowType(shadowType);
 					proxy->SetColor(color);
-					proxy->SetDirection(direction);
 					proxy->SetIntensity(intensity);
 					proxy->SetRange(range);
 					proxy->SetInnerAngle(innerAngle);
