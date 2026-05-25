@@ -39,23 +39,26 @@ namespace wtr
         bool hasAmbientOcclusionMap = false;  // Baked ambient occlusion map
         bool hasSheenMap = false;  // Sheen BRDF map for cloth and velvet materials
 
+        bool hasTransparent = false;
+
         bool operator==(const MaterialDesc& other) const
         {
             return shadingModel == other.shadingModel &&
-                   blendMode == other.blendMode &&
-                   isDoubleSided == other.isDoubleSided &&
-                   isPBR == other.isPBR &&
-                   hasAmbientMap == other.hasAmbientMap &&
-                   hasDiffuseMap == other.hasDiffuseMap &&
-                   hasSpecularMap == other.hasSpecularMap &&
-                   hasEmissiveMap == other.hasEmissiveMap &&
-                   hasOpacityMap == other.hasOpacityMap &&
-                   hasBumpMap == other.hasBumpMap &&
-                   hasNormalMap == other.hasNormalMap &&
-                   hasRoughnessMap == other.hasRoughnessMap &&
-                   hasMetallicMap == other.hasMetallicMap &&
-                   hasAmbientOcclusionMap == other.hasAmbientOcclusionMap &&
-                   hasSheenMap == other.hasSheenMap;
+                blendMode == other.blendMode &&
+                isDoubleSided == other.isDoubleSided &&
+                isPBR == other.isPBR &&
+                hasAmbientMap == other.hasAmbientMap &&
+                hasDiffuseMap == other.hasDiffuseMap &&
+                hasSpecularMap == other.hasSpecularMap &&
+                hasEmissiveMap == other.hasEmissiveMap &&
+                hasOpacityMap == other.hasOpacityMap &&
+                hasBumpMap == other.hasBumpMap &&
+                hasNormalMap == other.hasNormalMap &&
+                hasRoughnessMap == other.hasRoughnessMap &&
+                hasMetallicMap == other.hasMetallicMap &&
+                hasAmbientOcclusionMap == other.hasAmbientOcclusionMap &&
+                hasSheenMap == other.hasSheenMap &&
+                hasTransparent == other.hasTransparent;
 		}
 
         bool operator!=(const MaterialDesc& other) const
@@ -85,6 +88,7 @@ namespace wtr
 			hash = hash | (static_cast<size_t>(desc.hasMetallicMap) << 1);
 			hash = hash | (static_cast<size_t>(desc.hasAmbientOcclusionMap) << 1);
 			hash = hash | (static_cast<size_t>(desc.hasSheenMap) << 1);
+            hash = hash | (static_cast<size_t>(desc.hasTransparent) << 1);
 
 			return hash;
 		}

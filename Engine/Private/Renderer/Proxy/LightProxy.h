@@ -52,7 +52,7 @@ namespace wtr
         {
             alignas(16) fvec3 color = fvec3(1.f);
             alignas(16) fvec3 pos = fvec3(0.f);
-            alignas(16) float intensity = 1.f;
+            float intensity = 1.f;
         };
 
 		LightDesc m_lightDesc;
@@ -117,7 +117,7 @@ namespace wtr
     private :
         struct PointLight : Light
         {
-            alignas(16) float range = 0.f;
+            float range = 0.f;
         };
 
         Memory::RefPtr<ScalarData<PointLight>> m_point;
@@ -151,9 +151,9 @@ namespace wtr
         struct SpotLight : Light
         {
             alignas(16) fvec3 direction = BASE_DIR;
-            alignas(16) float range = 0.f;
-            alignas(16) float innerAngle = 30.f;
-            alignas(16) float outerAngle = 90.f;
+            float range = 0.f;
+            float innerAngle = 30.f;
+            float outerAngle = 90.f;
         };
 
         Memory::RefPtr<ScalarData<SpotLight>> m_spot;

@@ -304,63 +304,65 @@ namespace wtr
 
 	enum class eResourceSlot : uint8_t
 	{
-		eNone = 0x00,
+		eNone = 0,
+
+		eBegin_Texture,
 
 		// Texture - Material
-		eAmbient = 0x01,
-		eDiffuse = 0x02,
-		eSpecular = 0x03,
-		eEmissive = 0x04,
-		eOpacity = 0x05,
-		eBump = 0x06,
-		eNormal = 0x07,
-		eRoughness = 0x08,
-		eMetallic = 0x09,
-		eAmbientOcclusion = 0x0A,
-		eSheen = 0x0B,
+		eAmbient = eBegin_Texture,
+		eDiffuse,
+		eSpecular,
+		eEmissive,
+		eOpacity,
+		eBump,
+		eNormal,
+		eRoughness,
+		eMetallic,
+		eAmbientOcclusion,
+		eSheen,
 
 		// Texture - GBuffer
-		eGPosition = 0x0C,
-		eGNormal = 0x0D,
-		eGAlbedo = 0x0E,
-		eGDepth = 0x0F,
+		eGNormal,
+		eGAlbedo,
+		eGParam,
+		eGAlpha,
+		eGDepth,
+		eEnd_Texture = eGDepth,
 
+		eBegin_Uniform = eEnd_Texture,
 		// Uniform - Material
-		eVector = 0x10,
-		eScalar = 0x11,
+		eMaterial,
 
 		// Uniform - Camera
-		eCamera = 0x12,
+		eCamera,
 
 		// Uniform - Instance
-		eInstanceCount = 0x13,
-		eRawTransform = 0x14,
-		eTransform = 0x15,
-		eIndirect = 0x16,
-		eVisible = 0x17,
-		eLocalBounding = 0x18,
+		eInstanceCount,
+		eRawTransform,
+		eTransform,
+		eIndirect,
+		eVisible,
+		eLocalBounding,
 
 		// Uniform - Light
-		eLight = 0x17,
+		eLight,
+
+		eEnd_Uniform
 	};
 
 	enum class eVectorSlot : uint8_t
 	{
 		eNone = 0x00,
-		eAmbientColor = 0x01,
-		eDiffuseColor = 0x02,
-		eSpecularColor = 0x03,
-		eEmissiveColor = 0x04,
+		eBaseColor = 0x01,
 	};
 
 	enum class eScalarSlot : uint8_t
 	{
 		eNone = 0x00,
-		eShininess = 0x01,
-		eOpacity = 0x02,
-		eRefraction = 0x03,
-		eRoughness = 0x04,
-		eMetallic = 0x05,
+		eRoughness = 0x01,
+		eMetallic = 0x02,
+		eAmbientOcclusion = 0x03,
+		eOpacity = 0x04,
 	};
 
 	enum class eShadingModel : uint8_t
@@ -417,9 +419,9 @@ namespace wtr
 	enum class eGBufferSlot : uint8_t
 	{
 		eNone = 0x00,
-		ePosition = 0x01,
-		eNormal = 0x02,
-		eAlbedo = 0x03,
+		eNormal = 0x01,
+		eAlbedo = 0x02,
+		eParam = 0x03,
 		eAlpha = 0x04,
 		eDepth = 0x05,
 	};

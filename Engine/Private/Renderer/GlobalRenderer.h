@@ -37,13 +37,15 @@ namespace wtr
 		class CameraResource : public RenderResource
 		{
 		private:
-			struct alignas(16) CameraData
+			struct CameraData
 			{
-				fmat4 viewMatrix = fmat4(1.f);
-				fmat4 projMatrix = fmat4(1.f);
+				alignas(16) fmat4 view = fmat4(1.f);
+				alignas(16) fmat4 proj = fmat4(1.f);
+				alignas(16) fmat4 invView = fmat4(1.f);
+				alignas(16) fmat4 invProj = fmat4(1.f);
 
-				fvec3 position = fvec3(0.f);
-				fvec3 direction = fvec3(1.f);
+				alignas(16) fvec3 position = fvec3(0.f);
+				alignas(16) fvec3 direction = fvec3(1.f);
 			};
 
 		public:

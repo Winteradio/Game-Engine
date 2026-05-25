@@ -45,32 +45,44 @@ namespace demo
 			return false;
 		}
 
+		Memory::RefPtr<wtr::MaterialAsset> redMaterial = Memory::Cast<wtr::MaterialAsset>(wtr::AssetSystem::Create("red", wtr::eAsset::eMaterial));
+		Memory::RefPtr<wtr::MaterialAsset> blueMaterial = Memory::Cast<wtr::MaterialAsset>(wtr::AssetSystem::Create("blue", wtr::eAsset::eMaterial));
+		if (!redMaterial || !blueMaterial)
+		{
+			return false;
+		}
+
+		redMaterial->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
+		blueMaterial->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(0.1f, 0.1f, 1.f);
+
+		for (size_t index = 0; index < 25; index++)
 		{
 			auto dragonEntity = world->CreateEntity();
 			if (!dragonEntity)
 			{
 				LOGERROR() << "[Game] Failed to create the dragon entity";
-				return false;
+				continue;
 			}
 
 			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 
-			dragonEntity->AddComponent<wtr::InstancedTransformComponent>();
-			dragonEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
-			dragonEntity->AddNode<wtr::InstancedStaticMeshNode>();
+			const std::string materialPath = (index % 2 == 0) ? "red" : "blue";
+			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(materialPath);
 
-			auto transformComponent = dragonEntity->GetComponent<wtr::InstancedTransformComponent>();
+			dragonEntity->AddComponent<wtr::TransformComponent>();
+			dragonEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
+			dragonEntity->AddComponent<wtr::MaterialComponent>(materialAsset);
+			dragonEntity->AddNode<wtr::StaticMeshNode>();
+
+			auto transformComponent = dragonEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				for (size_t index = 0; index < 25; index++)
-				{
-					const wtr::fvec3 position = { (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.f, ((index / 5) % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index / 5) };
-					transformComponent->AddInstance(position);
-				}
+				const wtr::fvec3 position = { (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.f, ((index / 5) % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index / 5) };
+				transformComponent->UpdatePosition(position);
 			}
 
-			world->scene.Attach(dragonEntity->GetNode<wtr::InstancedStaticMeshNode>());
+			world->scene.Attach(dragonEntity->GetNode<wtr::StaticMeshNode>());
 		}
 
 		{

@@ -18,8 +18,8 @@ namespace wtr
 	{
 		eResourceState allState = m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
-		allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
-		allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
+		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
+		//allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
 
 		return allState;
 	}

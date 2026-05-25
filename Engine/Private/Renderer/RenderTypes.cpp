@@ -189,14 +189,14 @@ namespace wtr
 		if (slot == eResourceSlot::eSheen)				return "tSheen";
 
 		// Texture - GBuffer
-		if (slot == eResourceSlot::eGPosition)			return "tGPosition";
 		if (slot == eResourceSlot::eGNormal)			return "tGNormal";
 		if (slot == eResourceSlot::eGAlbedo)			return "tGAlbedo";
+		if (slot == eResourceSlot::eGParam)				return "tGParam";
+		if (slot == eResourceSlot::eGAlpha)				return "tGAlpha";
 		if (slot == eResourceSlot::eGDepth)				return "tGDepth";
 
 		// Uniform - Material
-		if (slot == eResourceSlot::eVector)				return "uVector";
-		if (slot == eResourceSlot::eScalar)				return "uScalar";
+		if (slot == eResourceSlot::eMaterial)				return "uMaterial";
 
 		// Uniform - Camera
 		if (slot == eResourceSlot::eCamera)				return "uCamera";
@@ -231,14 +231,14 @@ namespace wtr
 		if (name == "tSheen")				return eResourceSlot::eSheen;
 
 		// Texture - GBuffer
-		if (name == "tGPosition")			return eResourceSlot::eGPosition;
 		if (name == "tGNormal")				return eResourceSlot::eGNormal;
 		if (name == "tGAlbedo")				return eResourceSlot::eGAlbedo;
+		if (name == "tGParam")				return eResourceSlot::eGParam;
+		if (name == "tGAlpha")				return eResourceSlot::eGAlpha;
 		if (name == "tGDepth")				return eResourceSlot::eGDepth;
 
 		// Uniform - Material
-		if (name == "uVector")				return eResourceSlot::eVector;
-		if (name == "uScalar")				return eResourceSlot::eScalar;
+		if (name == "uMaterial")				return eResourceSlot::eMaterial;
 
 		// Uniform - Camera
 		if (name == "uCamera")				return eResourceSlot::eCamera;

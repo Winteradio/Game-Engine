@@ -219,22 +219,32 @@ namespace wtr
 			return false;
 		}
 
-		const auto positionTexture = GlobalResource::GetGBuffer(eGBufferSlot::ePosition);
-		const auto normalTexture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
-		const auto albedoTexture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
-		if (!positionTexture || positionTexture->GetState() != eResourceState::eReady ||
-			!normalTexture || normalTexture->GetState() != eResourceState::eReady ||
-			!albedoTexture || albedoTexture->GetState() != eResourceState::eReady)
+		const auto cameraBuffer = GlobalResource::GetCamera();
+		if (!cameraBuffer || cameraBuffer->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
 
-		const auto positionSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGPosition);
+		const auto depthTexture = GlobalResource::GetGBuffer(eGBufferSlot::eDepth);
+		const auto normalTexture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
+		const auto albedoTexture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
+		const auto paramTexture = GlobalResource::GetGBuffer(eGBufferSlot::eParam);
+		if (!depthTexture || depthTexture->GetState() != eResourceState::eReady ||
+			!normalTexture || normalTexture->GetState() != eResourceState::eReady ||
+			!albedoTexture || albedoTexture->GetState() != eResourceState::eReady ||
+			!paramTexture || paramTexture->GetState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto depthSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGDepth);
 		const auto normalSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGNormal);
 		const auto albedoSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGAlbedo);
-		if (!positionSampler || positionSampler->GetState() != eResourceState::eReady ||
+		const auto paramSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGParam);
+		if (!depthSampler || depthSampler->GetState() != eResourceState::eReady ||
 			!normalSampler || normalSampler->GetState() != eResourceState::eReady ||
-			!albedoSampler || albedoSampler->GetState() != eResourceState::eReady)
+			!albedoSampler || albedoSampler->GetState() != eResourceState::eReady ||
+			!paramSampler || paramSampler->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -245,13 +255,20 @@ namespace wtr
 			return false;
 		}
 
+		cmdList->SetBuffer(pipeline, cameraBuffer, eResourceSlot::eCamera);
 		cmdList->SetBuffer(pipeline, lightBuffer, eResourceSlot::eLight);
-		cmdList->SetTexture(pipeline, positionTexture, eResourceSlot::eGPosition);
-		cmdList->SetSampler(pipeline, positionSampler, eResourceSlot::eGPosition);
+
+		cmdList->SetTexture(pipeline, depthTexture, eResourceSlot::eGDepth);
+		cmdList->SetSampler(pipeline, depthSampler, eResourceSlot::eGDepth);
+
 		cmdList->SetTexture(pipeline, normalTexture, eResourceSlot::eGNormal);
 		cmdList->SetSampler(pipeline, normalSampler, eResourceSlot::eGNormal);
+
 		cmdList->SetTexture(pipeline, albedoTexture, eResourceSlot::eGAlbedo);
 		cmdList->SetSampler(pipeline, albedoSampler, eResourceSlot::eGAlbedo);
+
+		cmdList->SetTexture(pipeline, paramTexture, eResourceSlot::eGParam);
+		cmdList->SetSampler(pipeline, paramSampler, eResourceSlot::eGParam);
 
 		return true;
 	}

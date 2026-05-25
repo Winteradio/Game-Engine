@@ -360,6 +360,7 @@ namespace wtr
 					{
 						Memory::RefPtr<MaterialProxy> materialProxy = Memory::MakeRef<MaterialProxy>(primitive->GetID());
 						materialProxy->SetMaterialAsset(refMaterial);
+						materialProxy->Upload(cmdList);
 
 						GlobalShaderSelector::SetShader(materialProxy);
 

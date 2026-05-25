@@ -757,8 +757,11 @@ namespace wtr
 		glGetProgramiv(programID, GL_LINK_STATUS, &success);
 		if (!success)
 		{
-			glGetProgramInfoLog(programID, MAX_GL_MESSAGE_LENGTH, nullptr, GL_MESSAGE);
-			LOGERROR() << "[GL] Failed to link shader program: " << GL_MESSAGE;
+			GLsizei nameLength = GL_NONE;
+			glGetProgramInfoLog(programID, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
+
+			const std::string attributeName(GL_MESSAGE, nameLength);
+			LOGERROR() << "[GL] Failed to link shader program: " << attributeName;
 			glDeleteProgram(programID);
 			return;
 		}
