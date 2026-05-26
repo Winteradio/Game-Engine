@@ -100,7 +100,7 @@ namespace wtr
 
 				objTotalMesh.free.PushBack(free);
 			}
-			else if (tag == "g")
+			else if (tag == "g" || tag == "o")
 			{
 				OBJGroup group;
 				lineStream >> group.name;
@@ -111,7 +111,6 @@ namespace wtr
 			{
 				if (objGroups.Empty())
 				{
-					curr = lineEnd;
 					continue;
 				}
 
@@ -123,7 +122,6 @@ namespace wtr
 			{
 				if (objGroups.Empty())
 				{
-					curr = lineEnd;
 					continue;
 				}
 
@@ -150,9 +148,9 @@ namespace wtr
 				}
 				while (!lineStream.Empty());
 
-				if (face.vertices.Size() > 3)
+				if (face.vertices.Size() <= 2)
 				{
-					LOGINFO() << "[OBJ] The face has more than 3 vertices, which is not supported : " << std::string(line);
+					LOGINFO() << "[OBJ] The face has less than 2 vertices, which is not supported : " << std::string(line);
 					return false;
 				}
 
@@ -233,8 +231,6 @@ namespace wtr
 		for (size_t index = 0; index < groups.Size(); index++)
 		{
 			const auto& group = groups[index];
-
-			vertexMap.Clear();
 			finalMesh.index.Reserve(finalMesh.index.Size() + group.faces.Size() * MAX_FACE_VERTICES);
 
 			auto& section = finalMesh.groups[index];
@@ -242,11 +238,15 @@ namespace wtr
 			section.name = group.name;
 			section.materialName = group.material;
 
-			uint32_t vertexCount = 0;
+			uint32_t vertexCount = static_cast<uint32_t>(finalMesh.pos.Size());
 			for (const auto& face : group.faces)
 			{
-				for (const auto& vertex : face.vertices)
+				uint32_t startIndex = vertexCount;
+				for (size_t count = 0; count < face.vertices.Size(); count++)
 				{
+					uint32_t vertexIndex = 0;
+
+					const auto& vertex = face.vertices[count];
 					auto itr = vertexMap.Find(vertex);
 					if (itr == vertexMap.End())
 					{
@@ -285,17 +285,38 @@ namespace wtr
 							finalMesh.free.PushBack(totalMesh.free[index]);
 						}
 
-						finalMesh.index.PushBack(vertexCount);
+						vertexIndex = vertexCount;
 						vertexCount++;
 					}
 					else
 					{
-						finalMesh.index.PushBack(itr->second);
+						vertexIndex = itr->second;
+					}
+
+					if (count < 3)
+					{
+						finalMesh.index.PushBack(vertexIndex);
+						section.indexCount++;
+					}
+					else
+					{
+						finalMesh.index.PushBack(startIndex);
+						if (count % 2 == 1)
+						{
+							finalMesh.index.PushBack(vertexIndex - 1);
+							finalMesh.index.PushBack(vertexIndex);
+							section.indexCount += 3;
+						}
+						else
+						{
+							finalMesh.index.PushBack(vertexIndex);
+							finalMesh.index.PushBack(vertexIndex - 1);
+							section.indexCount += 3;
+						}
 					}
 
 					section.minVertexIndex = std::min(section.minVertexIndex, finalMesh.index.Back());
 					section.maxVertexIndex = std::max(section.maxVertexIndex, finalMesh.index.Back());
-					section.indexCount++;
 				}
 			}
 		}
