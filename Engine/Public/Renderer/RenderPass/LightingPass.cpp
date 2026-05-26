@@ -46,13 +46,22 @@ namespace wtr
 			m_clear->clearBuffer = eClearBuffer::eColor | eClearBuffer::eDepth | eClearBuffer::eStencil;
 			m_clear->depth = 1.0f;
 			m_clear->stencil = 0.f;
-			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
+			m_clear->color = fvec4(0.0f, 0.0f, 0.0f, 0.f);
 		}
 
 		if (!m_depth)
 		{
 			m_depth = Memory::MakeRef<RHIDepthState>();
 			m_depth->enable = false;
+		}
+
+		if (!m_blend)
+		{
+			m_blend = Memory::MakeRef<RHIBlendState>();
+			m_blend->enable = true;
+			m_blend->colorOp = eBlendOp::eAdd;
+			m_blend->srcColor = eBlendFunc::eOne;
+			m_blend->destColor = eBlendFunc::eOne;
 		}
 	}
 
@@ -65,35 +74,49 @@ namespace wtr
 
 		m_lights.Clear();
 
-		if (lightProxies.Empty())
+		cmdList->Clear(*m_clear);
+		RHIBlendState blendState;
+		blendState.enable = false;
+		cmdList->SetDepthState(*m_depth);
+		cmdList->SetBlendState(blendState);
+
+		const auto defaultLight = GlobalResource::GetDefaultLight();
+		auto directionalPipeline = GetPipeLine(cmdList, defaultLight);
+		if (!directionalPipeline || directionalPipeline->GetState() != eResourceState::eReady ||
+			!defaultLight || defaultLight->GetResourceState() != eResourceState::eReady)
 		{
-			const auto lightProxy = GlobalResource::GetDefaultLight();
+			return false;
+		}
+
+		cmdList->SetPipeLine(directionalPipeline);
+
+		if (SetLight(cmdList, directionalPipeline, defaultLight) && SetCommand(cmdList, directionalPipeline, nullptr))
+		{
+			const auto drawDesc = GetDrawCommand(nullptr);
+			cmdList->DrawIndexPrimitive(drawDesc);
+		}
+
+		UnsetCommand(cmdList);
+
+		cmdList->UnsetPipeLine();
+
+		cmdList->SetBlendState(*m_blend);
+
+		for (const auto& lightProxy : lightProxies)
+		{
+			if (!lightProxy)
+			{
+				continue;
+			}
+
 			auto pipeline = GetPipeLine(cmdList, lightProxy);
-			if (pipeline && pipeline->GetState() == eResourceState::eReady)
+			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
 			{
-				m_lights[pipeline].PushBack(lightProxy);
+				continue;
 			}
+
+			m_lights[pipeline].PushBack(lightProxy);
 		}
-		else
-		{
-			for (const auto& lightProxy : lightProxies)
-			{
-				if (!lightProxy)
-				{
-					continue;
-				}
-
-				auto pipeline = GetPipeLine(cmdList, lightProxy);
-				if (!pipeline || pipeline->GetState() != eResourceState::eReady)
-				{
-					continue;
-				}
-
-				m_lights[pipeline].PushBack(lightProxy);
-			}
-		}
-
-		SetState(cmdList);
 
 		for (const auto& [pipeline, proxies] : m_lights)
 		{
@@ -228,11 +251,11 @@ namespace wtr
 		const auto depthTexture = GlobalResource::GetGBuffer(eGBufferSlot::eDepth);
 		const auto normalTexture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
 		const auto albedoTexture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
-		const auto paramTexture = GlobalResource::GetGBuffer(eGBufferSlot::eParam);
+		const auto phongTexture = GlobalResource::GetGBuffer(eGBufferSlot::ePhong);
 		if (!depthTexture || depthTexture->GetState() != eResourceState::eReady ||
 			!normalTexture || normalTexture->GetState() != eResourceState::eReady ||
 			!albedoTexture || albedoTexture->GetState() != eResourceState::eReady ||
-			!paramTexture || paramTexture->GetState() != eResourceState::eReady)
+			!phongTexture || phongTexture->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -240,11 +263,11 @@ namespace wtr
 		const auto depthSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGDepth);
 		const auto normalSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGNormal);
 		const auto albedoSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGAlbedo);
-		const auto paramSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGParam);
+		const auto phongSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGPhong);
 		if (!depthSampler || depthSampler->GetState() != eResourceState::eReady ||
 			!normalSampler || normalSampler->GetState() != eResourceState::eReady ||
 			!albedoSampler || albedoSampler->GetState() != eResourceState::eReady ||
-			!paramSampler || paramSampler->GetState() != eResourceState::eReady)
+			!phongSampler || phongSampler->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -267,8 +290,8 @@ namespace wtr
 		cmdList->SetTexture(pipeline, albedoTexture, eResourceSlot::eGAlbedo);
 		cmdList->SetSampler(pipeline, albedoSampler, eResourceSlot::eGAlbedo);
 
-		cmdList->SetTexture(pipeline, paramTexture, eResourceSlot::eGParam);
-		cmdList->SetSampler(pipeline, paramSampler, eResourceSlot::eGParam);
+		cmdList->SetTexture(pipeline, phongTexture, eResourceSlot::eGPhong);
+		cmdList->SetSampler(pipeline, phongSampler, eResourceSlot::eGPhong);
 
 		return true;
 	}

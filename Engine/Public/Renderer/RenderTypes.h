@@ -119,20 +119,21 @@ namespace wtr
 		eR8G8_UNorm			= 0x02,
 		eR8G8B8_UNorm		= 0x03,
 		eR8G8B8A8_UNorm		= 0x04,
-		eR8G8B8A8_sRGB		= 0x05,
+		eR16G16B16A16_UNorm	= 0x05,
+		eR8G8B8A8_sRGB		= 0x06,
 		
-		eR16_Float			= 0x06,
-		eR16G16_Float		= 0x07,
-		eR16G16B16_Float	= 0x08,
-		eR16G16B16A16_Float = 0x09,
+		eR16_Float			= 0x07,
+		eR16G16_Float		= 0x08,
+		eR16G16B16_Float	= 0x09,
+		eR16G16B16A16_Float = 0x10,
 		
-		eR32_Float			= 0x10,
-		eR32G32_Float		= 0x11,
-		eR32G32B32_Float	= 0x12,
-		eR32G32B32A32_Float = 0x13,
+		eR32_Float			= 0x0A,
+		eR32G32_Float		= 0x0B,
+		eR32G32B32_Float	= 0x0C,
+		eR32G32B32A32_Float = 0x0D,
 
-		eD24_S8				= 0x14,
-		eD32				= 0x15
+		eD24_S8				= 0x0E,
+		eD32				= 0x0F,
 		// TODO : Not yet the compressed pixel format
 	};
 
@@ -324,7 +325,8 @@ namespace wtr
 		// Texture - GBuffer
 		eGNormal,
 		eGAlbedo,
-		eGParam,
+		eGPhong,
+		eGPBR,
 		eGAlpha,
 		eGDepth,
 		eEnd_Texture = eGDepth,
@@ -353,16 +355,19 @@ namespace wtr
 	enum class eVectorSlot : uint8_t
 	{
 		eNone = 0x00,
-		eBaseColor = 0x01,
+		eBaseColor,
+		eSpecularColor,
+		eEmissiveColor,
 	};
 
 	enum class eScalarSlot : uint8_t
 	{
 		eNone = 0x00,
-		eRoughness = 0x01,
-		eMetallic = 0x02,
-		eAmbientOcclusion = 0x03,
-		eOpacity = 0x04,
+		eRoughness,
+		eMetallic,
+		eAmbientOcclusion,
+		eOpacity,
+		eShininess,
 	};
 
 	enum class eShadingModel : uint8_t
@@ -419,11 +424,12 @@ namespace wtr
 	enum class eGBufferSlot : uint8_t
 	{
 		eNone = 0x00,
-		eNormal = 0x01,
-		eAlbedo = 0x02,
-		eParam = 0x03,
-		eAlpha = 0x04,
-		eDepth = 0x05,
+		eNormal,
+		eAlbedo,
+		ePhong,
+		ePBR,
+		eAlpha,
+		eDepth,
 	};
 
 	class RawData

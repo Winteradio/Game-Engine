@@ -53,4 +53,24 @@ namespace wtr
 			}
 		}
 	}
+
+	//void LightMoveSystem::UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container)
+	//{
+	//	auto& storage = container->GetStorage();
+
+	//	const double seconds = ECS::TimeStep::ToSecond(timeStep.delta);
+
+	//	constexpr float MAX_HEIGHT = 3.5f;
+	//	for (auto& [id, lightNode] : storage)
+	//	{
+	//		if (!lightNode || !lightNode->transform)
+	//		{
+	//			continue;
+	//		}
+
+	//		auto& transform = lightNode->transform;
+	//		const auto position = transform->GetPosition();
+	//		if (position.y >= 0
+	//	}
+	//}
 };

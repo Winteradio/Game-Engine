@@ -52,7 +52,7 @@ namespace wtr
         {
             alignas(16) fvec3 color = fvec3(1.f);
             alignas(16) fvec3 pos = fvec3(0.f);
-            float intensity = 1.f;
+            alignas(4) float intensity = 1.f;
         };
 
 		LightDesc m_lightDesc;
@@ -117,7 +117,7 @@ namespace wtr
     private :
         struct PointLight : Light
         {
-            float range = 0.f;
+            alignas(4) float range = 30.f;
         };
 
         Memory::RefPtr<ScalarData<PointLight>> m_point;

@@ -7,6 +7,7 @@ namespace wtr
 {
 	class StaticMeshNode;
 	class InstancedStaticMeshNode;
+	class PointLightNode;
 };
 
 namespace wtr
@@ -28,6 +29,16 @@ namespace wtr
 		virtual ~InstancedMoveSystem() = default;
 		
 	public :
+		void UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container) override;
+	};
+
+	class LightMoveSystem : public TypedSystem<PointLightNode>
+	{
+	public:
+		LightMoveSystem() = default;
+		virtual ~LightMoveSystem() = default;
+
+	public:
 		void UpdateInternal(const ECS::TimeStep& timeStep, Memory::ObjectPtr<ContainerType> container) override;
 	};
 };

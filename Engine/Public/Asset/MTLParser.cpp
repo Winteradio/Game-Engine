@@ -30,16 +30,17 @@ namespace wtr
 		const wtr::HashMap<std::string_view, eVectorSlot> VECTOR_TAG_MAP =
 		{
 			{ "Kd", eVectorSlot::eBaseColor },
-			// Not supported the ambient, specular, emissive color
+			{ "Ks", eVectorSlot::eSpecularColor },
+			{ "Ke", eVectorSlot::eEmissiveColor }
 		};
 
 		const wtr::HashMap<std::string_view, eScalarSlot> SCALAR_TAG_MAP =
 		{
+			{ "Ns", eScalarSlot::eShininess },
+			{ "d", eScalarSlot::eOpacity },
+			{ "Tr", eScalarSlot::eOpacity },
 			{ "Pr", eScalarSlot::eRoughness },
-			{ "Pm", eScalarSlot::eMetallic },
-			{ "d",  eScalarSlot::eOpacity },
-			{ "Tr", eScalarSlot::eOpacity }
-			// Not supported the shininess, refraction values
+			{ "Pm", eScalarSlot::eMetallic }
 		};
 	}
 

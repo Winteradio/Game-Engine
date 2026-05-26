@@ -70,7 +70,7 @@ namespace wtr
 				{
 					if (severity == GL_DEBUG_SEVERITY_HIGH) LOGERROR() << "[GL] Error : " << message;
 					else if (severity == GL_DEBUG_SEVERITY_MEDIUM) LOGWARN() << "[GL] Warn : " << message;
-					else LOGINFO() << "[GL] Info : " << message;
+					//else LOGINFO() << "[GL] Info : " << message;
 				},
 				nullptr
 			);
@@ -2348,6 +2348,10 @@ namespace wtr
 		{
 			return GL_RGBA8;
 		}
+		else if (ePixelFormat::eR16G16B16A16_UNorm == pixel)
+		{
+			return GL_RGBA16;
+		}
 		else if (ePixelFormat::eR8G8B8A8_sRGB == pixel)
 		{
 			return GL_SRGB8_ALPHA8;
@@ -2423,6 +2427,7 @@ namespace wtr
 			return GL_RGB;
 		}
 		else if (ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR16G16B16A16_UNorm == pixel ||
 			ePixelFormat::eR8G8B8A8_sRGB == pixel ||
 			ePixelFormat::eR16G16B16A16_Float == pixel ||
 			ePixelFormat::eR32G32B32A32_Float == pixel)
@@ -2453,6 +2458,7 @@ namespace wtr
 			ePixelFormat::eR8G8_UNorm == pixel ||
 			ePixelFormat::eR8G8B8_UNorm == pixel ||
 			ePixelFormat::eR8G8B8A8_UNorm == pixel ||
+			ePixelFormat::eR16G16B16A16_UNorm == pixel ||
 			ePixelFormat::eR8G8B8A8_sRGB == pixel)
 		{
 			return GL_UNSIGNED_BYTE;

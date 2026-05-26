@@ -580,7 +580,22 @@ namespace wtr
 					desc.generateMips = false;
 					desc.compressed = false;
 				}
-				else if (slot == eGBufferSlot::eParam)
+				else if (slot == eGBufferSlot::ePhong)
+				{
+					desc.width = 1;
+					desc.height = 1;
+					desc.depth = 1;
+					desc.face = 1;
+					desc.mipLevels = 1;
+					desc.sampleCount = 1;
+					desc.format = ePixelFormat::eR32G32B32A32_Float;
+					desc.usage = eTextureUsage::eRenderTarget;
+					desc.textureType = eTextureType::eTexture2D;
+					desc.dataType = eDataType::eFloat;
+					desc.generateMips = false;
+					desc.compressed = false;
+				}
+				else if (slot == eGBufferSlot::ePBR)
 				{
 					desc.width = 1;
 					desc.height = 1;
@@ -656,7 +671,8 @@ namespace wtr
 			GlobalShaderSelector::SetShader(data.material);
 
 			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
-			data.light->UpdateRotation(glm::angleAxis(glm::radians(-90.f), fvec3(1.f, 0.f, 0.f)));
+			data.light->SetIntensity(0.2);
+			data.light->UpdateRotation(glm::angleAxis(glm::radians(-45.f), fvec3(1.f, 0.f, 0.f)));
 			data.light->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.light);
 
@@ -937,8 +953,9 @@ namespace wtr
 			}
 			else
 			{
-				geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.glsl"));
-				geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.glsl"));
+				// TODO
+				//geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.glsl"));
+				//geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.glsl"));
 			}
 
 			// TODO : Height Map

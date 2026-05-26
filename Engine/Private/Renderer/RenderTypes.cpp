@@ -55,6 +55,7 @@ namespace wtr
 		case ePixelFormat::eR16G16B16_Float:
 			return 6;
 
+		case ePixelFormat::eR16G16B16A16_UNorm:
 		case ePixelFormat::eR16G16B16A16_Float:
 		case ePixelFormat::eR32G32_Float:
 			return 8;
@@ -191,7 +192,8 @@ namespace wtr
 		// Texture - GBuffer
 		if (slot == eResourceSlot::eGNormal)			return "tGNormal";
 		if (slot == eResourceSlot::eGAlbedo)			return "tGAlbedo";
-		if (slot == eResourceSlot::eGParam)				return "tGParam";
+		if (slot == eResourceSlot::eGPhong)				return "tGPhong";
+		if (slot == eResourceSlot::eGPBR)				return "tGPBR";
 		if (slot == eResourceSlot::eGAlpha)				return "tGAlpha";
 		if (slot == eResourceSlot::eGDepth)				return "tGDepth";
 
@@ -233,7 +235,8 @@ namespace wtr
 		// Texture - GBuffer
 		if (name == "tGNormal")				return eResourceSlot::eGNormal;
 		if (name == "tGAlbedo")				return eResourceSlot::eGAlbedo;
-		if (name == "tGParam")				return eResourceSlot::eGParam;
+		if (name == "tGPhong")				return eResourceSlot::eGPhong;
+		if (name == "tGPBR")				return eResourceSlot::eGPBR;
 		if (name == "tGAlpha")				return eResourceSlot::eGAlpha;
 		if (name == "tGDepth")				return eResourceSlot::eGDepth;
 

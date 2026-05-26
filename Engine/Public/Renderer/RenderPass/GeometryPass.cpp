@@ -54,14 +54,24 @@ namespace wtr
 				return;
 			}
 
-			RHIColorAttachment param;
-			param.slot = 2;
-			param.type = eAttachment::eColor;
-			param.texture = GlobalResource::GetGBuffer(eGBufferSlot::eParam);
-			if (!param.texture || param.texture->GetState() != eResourceState::eReady)
+			RHIColorAttachment phong;
+			phong.slot = 2;
+			phong.type = eAttachment::eColor;
+			phong.texture = GlobalResource::GetGBuffer(eGBufferSlot::ePhong);
+			if (!phong.texture || phong.texture->GetState() != eResourceState::eReady)
 			{
 				return;
 			}
+
+			// TODO - PBR
+			//RHIColorAttachment param;
+			//param.slot = 2;
+			//param.type = eAttachment::eColor;
+			//param.texture = GlobalResource::GetGBuffer(eGBufferSlot::eParam);
+			//if (!param.texture || param.texture->GetState() != eResourceState::eReady)
+			//{
+			//	return;
+			//}
 
 			RHIDepthStencilAttachment depthStencil;
 			depthStencil.type = eAttachment::eDepthStencil;
@@ -71,7 +81,7 @@ namespace wtr
 				return;
 			}
 
-			desc.colors = { normal, albedo, param };
+			desc.colors = { normal, albedo, phong };
 			desc.depthStencil = depthStencil;
 
 			Memory::RefPtr<RHIRenderTarget> target = cmdList->CreateRenderTarget(desc);
@@ -121,6 +131,12 @@ namespace wtr
 			m_rasterizer->cullEnable = true;
 			m_rasterizer->cullFace = eCullFace::eBack;
 			m_rasterizer->frontFace = eFrontFace::eCCW;
+		}
+
+		if (!m_blend)
+		{
+			m_blend = Memory::MakeRef<RHIBlendState>();
+			m_blend->enable = false;
 		}
 	}
 

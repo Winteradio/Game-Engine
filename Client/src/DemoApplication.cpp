@@ -58,8 +58,7 @@ namespace demo
 			const size_t row = localIndex / 5;
 			const size_t col = localIndex % 5;
 
-			const float roughness = static_cast<float>(col) / 4.0f;
-			const float metallic = static_cast<float>(row) / 4.0f;
+			const float shiniess = static_cast<float>(col) / 4.0f;
 
 			const std::string matName = "red_" + std::to_string(localIndex);
 
@@ -68,8 +67,7 @@ namespace demo
 			if (!mat) continue;
 
 			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
-			mat->scalarValues[wtr::eScalarSlot::eRoughness] = roughness;
-			mat->scalarValues[wtr::eScalarSlot::eMetallic] = metallic;
+			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
 
 			const std::string dragonPath = "asset/mesh/3d/sphere.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
@@ -83,10 +81,17 @@ namespace demo
 			auto transformComponent = sphereEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				const wtr::fvec3 position = {static_cast<float>(col), static_cast<float>(row), 0.f };
-				const wtr::fvec3 scale = wtr::fvec3(0.5f);
+				const wtr::fvec3 position = {static_cast<float>(col), 0.f, static_cast<float>(row) };
+				const wtr::fvec3 scale = wtr::fvec3(0.3f);
 				transformComponent->UpdatePosition(position);
 				transformComponent->UpdateScale(scale);
+			}
+
+			if (index % 6 == 0)
+			{
+				sphereEntity->AddComponent<wtr::PointLightComponent>();
+				sphereEntity->AddNode<wtr::PointLightNode>();
+				world->scene.Attach(sphereEntity->GetNode<wtr::PointLightNode>());
 			}
 
 			world->scene.Attach(sphereEntity->GetNode<wtr::StaticMeshNode>());

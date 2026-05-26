@@ -13,7 +13,6 @@ namespace wtr
 		: ECS::Object(id)
 		, m_materialAsset(nullptr)
 		, m_materialBuffer(nullptr)
-		, m_materialParams(nullptr)
 	{}
 
 	eResourceState MaterialProxy::GetResourceState() const
@@ -31,25 +30,49 @@ namespace wtr
 			return;
 		}
 
-		if (m_materialBuffer || m_materialParams)
+		if (m_materialBuffer)
 		{
 			return;
 		}
 
 		const auto& vectorValues = m_materialAsset->vectorValues;
 		const auto& scalarValues = m_materialAsset->scalarValues;
-		const bool hasBaseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
-		const bool hasRoughness = scalarValues.Find(eScalarSlot::eRoughness) != scalarValues.End();
-		const bool hasMetallic = scalarValues.Find(eScalarSlot::eMetallic) != scalarValues.End();
-		const bool hasAmbientOcclusion = scalarValues.Find(eScalarSlot::eAmbientOcclusion) != scalarValues.End();
-		const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
 
-		Memory::RefPtr<ScalarData<MaterialParams>> params = Memory::MakeRef<ScalarData<MaterialParams>>();
-		params->data.baseColor = hasBaseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
-		params->data.roughness = hasRoughness ? scalarValues[eScalarSlot::eRoughness] : 0.5f;
-		params->data.metallic = hasMetallic ? scalarValues[eScalarSlot::eMetallic] : 0.f;
-		params->data.ambientOcclusion = hasAmbientOcclusion ? scalarValues[eScalarSlot::eAmbientOcclusion] : 1.f;
-		params->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+		Memory::RefPtr<RawData> materialParams = nullptr;
+		if (m_materialAsset->isPBR)
+		{
+			const bool hasBaseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
+			const bool hasRoughness = scalarValues.Find(eScalarSlot::eRoughness) != scalarValues.End();
+			const bool hasMetallic = scalarValues.Find(eScalarSlot::eMetallic) != scalarValues.End();
+			const bool hasAmbientOcclusion = scalarValues.Find(eScalarSlot::eAmbientOcclusion) != scalarValues.End();
+			const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
+
+			Memory::RefPtr<ScalarData<PBRParams>> params = Memory::MakeRef<ScalarData<PBRParams>>();
+			params->data.baseColor = hasBaseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
+			params->data.roughness = hasRoughness ? scalarValues[eScalarSlot::eRoughness] : 0.5f;
+			params->data.metallic = hasMetallic ? scalarValues[eScalarSlot::eMetallic] : 0.f;
+			params->data.ambientOcclusion = hasAmbientOcclusion ? scalarValues[eScalarSlot::eAmbientOcclusion] : 1.f;
+			params->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+
+			materialParams = params;
+		}
+		else
+		{
+			const bool hasDiffuseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
+			const bool hasSpecularColor = vectorValues.Find(eVectorSlot::eSpecularColor) != vectorValues.End();
+			const bool hasEmissiveColor = vectorValues.Find(eVectorSlot::eEmissiveColor) != vectorValues.End();
+			const bool hasShininess = scalarValues.Find(eScalarSlot::eShininess) != scalarValues.End();
+			const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
+
+			Memory::RefPtr<ScalarData<PhongParams>> params = Memory::MakeRef<ScalarData<PhongParams>>();
+			params->data.diffuse = hasDiffuseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
+			params->data.specular = hasSpecularColor ? vectorValues[eVectorSlot::eSpecularColor] : fvec3(1.f);
+			params->data.emissive = hasEmissiveColor ? vectorValues[eVectorSlot::eEmissiveColor] : fvec3(0.f);
+			params->data.shininess = hasShininess ? scalarValues[eScalarSlot::eShininess] : 32.f;
+			params->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+
+			materialParams = params;
+		}
 
 		RHIBufferCreateDesc desc;
 		desc.bufferType = eBufferType::eStorage;
@@ -57,15 +80,14 @@ namespace wtr
 		desc.componentType = eDataType::eNone;
 		desc.numComponents = 1;
 		desc.count = 1;
-		desc.size = sizeof(MaterialParams);
-		desc.stride = sizeof(MaterialParams);
-		desc.dataRanges.PushBack({ 0, params });
+		desc.size = materialParams->GetSize();
+		desc.stride = materialParams->GetSize();
+		desc.dataRanges.PushBack({ 0, materialParams });
 
 		Memory::RefPtr<RHIBuffer> buffer = cmdList->CreateBuffer(desc);
 		if (buffer)
 		{
 			m_materialBuffer = buffer;
-			m_materialParams = params;
 		}
 	}
 
@@ -85,24 +107,49 @@ namespace wtr
 
 	void MaterialProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_materialBuffer || !m_materialParams)
+		if (!cmdList || !m_materialBuffer)
 		{
 			return;
 		}
 		
 		const auto& vectorValues = m_materialAsset->vectorValues;
 		const auto& scalarValues = m_materialAsset->scalarValues;
-		const bool hasBaseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
-		const bool hasRoughness = scalarValues.Find(eScalarSlot::eRoughness) != scalarValues.End();
-		const bool hasMetallic = scalarValues.Find(eScalarSlot::eMetallic) != scalarValues.End();
-		const bool hasAmbientOcclusion = scalarValues.Find(eScalarSlot::eAmbientOcclusion) != scalarValues.End();
-		const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
 
-		m_materialParams->data.baseColor = hasBaseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
-		m_materialParams->data.roughness = hasRoughness ? scalarValues[eScalarSlot::eRoughness] : 0.5f;
-		m_materialParams->data.metallic = hasMetallic ? scalarValues[eScalarSlot::eMetallic] : 0.f;
-		m_materialParams->data.ambientOcclusion = hasAmbientOcclusion ? scalarValues[eScalarSlot::eAmbientOcclusion] : 1.f;
-		m_materialParams->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+		Memory::RefPtr<RawData> materialParams = nullptr;
+		if (m_materialAsset->isPBR)
+		{
+			const bool hasBaseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
+			const bool hasRoughness = scalarValues.Find(eScalarSlot::eRoughness) != scalarValues.End();
+			const bool hasMetallic = scalarValues.Find(eScalarSlot::eMetallic) != scalarValues.End();
+			const bool hasAmbientOcclusion = scalarValues.Find(eScalarSlot::eAmbientOcclusion) != scalarValues.End();
+			const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
+
+			Memory::RefPtr<ScalarData<PBRParams>> params = Memory::MakeRef<ScalarData<PBRParams>>();
+			params->data.baseColor = hasBaseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
+			params->data.roughness = hasRoughness ? scalarValues[eScalarSlot::eRoughness] : 0.5f;
+			params->data.metallic = hasMetallic ? scalarValues[eScalarSlot::eMetallic] : 0.f;
+			params->data.ambientOcclusion = hasAmbientOcclusion ? scalarValues[eScalarSlot::eAmbientOcclusion] : 1.f;
+			params->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+
+			materialParams = params;
+		}
+		else
+		{
+			const bool hasDiffuseColor = vectorValues.Find(eVectorSlot::eBaseColor) != vectorValues.End();
+			const bool hasSpecularColor = vectorValues.Find(eVectorSlot::eSpecularColor) != vectorValues.End();
+			const bool hasEmissiveColor = vectorValues.Find(eVectorSlot::eEmissiveColor) != vectorValues.End();
+			const bool hasShininess = scalarValues.Find(eScalarSlot::eShininess) != scalarValues.End();
+			const bool hasOpacity = scalarValues.Find(eScalarSlot::eOpacity) != scalarValues.End();
+
+			Memory::RefPtr<ScalarData<PhongParams>> params = Memory::MakeRef<ScalarData<PhongParams>>();
+			params->data.diffuse = hasDiffuseColor ? vectorValues[eVectorSlot::eBaseColor] : fvec3(1.f);
+			params->data.specular = hasSpecularColor ? vectorValues[eVectorSlot::eSpecularColor] : fvec3(1.f);
+			params->data.emissive = hasEmissiveColor ? vectorValues[eVectorSlot::eEmissiveColor] : fvec3(0.f);
+			params->data.shininess = hasShininess ? scalarValues[eScalarSlot::eShininess] : 32.f;
+			params->data.opacity = hasOpacity ? scalarValues[eScalarSlot::eOpacity] : 1.f;
+
+			materialParams = params;
+		}
 
 		RHIBufferUpdateDesc desc;
 		desc.bufferType = eBufferType::eStorage;
@@ -110,9 +157,9 @@ namespace wtr
 		desc.componentType = eDataType::eNone;
 		desc.numComponents = 1;
 		desc.count = 1;
-		desc.size = sizeof(MaterialParams);
-		desc.stride = sizeof(MaterialParams);
-		desc.dataRanges.PushBack({ 0, m_materialParams });
+		desc.size = materialParams->GetSize();
+		desc.stride = materialParams->GetSize();
+		desc.dataRanges.PushBack({ 0, materialParams });
 
 		cmdList->UpdateBuffer(desc, m_materialBuffer);
 	}
