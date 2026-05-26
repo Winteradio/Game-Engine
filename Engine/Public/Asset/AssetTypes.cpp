@@ -103,34 +103,37 @@ namespace wtr
 
 	eResourceState MaterialAsset::GetResourceState() const
 	{
-		if (GetState() == eAssetState::eLoaded && textures.Empty())
+		if (GetState() == eAssetState::eLoaded)
 		{
-			return eResourceState::eNone;
+			if (!textures.Empty())
+			{
+				for (const auto& [slot, texture] : textures)
+				{
+					if (!texture)
+					{
+						return eResourceState::eError;
+					}
+					else if (texture->GetResourceState() == eResourceState::eError)
+					{
+						return eResourceState::eError;
+					}
+					else if (texture->GetResourceState() != eResourceState::eReady)
+					{
+						return eResourceState::eNone;
+					}
+					else
+					{
+						//
+					}
+				}
+			}
+
+			return eResourceState::eReady;
 		}
 		else
 		{
-			for (const auto& [slot, texture] : textures)
-			{
-				if (!texture)
-				{
-					return eResourceState::eError;
-				}
-				else if (texture->GetResourceState() == eResourceState::eError)
-				{
-					return eResourceState::eError;
-				}
-				else if (texture->GetResourceState() != eResourceState::eReady)
-				{
-					return eResourceState::eNone;
-				}
-				else
-				{
-					//
-				}
-			}
+			return eResourceState::eNone;
 		}
-
-		return eResourceState::eReady;
 	}
 
 	TextureAsset::TextureAsset()

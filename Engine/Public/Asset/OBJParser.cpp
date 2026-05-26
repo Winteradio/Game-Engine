@@ -111,6 +111,7 @@ namespace wtr
 			{
 				if (objGroups.Empty())
 				{
+					curr = lineEnd;
 					continue;
 				}
 
@@ -122,6 +123,7 @@ namespace wtr
 			{
 				if (objGroups.Empty())
 				{
+					curr = lineEnd;
 					continue;
 				}
 

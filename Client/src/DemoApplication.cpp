@@ -45,44 +45,51 @@ namespace demo
 			return false;
 		}
 
-		Memory::RefPtr<wtr::MaterialAsset> redMaterial = Memory::Cast<wtr::MaterialAsset>(wtr::AssetSystem::Create("red", wtr::eAsset::eMaterial));
-		Memory::RefPtr<wtr::MaterialAsset> blueMaterial = Memory::Cast<wtr::MaterialAsset>(wtr::AssetSystem::Create("blue", wtr::eAsset::eMaterial));
-		if (!redMaterial || !blueMaterial)
-		{
-			return false;
-		}
-
-		redMaterial->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
-		blueMaterial->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(0.1f, 0.1f, 1.f);
-
 		for (size_t index = 0; index < 25; index++)
 		{
-			auto dragonEntity = world->CreateEntity();
-			if (!dragonEntity)
+			auto sphereEntity = world->CreateEntity();
+			if (!sphereEntity)
 			{
-				LOGERROR() << "[Game] Failed to create the dragon entity";
+				LOGERROR() << "[Game] Failed to create the sphere entity";
 				continue;
 			}
 
-			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			const size_t localIndex = index % 25;
+			const size_t row = localIndex / 5;
+			const size_t col = localIndex % 5;
+
+			const float roughness = static_cast<float>(col) / 4.0f;
+			const float metallic = static_cast<float>(row) / 4.0f;
+
+			const std::string matName = "red_" + std::to_string(localIndex);
+
+			Memory::RefPtr<wtr::MaterialAsset> mat = Memory::Cast<wtr::MaterialAsset>(
+				wtr::AssetSystem::Create(matName, wtr::eAsset::eMaterial));
+			if (!mat) continue;
+
+			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
+			mat->scalarValues[wtr::eScalarSlot::eRoughness] = roughness;
+			mat->scalarValues[wtr::eScalarSlot::eMetallic] = metallic;
+
+			const std::string dragonPath = "asset/mesh/3d/sphere.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
+			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(matName);
 
-			const std::string materialPath = (index % 2 == 0) ? "red" : "blue";
-			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(materialPath);
+			sphereEntity->AddComponent<wtr::TransformComponent>();
+			sphereEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
+			sphereEntity->AddComponent<wtr::MaterialComponent>(materialAsset);
+			sphereEntity->AddNode<wtr::StaticMeshNode>();
 
-			dragonEntity->AddComponent<wtr::TransformComponent>();
-			dragonEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
-			dragonEntity->AddComponent<wtr::MaterialComponent>(materialAsset);
-			dragonEntity->AddNode<wtr::StaticMeshNode>();
-
-			auto transformComponent = dragonEntity->GetComponent<wtr::TransformComponent>();
+			auto transformComponent = sphereEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				const wtr::fvec3 position = { (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), 0.f, ((index / 5) % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index / 5) };
+				const wtr::fvec3 position = {static_cast<float>(col), static_cast<float>(row), 0.f };
+				const wtr::fvec3 scale = wtr::fvec3(0.5f);
 				transformComponent->UpdatePosition(position);
+				transformComponent->UpdateScale(scale);
 			}
 
-			world->scene.Attach(dragonEntity->GetNode<wtr::StaticMeshNode>());
+			world->scene.Attach(sphereEntity->GetNode<wtr::StaticMeshNode>());
 		}
 
 		{

@@ -1631,6 +1631,18 @@ cmake --build . --config Release
 
 ---
 
+## Assets & Credits
+
+### 3D Mesh Sources
+
+| Mesh | Source |
+|------|--------|
+| **Dragon** | Stanford 3D Scanning Repository — [https://graphics.stanford.edu/data/3Dscanrep/](https://graphics.stanford.edu/data/3Dscanrep/) |
+| **Sphere** | melfm / openGL-shading-texture — [https://github.com/melfm/openGL-shading-texture/blob/master/Models/sphere.mtl](https://github.com/melfm/openGL-shading-texture/blob/master/Models/sphere.mtl) |
+| **Cube** | Unknown — source not identified |
+
+---
+
 ## License
 
 This project is distributed under the MIT License.

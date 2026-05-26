@@ -656,6 +656,7 @@ namespace wtr
 			GlobalShaderSelector::SetShader(data.material);
 
 			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
+			data.light->UpdateRotation(glm::angleAxis(glm::radians(-90.f), fvec3(1.f, 0.f, 0.f)));
 			data.light->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.light);
 
@@ -965,7 +966,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
@@ -978,7 +979,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
@@ -992,7 +993,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowGS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.gs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
