@@ -1978,6 +1978,86 @@ namespace wtr
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
 	}
 
+	void GLSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+	{
+		if (!target)
+		{
+			return;
+		}
+
+		const RHIRenderTargetDesc& desc = target->GetDesc();
+		for (const auto& color : desc.colors)
+		{
+			if (!color.texture || color.texture->GetState() != eResourceState::eReady)
+			{
+				continue;
+			}
+
+			const eDataType dataType = color.texture->GetDataType();
+			if (dataType == eDataType::eByte ||
+				dataType == eDataType::eShort ||
+				dataType == eDataType::eInt)
+			{
+				GLint colors[] = { 
+					static_cast<GLint>(state.color[0]),
+					static_cast<GLint>(state.color[1]),
+					static_cast<GLint>(state.color[2]),
+					static_cast<GLint>(state.color[3]),
+				};
+
+				glClearBufferiv(GL_COLOR, color.slot, colors);
+			}
+			else if (dataType == eDataType::eUByte ||
+				dataType == eDataType::eUShort ||
+				dataType == eDataType::eUInt)
+			{
+				GLuint colors[] = {
+					static_cast<GLuint>(state.color[0]),
+					static_cast<GLuint>(state.color[1]),
+					static_cast<GLuint>(state.color[2]),
+					static_cast<GLuint>(state.color[3]),
+				};
+
+				glClearBufferuiv(GL_COLOR, color.slot, colors);
+			}
+			else if (dataType == eDataType::eFloat ||
+				dataType == eDataType::eDouble)
+			{
+				GLfloat colors[] = {
+					static_cast<GLfloat>(state.color[0]),
+					static_cast<GLfloat>(state.color[1]),
+					static_cast<GLfloat>(state.color[2]),
+					static_cast<GLfloat>(state.color[3]),
+				};
+
+				glClearBufferfv(GL_COLOR, color.slot, colors);
+			}
+			else
+			{
+				//nothing
+			}
+		}
+
+		if (!desc.depthStencil.texture || desc.depthStencil.texture->GetState() != eResourceState::eReady)
+		{
+			return;
+		}
+
+		const ePixelFormat pixelType = desc.depthStencil.texture->GetPixelFormat();
+		if (pixelType == ePixelFormat::eD32)
+		{
+			glClearBufferfv(GL_DEPTH, 0, &state.depth);
+		}
+		else if (pixelType == ePixelFormat::eD24_S8)
+		{
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, state.depth, state.stencil);
+		}
+		else
+		{
+			// TODO - Stencil Only
+		}
+	}
+
 	void GLSystem::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
 	{
 		if (!pipeline || slotName.empty())
@@ -2356,6 +2436,54 @@ namespace wtr
 		{
 			return GL_SRGB8_ALPHA8;
 		}
+		else if (ePixelFormat::eR8_UInt == pixel)
+		{
+			return GL_R8UI;
+		}
+		else if (ePixelFormat::eR8G8_UInt == pixel)
+		{
+			return GL_RG8UI;
+		}
+		else if (ePixelFormat::eR8G8B8_UInt == pixel)
+		{
+			return GL_RGB8UI;
+		}
+		else if (ePixelFormat::eR8G8B8A8_UInt == pixel)
+		{
+			return GL_RGBA8UI;
+		}
+		else if (ePixelFormat::eR16_UInt == pixel)
+		{
+			return GL_R16UI;
+		}
+		else if (ePixelFormat::eR16G16_UInt == pixel)
+		{
+			return GL_RG16UI;
+		}
+		else if (ePixelFormat::eR16G16B16_UInt == pixel)
+		{
+			return GL_RGB16UI;
+		}
+		else if (ePixelFormat::eR16G16B16A16_UInt == pixel)
+		{
+			return GL_RGBA16UI;
+		}
+		else if (ePixelFormat::eR32_UInt == pixel)
+		{
+			return GL_R32UI;
+		}
+		else if (ePixelFormat::eR32G32_UInt == pixel)
+		{
+			return GL_RG32UI;
+		}
+		else if (ePixelFormat::eR32G32B32_UInt == pixel)
+		{
+			return GL_RGB32UI;
+		}
+		else if (ePixelFormat::eR32G32B32A32_UInt == pixel)
+		{
+			return GL_RGBA32UI;
+		}
 		else if (ePixelFormat::eR16_Float == pixel)
 		{
 			return GL_R16F;
@@ -2434,6 +2562,30 @@ namespace wtr
 		{
 			return GL_RGBA;
 		}
+		else if (ePixelFormat::eR8_UInt == pixel ||
+			ePixelFormat::eR16_UInt == pixel ||
+			ePixelFormat::eR32_UInt == pixel)
+		{
+			return GL_RED_INTEGER;
+		}
+		else if (ePixelFormat::eR8G8_UInt == pixel ||
+			ePixelFormat::eR16G16_UInt == pixel ||
+			ePixelFormat::eR32G32_UInt == pixel)
+		{
+			return GL_RG_INTEGER;
+		}
+		else if (ePixelFormat::eR8G8B8_UInt == pixel ||
+			ePixelFormat::eR16G16B16_UInt == pixel ||
+			ePixelFormat::eR32G32B32_UInt == pixel)
+		{
+			return GL_RGB_INTEGER;
+		}
+		else if (ePixelFormat::eR8G8B8A8_UInt == pixel ||
+			ePixelFormat::eR16G16B16A16_UInt == pixel ||
+			ePixelFormat::eR32G32B32A32_UInt == pixel)
+		{
+			return GL_RGBA_INTEGER;
+		}
 		else if (ePixelFormat::eD24_S8 == pixel)
 		{
 			return GL_DEPTH_STENCIL;
@@ -2458,8 +2610,11 @@ namespace wtr
 			ePixelFormat::eR8G8_UNorm == pixel ||
 			ePixelFormat::eR8G8B8_UNorm == pixel ||
 			ePixelFormat::eR8G8B8A8_UNorm == pixel ||
-			ePixelFormat::eR16G16B16A16_UNorm == pixel ||
-			ePixelFormat::eR8G8B8A8_sRGB == pixel)
+			ePixelFormat::eR8G8B8A8_sRGB == pixel ||
+			ePixelFormat::eR8_UInt == pixel ||
+			ePixelFormat::eR8G8_UInt == pixel ||
+			ePixelFormat::eR8G8B8_UInt == pixel ||
+			ePixelFormat::eR8G8B8A8_UInt == pixel)
 		{
 			return GL_UNSIGNED_BYTE;
 		}
@@ -2470,12 +2625,27 @@ namespace wtr
 		{
 			return GL_HALF_FLOAT;
 		}
+		else if (ePixelFormat::eR16G16B16A16_UNorm == pixel ||
+			ePixelFormat::eR16_UInt == pixel ||
+			ePixelFormat::eR16G16_UInt == pixel ||
+			ePixelFormat::eR16G16B16_UInt == pixel ||
+			ePixelFormat::eR16G16B16A16_UInt == pixel)
+		{
+			return GL_UNSIGNED_SHORT;
+		}
 		else if (ePixelFormat::eR32_Float == pixel ||
 			ePixelFormat::eR32G32_Float == pixel ||
 			ePixelFormat::eR32G32B32_Float == pixel ||
 			ePixelFormat::eR32G32B32A32_Float == pixel)
 		{
 			return GL_FLOAT;
+		}
+		else if (ePixelFormat::eR32_UInt == pixel ||
+			ePixelFormat::eR32G32_UInt == pixel ||
+			ePixelFormat::eR32G32B32_UInt == pixel ||
+			ePixelFormat::eR32G32B32A32_UInt == pixel)
+		{
+			return GL_UNSIGNED_INT;
 		}
 		else if (ePixelFormat::eD24_S8 == pixel)
 		{
@@ -3049,7 +3219,9 @@ namespace wtr
 
 	bool GLSystem::IsSampler(const int32_t type) const
 	{
-		return type == GL_SAMPLER_1D ||
+		return 
+			// sampler (Float)
+			type == GL_SAMPLER_1D ||
 			type == GL_SAMPLER_2D ||
 			type == GL_SAMPLER_3D ||
 			type == GL_SAMPLER_CUBE ||
@@ -3057,7 +3229,29 @@ namespace wtr
 			type == GL_SAMPLER_2D_ARRAY ||
 			type == GL_SAMPLER_CUBE_MAP_ARRAY ||
 			type == GL_SAMPLER_2D_MULTISAMPLE ||
-			type == GL_SAMPLER_2D_MULTISAMPLE_ARRAY;
+			type == GL_SAMPLER_2D_MULTISAMPLE_ARRAY || 
+
+			// usampler (Unsigned Int)
+			type == GL_UNSIGNED_INT_SAMPLER_1D ||
+			type == GL_UNSIGNED_INT_SAMPLER_2D ||
+			type == GL_UNSIGNED_INT_SAMPLER_3D ||
+			type == GL_UNSIGNED_INT_SAMPLER_CUBE ||
+			type == GL_UNSIGNED_INT_SAMPLER_1D_ARRAY ||
+			type == GL_UNSIGNED_INT_SAMPLER_2D_ARRAY ||
+			type == GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY ||
+			type == GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE ||
+			type == GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY ||
+
+			// isampler (Signed Int)
+			type == GL_INT_SAMPLER_1D ||
+			type == GL_INT_SAMPLER_2D ||
+			type == GL_INT_SAMPLER_3D ||
+			type == GL_INT_SAMPLER_CUBE ||
+			type == GL_INT_SAMPLER_1D_ARRAY ||
+			type == GL_INT_SAMPLER_2D_ARRAY ||
+			type == GL_INT_SAMPLER_CUBE_MAP_ARRAY ||
+			type == GL_INT_SAMPLER_2D_MULTISAMPLE ||
+			type == GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY;
 	}
 
 	void GLSystem::FlushBuffer()

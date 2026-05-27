@@ -210,6 +210,11 @@ namespace wtr
 		return m_desc.textureType;
 	}
 
+	const eDataType RHITexture::GetDataType() const
+	{
+		return m_desc.dataType;
+	}
+
 	const RHITextureDesc& RHITexture::GetDesc() const
 	{
 		return m_desc;
@@ -255,6 +260,11 @@ namespace wtr
 		m_desc.textureType = textureType;
 	}
 
+	void RHITexture::SetDataType(const eDataType dataType)
+	{
+		m_desc.dataType = dataType;
+	}
+
 	void RHITexture::SetDesc(const RHITextureDesc& desc)
 	{
 		m_desc = desc;
@@ -272,11 +282,6 @@ namespace wtr
 	const eFilterMode RHISampler::GetMagFilter() const
 	{
 		return m_desc.magFilter;
-	}
-
-	const eFilterMode RHISampler::GetMipFilter() const
-	{
-		return m_desc.mipFilter;
 	}
 
 	const eWrapMode RHISampler::GetWrapS() const
@@ -307,11 +312,6 @@ namespace wtr
 	void RHISampler::SetMagFilter(const eFilterMode magFilter)
 	{
 		m_desc.magFilter = magFilter;
-	}
-
-	void RHISampler::SetMipFilter(const eFilterMode mipFilter)
-	{
-		m_desc.mipFilter = mipFilter;
 	}
 
 	void RHISampler::SetWrapS(const eWrapMode wrapS)

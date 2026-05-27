@@ -73,6 +73,8 @@ namespace wtr
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
 
+		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) override;
+
 		void UnsetVertexLayout() override;
 		void UnsetPipeLine() override;
 		void UnsetRenderTarget() override;

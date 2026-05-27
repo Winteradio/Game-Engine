@@ -524,6 +524,20 @@ namespace wtr
 		}
 	}
 
+	RHICommandClearRenderTarget::RHICommandClearRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+		: m_target(target)
+		, m_state(state)
+	{
+	}
+
+	void RHICommandClearRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_target)
+		{
+			system->ClearRenderTarget(m_target, m_state);
+		}
+	}
+
 	RHICommandUnsetConstant::RHICommandUnsetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
 		: m_pipeline(pipeline)
 		, m_slotName(slotName)
