@@ -104,6 +104,7 @@ namespace wtr
 			const ePixelFormat GetPixelFormat() const;
 			const eTextureUsage GetTextureUsage() const;
 			const eTextureType GetTextureType() const;
+			const eDataType GetDataType() const;
 			const RHITextureDesc& GetDesc() const;
 
 			void SetWidth(const uint32_t width);
@@ -114,6 +115,7 @@ namespace wtr
 			void SetPixelFormat(const ePixelFormat pixelFormat);
 			void SetTextureUsage(const eTextureUsage textureUsage);
 			void SetTextureType(const eTextureType textureType);
+			void SetDataType(const eDataType dataType);
 
 			void SetDesc(const RHITextureDesc& desc);
 
@@ -130,7 +132,6 @@ namespace wtr
 		public :
 			const eFilterMode GetMinFilter() const;
 			const eFilterMode GetMagFilter() const;
-			const eFilterMode GetMipFilter() const;
 			const eWrapMode GetWrapS() const;
 			const eWrapMode GetWrapT() const;
 			const eWrapMode GetWrapR() const;
@@ -138,7 +139,6 @@ namespace wtr
 
 			void SetMinFilter(const eFilterMode minFilter);
 			void SetMagFilter(const eFilterMode magFilter);
-			void SetMipFilter(const eFilterMode mipFilter);
 			void SetWrapS(const eWrapMode wrapS);
 			void SetWrapT(const eWrapMode wrapT);
 			void SetWrapR(const eWrapMode wrapR);

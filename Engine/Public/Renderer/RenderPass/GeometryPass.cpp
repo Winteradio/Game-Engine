@@ -36,17 +36,8 @@ namespace wtr
 		{
 			RHIRenderTargetCreateDesc desc;
 
-			RHIColorAttachment position;
-			position.slot = 0;
-			position.type = eAttachment::eColor;
-			position.texture = GlobalResource::GetGBuffer(eGBufferSlot::ePosition);
-			if (!position.texture || position.texture->GetState() != eResourceState::eReady)
-			{
-				return;
-			}
-
 			RHIColorAttachment normal;
-			normal.slot = 1;
+			normal.slot = 0;
 			normal.type = eAttachment::eColor;
 			normal.texture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
 			if (!normal.texture || normal.texture->GetState() != eResourceState::eReady)
@@ -55,13 +46,32 @@ namespace wtr
 			}
 
 			RHIColorAttachment albedo;
-			albedo.slot = 2;
+			albedo.slot = 1;
 			albedo.type = eAttachment::eColor;
 			albedo.texture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
 			if (!albedo.texture || albedo.texture->GetState() != eResourceState::eReady)
 			{
 				return;
 			}
+
+			RHIColorAttachment phong;
+			phong.slot = 2;
+			phong.type = eAttachment::eColor;
+			phong.texture = GlobalResource::GetGBuffer(eGBufferSlot::ePhong);
+			if (!phong.texture || phong.texture->GetState() != eResourceState::eReady)
+			{
+				return;
+			}
+
+			// TODO - PBR
+			//RHIColorAttachment param;
+			//param.slot = 2;
+			//param.type = eAttachment::eColor;
+			//param.texture = GlobalResource::GetGBuffer(eGBufferSlot::eParam);
+			//if (!param.texture || param.texture->GetState() != eResourceState::eReady)
+			//{
+			//	return;
+			//}
 
 			RHIDepthStencilAttachment depthStencil;
 			depthStencil.type = eAttachment::eDepthStencil;
@@ -71,7 +81,7 @@ namespace wtr
 				return;
 			}
 
-			desc.colors = { position, normal, albedo };
+			desc.colors = { normal, albedo, phong };
 			desc.depthStencil = depthStencil;
 
 			Memory::RefPtr<RHIRenderTarget> target = cmdList->CreateRenderTarget(desc);
@@ -122,11 +132,17 @@ namespace wtr
 			m_rasterizer->cullFace = eCullFace::eBack;
 			m_rasterizer->frontFace = eFrontFace::eCCW;
 		}
+
+		if (!m_blend)
+		{
+			m_blend = Memory::MakeRef<RHIBlendState>();
+			m_blend->enable = false;
+		}
 	}
 
 	bool GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_target || m_target->GetState() != eResourceState::eReady)
+		if (!cmdList || !m_clear || !m_target || m_target->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -156,6 +172,7 @@ namespace wtr
 
 		cmdList->SetRenderTarget(m_target);
 		SetState(cmdList);
+		cmdList->ClearRenderTarget(m_target, *m_clear);
 
 		for (const auto& [pipeline, commands] : m_commands)
 		{
@@ -198,6 +215,11 @@ namespace wtr
 			return false;
 		}
 
+		if (!SetMaterial(cmdList, pipeline, drawCommand->material))
+		{
+			return false;
+		}
+
 		if (drawCommand->indirectDraw)
 		{
 			const auto indirectBuffer = drawCommand->indirect;
@@ -230,12 +252,18 @@ namespace wtr
 		cmdList->SetBuffer(pipeline, transformBuffer, eResourceSlot::eTransform);
 		cmdList->SetVertexLayout(drawCommand->vertexLayout);
 
-		return SetMaterial(cmdList, pipeline, drawCommand->material);
+		return true;
 	}
 
 	bool GeometryPass::SetMaterial(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const MaterialProxy> material)
 	{
 		if (!cmdList || !pipeline || !material || material->GetResourceState() != eResourceState::eReady)
+		{
+			return false;
+		}
+
+		const auto& materialDesc = material->GetMaterialDesc();
+		if (materialDesc.hasTransparent)
 		{
 			return false;
 		}
@@ -261,16 +289,10 @@ namespace wtr
 			}
 		}
 
-		const auto vectorBuffer = material->GetVectorBuffer();
-		if (vectorBuffer && vectorBuffer->GetState() == eResourceState::eReady)
+		const auto materialBuffer = material->GetMaterialBuffer();
+		if (materialBuffer)
 		{
-			cmdList->SetBuffer(pipeline, vectorBuffer, eResourceSlot::eVector);
-		}
-
-		const auto scalarBuffer = material->GetScalarBuffer();
-		if (scalarBuffer && scalarBuffer->GetState() == eResourceState::eReady)
-		{
-			cmdList->SetBuffer(pipeline, scalarBuffer, eResourceSlot::eScalar);
+			cmdList->SetBuffer(pipeline, materialBuffer, eResourceSlot::eMaterial);
 		}
 
 		return true;

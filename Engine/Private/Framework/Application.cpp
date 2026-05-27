@@ -114,7 +114,8 @@ namespace wtr
 		auto transformComponent = cameraEntity->GetComponent<wtr::TransformComponent>();
 		if (transformComponent)
 		{
-			transformComponent->UpdatePosition({ 0.0f, 0.0f, 5.0f });
+			transformComponent->UpdatePosition({ 0.0f, 2.0f, -5.0f });
+			transformComponent->UpdateRotation(glm::angleAxis(glm::radians(-180.f), fvec3(0.f, 1.f, 0.f)));
 		}
 
 		auto cameraComponent = cameraEntity->GetComponent<wtr::CameraComponent>();

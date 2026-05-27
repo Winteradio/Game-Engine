@@ -1,19 +1,41 @@
 #version 450 core
 
-layout(location = 0) out vec4 tGPosition;
-layout(location = 1) out vec4 tGNormal;
-layout(location = 2) out vec4 tGAlbedo;
+layout(location = 0) out vec4 tGNormal;
+layout(location = 1) out vec4 tGAlbedo;
+layout(location = 2) out uvec4 tGPhong;
 
-out vec4 FragColor;
+layout(std430, binding = 3) readonly buffer uMaterial
+{
+	vec3 diffuse;
+	vec3 specular;
+	vec3 emissive;
+	float shininess;
+	float opacity;
+} material;
 
 in vec3 outNormal;
-in vec3 outPosition;
 
 void main()
 {
-    FragColor = vec4(outNormal * 0.5 + 0.5, 1.0);
+	tGNormal = vec4(outNormal * 0.5 + 0.5, 1.0);
+	tGAlbedo = vec4(material.diffuse, material.opacity);
 
-    tGPosition = vec4(outPosition, 1.0);
-    tGNormal = vec4(outNormal * 0.5 + 0.5, 1.0);
-    tGAlbedo = vec4(1.0, 1.0, 1.0, 1.0);
+ 	float encode = 255.0;   
+	uvec3 spec = uvec3(
+        uint(material.specular.r * float(encode)),
+        uint(material.specular.g * float(encode)),
+        uint(material.specular.b * float(encode))
+    );
+    uvec3 emis = uvec3(
+        uint(material.emissive.r * float(encode)),
+        uint(material.emissive.g * float(encode)),
+        uint(material.emissive.b * float(encode))
+    );
+
+	tGPhong = uvec4(
+        spec.r | (emis.r << 8u),
+        spec.g | (emis.g << 8u),
+        spec.b | (emis.b << 8u),
+        uint(material.shininess)
+    );
 }

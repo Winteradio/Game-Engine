@@ -41,6 +41,9 @@ set(YAML_BUILD_SHARED_LIBS true)
 set(YAML_CPP_BUILD_TOOLS OFF)
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_INSTALL OFF)
+set(YAML_CPP_INSTALL_CMAKEDIR
+    "${CMAKE_INSTALL_PREFIX}/lib/cmake/yaml-cpp"
+    CACHE STRING "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE) # CTest 타겟 생성 방지
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp yaml-cpp)
 

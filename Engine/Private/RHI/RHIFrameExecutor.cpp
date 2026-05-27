@@ -104,9 +104,6 @@ namespace wtr
 			return false;
 		}
 
-		m_beginIndex = m_frameCount - 1;
-		m_endIndex = m_frameCount - 1;
-
 		return true;
 	}
 

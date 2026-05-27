@@ -411,6 +411,11 @@ namespace wtr
 		Enqueue<RHICommandSetRenderTarget>(target);
 	}
 
+	void RHICommandList::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+	{
+		Enqueue<RHICommandClearRenderTarget>(target, state);
+	}
+
 	void RHICommandList::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const eResourceSlot slot)
 	{
 		const std::string slotName = GetSlotName(slot);

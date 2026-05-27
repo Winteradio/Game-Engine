@@ -143,6 +143,8 @@ namespace wtr
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
 		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
 
+		virtual void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) = 0;
+
 		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetPipeLine() = 0;
 		virtual void UnsetRenderTarget() = 0;

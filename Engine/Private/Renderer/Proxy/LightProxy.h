@@ -21,6 +21,8 @@ namespace wtr
     {
         GENERATE(LightProxy);
     public :
+        struct Light;
+
         LightProxy(const ECS::UUID& id);
         virtual ~LightProxy() = default;
 
@@ -32,8 +34,8 @@ namespace wtr
     public :
         void SetLightType(const eLightType lightType);
         void SetShadowType(const eShadowType shadowType);
+
         void SetColor(const fvec3 color);
-        void SetDirection(const fvec3 direction);
         void SetIntensity(const float intensity);
 
         Memory::RefPtr<const RHIBuffer> GetLightBuffer() const;
@@ -42,16 +44,24 @@ namespace wtr
 
 		const LightDesc& GetLightDesc() const;
 
+    private :
+        virtual Light* GetLightData() = 0;
+    
     protected :
+        struct Light
+        {
+            alignas(16) fvec3 color = fvec3(1.f);
+            alignas(16) fvec3 pos = fvec3(0.f);
+            alignas(4) float intensity = 1.f;
+        };
+
 		LightDesc m_lightDesc;
 
         Memory::RefPtr<RHIBuffer> m_lightBuffer;
         Memory::RefPtr<RHITexture> m_shadowMap;
         Memory::RefPtr<RHIRenderTarget> m_shadowTarget;
 
-		fvec3 m_color;
-        fvec3 m_direction;
-        float m_intensity;
+        static inline const fvec3 BASE_DIR = fvec3(0.f, -1.f, 0.f);
     };
 
     class DirectionalLightProxy : public LightProxy
@@ -67,16 +77,16 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-		const fmat4 GetViewMatrix() const;
+        const fmat4 GetViewMatrix() const;
         const fmat4 GetProjectionMatrix() const;
 
     private :
-        struct alignas(16) DirectionalLight
+        Light* GetLightData() override;
+
+    private :
+        struct DirectionalLight : Light
         {
-            fvec3 color = fvec3(1.f);
-            fvec3 direction = fvec3(0.f, -1.0, 0.f);
-            fvec3 pos = fvec3(0.f);
-            float intensity = 1.f;
+            alignas(16) fvec3 direction = BASE_DIR;
         };
 
         Memory::RefPtr<ScalarData<DirectionalLight>> m_directional;
@@ -100,18 +110,15 @@ namespace wtr
 
     public :
 		void SetRange(const float range);
+
+    private:
+        Light* GetLightData() override;
     
     private :
-        struct alignas(16) PointLight
+        struct PointLight : Light
         {
-            fvec3 color = fvec3(1.f);
-            fvec3 direction = fvec3(0.f, -1.f, 0.f);
-            fvec3 pos = fvec3(0.f);
-            float intensity = 1.f;
-            float range = 0.f;
+            alignas(4) float range = 30.f;
         };
-
-		float m_range;
 
         Memory::RefPtr<ScalarData<PointLight>> m_point;
 	};
@@ -137,21 +144,17 @@ namespace wtr
 		void SetInnerAngle(const float innerAngle);
 		void SetOuterAngle(const float outerAngle);
 
+    private:
+        Light* GetLightData() override;
+
     private :
-        struct alignas(16) SpotLight
+        struct SpotLight : Light
         {
-            fvec3 color = fvec3(1.f);
-            fvec3 direction = fvec3(0.f, -1.f, 0.f);
-            fvec3 pos = fvec3(0.f);
-            float intensity = 1.0f;
+            alignas(16) fvec3 direction = BASE_DIR;
             float range = 0.f;
             float innerAngle = 30.f;
             float outerAngle = 90.f;
         };
-
-        float m_range;
-		float m_innerAngle;
-		float m_outerAngle;
 
         Memory::RefPtr<ScalarData<SpotLight>> m_spot;
     };

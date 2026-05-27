@@ -116,8 +116,12 @@ namespace wtr
 				return;
 			}
 
-			auto& cameraData = m_cameraData->data;
-			cameraData.viewMatrix = viewMatrix;
+			if (std::abs(glm::determinant(viewMatrix) - 0.f) >= std::numeric_limits<float>::epsilon())
+			{
+				auto& cameraData = m_cameraData->data;
+				cameraData.view = viewMatrix;
+				cameraData.invView = glm::inverse(viewMatrix);
+			}
 		}
 
 		void CameraResource::UpdateProjection(const fmat4 projMatrix)
@@ -127,8 +131,12 @@ namespace wtr
 				return;
 			}
 
-			auto& cameraData = m_cameraData->data;
-			cameraData.projMatrix = projMatrix;
+			if (std::abs(glm::determinant(projMatrix) - 0.f) >= std::numeric_limits<float>::epsilon())
+			{
+				auto& cameraData = m_cameraData->data;
+				cameraData.proj = projMatrix;
+				cameraData.invProj = glm::inverse(projMatrix);
+			}
 		}
 
 		void CameraResource::UpdatePosition(const fvec3 position)
@@ -498,7 +506,6 @@ namespace wtr
 					size_t hash = 0;
 					hash = (hash << 2) | static_cast<size_t>(desc.minFilter);
 					hash = (hash << 2) | static_cast<size_t>(desc.magFilter);
-					hash = (hash << 2) | static_cast<size_t>(desc.mipFilter);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapS);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapR);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapT);
@@ -537,27 +544,12 @@ namespace wtr
 
 			auto& data = GetData();
 
-			for (uint8_t slotIndex = static_cast<uint8_t>(eGBufferSlot::ePosition); slotIndex <= static_cast<uint8_t>(eGBufferSlot::eDepth); slotIndex++)
+			for (uint8_t slotIndex = static_cast<uint8_t>(eGBufferSlot::eNormal); slotIndex <= static_cast<uint8_t>(eGBufferSlot::eDepth); slotIndex++)
 			{
 				eGBufferSlot slot = static_cast<eGBufferSlot>(slotIndex);
 
 				RHITextureDesc desc;
-				if (slot == eGBufferSlot::ePosition)
-				{
-					desc.width = 1;
-					desc.height = 1;
-					desc.depth = 1;
-					desc.face = 1;
-					desc.mipLevels = 1;
-					desc.sampleCount = 1;
-					desc.format = ePixelFormat::eR32G32B32A32_Float;
-					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
-					desc.dataType = eDataType::eFloat;
-					desc.generateMips = false;
-					desc.compressed = false;
-				}
-				else if (slot == eGBufferSlot::eNormal)
+				if (slot == eGBufferSlot::eNormal)
 				{
 					desc.width = 1;
 					desc.height = 1;
@@ -573,6 +565,36 @@ namespace wtr
 					desc.compressed = false;
 				}
 				else if (slot == eGBufferSlot::eAlbedo)
+				{
+					desc.width = 1;
+					desc.height = 1;
+					desc.depth = 1;
+					desc.face = 1;
+					desc.mipLevels = 1;
+					desc.sampleCount = 1;
+					desc.format = ePixelFormat::eR8G8B8A8_UNorm;
+					desc.usage = eTextureUsage::eRenderTarget;
+					desc.textureType = eTextureType::eTexture2D;
+					desc.dataType = eDataType::eFloat;
+					desc.generateMips = false;
+					desc.compressed = false;
+				}
+				else if (slot == eGBufferSlot::ePhong)
+				{
+					desc.width = 1;
+					desc.height = 1;
+					desc.depth = 1;
+					desc.face = 1;
+					desc.mipLevels = 1;
+					desc.sampleCount = 1;
+					desc.format = ePixelFormat::eR16G16B16A16_UInt;
+					desc.usage = eTextureUsage::eRenderTarget;
+					desc.textureType = eTextureType::eTexture2D;
+					desc.dataType = eDataType::eUShort;
+					desc.generateMips = false;
+					desc.compressed = false;
+				}
+				else if (slot == eGBufferSlot::ePBR)
 				{
 					desc.width = 1;
 					desc.height = 1;
@@ -643,11 +665,13 @@ namespace wtr
 
 			Memory::RefPtr<MaterialAsset> defaultMaterial = Memory::Cast<MaterialAsset>(AssetSystem::Create("default", eAsset::eMaterial));
 			data.material = Memory::MakeRef<MaterialProxy>(ECS::UUID::Null());
-			data.material->Upload(cmdList);
 			data.material->SetMaterialAsset(defaultMaterial);
+			data.material->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.material);
 
 			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
+			data.light->SetIntensity(0.2);
+			data.light->UpdateRotation(glm::angleAxis(glm::radians(-45.f), fvec3(1.f, 0.f, 0.f)));
 			data.light->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.light);
 
@@ -829,31 +853,38 @@ namespace wtr
 				return {};
 			}
 
-			if (slot == eResourceSlot::eVector ||
-				slot == eResourceSlot::eScalar ||
-				slot == eResourceSlot::eNone)
+			if (slot < eResourceSlot::eBegin_Texture || slot > eResourceSlot::eEnd_Texture)
 			{
 				return nullptr;
 			}
 
 			RHISamplerCreateDesc desc;
-			desc.minFilter = eFilterMode::eLinear;
-			desc.magFilter = eFilterMode::eLinear;
-			desc.mipFilter = eFilterMode::eLinear;
-
-			switch (slot)
+			if (slot == eResourceSlot::eOpacity)
 			{
-			case eResourceSlot::eOpacity:
+				desc.minFilter = eFilterMode::eLinear;
+				desc.magFilter = eFilterMode::eLinear;
+
 				desc.wrapS = eWrapMode::eClampToEdge;
 				desc.wrapT = eWrapMode::eClampToEdge;
 				desc.wrapR = eWrapMode::eClampToEdge;
-				break;
+			}
+			else if (slot == eResourceSlot::eGPhong)
+			{
+				desc.minFilter = eFilterMode::eNearest;
+				desc.magFilter = eFilterMode::eNearest;
 
-			default:
 				desc.wrapS = eWrapMode::eRepeat;
 				desc.wrapT = eWrapMode::eRepeat;
 				desc.wrapR = eWrapMode::eRepeat;
-				break;
+			}
+			else
+			{
+				desc.minFilter = eFilterMode::eLinear;
+				desc.magFilter = eFilterMode::eLinear;
+
+				desc.wrapS = eWrapMode::eRepeat;
+				desc.wrapT = eWrapMode::eRepeat;
+				desc.wrapR = eWrapMode::eRepeat;
 			}
 
 			return GetSampler(cmdList, desc);
@@ -915,7 +946,7 @@ namespace wtr
 			Memory::RefPtr<const ShaderAsset> geometryDS;
 			Memory::RefPtr<const ShaderAsset> geometryPS;
 
-			if (materialDesc.shadingModel == eShadingModel::eUnlit)
+			if (!materialDesc.isPBR)
 			{
 				if (materialDesc.hasDiffuseMap)
 				{
@@ -928,23 +959,11 @@ namespace wtr
 					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.ps.glsl"));
 				}
 			}
-			else if (materialDesc.shadingModel == eShadingModel::eLit)
+			else
 			{
-				if (materialDesc.blendMode == eBlendMode::eOpaque)
-				{
-					if (materialDesc.isPBR)
-					{
-						geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.glsl"));
-						geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.glsl"));
-					}
-					else
-					{
-						geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_phong.vs.glsl"));
-						geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_phong.ps.glsl"));
-					}
-				}
-
-				// TODO : eTranslucent (Forward)
+				// TODO
+				//geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.glsl"));
+				//geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.glsl"));
 			}
 
 			// TODO : Height Map
@@ -972,7 +991,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
@@ -985,7 +1004,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
@@ -999,7 +1018,7 @@ namespace wtr
 				Memory::RefPtr<const ShaderAsset> shadowGS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.gs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.ps.glsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.vs.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.ps.glsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));

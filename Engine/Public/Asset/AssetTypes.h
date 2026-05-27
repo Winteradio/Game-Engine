@@ -9,6 +9,7 @@
 #include <Renderer/RenderTypes.h>
 
 #include <string>
+#include <float.h>
 
 namespace wtr
 {
@@ -62,8 +63,8 @@ namespace wtr
 
 	struct MeshSection
 	{
-		fvec3 minVertex = fvec3(0.f);
-		fvec3 maxVertex = fvec3(0.f);
+		fvec3 minVertex = fvec3(FLT_MAX);
+		fvec3 maxVertex = fvec3(-FLT_MAX);
 
 		uint32_t minVertexIndex = 0;
 		uint32_t maxVertexIndex = 0;

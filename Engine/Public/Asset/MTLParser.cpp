@@ -29,8 +29,7 @@ namespace wtr
 
 		const wtr::HashMap<std::string_view, eVectorSlot> VECTOR_TAG_MAP =
 		{
-			{ "Ka", eVectorSlot::eAmbientColor },
-			{ "Kd", eVectorSlot::eDiffuseColor },
+			{ "Kd", eVectorSlot::eBaseColor },
 			{ "Ks", eVectorSlot::eSpecularColor },
 			{ "Ke", eVectorSlot::eEmissiveColor }
 		};
@@ -38,7 +37,6 @@ namespace wtr
 		const wtr::HashMap<std::string_view, eScalarSlot> SCALAR_TAG_MAP =
 		{
 			{ "Ns", eScalarSlot::eShininess },
-			{ "Ni", eScalarSlot::eRefraction },
 			{ "d", eScalarSlot::eOpacity },
 			{ "Tr", eScalarSlot::eOpacity },
 			{ "Pr", eScalarSlot::eRoughness },

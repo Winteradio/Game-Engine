@@ -30,12 +30,12 @@ namespace wtr
 	public :
 		void OnAttached(RenderScene* owner);
 		void OnDetached();
+		void ClearDirty();
 
 	protected :
 		void OnUpdate();
 
 		void SetDirty(const eRenderDirty dirty);
-		void ClearDirty();
 		const eRenderDirty GetDirty() const;
 
 	private :
@@ -46,7 +46,6 @@ namespace wtr
 
 	struct ProxyHasher
 	{
-		size_t operator()(const RenderProxy& proxy) const;
 		size_t operator()(const Memory::RefPtr<RenderProxy>& refProxy) const;
 	};
 };

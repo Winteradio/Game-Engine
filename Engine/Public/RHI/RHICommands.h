@@ -595,6 +595,20 @@ namespace wtr
 		const Memory::RefPtr<const RHIRenderTarget> m_target;
 	};
 
+	class RHICommandClearRenderTarget: public RHICommand<RHICommandClearRenderTarget>
+	{
+	public:
+		RHICommandClearRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state);
+		~RHICommandClearRenderTarget() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIRenderTarget> m_target;
+		const RHIClearState m_state;
+	};
+
 	class RHICommandUnsetConstant : public RHICommand<RHICommandUnsetConstant>
 	{
 	public :

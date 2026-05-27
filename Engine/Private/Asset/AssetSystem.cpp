@@ -50,7 +50,8 @@ namespace wtr
 			asset = AssetFactory::Create(name, type);
 			if (asset)
 			{
-				core.manager.AddAsset(name, asset);
+				asset->SetState(eAssetState::eLoaded);
+				core.manager.AddAsset(core.assetPath + name, asset);
 			}
 		}
 

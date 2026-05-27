@@ -35,33 +35,46 @@ namespace wtr
 		switch (pixelFormat)
 		{
 		case ePixelFormat::eR8_UNorm:
+		case ePixelFormat::eR8_UInt:
 			return 1;
 
 		case ePixelFormat::eR8G8_UNorm:
+		case ePixelFormat::eR8G8_UInt:
+		case ePixelFormat::eR16_UInt:
 		case ePixelFormat::eR16_Float:
 			return 2;
 
 		case ePixelFormat::eR8G8B8_UNorm:
+		case ePixelFormat::eR8G8B8_UInt:
 			return 3;
 
 		case ePixelFormat::eR8G8B8A8_UNorm:
 		case ePixelFormat::eR8G8B8A8_sRGB:
+		case ePixelFormat::eR8G8B8A8_UInt:
+		case ePixelFormat::eR16G16_UInt:
 		case ePixelFormat::eR16G16_Float:
+		case ePixelFormat::eR32_UInt:
 		case ePixelFormat::eR32_Float:
 		case ePixelFormat::eD24_S8:
 		case ePixelFormat::eD32:
 			return 4;
 
+		case ePixelFormat::eR16G16B16_UInt:
 		case ePixelFormat::eR16G16B16_Float:
 			return 6;
 
+		case ePixelFormat::eR16G16B16A16_UNorm:
+		case ePixelFormat::eR16G16B16A16_UInt:
 		case ePixelFormat::eR16G16B16A16_Float:
+		case ePixelFormat::eR32G32_UInt:
 		case ePixelFormat::eR32G32_Float:
 			return 8;
 
+		case ePixelFormat::eR32G32B32_UInt:
 		case ePixelFormat::eR32G32B32_Float:
 			return 12;
 
+		case ePixelFormat::eR32G32B32A32_UInt:
 		case ePixelFormat::eR32G32B32A32_Float:
 			return 16;
 
@@ -189,14 +202,15 @@ namespace wtr
 		if (slot == eResourceSlot::eSheen)				return "tSheen";
 
 		// Texture - GBuffer
-		if (slot == eResourceSlot::eGPosition)			return "tGPosition";
 		if (slot == eResourceSlot::eGNormal)			return "tGNormal";
 		if (slot == eResourceSlot::eGAlbedo)			return "tGAlbedo";
+		if (slot == eResourceSlot::eGPhong)				return "tGPhong";
+		if (slot == eResourceSlot::eGPBR)				return "tGPBR";
+		if (slot == eResourceSlot::eGAlpha)				return "tGAlpha";
 		if (slot == eResourceSlot::eGDepth)				return "tGDepth";
 
 		// Uniform - Material
-		if (slot == eResourceSlot::eVector)				return "uVector";
-		if (slot == eResourceSlot::eScalar)				return "uScalar";
+		if (slot == eResourceSlot::eMaterial)				return "uMaterial";
 
 		// Uniform - Camera
 		if (slot == eResourceSlot::eCamera)				return "uCamera";
@@ -231,14 +245,15 @@ namespace wtr
 		if (name == "tSheen")				return eResourceSlot::eSheen;
 
 		// Texture - GBuffer
-		if (name == "tGPosition")			return eResourceSlot::eGPosition;
 		if (name == "tGNormal")				return eResourceSlot::eGNormal;
 		if (name == "tGAlbedo")				return eResourceSlot::eGAlbedo;
+		if (name == "tGPhong")				return eResourceSlot::eGPhong;
+		if (name == "tGPBR")				return eResourceSlot::eGPBR;
+		if (name == "tGAlpha")				return eResourceSlot::eGAlpha;
 		if (name == "tGDepth")				return eResourceSlot::eGDepth;
 
 		// Uniform - Material
-		if (name == "uVector")				return eResourceSlot::eVector;
-		if (name == "uScalar")				return eResourceSlot::eScalar;
+		if (name == "uMaterial")				return eResourceSlot::eMaterial;
 
 		// Uniform - Camera
 		if (name == "uCamera")				return eResourceSlot::eCamera;

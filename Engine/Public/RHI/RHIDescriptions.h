@@ -188,7 +188,6 @@ namespace wtr
 	{
 		eFilterMode		minFilter = eFilterMode::eNone;
 		eFilterMode		magFilter = eFilterMode::eNone;
-		eFilterMode		mipFilter = eFilterMode::eNone;
 		eWrapMode		wrapS = eWrapMode::eNone;
 		eWrapMode		wrapT = eWrapMode::eNone;
 		eWrapMode		wrapR = eWrapMode::eNone;
@@ -197,7 +196,6 @@ namespace wtr
 		{
 			minFilter = other.minFilter;
 			magFilter = other.magFilter;
-			mipFilter = other.mipFilter;
 			wrapS = other.wrapS;
 			wrapT = other.wrapT;
 			wrapR = other.wrapR;
@@ -209,7 +207,6 @@ namespace wtr
 		{
 			if (minFilter != other.minFilter ||
 				magFilter != other.magFilter ||
-				mipFilter != other.mipFilter ||
 				wrapS != other.wrapS ||
 				wrapT != other.wrapT ||
 				wrapR != other.wrapR)

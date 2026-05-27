@@ -95,8 +95,6 @@ namespace wtr
 
 			meshBatch->UpdateTransform(this->GetID());
 		}
-
-		this->ClearDirty();
 	}
 
 	DynamicPrimitiveProxy::DynamicPrimitiveProxy(const ECS::UUID& id)
@@ -124,8 +122,6 @@ namespace wtr
 		{
 			meshBatch->UpdateMesh();
 		}
-
-		this->ClearDirty();
 	}
 
 	void DynamicPrimitiveProxy::UpdateMesh(Memory::RefPtr<const MeshAsset> refMesh)
@@ -171,8 +167,6 @@ namespace wtr
 		{
 			meshBatch->UpdateTransform(this->GetID());
 		}
-
-		this->ClearDirty();
 	}
 
 	void InstancedStaticPrimitiveProxy::SetInstanceCount(const size_t instanceCount)

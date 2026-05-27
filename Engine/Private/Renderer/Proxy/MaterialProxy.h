@@ -41,16 +41,32 @@ namespace wtr
 		void UpdateMaterialDesc();
 		const MaterialDesc& GetMaterialDesc() const;
 
-		Memory::RefPtr<const RHIBuffer> GetVectorBuffer() const;
-		Memory::RefPtr<const RHIBuffer> GetScalarBuffer() const;
 		Memory::RefPtr<const TextureAsset> GetTexture(const eResourceSlot slot) const;
 		Memory::RefPtr<const MaterialAsset> GetMaterial() const;
+		Memory::RefPtr<const RHIBuffer> GetMaterialBuffer() const;
 
 	private :
+		struct PhongParams
+		{
+			alignas(16) fvec3 diffuse = fvec3(1.f);
+			alignas(16) fvec3 specular = fvec3(1.f);
+			alignas(16) fvec3 emissive = fvec3(0.f);
+			alignas(4) float shininess = 32.f;
+			alignas(4) float opacity = 1.f;
+		};
+
+		struct PBRParams
+		{
+			alignas(16) fvec3 baseColor = fvec3(1.f);
+			alignas(4)  float roughness = 0.5f;
+			alignas(4)  float metallic = 0.f;
+			alignas(4)  float ambientOcclusion = 1.f;
+			alignas(4) float opacity = 1.f;
+		};
+
 		MaterialDesc m_materialDesc;
 		Memory::RefPtr<const MaterialAsset> m_materialAsset;
-		Memory::RefPtr<RHIBuffer> m_vectorBuffer;
-		Memory::RefPtr<RHIBuffer> m_scalarBuffer;
+		Memory::RefPtr<RHIBuffer> m_materialBuffer;
 	};
 }
 

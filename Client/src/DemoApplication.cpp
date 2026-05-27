@@ -47,65 +47,86 @@ namespace demo
 
 		for (size_t index = 0; index < 25; index++)
 		{
-			auto dragonEntity = world->CreateEntity();
-			if (!dragonEntity)
+			auto sphereEntity = world->CreateEntity();
+			if (!sphereEntity)
 			{
-				LOGERROR() << "[Game] Failed to create the dragon entity";
+				LOGERROR() << "[Game] Failed to create the sphere entity";
 				continue;
 			}
 
-			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
+			const size_t localIndex = index % 25;
+			const size_t row = localIndex / 5;
+			const size_t col = localIndex % 5;
+
+			const float shiniess = static_cast<float>(col + 2L * row) + 2.0f;
+
+			const std::string matName = "red_" + std::to_string(localIndex);
+
+			Memory::RefPtr<wtr::MaterialAsset> mat = Memory::Cast<wtr::MaterialAsset>(
+				wtr::AssetSystem::Create(matName, wtr::eAsset::eMaterial));
+			if (!mat) continue;
+
+			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
+			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
+
+			const std::string dragonPath = "asset/mesh/3d/cube.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
+			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(matName);
 
-			dragonEntity->AddComponent<wtr::TransformComponent>();
-			dragonEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
-			dragonEntity->AddNode<wtr::StaticMeshNode>();
+			sphereEntity->AddComponent<wtr::TransformComponent>();
+			sphereEntity->AddComponent<wtr::StaticMeshComponent>(dragonAsset);
+			sphereEntity->AddComponent<wtr::MaterialComponent>(materialAsset);
+			sphereEntity->AddNode<wtr::StaticMeshNode>();
 
-			auto transformComponent = dragonEntity->GetComponent<wtr::TransformComponent>();
+			auto transformComponent = sphereEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				transformComponent->UpdatePosition({ (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % 5), static_cast<float>(index / 5), 0.0f });
-				transformComponent->UpdateScale({ 0.5f, 0.5f, 0.5f });
+				const wtr::fvec3 position = {static_cast<float>(col), 0.f, static_cast<float>(row) };
+				const wtr::fvec3 scale = wtr::fvec3(0.3f);
+				transformComponent->UpdatePosition(position);
+				transformComponent->UpdateScale(scale);
 			}
 
-			world->scene.Attach(dragonEntity->GetNode<wtr::StaticMeshNode>());
-
-			//LOGINFO() << "[Game] Dragon Entity ID : " << dragonEntity->GetID().ToString();
-		}
-
-		auto cubeEntity = world->CreateEntity();
-		if (!cubeEntity)
-		{
-			LOGERROR() << "[Game] Failed to create the cube entity";
-			return false;
-		}
-
-		const std::string cubePath = "asset/mesh/3d/cube.obj";
-		Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
-
-		cubeEntity->AddComponent<wtr::InstancedTransformComponent>();
-		cubeEntity->AddComponent<wtr::StaticMeshComponent>(cubeAsset);
-		cubeEntity->AddNode<wtr::InstancedStaticMeshNode>();
-
-		auto transformComponent = cubeEntity->GetComponent<wtr::InstancedTransformComponent>();
-		if (transformComponent)
-		{
-			constexpr size_t cubeCount = 1000000;
-			constexpr size_t cubePerRow = 100;
-			constexpr size_t cubePerLow = 100;
-
-			for (size_t index = 0; index < cubeCount; index++)
+			if (index % 6 == 0)
 			{
-				const wtr::fvec3 position = { (index % 2 == 0 ? -1.f : 1.f) * static_cast<float>(index % cubePerRow), static_cast<float>(index / (cubePerRow * cubePerLow)), static_cast<float>((index / cubePerLow)% cubePerRow)};
-				const wtr::fquat rotation = { 1.f, 0.f, 0.f, 0.f };
-				const wtr::fvec3 scale = { 0.5f, 0.5f, 0.5f };
-				transformComponent->AddInstance(position, rotation, scale);
+				sphereEntity->AddComponent<wtr::PointLightComponent>();
+				sphereEntity->AddNode<wtr::PointLightNode>();
+
+				auto lightComponent = sphereEntity->GetComponent<wtr::PointLightComponent>();
+				if (lightComponent)
+				{
+					lightComponent->UpdateRange(index * 2.f);
+				}
+				world->scene.Attach(sphereEntity->GetNode<wtr::PointLightNode>());
 			}
+
+			world->scene.Attach(sphereEntity->GetNode<wtr::StaticMeshNode>());
 		}
 
-		world->scene.Attach(cubeEntity->GetNode<wtr::InstancedStaticMeshNode>());
+		{
+			auto cubeEntity = world->CreateEntity();
+			if (!cubeEntity)
+			{
+				LOGERROR() << "[Game] Failed to create the cube entity";
+				return false;
+			}
 
-		//LOGINFO() << "[Game] Cube Entity ID : " << cubeEntity->GetID().ToString();
+			const std::string cubePath = "asset/mesh/3d/cube.obj";
+			Memory::RefPtr<wtr::Asset> cubeAsset = wtr::AssetSystem::Load(cubePath);
+
+			cubeEntity->AddComponent<wtr::TransformComponent>();
+			cubeEntity->AddComponent<wtr::StaticMeshComponent>(cubeAsset);
+			cubeEntity->AddNode<wtr::StaticMeshNode>();
+
+			auto transformComponent = cubeEntity->GetComponent<wtr::TransformComponent>();
+			if (transformComponent)
+			{
+				transformComponent->UpdateScale(wtr::fvec3{ 20.f, 0.5f, 20.0f });
+				transformComponent->UpdatePosition(wtr::fvec3{ 0.f, -1.0f, 0.f });
+			}
+
+			world->scene.Attach(cubeEntity->GetNode<wtr::StaticMeshNode>());
+		}
 
 		return true;
 	}
@@ -119,19 +140,26 @@ namespace demo
 			return false;
 		}
 
-		auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
+		//auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
+		//if (!moveSystem)
+		//{
+		//	LOGERROR() << "[Game] Failed to create the render system";
+		//	return false;
+		//}
+
+		auto moveSystem = world->CreateSystem<wtr::LightMoveSystem>();
 		if (!moveSystem)
 		{
 			LOGERROR() << "[Game] Failed to create the render system";
 			return false;
 		}
 
-		auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
-		if (!instancedMoveSystem)
-		{
-			LOGERROR() << "[Game] Failed to create the render system";
-			return false;
-		}
+		//auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
+		//if (!instancedMoveSystem)
+		//{
+		//	LOGERROR() << "[Game] Failed to create the render system";
+		//	return false;
+		//}
 
 		return true;
 	}

@@ -12,16 +12,12 @@ namespace wtr
 		, m_lightBuffer()
 		, m_shadowMap()
 		, m_shadowTarget()
-		, m_color(fvec3(1.0f))
-		, m_direction(fvec3(0.f))
-		, m_intensity(1.0f)
 	{}
 
 	eResourceState LightProxy::GetResourceState() const
 	{
 		eResourceState allState = m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
-		// TODO
 		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
 		//allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
 
@@ -78,29 +74,23 @@ namespace wtr
 			OnUpdate();
 
 			// TODO : Shadow
-			// GlobalShaderSelector¸¦ ÅëÇÑ ShadowRenderTarget º¯°æ
+			// GlobalShaderSelectorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ShadowRenderTarget ï¿½ï¿½ï¿½ï¿½
 		}
 	}
 
 	void LightProxy::SetColor(const fvec3 color)
 	{
-		if ((std::abs(color.r - this->m_color.r) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(color.g - this->m_color.g) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(color.b - this->m_color.b) >= std::numeric_limits<float>::epsilon()))
+		auto lightData = GetLightData();
+		if (lightData == nullptr)
 		{
-			this->m_color = color;
-
-			OnUpdate();
+			return;
 		}
-	}
 
-	void LightProxy::SetDirection(const fvec3 direction)
-	{
-		if ((std::abs(direction.r - this->m_direction.x) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(direction.g - this->m_direction.y) >= std::numeric_limits<float>::epsilon()) ||
-			(std::abs(direction.b - this->m_direction.z) >= std::numeric_limits<float>::epsilon()))
+		if ((std::abs(color.r - lightData->color.r) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(color.g - lightData->color.g) >= std::numeric_limits<float>::epsilon()) ||
+			(std::abs(color.b - lightData->color.b) >= std::numeric_limits<float>::epsilon()))
 		{
-			this->m_direction = direction;
+			lightData->color = color;
 
 			OnUpdate();
 		}
@@ -108,9 +98,15 @@ namespace wtr
 
 	void LightProxy::SetIntensity(const float intensity)
 	{
-		if (std::abs(intensity - this->m_intensity) >= std::numeric_limits<float>::epsilon())
+		auto lightData = GetLightData();
+		if (lightData == nullptr)
 		{
-			this->m_intensity = intensity;
+			return;
+		}
+
+		if (std::abs(intensity - lightData->intensity) >= std::numeric_limits<float>::epsilon())
+		{
+			lightData->intensity = intensity;
 
 			OnUpdate();
 		}
@@ -138,6 +134,7 @@ namespace wtr
 
 	DirectionalLightProxy::DirectionalLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
+		, m_directional(Memory::MakeRef<ScalarData<DirectionalLight>>())
 	{
 	}
 
@@ -148,20 +145,13 @@ namespace wtr
 
 	void DirectionalLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_directional)
 		{
 			return;
 		}
 
-		if (!m_directional)
-		{
-			m_directional = Memory::MakeRef<ScalarData<DirectionalLight>>();
-		}
-
 		auto& data = m_directional->data;
-		data.color = m_color;
-		data.direction = m_direction;
-		data.intensity = m_intensity;
+		data.direction = GetRotation() * BASE_DIR;
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -192,6 +182,10 @@ namespace wtr
 		{
 			return;
 		}
+
+		auto& data = m_directional->data;
+		data.direction = GetRotation() * BASE_DIR;
+		data.pos = GetPosition();
 
 		RHIBufferUpdateDesc desc;
 		desc.bufferType = eBufferType::eStorage;
@@ -227,9 +221,21 @@ namespace wtr
 		return fmat4(1.0f);
 	}
 
+	LightProxy::Light* DirectionalLightProxy::GetLightData()
+	{
+		if (m_directional)
+		{
+			return &m_directional->data;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	PointLightProxy::PointLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
-		, m_range(0.f)
+		, m_point(Memory::MakeRef<ScalarData<PointLight>>())
 	{
 	}
 
@@ -240,21 +246,12 @@ namespace wtr
 
 	void PointLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_point)
 		{
 			return;
 		}
 
-		if (!m_point)
-		{
-			m_point = Memory::MakeRef<ScalarData<PointLight>>();
-		}
-
 		auto& data = m_point->data;
-		data.color = m_color;
-		data.direction = m_direction;
-		data.intensity = m_intensity;
-		data.range = m_range;
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -286,6 +283,9 @@ namespace wtr
 			return;
 		}
 
+		auto& data = m_point->data;
+		data.pos = GetPosition();
+
 		RHIBufferUpdateDesc desc;
 		desc.bufferType = eBufferType::eStorage;
 		desc.accessType = eDataAccess::eDynamic;
@@ -313,11 +313,29 @@ namespace wtr
 		return  fmat4(1.0f);
 	}
 
+	LightProxy::Light* PointLightProxy::GetLightData()
+	{
+		if (m_point)
+		{
+			return &m_point->data;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	void PointLightProxy::SetRange(const float range)
 	{
-		if (std::abs(range - this->m_range) >= std::numeric_limits<float>::epsilon())
+		if (!m_point)
 		{
-			this->m_range = range;
+			return;
+		}
+
+		auto& light = m_point->data;
+		if (std::abs(range - light.range) >= std::numeric_limits<float>::epsilon())
+		{
+			light.range = range;
 
 			OnUpdate();
 		}
@@ -325,9 +343,7 @@ namespace wtr
 
 	SpotLightProxy::SpotLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
-		, m_range(0.f)
-		, m_innerAngle(30.f)
-		, m_outerAngle(90.f)
+		, m_spot(Memory::MakeRef<ScalarData<SpotLight>>())
 	{
 	}
 
@@ -338,23 +354,13 @@ namespace wtr
 
 	void SpotLightProxy::Upload(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList)
+		if (!cmdList || !m_spot)
 		{
 			return;
 		}
 
-		if (!m_spot)
-		{
-			m_spot = Memory::MakeRef<ScalarData<SpotLight>>();
-		}
-
 		auto& data = m_spot->data;
-		data.color = m_color;
-		data.direction = m_direction;
-		data.intensity = m_intensity;
-		data.range = m_range;
-		data.innerAngle = m_innerAngle;
-		data.outerAngle = m_outerAngle;
+		data.direction = GetRotation() * BASE_DIR;
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -386,6 +392,10 @@ namespace wtr
 			return;
 		}
 
+		auto& data = m_spot->data;
+		data.direction = GetRotation() * BASE_DIR;
+		data.pos = GetPosition();
+
 		RHIBufferUpdateDesc desc;
 		desc.bufferType = eBufferType::eStorage;
 		desc.accessType = eDataAccess::eDynamic;
@@ -413,11 +423,29 @@ namespace wtr
 		return fmat4(1.0f);
 	}
 
+	LightProxy::Light* SpotLightProxy::GetLightData()
+	{
+		if (m_spot)
+		{
+			return &m_spot->data;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	void SpotLightProxy::SetRange(const float range)
 	{
-		if (std::abs(range - this->m_range) >= std::numeric_limits<float>::epsilon())
+		if (!m_spot)
 		{
-			this->m_range = range;
+			return;
+		}
+
+		auto& lightData = m_spot->data;
+		if (std::abs(range - lightData.range) >= std::numeric_limits<float>::epsilon())
+		{
+			lightData.range = range;
 
 			OnUpdate();
 		}
@@ -425,9 +453,15 @@ namespace wtr
 
 	void SpotLightProxy::SetInnerAngle(const float innerAngle)
 	{
-		if (std::abs(innerAngle - this->m_innerAngle) >= std::numeric_limits<float>::epsilon())
+		if (!m_spot)
 		{
-			this->m_innerAngle = innerAngle;
+			return;
+		}
+
+		auto& lightData = m_spot->data;
+		if (std::abs(innerAngle - lightData.innerAngle) >= std::numeric_limits<float>::epsilon())
+		{
+			lightData.innerAngle = innerAngle;
 
 			OnUpdate();
 		}
@@ -435,9 +469,15 @@ namespace wtr
 
 	void SpotLightProxy::SetOuterAngle(const float outerAngle)
 	{
-		if (std::abs(outerAngle - this->m_outerAngle) >= std::numeric_limits<float>::epsilon())
+		if (!m_spot)
 		{
-			this->m_outerAngle = outerAngle;
+			return;
+		}
+
+		auto& lightData = m_spot->data;
+		if (std::abs(outerAngle - lightData.outerAngle) >= std::numeric_limits<float>::epsilon())
+		{
+			lightData.outerAngle = outerAngle;
 
 			OnUpdate();
 		}

@@ -114,25 +114,40 @@ namespace wtr
 
 	enum class ePixelFormat : uint8_t
 	{
-		eNone				= 0x00,
-		eR8_UNorm			= 0x01,
-		eR8G8_UNorm			= 0x02,
-		eR8G8B8_UNorm		= 0x03,
-		eR8G8B8A8_UNorm		= 0x04,
-		eR8G8B8A8_sRGB		= 0x05,
-		
-		eR16_Float			= 0x06,
-		eR16G16_Float		= 0x07,
-		eR16G16B16_Float	= 0x08,
-		eR16G16B16A16_Float = 0x09,
-		
-		eR32_Float			= 0x10,
-		eR32G32_Float		= 0x11,
-		eR32G32B32_Float	= 0x12,
-		eR32G32B32A32_Float = 0x13,
+		eNone = 0x00,
 
-		eD24_S8				= 0x14,
-		eD32				= 0x15
+		eR8_UNorm = 0x01,
+		eR8G8_UNorm = 0x02,
+		eR8G8B8_UNorm = 0x03,
+		eR8G8B8A8_UNorm = 0x04,
+		eR16G16B16A16_UNorm = 0x05,
+		eR8G8B8A8_sRGB = 0x06,
+
+		eR8_UInt = 0x07,
+		eR8G8_UInt = 0x08,
+		eR8G8B8_UInt = 0x09,
+		eR8G8B8A8_UInt = 0x0A,
+		eR16_UInt = 0x0B,
+		eR16G16_UInt = 0x0C,
+		eR16G16B16_UInt = 0x0D,
+		eR16G16B16A16_UInt = 0x0E,
+		eR32_UInt = 0x0F,
+		eR32G32_UInt = 0x10,
+		eR32G32B32_UInt = 0x11,
+		eR32G32B32A32_UInt = 0x12,
+
+		eR16_Float = 0x13,
+		eR16G16_Float = 0x14,
+		eR16G16B16_Float = 0x15,
+		eR16G16B16A16_Float = 0x16,
+
+		eR32_Float = 0x17,
+		eR32G32_Float = 0x18,
+		eR32G32B32_Float = 0x19,
+		eR32G32B32A32_Float = 0x1A,
+
+		eD24_S8 = 0x1B,
+		eD32 = 0x1C,
 		// TODO : Not yet the compressed pixel format
 	};
 
@@ -304,63 +319,69 @@ namespace wtr
 
 	enum class eResourceSlot : uint8_t
 	{
-		eNone = 0x00,
+		eNone = 0,
+
+		eBegin_Texture,
 
 		// Texture - Material
-		eAmbient = 0x01,
-		eDiffuse = 0x02,
-		eSpecular = 0x03,
-		eEmissive = 0x04,
-		eOpacity = 0x05,
-		eBump = 0x06,
-		eNormal = 0x07,
-		eRoughness = 0x08,
-		eMetallic = 0x09,
-		eAmbientOcclusion = 0x0A,
-		eSheen = 0x0B,
+		eAmbient = eBegin_Texture,
+		eDiffuse,
+		eSpecular,
+		eEmissive,
+		eOpacity,
+		eBump,
+		eNormal,
+		eRoughness,
+		eMetallic,
+		eAmbientOcclusion,
+		eSheen,
 
 		// Texture - GBuffer
-		eGPosition = 0x0C,
-		eGNormal = 0x0D,
-		eGAlbedo = 0x0E,
-		eGDepth = 0x0F,
+		eGNormal,
+		eGAlbedo,
+		eGPhong,
+		eGPBR,
+		eGAlpha,
+		eGDepth,
+		eEnd_Texture = eGDepth,
 
+		eBegin_Uniform = eEnd_Texture,
 		// Uniform - Material
-		eVector = 0x10,
-		eScalar = 0x11,
+		eMaterial,
 
 		// Uniform - Camera
-		eCamera = 0x12,
+		eCamera,
 
 		// Uniform - Instance
-		eInstanceCount = 0x13,
-		eRawTransform = 0x14,
-		eTransform = 0x15,
-		eIndirect = 0x16,
-		eVisible = 0x17,
-		eLocalBounding = 0x18,
+		eInstanceCount,
+		eRawTransform,
+		eTransform,
+		eIndirect,
+		eVisible,
+		eLocalBounding,
 
 		// Uniform - Light
-		eLight = 0x17,
+		eLight,
+
+		eEnd_Uniform
 	};
 
 	enum class eVectorSlot : uint8_t
 	{
 		eNone = 0x00,
-		eAmbientColor = 0x01,
-		eDiffuseColor = 0x02,
-		eSpecularColor = 0x03,
-		eEmissiveColor = 0x04,
+		eBaseColor,
+		eSpecularColor,
+		eEmissiveColor,
 	};
 
 	enum class eScalarSlot : uint8_t
 	{
 		eNone = 0x00,
-		eShininess = 0x01,
-		eOpacity = 0x02,
-		eRefraction = 0x03,
-		eRoughness = 0x04,
-		eMetallic = 0x05,
+		eRoughness,
+		eMetallic,
+		eAmbientOcclusion,
+		eOpacity,
+		eShininess,
 	};
 
 	enum class eShadingModel : uint8_t
@@ -417,11 +438,12 @@ namespace wtr
 	enum class eGBufferSlot : uint8_t
 	{
 		eNone = 0x00,
-		ePosition = 0x01,
-		eNormal = 0x02,
-		eAlbedo = 0x03,
-		eAlpha = 0x04,
-		eDepth = 0x05,
+		eNormal,
+		eAlbedo,
+		ePhong,
+		ePBR,
+		eAlpha,
+		eDepth,
 	};
 
 	class RawData
