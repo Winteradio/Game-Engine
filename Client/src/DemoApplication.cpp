@@ -58,7 +58,7 @@ namespace demo
 			const size_t row = localIndex / 5;
 			const size_t col = localIndex % 5;
 
-			const float shiniess = static_cast<float>(col) / 4.0f;
+			const float shiniess = static_cast<float>(col + 2L * row) + 2.0f;
 
 			const std::string matName = "red_" + std::to_string(localIndex);
 
@@ -69,7 +69,7 @@ namespace demo
 			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.f, 0.1f, 0.1f);
 			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
 
-			const std::string dragonPath = "asset/mesh/3d/sphere.obj";
+			const std::string dragonPath = "asset/mesh/3d/cube.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(matName);
 
@@ -91,6 +91,12 @@ namespace demo
 			{
 				sphereEntity->AddComponent<wtr::PointLightComponent>();
 				sphereEntity->AddNode<wtr::PointLightNode>();
+
+				auto lightComponent = sphereEntity->GetComponent<wtr::PointLightComponent>();
+				if (lightComponent)
+				{
+					lightComponent->UpdateRange(index * 2.f);
+				}
 				world->scene.Attach(sphereEntity->GetNode<wtr::PointLightNode>());
 			}
 
@@ -141,12 +147,19 @@ namespace demo
 		//	return false;
 		//}
 
-		auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
-		if (!instancedMoveSystem)
+		auto moveSystem = world->CreateSystem<wtr::LightMoveSystem>();
+		if (!moveSystem)
 		{
 			LOGERROR() << "[Game] Failed to create the render system";
 			return false;
 		}
+
+		//auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
+		//if (!instancedMoveSystem)
+		//{
+		//	LOGERROR() << "[Game] Failed to create the render system";
+		//	return false;
+		//}
 
 		return true;
 	}

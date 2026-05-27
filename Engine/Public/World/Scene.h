@@ -71,8 +71,7 @@ namespace std
 		size_t operator()(const wtr::Scene::NodeID& id) const
 		{
 			size_t seed = std::hash<ECS::UUID>()(id.id);
-			seed ^= std::hash<const Reflection::TypeInfo*>()(id.typeInfo)
-				+ 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			seed ^= id.typeInfo->GetTypeHash()	+ 0x9e3779b9 + (seed << 6) + (seed >> 2);
 
 			return seed;
 		}

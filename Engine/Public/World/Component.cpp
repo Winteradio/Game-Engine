@@ -32,7 +32,7 @@ namespace wtr
 		const bool wasDirty = IsDirty();
 		m_isDirty = true;
 
-		if (m_scene && !wasDirty)
+		if (m_scene) //&& !wasDirty)
 		{
 			m_scene->Update(GetID(), this->GetTypeInfo());
 		}
@@ -45,7 +45,8 @@ namespace wtr
 
 	bool ProxyComponent::IsDirty() const
 	{
-		return m_isDirty;
+		//return m_isDirty;
+		return true;
 	}
 
 	TransformComponent::TransformComponent()

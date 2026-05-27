@@ -5,7 +5,7 @@ out vec4 FragColor;
 layout(binding = 0) uniform sampler2D tGDepth;
 layout(binding = 1) uniform sampler2D tGNormal;
 layout(binding = 2) uniform sampler2D tGAlbedo;
-layout(binding = 3) uniform sampler2D tGPhong;
+layout(binding = 3) uniform usampler2D tGPhong;
 
 layout(std430, binding = 0) readonly buffer uLight
 {
@@ -52,42 +52,42 @@ void main()
     }
 
     vec4 albedo = texture(tGAlbedo, uv);
-    vec4 phong = texture(tGPhong, uv);
+    uvec4 phong = texture(tGPhong, uv);
 
-    float opacity = albedo.a;
     vec3 diffuse = albedo.rgb;
-
     vec3 specular = vec3(
-        mod(phong.r, 255.0) / 255.0,
-        mod(phong.g, 255.0) / 255.0,
-        mod(phong.b, 255.0) / 255.0
+        float(phong.r & 0xFF) / 255.0,
+        float(phong.g & 0xFF) / 255.0,
+        float(phong.b & 0xFF) / 255.0
         );
 
     vec3 emissive = vec3(
-        floor(phong.r/ 255.0) / 255.0,
-        floor(phong.g/ 255.0) / 255.0,
-        floor(phong.b/ 255.0) / 255.0
+        float((phong.r >> 8u) & 0xFF) / 255.0,
+        float((phong.g >> 8u) & 0xFF) / 255.0,
+        float((phong.b >> 8u) & 0xFF) / 255.0
         );
 
-    float shininess = phong.a / 100.0;
+    float opacity = albedo.a;
+    float shininess = float(phong.a);
 
     vec3 position = GetWorldPosition(uv);
     vec3 normal = normalize(texture(tGNormal, uv).rgb * 2.0 - 1.0);
 
-    vec3 lightDir = normalize(light.position - position);
+    vec3 rayDir  = normalize(position - light.position);
     vec3 viewDir = normalize(camera.position - position);
 
-    float NdotL = max(dot(normal, lightDir), 0.0);
-    
-    vec3 reflection = reflect(-lightDir, normal);
-    float RdotV = max(dot(reflection, viewDir), 0.0);
+	vec3 incidentDir = rayDir - 2.0 * max(dot(normal, rayDir), 0.0) * normal;
+	vec3 reflectDir = reflect(incidentDir, normal);
 
-    float distance = length(light.position - position);
-    float ratio       = distance / max(light.range, 0.0001);
-    float falloff     = clamp(1.0 - ratio * ratio, 0.0, 1.0);
-    float attenuation = falloff / (distance * distance + 1.0);
+	float NdotL = dot(normal, -incidentDir);
+    float RdotV = max(dot(reflectDir, viewDir), 0.0);
 
-    vec3 lightOut = (diffuse * NdotL + specular * pow(RdotV, shininess)) * light.color * light.intensity * attenuation;
+    float lightDist = length(light.position - position);
+    float distRatio = lightDist / max(light.range, 0.0001);
+    float falloff     = clamp(1.0 - distRatio * distRatio, 0.0, 1.0);
+    float attenuation = falloff / (lightDist * lightDist + 1.0);
+
+    vec3 lightOut = (diffuse * abs(NdotL) + specular * pow(RdotV, shininess)) * light.color * light.intensity * attenuation;
     lightOut += emissive;
 
     FragColor = vec4(lightOut, opacity);

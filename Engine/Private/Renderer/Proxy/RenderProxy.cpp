@@ -49,11 +49,6 @@ namespace wtr
         }
     }
 
-    size_t ProxyHasher::operator()(const RenderProxy& proxy) const
-    {
-        return std::hash<ECS::UUID>()(proxy.GetID());
-    }
-
     size_t ProxyHasher::operator()(const Memory::RefPtr<RenderProxy>& refProxy) const
     {
         if (!refProxy)
@@ -61,6 +56,10 @@ namespace wtr
             return 0;
         }
 
-        return std::hash<ECS::UUID>()(refProxy->GetID());
+        const Reflection::TypeInfo* typeInfo = refProxy->GetTypeInfo();
+        size_t seed = std::hash<ECS::UUID>()(refProxy->GetID());
+        seed ^= typeInfo->GetTypeHash() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+
+        return seed;
     }
 }

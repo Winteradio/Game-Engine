@@ -54,9 +54,9 @@ namespace wtr
 			cmdList->SetStencilState(*m_stencil);
 		}
 
-		if (m_clear)
+		if (m_rasterizer)
 		{
-			cmdList->Clear(*m_clear);
+			cmdList->SetRasterizerState(*m_rasterizer);
 		}
 	}
 }

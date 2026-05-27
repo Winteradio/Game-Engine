@@ -206,6 +206,7 @@ namespace wtr
 #endif
 			}
 
+			proxy->ClearDirty();
 			itr = m_addedProxies.Erase(itr);
 		}
 
@@ -253,6 +254,7 @@ namespace wtr
 #endif
 			}
 
+			proxy->ClearDirty();
 			itr = m_updatedProxies.Erase(itr);
 		}
 

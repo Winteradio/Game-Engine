@@ -506,7 +506,6 @@ namespace wtr
 					size_t hash = 0;
 					hash = (hash << 2) | static_cast<size_t>(desc.minFilter);
 					hash = (hash << 2) | static_cast<size_t>(desc.magFilter);
-					hash = (hash << 2) | static_cast<size_t>(desc.mipFilter);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapS);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapR);
 					hash = (hash << 3) | static_cast<size_t>(desc.wrapT);
@@ -588,10 +587,10 @@ namespace wtr
 					desc.face = 1;
 					desc.mipLevels = 1;
 					desc.sampleCount = 1;
-					desc.format = ePixelFormat::eR32G32B32A32_Float;
+					desc.format = ePixelFormat::eR16G16B16A16_UInt;
 					desc.usage = eTextureUsage::eRenderTarget;
 					desc.textureType = eTextureType::eTexture2D;
-					desc.dataType = eDataType::eFloat;
+					desc.dataType = eDataType::eUShort;
 					desc.generateMips = false;
 					desc.compressed = false;
 				}
@@ -860,23 +859,32 @@ namespace wtr
 			}
 
 			RHISamplerCreateDesc desc;
-			desc.minFilter = eFilterMode::eLinear;
-			desc.magFilter = eFilterMode::eLinear;
-			desc.mipFilter = eFilterMode::eLinear;
-
-			switch (slot)
+			if (slot == eResourceSlot::eOpacity)
 			{
-			case eResourceSlot::eOpacity:
+				desc.minFilter = eFilterMode::eLinear;
+				desc.magFilter = eFilterMode::eLinear;
+
 				desc.wrapS = eWrapMode::eClampToEdge;
 				desc.wrapT = eWrapMode::eClampToEdge;
 				desc.wrapR = eWrapMode::eClampToEdge;
-				break;
+			}
+			else if (slot == eResourceSlot::eGPhong)
+			{
+				desc.minFilter = eFilterMode::eNearest;
+				desc.magFilter = eFilterMode::eNearest;
 
-			default:
 				desc.wrapS = eWrapMode::eRepeat;
 				desc.wrapT = eWrapMode::eRepeat;
 				desc.wrapR = eWrapMode::eRepeat;
-				break;
+			}
+			else
+			{
+				desc.minFilter = eFilterMode::eLinear;
+				desc.magFilter = eFilterMode::eLinear;
+
+				desc.wrapS = eWrapMode::eRepeat;
+				desc.wrapT = eWrapMode::eRepeat;
+				desc.wrapR = eWrapMode::eRepeat;
 			}
 
 			return GetSampler(cmdList, desc);
