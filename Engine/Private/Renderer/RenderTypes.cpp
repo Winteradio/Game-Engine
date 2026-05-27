@@ -35,34 +35,46 @@ namespace wtr
 		switch (pixelFormat)
 		{
 		case ePixelFormat::eR8_UNorm:
+		case ePixelFormat::eR8_UInt:
 			return 1;
 
 		case ePixelFormat::eR8G8_UNorm:
+		case ePixelFormat::eR8G8_UInt:
+		case ePixelFormat::eR16_UInt:
 		case ePixelFormat::eR16_Float:
 			return 2;
 
 		case ePixelFormat::eR8G8B8_UNorm:
+		case ePixelFormat::eR8G8B8_UInt:
 			return 3;
 
 		case ePixelFormat::eR8G8B8A8_UNorm:
 		case ePixelFormat::eR8G8B8A8_sRGB:
+		case ePixelFormat::eR8G8B8A8_UInt:
+		case ePixelFormat::eR16G16_UInt:
 		case ePixelFormat::eR16G16_Float:
+		case ePixelFormat::eR32_UInt:
 		case ePixelFormat::eR32_Float:
 		case ePixelFormat::eD24_S8:
 		case ePixelFormat::eD32:
 			return 4;
 
+		case ePixelFormat::eR16G16B16_UInt:
 		case ePixelFormat::eR16G16B16_Float:
 			return 6;
 
 		case ePixelFormat::eR16G16B16A16_UNorm:
+		case ePixelFormat::eR16G16B16A16_UInt:
 		case ePixelFormat::eR16G16B16A16_Float:
+		case ePixelFormat::eR32G32_UInt:
 		case ePixelFormat::eR32G32_Float:
 			return 8;
 
+		case ePixelFormat::eR32G32B32_UInt:
 		case ePixelFormat::eR32G32B32_Float:
 			return 12;
 
+		case ePixelFormat::eR32G32B32A32_UInt:
 		case ePixelFormat::eR32G32B32A32_Float:
 			return 16;
 

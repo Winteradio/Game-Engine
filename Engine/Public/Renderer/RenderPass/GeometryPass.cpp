@@ -142,7 +142,7 @@ namespace wtr
 
 	bool GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_target || m_target->GetState() != eResourceState::eReady)
+		if (!cmdList || !m_clear || !m_target || m_target->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -172,6 +172,7 @@ namespace wtr
 
 		cmdList->SetRenderTarget(m_target);
 		SetState(cmdList);
+		cmdList->ClearRenderTarget(m_target, *m_clear);
 
 		for (const auto& [pipeline, commands] : m_commands)
 		{

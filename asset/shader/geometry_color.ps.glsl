@@ -2,7 +2,7 @@
 
 layout(location = 0) out vec4 tGNormal;
 layout(location = 1) out vec4 tGAlbedo;
-layout(location = 2) out vec4 tGPhong;
+layout(location = 2) out uvec4 tGPhong;
 
 layout(std430, binding = 3) readonly buffer uMaterial
 {
@@ -19,5 +19,23 @@ void main()
 {
 	tGNormal = vec4(outNormal * 0.5 + 0.5, 1.0);
 	tGAlbedo = vec4(material.diffuse, material.opacity);
-	tGPhong = vec4(material.specular * 255.0 + material.emissive * 255.0 * 255.0, material.shininess * 100.0);
+
+ 	float encode = 255.0;   
+	uvec3 spec = uvec3(
+        uint(material.specular.r * float(encode)),
+        uint(material.specular.g * float(encode)),
+        uint(material.specular.b * float(encode))
+    );
+    uvec3 emis = uvec3(
+        uint(material.emissive.r * float(encode)),
+        uint(material.emissive.g * float(encode)),
+        uint(material.emissive.b * float(encode))
+    );
+
+	tGPhong = uvec4(
+        spec.r | (emis.r << 8u),
+        spec.g | (emis.g << 8u),
+        spec.b | (emis.b << 8u),
+        uint(material.shininess)
+    );
 }
