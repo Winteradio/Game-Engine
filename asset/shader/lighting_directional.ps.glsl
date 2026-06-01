@@ -75,13 +75,14 @@ void main()
 
     vec3 incidentDir = normalize(light.direction);
     vec3 viewDir = normalize(camera.position - position);
+    vec3 halfDir = normalize(viewDir - incidentDir);
+
+    vec3 reflectDir = reflect(incidentDir, normal);
 
     float NdotL = max(dot(normal, -incidentDir), 0.0);
-    
-    vec3 reflectDir = reflect(incidentDir, normal);
-    float RdotV = max(dot(reflectDir, viewDir), 0.0);
+    float RdotH = max(dot(reflectDir, halfDir), 0.0);
 
-    vec3 lightOut = (diffuse * NdotL + specular * pow(RdotV, shininess)) * light.color * light.intensity;
+    vec3 lightOut = (diffuse * NdotL + specular * pow(RdotH, shininess)) * light.color * light.intensity;
     lightOut += emissive;
 
     vec3 ambient = albedo.rgb * 0.03;
