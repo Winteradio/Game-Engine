@@ -21,11 +21,24 @@ Every layer is directly controlled — custom containers, purpose-built allocato
 
 ## 📸 Progress & Demo
 
+**Milestone: Spot Light — Angular & Distance Attenuation**  
+Spot Light implemented with `cosine-weighted` angular falloff between `innerAngle` and `outerAngle` (linear blend via epsilon factor).  
+Distance attenuation via `falloff² / (dist² + 1)` (shared with Point Light).  
+Angular cutoff calculated in fragment shader: `smoothstep(outerCos, innerCos, dot(rayDir, direction))`.  
+Fixed angular conversion: `cos(radians(angle))` instead of erroneous `2π * angle / 180`.
+
+*[26-06-02] Spot Light — Multiple lights with proper angle blending*
+
+<img src="asset/screenshot/phong-spot-light.gif" width="700" />
+
+---
+
 **Milestone: Phong Lighting — Directional & Point Light with GBuffer Phong**  
 Replaced PBR with Phong shading (diffuse NdotL + specular RdotV + emissive).  
 GBuffer extended with `tGPhong` (`R16G16B16A16_UInt`): specular packed in lower 8 bits, emissive in upper 8 bits per channel, shininess in alpha.  
 Point light implements smooth distance attenuation with two-sided lighting via `incidentDir` correction.  
-GLSystem extended with UInt pixel format support (`eR8_UInt` ~ `eR32G32B32A32_UInt`).
+GLSystem extended with UInt pixel format support (`eR8_UInt` ~ `eR32G32B32A32_UInt`).  
+**Known Issue:** [Point Light incident direction artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) when light penetrates geometry.
 
 *[26-05-28] Point Light — Phong shading with attenuation*
 
@@ -99,12 +112,13 @@ Core backbone, asset parsers, and foundational RHI rendering pipeline.
 | GeometryPass (GBuffer fill) | ✅ Complete |
 | LightingPass — Directional Light (Phong) | ✅ Complete |
 | LightingPass — Point Light (Phong + attenuation) | ✅ Complete |
+| LightingPass — Spot Light (angular + distance attenuation) | ✅ Complete |
 | GBuffer Phong (tGPhong UInt bit packing) | ✅ Complete |
 | UInt Texture / usampler2D support | ✅ Complete |
 | Asset System (OBJ, MTL, Async pipeline) | ✅ Complete |
 | CullingPass (GPU frustum culling) | 🚧 Stub |
-| Spot Light | 🚧 Planned |
 | Shadow Map | 🚧 Planned |
+| [Point Light: Incident Direction Artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) | 🐛 Known Issue |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
 | DirectX 11 / 12 RHI backend | 🚧 Planned |
 | Physics integration | 🚧 Planned |
