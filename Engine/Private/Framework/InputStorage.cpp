@@ -135,20 +135,14 @@ namespace wtr
 			m_Swapped.exchange(false);
 		}
 
-		if (!IsChanged())
-		{
-			return;
-		}
-
 		for (size_t index = 0; index < sizeof(m_CurrData->keyboard); ++index)
 		{
 			auto& keyData = m_CurrData->keyboard[index];
 			uint8_t lowKey = keyData & 0x0F;
-			lowKey = (static_cast<eInputAction>(lowKey) == eInputAction::eRelease) ? 0 : lowKey;
+			lowKey = (lowKey & static_cast<uint8_t>(eInputAction::eRelease)) != 0 ? 0 : lowKey;
 
 			uint8_t highKey = (keyData >> 4) & 0x0F;
-			highKey = (static_cast<eInputAction>(highKey) == eInputAction::eRelease) ? 0 : highKey;
-
+			highKey = (highKey & static_cast<uint8_t>(eInputAction::eRelease)) != 0 ? 0 : highKey;
 			keyData = (highKey << 4) | lowKey;
 		}
 	}
@@ -165,7 +159,8 @@ namespace wtr
 			{
 				uint8_t currAction = static_cast<uint8_t>(inputDesc.Action);
 
-				m_CurrData->keyboard[keyIndex] = currAction << keyBit;
+				const uint8_t mask = 0x0F << keyBit;
+				m_CurrData->keyboard[keyIndex] = (m_CurrData->keyboard[keyIndex] & ~mask) | ((currAction & 0x0F) << keyBit);
 			}
 		}
 		else if (eInputType::eMouseMove == inputDesc.Type)
@@ -182,8 +177,12 @@ namespace wtr
 		{
 			m_CurrData->windowSize = fvec2(static_cast<float>(inputDesc.X), static_cast<float>(inputDesc.Y));
 		}
+		else if (eInputType::eFocusLost == inputDesc.Type)
+		{
+			*m_CurrData = InputData();
+		}
 		else
-		{}
+		{ }
 	}
 
 	void InputStorage::SwapInput()
@@ -194,7 +193,7 @@ namespace wtr
 
 	bool InputStorage::IsChanged() const
 	{
-		return *m_LogicData != *m_CurrData;
+		return *m_LogicData != *m_CurrData; 
 	}
 
 	bool InputStorage::IsDown(eKeyCode key) const

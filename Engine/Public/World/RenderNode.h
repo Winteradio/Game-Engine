@@ -27,17 +27,17 @@ namespace wtr
 	public :
 		virtual void OnAttached(Scene* scene) = 0;
 		virtual void OnDetached() = 0;
+		virtual void OnUpdated() = 0;
 
 		virtual RenderTask CreateProxy() const = 0;
 		virtual RenderTaskList UpdateProxy() const = 0;
 		virtual RenderTask RemoveProxy() const;
-		virtual void ClearDirty() = 0;
 
 		virtual const COMPONENT_SET& GetComponentSet() const = 0;
 	};
 
 	template<typename... Components>
-	class RenderNode : public ProxyNode
+	class RenderNode : public ProxyNode, public Generation::Node<typename RemoveOptional<Components>::Type...>
 	{
 		GENERATE(RenderNode);
 	public :
@@ -81,10 +81,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 
 	class InstancedStaticMeshNode : public RenderNode<InstancedTransformComponent, StaticMeshComponent, Optional<MaterialComponent>>
@@ -111,10 +111,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 
 	class DynamicMeshNode : public RenderNode<TransformComponent, DynamicMeshComponent, Optional<MaterialComponent>>
@@ -141,10 +141,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 
 	class DirectionalLightNode : public RenderNode<TransformComponent, DirectionalLightComponent>
@@ -167,10 +167,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 
 	class PointLightNode : public RenderNode<TransformComponent, PointLightComponent>
@@ -193,10 +193,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 
 	class SpotLightNode : public RenderNode<TransformComponent, SpotLightComponent>
@@ -219,10 +219,10 @@ namespace wtr
 	public :
 		void OnAttached(Scene* scene) override;
 		void OnDetached() override;
+		void OnUpdated() override;
 
 		RenderTask CreateProxy() const override;
 		RenderTaskList UpdateProxy() const override;
-		void ClearDirty() override;
 	};
 };
 

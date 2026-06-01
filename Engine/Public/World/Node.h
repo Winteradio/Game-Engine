@@ -9,6 +9,63 @@
 
 namespace wtr
 {
+	namespace Generation
+	{
+		template<typename...>
+		class Node {};
+
+		template<>
+		class Node<> {};
+
+		template<typename Head, typename... Tails>
+		class Node<Head, Tails...> : Node<Tails...>
+		{
+		public:
+			Node() : m_lastSeen(0) {};
+			virtual ~Node() = default;
+
+		public:
+			template<typename T>
+			bool IsDirty(Memory::ObjectPtr<T> component) const
+			{
+				if (!component)
+				{
+					return false;
+				}
+
+				if constexpr (Reflection::Utils::IsSame<Head, T>::value)
+				{
+					return component->GetGeneration() != m_lastSeen;
+				}
+				else
+				{
+					return Node<Tails...>::IsDirty(component);
+				}
+			};
+
+			template<typename T>
+			void OnSynced(Memory::ObjectPtr<T> component)
+			{
+				if (!component)
+				{
+					return;
+				}
+
+				if constexpr (Reflection::Utils::IsSame<Head, T>::value)
+				{
+					m_lastSeen = component->GetGeneration();
+				}
+				else
+				{
+					Node<Tails...>::OnSynced(component);
+				}
+			}
+
+		private:
+			uint64_t m_lastSeen;
+		};
+	};
+
 	template<typename T>
 	struct Optional
 	{};
@@ -75,7 +132,7 @@ namespace wtr
 	};
 
 	template<typename... Components>
-	class Node : public BaseNode
+	class Node : public BaseNode, public Generation::Node<typename RemoveOptional<Components>::Type...>
 	{
 		GENERATE(Node);
 	public:
