@@ -56,6 +56,21 @@ namespace wtr
 		}
 	}
 
+	void StaticMeshNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (mesh)
+		{
+			OnSynced(mesh);
+			mesh->OnFlushed();
+		}
+	}
+
 	RenderTask StaticMeshNode::CreateProxy() const
 	{
 		Memory::RefPtr<StaticPrimitiveProxy> proxy = Memory::MakeRef<StaticPrimitiveProxy>(GetID());
@@ -105,7 +120,7 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
-		if (mesh && mesh->IsChanged())
+		if (IsDirty(mesh))
 		{
 			RenderTask meshTask;
 			meshTask.func = [id = GetID(),
@@ -125,17 +140,18 @@ namespace wtr
 						return;
 					}
 
-					proxy->SetMesh(meshAsset);
-					renderScene->RemoveProxy(proxy);
-					renderScene->AddProxy(proxy);
+					if (proxy->GetMesh() != meshAsset)
+					{
+						proxy->SetMesh(meshAsset);
+						renderScene->RemoveProxy(proxy);
+						renderScene->AddProxy(proxy);
+					}
 				};
 
 			taskList.PushBack(meshTask);
-
-			mesh->ClearChanged();
 		}
 
-		if (transform && transform->IsDirty())
+		if (IsDirty(transform))
 		{
 			RenderTask transformTask;
 			transformTask.func = [id = GetID(),
@@ -168,19 +184,6 @@ namespace wtr
 		return taskList;
 	}
 
-	void StaticMeshNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (mesh)
-		{
-			mesh->ClearDirty();
-		}
-	}
-
 	void InstancedStaticMeshNode::OnAttached(Scene* scene)
 	{
 		if (transform)
@@ -204,6 +207,21 @@ namespace wtr
 		if (mesh)
 		{
 			mesh->OnDetached();
+		}
+	}
+
+	void InstancedStaticMeshNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (mesh)
+		{
+			OnSynced(mesh);
+			mesh->OnFlushed();
 		}
 	}
 
@@ -259,7 +277,7 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
-		if (mesh && mesh->IsChanged())
+		if (IsDirty(mesh))
 		{
 			RenderTask meshTask;
 			meshTask.func = [id = GetID(),
@@ -279,17 +297,18 @@ namespace wtr
 						return;
 					}
 
-					proxy->SetMesh(meshAsset);
-					renderScene->RemoveProxy(proxy);
-					renderScene->AddProxy(proxy);
+					if (proxy->GetMesh() != meshAsset)
+					{
+						proxy->SetMesh(meshAsset);
+						renderScene->RemoveProxy(proxy);
+						renderScene->AddProxy(proxy);
+					}
 				};
 
 			taskList.PushBack(meshTask);
-
-			mesh->ClearChanged();
 		}
 		
-		if (transform && transform->IsDirty())
+		if (IsDirty(transform))
 		{
 			RenderTask transformTask;
 			transformTask.func = [id = GetID(),
@@ -329,19 +348,6 @@ namespace wtr
 		return taskList;
 	}
 
-	void InstancedStaticMeshNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (mesh)
-		{
-			mesh->ClearDirty();
-		}
-	}
-
 	void DynamicMeshNode::OnAttached(Scene* scene)
 	{
 		if (transform)
@@ -368,6 +374,21 @@ namespace wtr
 		}
 	}
 
+	void DynamicMeshNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (mesh)
+		{
+			OnSynced(mesh);
+			mesh->OnFlushed();
+		}
+	}
+
 	RenderTask DynamicMeshNode::CreateProxy() const
 	{
 		RenderTask task;
@@ -382,19 +403,6 @@ namespace wtr
 		return {};
 
 		// TODO
-	}
-
-	void DynamicMeshNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (mesh)
-		{
-			mesh->ClearDirty();
-		}
 	}
 
 	void DirectionalLightNode::OnAttached(Scene* scene)
@@ -420,6 +428,21 @@ namespace wtr
 		if (light)
 		{
 			light->OnDetached();
+		}
+	}
+
+	void DirectionalLightNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (light)
+		{
+			OnSynced(light);
+			light->OnFlushed();
 		}
 	}
 
@@ -465,7 +488,7 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
-		if (transform && transform->IsDirty())
+		if (IsDirty(transform))
 		{
 			RenderTask transformTask;
 			transformTask.func = [id = GetID(),
@@ -493,7 +516,7 @@ namespace wtr
 			taskList.PushBack(transformTask);
 		}
 
-		if (light && light->IsDirty())
+		if (IsDirty(light))
 		{
 			RenderTask lightTask;
 			lightTask.func = [id = GetID(),
@@ -528,19 +551,6 @@ namespace wtr
 		return taskList;
 	}
 
-	void DirectionalLightNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (light)
-		{
-			light->ClearDirty();
-		}
-	}
-
 	void PointLightNode::OnAttached(Scene* scene)
 	{
 		if (transform)
@@ -564,6 +574,21 @@ namespace wtr
 		if (light)
 		{
 			light->OnDetached();
+		}
+	}
+
+	void PointLightNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (light)
+		{
+			OnSynced(light);
+			light->OnFlushed();
 		}
 	}
 
@@ -609,7 +634,7 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
-		if (transform && transform->IsDirty())
+		if (IsDirty(transform))
 		{
 			RenderTask transformTask;
 			transformTask.func = [id = GetID(),
@@ -637,7 +662,7 @@ namespace wtr
 			taskList.PushBack(transformTask);
 		}
 
-		if (light && light->IsDirty())
+		if (IsDirty(light))
 		{
 			RenderTask lightTask;
 			lightTask.func = [id = GetID(),
@@ -674,19 +699,6 @@ namespace wtr
 		return taskList;
 	}
 
-	void PointLightNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (light)
-		{
-			light->ClearDirty();
-		}
-	}
-
 	void SpotLightNode::OnAttached(Scene* scene)
 	{
 		if (transform)
@@ -710,6 +722,21 @@ namespace wtr
 		if (light)
 		{
 			light->OnDetached();
+		}
+	}
+
+	void SpotLightNode::OnUpdated()
+	{
+		if (transform)
+		{
+			OnSynced(transform);
+			transform->OnFlushed();
+		}
+
+		if (light)
+		{
+			OnSynced(light);
+			light->OnFlushed();
 		}
 	}
 
@@ -755,7 +782,7 @@ namespace wtr
 	{
 		RenderTaskList taskList;
 
-		if (transform && transform->IsDirty())
+		if (IsDirty(transform))
 		{
 			RenderTask transformTask;
 			transformTask.func = [id = GetID(),
@@ -783,7 +810,7 @@ namespace wtr
 			taskList.PushBack(transformTask);
 		}
 
-		if (light && light->IsDirty())
+		if (IsDirty(light))
 		{
 			RenderTask lightTask;
 			lightTask.func = [id = GetID(),
@@ -822,18 +849,5 @@ namespace wtr
 		}
 
 		return taskList;
-	}
-
-	void SpotLightNode::ClearDirty()
-	{
-		if (transform)
-		{
-			transform->ClearDirty();
-		}
-
-		if (light)
-		{
-			light->ClearDirty();
-		}
 	}
 }

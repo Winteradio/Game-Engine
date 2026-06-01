@@ -11,6 +11,7 @@ namespace wtr
 {
 	enum class eDirtyProxy : uint8_t;
 
+	class BaseComponent;
 	class ProxyNode;
 	class Commander;
 };
@@ -42,7 +43,7 @@ namespace wtr
 		void Detach(const ECS::UUID& entityId);
 		void DetachAll();
 		
-		void Update(const ECS::UUID& entityId, const Reflection::TypeInfo* componentType);
+		void Update(BaseComponent* component);
 
 	private :
 		void FlushAdded();

@@ -6,10 +6,42 @@
 
 namespace wtr
 {
+	namespace Generation
+	{
+		Component::Component()
+			: m_generation(0)
+			, m_pending(0)
+		{
+		}
+
+		uint64_t Component::GetGeneration() const
+		{
+			return m_generation;
+		}
+
+		void Component::OnPending()
+		{
+			 if (m_pending < ULLONG_MAX && m_pending++ == 0)
+			 {
+			     m_generation++;
+			 }
+		}
+
+		void Component::OnFlushed()
+		{
+			m_pending -= (m_pending > 0) ? 1 : 0;
+		}
+
+		bool Component::IsPending() const
+		{
+			return m_pending != 0;
+		}
+	}
+
 	ProxyComponent::ProxyComponent()
 		: m_scene(nullptr)
-		, m_isDirty(false)
-	{}
+	{
+	}
 
 	void ProxyComponent::OnAttached(Scene* scene)
 	{
@@ -29,24 +61,12 @@ namespace wtr
 
 	void ProxyComponent::OnUpdate()
 	{
-		const bool wasDirty = IsDirty();
-		m_isDirty = true;
+		const bool pending = IsPending();
 
-		if (m_scene) //&& !wasDirty)
+		if (m_scene && !pending)
 		{
-			m_scene->Update(GetID(), this->GetTypeInfo());
+			m_scene->Update(this);
 		}
-	}
-
-	void ProxyComponent::ClearDirty()
-	{
-		m_isDirty = false;
-	}
-
-	bool ProxyComponent::IsDirty() const
-	{
-		//return m_isDirty;
-		return true;
 	}
 
 	TransformComponent::TransformComponent()
@@ -414,21 +434,6 @@ namespace wtr
 	{
 	}
 
-	bool MeshComponent::IsChanged() const
-	{
-		return m_isChanged;
-	}
-
-	void MeshComponent::OnChanged()
-	{
-		m_isChanged = true;
-	}
-
-	void MeshComponent::ClearChanged()
-	{
-		m_isChanged = false;
-	}
-
 	StaticMeshComponent::StaticMeshComponent(Memory::RefPtr<const Asset> refAsset)
 		: MeshComponent()
 		, m_refMesh(nullptr)
@@ -442,8 +447,6 @@ namespace wtr
 		if (refMesh)
 		{
 			m_refMesh = refMesh;
-
-			this->IsChanged();
 		}
 	}
 
@@ -461,7 +464,6 @@ namespace wtr
 
 		m_refMesh = meshAsset;
 
-		this->OnChanged();
 		this->OnUpdate();
 	}
 
@@ -478,8 +480,6 @@ namespace wtr
 		if (refMesh)
 		{
 			m_refMesh = refMesh;
-
-			this->IsChanged();
 		}
 	}
 
@@ -537,7 +537,6 @@ namespace wtr
 
 		m_refMesh = meshAsset;
 
-		this->OnChanged();
 		this->OnUpdate();
 	}
 

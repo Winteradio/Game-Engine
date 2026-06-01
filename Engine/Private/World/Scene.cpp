@@ -67,7 +67,7 @@ namespace wtr
 			}
 
 			auto createTask = node->CreateProxy();
-			node->ClearDirty();
+			node->OnUpdated();
 
 			if (!createTask.func)
 			{
@@ -124,7 +124,7 @@ namespace wtr
 			}
 
 			auto updateTaskList = node->UpdateProxy();
-			node->ClearDirty();
+			node->OnUpdated();
 
 			for (auto& updateTask : updateTaskList)
 			{
@@ -222,19 +222,21 @@ namespace wtr
 		m_refCommander->RemoveAll();
 	}
 
-	void Scene::Update(const ECS::UUID& entityId, const Reflection::TypeInfo* componentType)
+	void Scene::Update(BaseComponent* component)
 	{
-		if (!m_refCommander)
+		if (!m_refCommander || !component)
 		{
 			return;
 		}
 
-		auto itr = m_proxyIDs.Find(entityId);
+		const ECS::UUID& entityID = component->GetID();
+		auto itr = m_proxyIDs.Find(entityID);
 		if (itr == m_proxyIDs.End())
 		{
 			return;
 		}
 
+		const Reflection::TypeInfo* componentType = component->GetTypeInfo();
 		for (const auto& proxyID : itr->second)
 		{
 			auto& proxyNode = m_proxies[proxyID];
@@ -246,6 +248,7 @@ namespace wtr
 			const auto& componentSet = proxyNode->GetComponentSet();
 			if (componentSet.Find(componentType) != componentSet.End())
 			{
+				component->OnPending();
 				m_updatedProxies.Insert(proxyID);
 			}
 		}

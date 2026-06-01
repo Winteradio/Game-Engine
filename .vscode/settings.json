@@ -83,5 +83,9 @@
         "xtree": "cpp",
         "xutility": "cpp"
     },
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+ 
+    "cmake.configureSettings": {
+        "CMAKE_GENERATOR": "Visual Studio 18 2026"
+    }
 }

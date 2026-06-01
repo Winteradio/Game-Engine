@@ -68,6 +68,7 @@ namespace wtr
 		eMouseMove,
 		eMouseScroll,
 		eWindowResize,
+		eFocusLost,
 		eEnd
 	};
 

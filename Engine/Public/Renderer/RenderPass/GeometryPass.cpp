@@ -128,9 +128,7 @@ namespace wtr
 		if (!m_rasterizer)
 		{
 			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-			m_rasterizer->cullEnable = true;
-			m_rasterizer->cullFace = eCullFace::eBack;
-			m_rasterizer->frontFace = eFrontFace::eCCW;
+			m_rasterizer->cullEnable = false;
 		}
 
 		if (!m_blend)

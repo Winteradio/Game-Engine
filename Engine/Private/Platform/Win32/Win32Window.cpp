@@ -116,6 +116,13 @@ namespace wtr
 		MSG msg;
 		ZeroMemory(&msg, sizeof(MSG));
 
+		if (GetForegroundWindow() != m_windowHandle && m_refInputHandler != nullptr)
+		{
+			InputDesc desc;
+			desc.Type = eInputType::eFocusLost;
+			m_refInputHandler->OnInputEvent(desc);
+		}
+
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 			if (msg.message == WM_QUIT)

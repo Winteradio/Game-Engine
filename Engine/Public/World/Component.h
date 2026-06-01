@@ -14,7 +14,28 @@ namespace wtr
 
 namespace wtr
 {
-	class BaseComponent : public ECS::Component
+	namespace Generation
+	{
+		class Component
+		{
+		public:
+			Component();
+			~Component() = default;
+
+		public:
+			uint64_t GetGeneration() const;
+
+			void OnPending();
+			void OnFlushed();
+			bool IsPending() const;
+
+		private:
+			uint64_t m_generation;
+			uint64_t m_pending;
+		};
+	};
+
+	class BaseComponent : public ECS::Component, public Generation::Component
 	{
 		GENERATE(BaseComponent);
 
@@ -57,16 +78,11 @@ namespace wtr
 		void OnAttached(Scene* scene);
 		void OnDetached();
 
-		void ClearDirty();
-		bool IsDirty() const;
-
 	protected : 
 		void OnUpdate();
 
 	private :
 		Scene* m_scene;
-
-		bool m_isDirty;
 	};
 
 	class TransformComponent : public ProxyComponent
@@ -226,13 +242,6 @@ namespace wtr
 
 	public :
 		virtual Memory::RefPtr<const MeshAsset> GetMeshAsset() const = 0;
-
-		bool IsChanged() const;
-		void OnChanged();
-		void ClearChanged();
-
-	private :
-		bool m_isChanged;
 	};
 
 	class StaticMeshComponent : public MeshComponent
