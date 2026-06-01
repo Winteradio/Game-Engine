@@ -16,6 +16,10 @@ namespace demo
 
 		private :
 			bool InitEntity();
+			bool InitBase();
+			bool InitCube();
+			bool InitPointLight();
+			bool InitSpotLight();
 			bool InitSystem();
 	};
 };

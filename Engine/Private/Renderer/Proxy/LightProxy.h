@@ -48,7 +48,7 @@ namespace wtr
         virtual Light* GetLightData() = 0;
     
     protected :
-        struct Light
+        struct alignas(16) Light
         {
             alignas(16) fvec3 color = fvec3(1.f);
             alignas(16) fvec3 pos = fvec3(0.f);
@@ -84,7 +84,7 @@ namespace wtr
         Light* GetLightData() override;
 
     private :
-        struct DirectionalLight : Light
+        struct alignas(16) DirectionalLight : Light
         {
             alignas(16) fvec3 direction = BASE_DIR;
         };
@@ -115,7 +115,7 @@ namespace wtr
         Light* GetLightData() override;
     
     private :
-        struct PointLight : Light
+        struct alignas(16) PointLight : Light
         {
             alignas(4) float range = 30.f;
         };
@@ -148,12 +148,12 @@ namespace wtr
         Light* GetLightData() override;
 
     private :
-        struct SpotLight : Light
+        struct alignas(16) SpotLight : Light
         {
             alignas(16) fvec3 direction = BASE_DIR;
-            float range = 0.f;
-            float innerAngle = 30.f;
-            float outerAngle = 90.f;
+            alignas(4) float range = 0.f;
+            alignas(4) float innerAngle = 30.f;
+            alignas(4) float outerAngle = 90.f;
         };
 
         Memory::RefPtr<ScalarData<SpotLight>> m_spot;
