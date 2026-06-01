@@ -63,7 +63,7 @@ namespace wtr
 		const double seconds = ECS::TimeStep::ToSecond(timeStep.delta);
 
 		constexpr float MAX_HEIGHT = 1.5f;
-		constexpr float MIN_HEIGHT = 0.1f;
+		constexpr float MIN_HEIGHT = 0.5f;
 		static float height = 0.f;
 		static bool upper = true;
 

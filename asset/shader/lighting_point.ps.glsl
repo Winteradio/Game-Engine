@@ -78,16 +78,17 @@ void main()
 
 	vec3 incidentDir = rayDir - 2.0 * max(dot(normal, rayDir), 0.0) * normal;
 	vec3 reflectDir = reflect(incidentDir, normal);
+	vec3 halfDir = normalize(viewDir - incidentDir);
 
 	float NdotL = dot(normal, -incidentDir);
-    float RdotV = max(dot(reflectDir, viewDir), 0.0);
+    float RdotH = max(dot(reflectDir, halfDir), 0.0);
 
     float lightDist = length(light.position - position);
     float distRatio = lightDist / max(light.range, 0.0001);
     float falloff     = clamp(1.0 - distRatio * distRatio, 0.0, 1.0);
     float attenuation = falloff / (lightDist * lightDist + 1.0);
 
-    vec3 lightOut = (diffuse * abs(NdotL) + specular * pow(RdotV, shininess)) * light.color * light.intensity * attenuation;
+    vec3 lightOut = (diffuse * abs(NdotL) + specular * pow(RdotH, shininess)) * light.color * light.intensity * attenuation;
     lightOut += emissive;
 
     FragColor = vec4(lightOut, opacity);

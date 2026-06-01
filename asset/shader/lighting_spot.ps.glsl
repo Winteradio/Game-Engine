@@ -12,7 +12,10 @@ layout(std430, binding = 0) readonly buffer uLight
 	vec3 color;
 	vec3 position;
 	float intensity;
+    vec3 direction;
     float range;
+    float innerAngle;
+    float outerAngle;
 } light;
 
 layout(std140, binding = 1) uniform uCamera
@@ -78,16 +81,24 @@ void main()
 
 	vec3 incidentDir = rayDir - 2.0 * max(dot(normal, rayDir), 0.0) * normal;
 	vec3 reflectDir = reflect(incidentDir, normal);
+	vec3 halfDir = normalize(viewDir - incidentDir);
 
 	float NdotL = dot(normal, -incidentDir);
-    float RdotV = max(dot(reflectDir, viewDir), 0.0);
+    float RdotH = max(dot(reflectDir, halfDir), 0.0);
+
+	float cosInner = cos(radians(light.innerAngle));
+	float cosOuter = cos(radians(light.outerAngle));
+	float cosTheta = dot(rayDir, light.direction);
+
+	float epsilon = cosInner - cosOuter;
+	float intensity = clamp((cosTheta - cosOuter) / epsilon, 0.0, 1.0) * light.intensity;
 
     float lightDist = length(light.position - position);
     float distRatio = lightDist / max(light.range, 0.0001);
     float falloff     = clamp(1.0 - distRatio * distRatio, 0.0, 1.0);
     float attenuation = falloff / (lightDist * lightDist + 1.0);
 
-    vec3 lightOut = (diffuse * abs(NdotL) + specular * pow(RdotV, shininess)) * light.color * light.intensity * attenuation;
+    vec3 lightOut = (diffuse * abs(NdotL) + specular * pow(RdotH, shininess)) * light.color * intensity * attenuation;
     lightOut += emissive;
 
     FragColor = vec4(lightOut, opacity);
