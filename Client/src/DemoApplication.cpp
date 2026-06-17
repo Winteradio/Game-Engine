@@ -8,6 +8,11 @@
 #include <World/RenderNode.h>
 #include <World/Entity.h>
 #include <World/System/MoveSystem.h>
+#include <World/System/CameraSystem.h>
+
+#include <Framework/ViewController.h>
+#include <Framework/Window.h>
+
 #include <Log/include/Log.h>
 
 #include <random>
@@ -28,6 +33,13 @@ namespace demo
 		{
 			LOGERROR() << "[Game] Failed to initialize the entity";
 
+			onShutdown();
+			return;
+		}
+
+		if (!InitMultiView())
+		{
+			LOGERROR() << "[Game] Failed to initialize the multi view";
 			onShutdown();
 			return;
 		}
@@ -54,17 +66,17 @@ namespace demo
 			return false;
 		}
 
-		if (!InitPointLight())
-		{
-			LOGERROR() << "[Game] Failed to initialize the point light entities";
-			return false;
-		}
+		//if (!InitPointLight())
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the point light entities";
+		//	return false;
+		//}
 
-		if (!InitSpotLight())
-		{
-			LOGERROR() << "[Game] Failed to initialize the spot light entities";
-			return false;
-		}
+		//if (!InitSpotLight())
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the spot light entities";
+		//	return false;
+		//}
 
 		return true;
 	}
@@ -285,6 +297,35 @@ namespace demo
 		return true;
 	}
 
+	bool Game::InitMultiView()
+	{
+		const auto& windowDesc = GetWindowDesc();
+
+		wtr::ViewInfo mainView;
+		mainView.SetName("Main View");
+		mainView.SetPosition(0, 0);
+		mainView.SetSize(windowDesc.Width, windowDesc.Height);
+
+		//wtr::ViewInfo debugView;
+		//debugView.SetName("Debug View");
+		//debugView.SetPosition(windowDesc.Width * 3.f / 4.f, windowDesc.Height * 3.f / 4.f);
+		//debugView.SetSize(windowDesc.Width / 4.f, windowDesc.Height / 4.f);
+
+		if (!InitView(mainView))
+		{
+			LOGERROR() << "[Game] Failed to initialize the main view";
+			return false;
+		}
+		
+		//if (!InitView(debugView, false))
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the debug view";
+		//	return false;
+		//}
+
+		return true;
+	}
+
 	bool Game::InitSystem()
 	{
 		auto world = GetWorld();
@@ -294,12 +335,16 @@ namespace demo
 			return false;
 		}
 
-		//auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
-		//if (!moveSystem)
-		//{
-		//	LOGERROR() << "[Game] Failed to create the render system";
-		//	return false;
-		//}
+		{
+			auto cameraSystem = world->CreateSystem<wtr::CameraSystem>();
+			if (!cameraSystem)
+			{
+				LOGERROR() << "[Application] Failed to create the camera system";
+				return false;
+			}
+
+			cameraSystem->SetInputStorage(GetInputStorage());
+		}
 
 		{
 			auto moveSystem = world->CreateSystem<wtr::LightMoveSystem>();
@@ -309,6 +354,13 @@ namespace demo
 				return false;
 			}
 		}
+
+		//auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
+		//if (!moveSystem)
+		//{
+		//	LOGERROR() << "[Game] Failed to create the render system";
+		//	return false;
+		//}
 
 		//auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
 		//if (!instancedMoveSystem)

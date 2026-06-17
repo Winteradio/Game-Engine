@@ -27,13 +27,6 @@ namespace wtr
 			return;
 		}
 
-		if (!InitDefault())
-		{
-			LOGERROR() << "[Application] Failed to initialize the default settings";
-			onShutdown();
-			return;
-		}
-
 		onSetup();
 	}
 
@@ -78,7 +71,7 @@ namespace wtr
 		return true;
 	}
 
-	bool Application::InitDefault()
+	bool Application::InitView(const ViewInfo viewInfo, const bool fixedCamera)
 	{
 		auto world = GetWorld();
 		auto views = GetViewController();
@@ -89,15 +82,6 @@ namespace wtr
 			return false;
 		}
 
-		auto cameraSystem = world->CreateSystem<CameraSystem>();
-		if (!cameraSystem)
-		{
-			LOGERROR() << "[Application] Failed to create the camera system";
-			return false;
-		}
-
-		cameraSystem->SetInputStorage(GetInputStorage());
-
 		auto cameraEntity = world->CreateEntity();
 		if (!cameraEntity)
 		{
@@ -105,11 +89,17 @@ namespace wtr
 			return false;
 		}
 
-		const auto windowDesc = GetWindowDesc();
-
 		cameraEntity->AddComponent<wtr::TransformComponent>();
 		cameraEntity->AddComponent<wtr::CameraComponent>();
-		cameraEntity->AddNode<wtr::CameraNode>();
+
+		if (fixedCamera)
+		{
+			cameraEntity->AddNode<wtr::FixedCameraNode>();
+		}
+		else
+		{
+			cameraEntity->AddNode<wtr::CameraNode>();
+		}
 
 		auto transformComponent = cameraEntity->GetComponent<wtr::TransformComponent>();
 		if (transformComponent)
@@ -123,12 +113,10 @@ namespace wtr
 		{
 			cameraComponent->nearPlane = 1.f;
 			cameraComponent->farPlane = 1000.0f;
-			cameraComponent->width = static_cast<float>(windowDesc.Width);
-			cameraComponent->height = static_cast<float>(windowDesc.Height);
+			cameraComponent->width = static_cast<float>(viewInfo.GetWidth());
+			cameraComponent->height = static_cast<float>(viewInfo.GetHeight());
 			cameraComponent->perspective = true;
 		}
-
-		LOGINFO() << "[Application] Camera Entity ID : " << cameraEntity->GetID().ToString();
 
 		auto cameraPlayer = players->Create(cameraEntity);
 		if (!cameraPlayer)
@@ -137,19 +125,18 @@ namespace wtr
 			return false;
 		}
 
-		auto mainView = views->Create("MainView");
-		if (!mainView)
+		auto view = views->Create(viewInfo.GetName());
+		if (!view)
 		{
 			LOGERROR() << "[Application] Failed to create the main view";
 			return false;
 		}
 
-		mainView->SetSize(static_cast<uint16_t>(windowDesc.Width), static_cast<uint16_t>(windowDesc.Height));
+		view->SetPosition(viewInfo.GetPosX(), viewInfo.GetPosY());
+		view->SetSize(viewInfo.GetWidth(), viewInfo.GetHeight());
 
 		cameraPlayer->Activate();
-		cameraPlayer->Register(mainView);
-
-		return true;
+		cameraPlayer->Register(view);
 	}
 
 	WindowDesc Application::GetWindowDesc() const

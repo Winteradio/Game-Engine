@@ -60,8 +60,8 @@ namespace wtr
 			return false;
 		}
 
-#ifdef __GL_DEBUG__
 		m_context.MakeCurrent();
+#ifdef __GL_DEBUG__
 
 			glEnable(GL_DEBUG_OUTPUT);
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -74,11 +74,11 @@ namespace wtr
 				},
 				nullptr
 			);
-
-		m_context.ReleaseCurrent();
 #endif
 
 		InitializeState();
+
+		m_context.ReleaseCurrent();
 
 		return true;
 	}
@@ -140,6 +140,8 @@ namespace wtr
 		glGetFloatv(GL_COLOR_CLEAR_VALUE, fvals); m_clearState.color = { fvals[0], fvals[1], fvals[2], fvals[3] };
 		glGetFloatv(GL_DEPTH_CLEAR_VALUE, fvals); m_clearState.depth = fvals[0];
 		glGetIntegerv(GL_STENCIL_CLEAR_VALUE, ivals); m_clearState.stencil = static_cast<uint32_t>(ivals[0]);
+
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		m_clearState.clearBuffer = eClearBuffer::eNone;
 	}

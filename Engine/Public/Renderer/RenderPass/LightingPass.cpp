@@ -14,6 +14,7 @@
 namespace wtr
 {
 	LightingPass::LightingPass()
+		: m_lights()
 	{}
 
 	eResourceState LightingPass::GetResourceState() const

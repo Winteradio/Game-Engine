@@ -10,6 +10,7 @@ namespace wtr
 {
 	class World;
 	class ViewController;
+	class ViewInfo;
 	class PlayerController;
 	class Renderer;
 };
@@ -31,7 +32,7 @@ namespace wtr
 			
 		protected:
 			bool InitEngine(const wtr::WindowDesc& windowDesc, const wtr::RenderDesc& renderDesc);
-			bool InitDefault();
+			bool InitView(const ViewInfo viewInfo, const bool fixedCamera = false);
 
 			virtual WindowDesc GetWindowDesc() const;
 			virtual RenderDesc GetRenderDesc() const;

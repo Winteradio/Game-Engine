@@ -14,8 +14,8 @@ namespace wtr
 	class PrimitiveProxy;
 	class LightProxy;
 
+	struct RenderView;
 	struct ProxyHasher;
-	struct UpdateProxyInfo;
 
 	class MeshBatch;
 	
@@ -50,6 +50,7 @@ namespace wtr
 
 			void UpdateProxy(Memory::RefPtr<SceneProxy> proxy);
 			void UpdateProxy(const ECS::UUID& id);
+			void UpdateView(const RenderView& renderView);
 
 			void RemoveProxy(Memory::RefPtr<SceneProxy> proxy);
 			void RemoveProxy(const ECS::UUID& id);

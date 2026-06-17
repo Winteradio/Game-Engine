@@ -112,6 +112,14 @@ namespace wtr
 		};
 
 		wtr::DynamicArray<DataRange> dataRanges;
+
+		RHIBufferCreateDesc& operator=(const RHIBufferDesc& desc)
+		{
+			if (this != &desc)
+			{
+				return RHIBufferDesc::operator=(desc);
+			}
+		}
 	};
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc

@@ -7,6 +7,7 @@
 #include <Renderer/Proxy/LightProxy.h>
 #include <Renderer/RenderPass/TransformPass.h>
 #include <Renderer/RenderPass/CullingPass.h>
+#include <Renderer/RenderPass/ShadowPass.h>
 #include <Renderer/RenderPass/GeometryPass.h>
 #include <Renderer/RenderPass/LightingPass.h>
 #include <RHI/RHIResources.h>
@@ -30,30 +31,31 @@ namespace wtr
 	bool RenderGraph::Init(Memory::RefPtr<RHICommandList> cmdList)
 	{
 		Memory::RefPtr<TransformPass> transformPass = Memory::MakeRef<TransformPass>();
-		//Memory::RefPtr<CullingPass> cullingPass = Memory::MakeRef<CullingPass>();
+		Memory::RefPtr<ShadowPass> shadowPass = Memory::MakeRef<ShadowPass>();
 		Memory::RefPtr<GeometryPass> geometryPass = Memory::MakeRef<GeometryPass>();
 		Memory::RefPtr<LightingPass> lightingPass = Memory::MakeRef<LightingPass>();
 
-		if (!transformPass || !geometryPass || !lightingPass)
-		//if (!transformPass || !cullingPass || !geometryPass || !lightingPass)
+		if (!transformPass || !shadowPass || !geometryPass || !lightingPass)
 		{
 			return false;
 		}
 
+		shadowPass->InitState();
 		geometryPass->InitState();
 		lightingPass->InitState();
 
 		Add(transformPass);
-		//Add(cullingPass);
+		Add(shadowPass);
 		Add(geometryPass);
 		Add(lightingPass);
 
 		auto& transformNode = GetNode(transformPass->GetID());
-		//auto& cullingNode = GetNode(cullingPass->GetID());
+		auto& shadowNode = GetNode(shadowPass->GetID());
 		auto& geometryNode = GetNode(geometryPass->GetID());
 		auto& lightingNode = GetNode(lightingPass->GetID());
 
-		geometryNode.SetDependency(transformNode);
+		shadowNode.SetDependency(transformNode);
+		geometryNode.SetDependency(shadowNode);
 		lightingNode.SetDependency(geometryNode);
 
 		return GlobalResource::Init(cmdList);
@@ -221,14 +223,14 @@ namespace wtr
 			}
 		}
 
-		cmdList->Resize(renderView.viewport.posX, renderView.viewport.posY, renderView.viewport.width, renderView.viewport.height);
-
 		for (const auto& renderPass : GetSorted())
 		{
 			if (!renderPass || renderPass->GetResourceState() != eResourceState::eReady)
 			{
 				break;
 			}
+
+			cmdList->Resize(renderView.viewport.posX, renderView.viewport.posY, renderView.viewport.width, renderView.viewport.height);
 
 			if (!renderPass->Draw(m_drawCommands, m_lightProxies, cmdList))
 			{

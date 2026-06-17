@@ -100,13 +100,13 @@ namespace wtr
 		virtual ~ShadowVSState() = default;
 	};
 
-	class ShadowPSState : public ShaderState
+	class ShadowGSState : public ShaderState
 	{
-		GENERATE(ShadowPSState);
+		GENERATE(ShadowGSState);
 	public:
 		using ShaderState::ShaderState;
 
-		virtual ~ShadowPSState() = default;
+		virtual ~ShadowGSState() = default;
 	};
 
 	class ForwardVSState : public ShaderState

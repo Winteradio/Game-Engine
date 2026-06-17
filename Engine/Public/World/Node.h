@@ -165,6 +165,13 @@ namespace wtr
 		fmat4 GetViewMatrix() const;
 		fmat4 GetProjectionMatrix() const;
 	};
+
+	class FixedCameraNode : public CameraNode
+	{
+		GENERATE(FixedCameraNode);
+	public:
+		using CameraNode::CameraNode;
+	};
 };
 
 #endif // __WTR_NODE_H__

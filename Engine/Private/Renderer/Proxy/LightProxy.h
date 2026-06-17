@@ -10,6 +10,7 @@ namespace wtr
 {
     enum class eResourceState : uint8_t;
     
+    struct RenderView;
     class RHIBuffer;
     class RHITexture;
     class RHIRenderTarget;
@@ -30,6 +31,11 @@ namespace wtr
         eResourceState GetResourceState() const override;
         bool IsUploadable() const override;
         void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
+        virtual void UpdateView(const RenderView& renderView) = 0;
+
+        virtual const float GetViewWidth() const = 0;
+        virtual const float GetViewHeight() const = 0;
+        virtual const fvec2 GetViewDepth() const = 0;
 
     public :
         void SetLightType(const eLightType lightType);
@@ -43,6 +49,8 @@ namespace wtr
         Memory::RefPtr<const RHIRenderTarget> GetShadowTarget() const;
 
 		const LightDesc& GetLightDesc() const;
+        Memory::RefPtr<const ScalarData<fmat4>> GetLightView() const;
+        Memory::RefPtr<const ScalarData<fmat4>> GetLightProj() const;
 
     private :
         virtual Light* GetLightData() = 0;
@@ -56,6 +64,9 @@ namespace wtr
         };
 
 		LightDesc m_lightDesc;
+
+        Memory::RefPtr<ScalarData<fmat4>> m_lightView;
+        Memory::RefPtr<ScalarData<fmat4>> m_lightProj;
 
         Memory::RefPtr<RHIBuffer> m_lightBuffer;
         Memory::RefPtr<RHITexture> m_shadowMap;
@@ -77,8 +88,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+		void UpdateView(const RenderView& renderView) override;
+
+        const float GetViewWidth() const override;
+        const float GetViewHeight() const override;
+        const fvec2 GetViewDepth() const override;
 
     private :
         Light* GetLightData() override;
@@ -105,8 +119,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+        void UpdateView(const RenderView& renderView) override;
+
+        const float GetViewWidth() const override;
+        const float GetViewHeight() const override;
+        const fvec2 GetViewDepth() const override;
 
     public :
 		void SetRange(const float range);
@@ -136,8 +153,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+        void UpdateView(const RenderView& renderView) override;
+
+		const float GetViewWidth() const override;
+		const float GetViewHeight() const override;
+		const fvec2 GetViewDepth() const override;
 
     public :
         void SetRange(const float range);

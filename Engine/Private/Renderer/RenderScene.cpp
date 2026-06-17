@@ -5,6 +5,7 @@
 #include <Renderer/Proxy/MaterialProxy.h>
 #include <Renderer/GlobalRenderer.h>
 #include <Renderer/MeshBatch.h>
+#include <Renderer/RenderView.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
 #include <Asset/AssetTypes.h>
@@ -114,6 +115,17 @@ namespace wtr
 		if (lightItr != m_lights.End())
 		{
 			UpdateProxy(lightItr->second);
+		}
+	}
+
+	void RenderScene::UpdateView(const RenderView& renderView)
+	{
+		for (const auto& [id, light] : m_lights)
+		{
+			if (light)
+			{
+				light->UpdateView(renderView);
+			}
 		}
 	}
 

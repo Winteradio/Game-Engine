@@ -141,10 +141,16 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.cpp
 
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/ShadowPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/ShadowPass.cpp
+
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.cpp
+
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.cpp
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES

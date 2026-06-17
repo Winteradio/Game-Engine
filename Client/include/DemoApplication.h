@@ -20,6 +20,7 @@ namespace demo
 			bool InitCube();
 			bool InitPointLight();
 			bool InitSpotLight();
+			bool InitMultiView();
 			bool InitSystem();
 	};
 };

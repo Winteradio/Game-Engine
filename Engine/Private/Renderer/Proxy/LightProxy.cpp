@@ -2,13 +2,21 @@
 
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIResources.h>
+#include <Framework/Math/MathTypes.h>
 #include <Memory/include/Core.h>
 
 namespace wtr
 {
+	const fvec3 CUBE[] = {
+		fvec3(-1.f, -1.f, -1.f), fvec3(1.f, -1.f, -1.f), fvec3(-1.f, 1.f, -1.f), fvec3(1.f, 1.f, -1.f),
+		fvec3(-1.f, -1.f, 1.f), fvec3(1.f, -1.f, 1.f), fvec3(-1.f, 1.f, 1.f), fvec3(1.f, 1.f, 1.f) 
+	};
+
 	LightProxy::LightProxy(const ECS::UUID& id)
 		: SceneProxy(id)
 		, m_lightDesc()
+		, m_lightView()
+		, m_lightProj()
 		, m_lightBuffer()
 		, m_shadowMap()
 		, m_shadowTarget()
@@ -18,8 +26,8 @@ namespace wtr
 	{
 		eResourceState allState = m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
-		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
-		//allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
+		allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
+		allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
 
 		return allState;
 	}
@@ -72,9 +80,6 @@ namespace wtr
 			m_lightDesc.shadowType = shadowType;
 
 			OnUpdate();
-
-			// TODO : Shadow
-			// GlobalShaderSelector�� ���� ShadowRenderTarget ����
 		}
 	}
 
@@ -132,6 +137,16 @@ namespace wtr
 		return m_lightDesc;
 	}
 
+	Memory::RefPtr<const ScalarData<fmat4>> LightProxy::GetLightView() const
+	{
+		return m_lightView;
+	}
+
+	Memory::RefPtr<const ScalarData<fmat4>> LightProxy::GetLightProj() const
+	{
+		return m_lightProj;
+	}
+
 	DirectionalLightProxy::DirectionalLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
 		, m_directional(Memory::MakeRef<ScalarData<DirectionalLight>>())
@@ -173,52 +188,157 @@ namespace wtr
 			}
 		}
 
-		// TODO : Shadow
+		if (!m_shadowMap)
+		{
+			RHITextureCreateDesc desc;
+			desc.width = 1;
+			desc.height = 1;
+			desc.depth = 1;
+			desc.face = 1;
+			desc.mipLevels = 1;
+			desc.sampleCount = 1;
+			desc.format = ePixelFormat::eD32;
+			desc.usage = eTextureUsage::eDepthStencil;
+			desc.textureType = eTextureType::eTexture2D;
+			desc.dataType = eDataType::eFloat;
+			desc.generateMips = false;
+			desc.compressed = false;
+
+			Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(desc);
+			if (texture)
+			{
+				m_shadowMap = texture;
+			}
+		}
+
+		if (!m_shadowTarget)
+		{
+			RHIRenderTargetCreateDesc desc;
+
+			RHIDepthStencilAttachment depth;
+			depth.type = eAttachment::eDepth;
+			depth.texture = m_shadowMap;
+			if (!m_shadowMap || m_shadowMap->GetState() != eResourceState::eReady)
+			{
+				return;
+			}
+
+			desc.depthStencil = depth;
+
+			Memory::RefPtr<RHIRenderTarget> target = cmdList->CreateRenderTarget(desc);
+			if (target)
+			{
+				m_shadowTarget = target;
+			}
+		}
 	}
 
 	void DirectionalLightProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_lightBuffer || !m_directional)
+		if (!cmdList)
 		{
 			return;
 		}
 
-		auto& data = m_directional->data;
-		data.direction = GetRotation() * BASE_DIR;
-		data.pos = GetPosition();
+		if (m_lightBuffer && m_directional)
+		{
+			auto& data = m_directional->data;
+			data.direction = GetRotation() * BASE_DIR;
+			data.pos = GetPosition();
 
-		RHIBufferUpdateDesc desc;
-		desc.bufferType = eBufferType::eStorage;
-		desc.accessType = eDataAccess::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.numComponents = 1;
-		desc.count = 1;
-		desc.size = sizeof(DirectionalLight);
-		desc.stride = sizeof(DirectionalLight);
-		desc.dataRanges.PushBack({ 0, m_directional });
+			RHIBufferUpdateDesc desc;
+			desc.bufferType = eBufferType::eStorage;
+			desc.accessType = eDataAccess::eDynamic;
+			desc.componentType = eDataType::eNone;
+			desc.numComponents = 1;
+			desc.count = 1;
+			desc.size = sizeof(DirectionalLight);
+			desc.stride = sizeof(DirectionalLight);
+			desc.dataRanges.PushBack({ 0, m_directional });
 
-		cmdList->UpdateBuffer(desc, m_lightBuffer);
+			cmdList->UpdateBuffer(desc, m_lightBuffer);
+		}
+
+		if (m_shadowMap)
+		{
+			const auto& prevDesc = m_shadowMap->GetDesc();
+
+			RHITextureUpdateDesc desc = m_shadowMap->GetDesc();
+			desc.width = 1;
+			desc.height = 1;
+			desc.depth = 1;
+			desc.face = 1;
+			desc.mipLevels = 1;
+			desc.sampleCount = 1;
+			desc.format = ePixelFormat::eD32;
+			desc.usage = eTextureUsage::eDepthStencil;
+			desc.textureType = eTextureType::eTexture2D;
+			desc.dataType = eDataType::eFloat;
+			desc.generateMips = false;
+			desc.compressed = false;
+		}
 	}
 
-	fmat4 DirectionalLightProxy::GetViewMatrix() const
+	void DirectionalLightProxy::UpdateView(const RenderView& renderView)
 	{
-		fmat4 viewMatrix = fmat4(1.0f);
-
-		fmat4 rotation = glm::toMat4(GetRotation());
-
-		fmat4 inverseRotation = glm::transpose(rotation);
-		fmat4 inverseTranslate = glm::translate(fmat4(1.0f), -1.0f * GetPosition());
-		
-		viewMatrix *= inverseRotation * inverseTranslate;
-
-		return viewMatrix;
+		const fvec3 lightDir = GetRotation() * BASE_DIR;
+		const fvec3 lightPos = GetPosition();
 	}
 
-	fmat4 DirectionalLightProxy::GetProjectionMatrix() const
+	const float DirectionalLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		if (!m_lightProj)
+		{
+			return 1.f;
+		}
 
-		return fmat4(1.0f);
+		const float nearRatio = m_lightProj->data[0][0];
+		if (std::abs(nearRatio) <= std::numeric_limits<float>::epsilon())
+		{
+			return 1.f;
+		}
+
+		const float width = 2.f / nearRatio;
+
+		return width;
+	}
+
+	const float DirectionalLightProxy::GetViewHeight() const
+	{
+		if (!m_lightProj)
+		{
+			return 1.f;
+		}
+
+		const float nearRatio = m_lightProj->data[1][1];
+		if (std::abs(nearRatio) <= std::numeric_limits<float>::epsilon())
+		{
+			return 1.f;
+		}
+
+		const float height = 2.f / nearRatio;
+
+		return height;
+	}
+
+	const fvec2 DirectionalLightProxy::GetViewDepth() const
+	{
+		if (!m_lightProj)
+		{
+			return fvec2(0.0, 1.f);
+		}
+
+		const float zRatio = m_lightProj->data[2][2];
+		const float wRatio = m_lightProj->data[3][2];
+		if (std::abs(zRatio - wRatio) <= std::numeric_limits<float>::epsilon() || 
+			std::abs(zRatio - 0.f) <= std::numeric_limits<float>::epsilon())
+		{
+			return fvec2(0.f, 1.f);
+		}
+
+		const fvec2 depthRange = fvec2((wRatio + 1.f) / zRatio, (wRatio - 1.f) / zRatio);
+
+		return fvec2(0.f, 1.f);
 	}
 
 	LightProxy::Light* DirectionalLightProxy::GetLightData()
@@ -299,18 +419,27 @@ namespace wtr
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	fmat4 PointLightProxy::GetViewMatrix() const
+	void PointLightProxy::UpdateView(const RenderView& renderView)
 	{
 		// TODO : Shadow
-
-		return fmat4(1.0f);
 	}
 
-	fmat4 PointLightProxy::GetProjectionMatrix() const
+	const float PointLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		// TODO : View's near width
+		return 0.f;
+	}
 
-		return  fmat4(1.0f);
+	const float PointLightProxy::GetViewHeight() const
+	{
+		// TODO : View's near height
+		return 0.f;
+	}
+
+	const fvec2 PointLightProxy::GetViewDepth() const
+	{
+		// TODO : Near, Far
+		return fvec2(0.f);
 	}
 
 	LightProxy::Light* PointLightProxy::GetLightData()
@@ -409,18 +538,27 @@ namespace wtr
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	fmat4 SpotLightProxy::GetViewMatrix() const
+	void SpotLightProxy::UpdateView(const RenderView& renderView)
 	{
 		// TODO : Shadow
-
-		return fmat4(1.0f);
 	}
 
-	fmat4 SpotLightProxy::GetProjectionMatrix() const
+	const float SpotLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		// TODO : View's near width
+		return 0.f;
+	}
 
-		return fmat4(1.0f);
+	const float SpotLightProxy::GetViewHeight() const
+	{
+		// TODO : View's near height
+		return 0.f;
+	}
+
+	const fvec2 SpotLightProxy::GetViewDepth() const
+	{
+		// TODO : Near, Far
+		return fvec2(0.f);
 	}
 
 	LightProxy::Light* SpotLightProxy::GetLightData()
