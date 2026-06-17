@@ -58,7 +58,7 @@ namespace wtr
 		m_state = eState;
 	}
 
-	const eResourceState RHIResource::GetState() const
+	eResourceState RHIResource::GetState() const
 	{
 		return m_state;
 	}
@@ -67,37 +67,37 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const eBufferType RHIBuffer::GetBufferType() const
+	eBufferType RHIBuffer::GetBufferType() const
 	{
 		return m_desc.bufferType;
 	}
 
-	const eDataAccess RHIBuffer::GetAccessType() const
+	eDataAccess RHIBuffer::GetAccessType() const
 	{
 		return m_desc.accessType;
 	}
 
-	const eDataType RHIBuffer::GetComponentType() const
+	eDataType RHIBuffer::GetComponentType() const
 	{
 		return m_desc.componentType;
 	}
 
-	const uint32_t RHIBuffer::GetNumComponents() const
+	uint32_t RHIBuffer::GetNumComponents() const
 	{
 		return m_desc.numComponents;
 	}
 
-	const uint32_t RHIBuffer::GetCount() const
+	uint32_t RHIBuffer::GetCount() const
 	{
 		return m_desc.count;
 	}
 
-	const uint32_t RHIBuffer::GetSize() const
+	uint32_t RHIBuffer::GetSize() const
 	{
 		return m_desc.size;
 	}
 
-	const uint32_t RHIBuffer::GetStride() const
+	uint32_t RHIBuffer::GetStride() const
 	{
 		return m_desc.stride;
 	}
@@ -151,7 +151,7 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const size_t RHIVertexLayout::GetNumAttributes() const
+	size_t RHIVertexLayout::GetNumAttributes() const
 	{
 		return m_desc.vertexStreams.Size();
 	}
@@ -170,47 +170,47 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const uint32_t RHITexture::GetWidth() const
+	uint32_t RHITexture::GetWidth() const
 	{
 		return m_desc.width;
 	}
 
-	const uint32_t RHITexture::GetHeight() const
+	uint32_t RHITexture::GetHeight() const
 	{
 		return m_desc.height;
 	}
 
-	const uint32_t RHITexture::GetDepth() const
+	uint32_t RHITexture::GetDepth() const
 	{
 		return m_desc.depth;
 	}
 
-	const uint32_t RHITexture::GetMipLevels() const
+	uint32_t RHITexture::GetMipLevels() const
 	{
 		return m_desc.mipLevels;
 	}
 
-	const uint32_t RHITexture::GetSampleCount() const
+	uint32_t RHITexture::GetSampleCount() const
 	{
 		return m_desc.sampleCount;
 	}
 
-	const ePixelFormat RHITexture::GetPixelFormat() const
+	ePixelFormat RHITexture::GetPixelFormat() const
 	{
 		return m_desc.format;
 	}
 
-	const eTextureUsage RHITexture::GetTextureUsage() const
+	eTextureUsage RHITexture::GetTextureUsage() const
 	{
 		return m_desc.usage;
 	}
 
-	const eTextureType RHITexture::GetTextureType() const
+	eTextureType RHITexture::GetTextureType() const
 	{
 		return m_desc.textureType;
 	}
 
-	const eDataType RHITexture::GetDataType() const
+	eDataType RHITexture::GetDataType() const
 	{
 		return m_desc.dataType;
 	}
@@ -274,27 +274,27 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	const eFilterMode RHISampler::GetMinFilter() const
+	eFilterMode RHISampler::GetMinFilter() const
 	{
 		return m_desc.minFilter;
 	}
 
-	const eFilterMode RHISampler::GetMagFilter() const
+	eFilterMode RHISampler::GetMagFilter() const
 	{
 		return m_desc.magFilter;
 	}
 
-	const eWrapMode RHISampler::GetWrapS() const
+	eWrapMode RHISampler::GetWrapS() const
 	{
 		return m_desc.wrapS;
 	}
 
-	const eWrapMode RHISampler::GetWrapT() const
+	eWrapMode RHISampler::GetWrapT() const
 	{
 		return m_desc.wrapT;
 	}
 
-	const eWrapMode RHISampler::GetWrapR() const
+	eWrapMode RHISampler::GetWrapR() const
 	{
 		return m_desc.wrapR;
 	}
@@ -339,7 +339,7 @@ namespace wtr
 	{
 	}
 
-	const eShaderType RHIShader::GetShaderType() const
+	eShaderType RHIShader::GetShaderType() const
 	{
 		return m_desc.shaderType;
 	}
@@ -480,7 +480,7 @@ namespace wtr
 		return m_slots.Size();
 	}
 
-	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const std::string& name) const
+	const RHIResourceBinding& RHIPipeLine::GetBindingSlot(const std::string& name) const
 	{
 		const eResourceSlot slot = GetResourceSlot(name);
 		if (slot != eResourceSlot::eNone)
@@ -488,10 +488,11 @@ namespace wtr
 			return GetBindingSlot(slot);
 		}
 
-		return {};
+		static const RHIResourceBinding emptyBinding = {};
+		return emptyBinding;
 	}
 
-	const RHIResourceBinding RHIPipeLine::GetBindingSlot(const eResourceSlot slot) const
+	const RHIResourceBinding& RHIPipeLine::GetBindingSlot(const eResourceSlot slot) const
 	{
 		const std::string slotName = GetSlotName(slot);
 
@@ -502,7 +503,8 @@ namespace wtr
 		}
 		else
 		{
-			return {};
+			static const RHIResourceBinding emptyBinding = {};
+			return emptyBinding;
 		}
 	}
 
@@ -541,7 +543,7 @@ namespace wtr
 		}
 	}
 
-	const size_t RHIRenderTarget::GetColorAttachCount() const
+	size_t RHIRenderTarget::GetColorAttachCount() const
 	{
 		return m_desc.colors.Size();
 	}

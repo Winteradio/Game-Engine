@@ -152,7 +152,7 @@ namespace wtr
 		return true;
 	}
 
-	const WindowDesc Application::GetWindowDesc() const
+	WindowDesc Application::GetWindowDesc() const
 	{
 		WindowDesc desc;
 		desc.Type = eWindowType::eWin32;
@@ -165,7 +165,7 @@ namespace wtr
 		return desc;
 	}
 
-	const RenderDesc Application::GetRenderDesc() const
+	RenderDesc Application::GetRenderDesc() const
 	{
 		RenderDesc desc;
 		desc.Type = eRenderType::eOpenGL;

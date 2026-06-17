@@ -63,7 +63,7 @@ namespace wtr
 			virtual void Shutdown() = 0;
 			virtual void Show() = 0;
 
-			virtual const eWindowStatus GetStatus() const = 0;
+			virtual eWindowStatus GetStatus() const = 0;
 			virtual void* GetNativeHandle() const = 0;
 
 			virtual void SetInputHandler(Memory::RefPtr<InputHandler> inputHandler) = 0;

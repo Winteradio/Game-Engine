@@ -728,7 +728,7 @@ namespace wtr
 		return m_drawCommand;
 	}
 
-	const MeshBatchKey MeshBatch::GetKey() const
+	MeshBatchKey MeshBatch::GetKey() const
 	{
 		MeshBatchKey key;
 		key.meshId = m_refMesh ? m_refMesh->id : ECS::UUID::Null();

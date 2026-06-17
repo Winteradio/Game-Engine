@@ -56,7 +56,7 @@ namespace wtr
 
 		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
 
-		const MeshBatchKey GetKey() const;
+		MeshBatchKey GetKey() const;
 		bool IsEmpty() const;
 
 	private :

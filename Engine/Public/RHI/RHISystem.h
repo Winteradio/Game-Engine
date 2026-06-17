@@ -153,25 +153,25 @@ namespace wtr
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;
 
 	protected :
-		virtual const uint32_t GetBufferType(const eBufferType buffer) const = 0;
-		virtual const uint32_t GetDataAccess(const eDataAccess access) const = 0;
-		virtual const uint32_t GetDataType(const eDataType data) const = 0;
-		virtual const uint32_t GetMapAccess(const eMapAccess access) const = 0;
-		virtual const uint32_t GetTextureType(const eTextureType type) const = 0;
-		virtual const uint32_t GetTextureDimension(const eTextureType type) const = 0;
-		virtual const uint32_t GetFilterMode(const eFilterMode filter) const = 0;
-		virtual const uint32_t GetWrapMode(const eWrapMode wrap) const = 0;
-		virtual const uint32_t GetCullFace(const eCullFace mode) const = 0;
-		virtual const uint32_t GetFrontFace(const eFrontFace face) const = 0;
-		virtual const uint32_t GetDrawMode(const eDrawMode mode) const = 0;
-		virtual const uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const = 0;
-		virtual const uint32_t GetCompareFunc(const eCompareFunc func) const = 0;
-		virtual const uint32_t GetStencilOp(const eStencilOp op) const = 0;
-		virtual const uint32_t GetBlendFunc(const eBlendFunc func) const = 0;
-		virtual const uint32_t GetBlendOp(const eBlendOp op) const = 0;
-		virtual const uint32_t GetShaderType(const eShaderType type) const = 0;
-		virtual const uint32_t GetColorAttachment(const uint32_t slost) const = 0;
-		virtual const uint32_t GetDepthStencilAttachment(const eAttachment attach) const = 0;
+		virtual uint32_t GetBufferType(const eBufferType buffer) const = 0;
+		virtual uint32_t GetDataAccess(const eDataAccess access) const = 0;
+		virtual uint32_t GetDataType(const eDataType data) const = 0;
+		virtual uint32_t GetMapAccess(const eMapAccess access) const = 0;
+		virtual uint32_t GetTextureType(const eTextureType type) const = 0;
+		virtual uint32_t GetTextureDimension(const eTextureType type) const = 0;
+		virtual uint32_t GetFilterMode(const eFilterMode filter) const = 0;
+		virtual uint32_t GetWrapMode(const eWrapMode wrap) const = 0;
+		virtual uint32_t GetCullFace(const eCullFace mode) const = 0;
+		virtual uint32_t GetFrontFace(const eFrontFace face) const = 0;
+		virtual uint32_t GetDrawMode(const eDrawMode mode) const = 0;
+		virtual uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const = 0;
+		virtual uint32_t GetCompareFunc(const eCompareFunc func) const = 0;
+		virtual uint32_t GetStencilOp(const eStencilOp op) const = 0;
+		virtual uint32_t GetBlendFunc(const eBlendFunc func) const = 0;
+		virtual uint32_t GetBlendOp(const eBlendOp op) const = 0;
+		virtual uint32_t GetShaderType(const eShaderType type) const = 0;
+		virtual uint32_t GetColorAttachment(const uint32_t slost) const = 0;
+		virtual uint32_t GetDepthStencilAttachment(const eAttachment attach) const = 0;
 
 	protected:
 		struct RefHasher

@@ -61,8 +61,8 @@ namespace wtr
 			const fvec2& GetWindowSize() const;
 
 		private :
-			const size_t GetKeyIndex(eKeyCode key) const;
-			const size_t GetKeyBit(eKeyCode key) const;
+			size_t GetKeyIndex(eKeyCode key) const;
+			size_t GetKeyBit(eKeyCode key) const;
 
 		private :
 			InputData m_InputData[3];

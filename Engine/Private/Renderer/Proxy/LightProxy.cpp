@@ -200,7 +200,7 @@ namespace wtr
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	const fmat4 DirectionalLightProxy::GetViewMatrix() const
+	fmat4 DirectionalLightProxy::GetViewMatrix() const
 	{
 		fmat4 viewMatrix = fmat4(1.0f);
 
@@ -214,7 +214,7 @@ namespace wtr
 		return viewMatrix;
 	}
 
-	const fmat4 DirectionalLightProxy::GetProjectionMatrix() const
+	fmat4 DirectionalLightProxy::GetProjectionMatrix() const
 	{
 		// TODO : Shadow
 
@@ -299,14 +299,14 @@ namespace wtr
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	const fmat4 PointLightProxy::GetViewMatrix() const
+	fmat4 PointLightProxy::GetViewMatrix() const
 	{
 		// TODO : Shadow
 
 		return fmat4(1.0f);
 	}
 
-	const fmat4 PointLightProxy::GetProjectionMatrix() const
+	fmat4 PointLightProxy::GetProjectionMatrix() const
 	{
 		// TODO : Shadow
 
@@ -409,14 +409,14 @@ namespace wtr
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	const fmat4 SpotLightProxy::GetViewMatrix() const
+	fmat4 SpotLightProxy::GetViewMatrix() const
 	{
 		// TODO : Shadow
 
 		return fmat4(1.0f);
 	}
 
-	const fmat4 SpotLightProxy::GetProjectionMatrix() const
+	fmat4 SpotLightProxy::GetProjectionMatrix() const
 	{
 		// TODO : Shadow
 

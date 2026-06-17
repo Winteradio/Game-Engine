@@ -15,11 +15,11 @@ namespace wtr
 		bool LoadFromBuffer(const uint8_t* buffer, uint32_t size);
 
 		const void* GetPixels() const;
-		const uint32_t GetSize() const;
-		const int32_t GetWidth() const;
-		const int32_t GetHeight() const;
-		const int32_t GetChannels() const;
-		const bool Is16Bit() const;
+		uint32_t GetSize() const;
+		int32_t GetWidth() const;
+		int32_t GetHeight() const;
+		int32_t GetChannels() const;
+		bool Is16Bit() const;
 
 	private :
 		void* m_pixels;

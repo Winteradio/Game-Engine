@@ -257,12 +257,12 @@ namespace wtr
 		return m_LogicData->windowSize;
 	}
 
-	const size_t InputStorage::GetKeyIndex(eKeyCode key) const
+	size_t InputStorage::GetKeyIndex(eKeyCode key) const
 	{
 		return static_cast<size_t>(key) / 2;
 	}
 
-	const size_t InputStorage::GetKeyBit(eKeyCode key) const
+	size_t InputStorage::GetKeyBit(eKeyCode key) const
 	{
 		return (static_cast<size_t>(key) % 2) * KEY_BIT;
 	}

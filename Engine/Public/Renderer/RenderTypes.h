@@ -454,8 +454,8 @@ namespace wtr
 
 	public :
 		virtual const void* GetPointer() const = 0;
-		virtual const size_t GetSize() const = 0;
-		virtual const size_t GetCount() const = 0;
+		virtual size_t GetSize() const = 0;
+		virtual size_t GetCount() const = 0;
 		
 	public :
 		bool IsEmpty() const;
@@ -476,12 +476,12 @@ namespace wtr
 			return data.Data();
 		}
 
-		const size_t GetSize() const override
+		size_t GetSize() const override
 		{
 			return data.Size() * sizeof(T);
 		}
 
-		const size_t GetCount() const override
+		size_t GetCount() const override
 		{
 			return data.Size();
 		}
@@ -506,12 +506,12 @@ namespace wtr
 			return reinterpret_cast<const void*>(&data);
 		}
 
-		const size_t GetSize() const override
+		size_t GetSize() const override
 		{
 			return sizeof(T);
 		}
 
-		const size_t GetCount() const override
+		size_t GetCount() const override
 		{
 			return 1;
 		}
@@ -657,9 +657,9 @@ namespace wtr
 	size_t GetPixelSize(const ePixelFormat pixelFormat);
 	size_t GetDataTypeSize(const eDataType dataType);
 	int32_t GetVertexLocation(const VertexKey& vertexKey);
-	const VertexKey GetVertexKey(const std::string& attributeName);
-	const std::string GetSlotName(const eResourceSlot slot);
-	const eResourceSlot GetResourceSlot(const std::string& name);
+	const VertexKey& GetVertexKey(const std::string& attributeName);
+	const std::string& GetSlotName(const eResourceSlot slot);
+	eResourceSlot GetResourceSlot(const std::string& name);
 };
 
 namespace std

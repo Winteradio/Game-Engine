@@ -19,7 +19,7 @@ namespace wtr
 		return eResourceState::eReady;
 	}
 
-	const RHIDispatchDesc CullingPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	RHIDispatchDesc CullingPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		return {};
 	}

@@ -67,7 +67,7 @@ namespace wtr
 		m_state.store(state, std::memory_order_release);
 	}
 
-	const eAssetState Asset::GetState() const
+	eAssetState Asset::GetState() const
 	{
 		return m_state.load(std::memory_order_acquire);
 	}

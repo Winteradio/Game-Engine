@@ -565,6 +565,8 @@ namespace wtr
 		}
 
 		glBindVertexArray(GL_NONE);
+		glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
 
 		glVertexLayout->SetID(vertexLayoutID);
 		glVertexLayout->SetState(eResourceState::eReady);
@@ -2212,7 +2214,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetBufferType(const eBufferType buffer) const
+	uint32_t GLSystem::GetBufferType(const eBufferType buffer) const
 	{
 		if (eBufferType::eVertex == buffer)
 		{
@@ -2240,7 +2242,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetDataAccess(const eDataAccess access) const
+	uint32_t GLSystem::GetDataAccess(const eDataAccess access) const
 	{
 		if (eDataAccess::eStatic == access)
 		{
@@ -2260,7 +2262,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetDataType(const eDataType data) const
+	uint32_t GLSystem::GetDataType(const eDataType data) const
 	{
 		if (eDataType::eByte == data)
 		{
@@ -2300,7 +2302,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetMapAccess(const eMapAccess access) const
+	uint32_t GLSystem::GetMapAccess(const eMapAccess access) const
 	{
 		GLbitfield accessFlags = GL_NONE;
 
@@ -2332,7 +2334,7 @@ namespace wtr
 		return accessFlags;
 	}
 
-	const uint32_t GLSystem::GetTextureType(const eTextureType type) const
+	uint32_t GLSystem::GetTextureType(const eTextureType type) const
 	{
 		if (eTextureType::eTexture1D == type)
 		{
@@ -2376,7 +2378,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetTextureDimension(const eTextureType texture) const
+	uint32_t GLSystem::GetTextureDimension(const eTextureType texture) const
 	{
 		if (eTextureType::eNone == texture ||
 			eTextureType::eTextureMultisample == texture ||
@@ -2406,7 +2408,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetInternalFormat(const ePixelFormat pixel) const
+	uint32_t GLSystem::GetInternalFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2530,7 +2532,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetBaseFormat(const ePixelFormat pixel) const
+	uint32_t GLSystem::GetBaseFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2600,7 +2602,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetPixelDataType(const ePixelFormat pixel) const
+	uint32_t GLSystem::GetPixelDataType(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2661,7 +2663,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetFilterMode(const eFilterMode filter) const
+	uint32_t GLSystem::GetFilterMode(const eFilterMode filter) const
 	{
 		if (eFilterMode::eNearest == filter)
 		{
@@ -2677,7 +2679,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetWrapMode(const eWrapMode wrap) const
+	uint32_t GLSystem::GetWrapMode(const eWrapMode wrap) const
 	{
 		if (eWrapMode::eRepeat == wrap)
 		{
@@ -2701,7 +2703,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetCullFace(const eCullFace mode) const
+	uint32_t GLSystem::GetCullFace(const eCullFace mode) const
 	{
 		if (eCullFace::eFront == mode)
 		{
@@ -2721,7 +2723,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetFrontFace(const eFrontFace face) const
+	uint32_t GLSystem::GetFrontFace(const eFrontFace face) const
 	{
 		if (eFrontFace::eCCW == face)
 		{
@@ -2737,7 +2739,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetDrawMode(const eDrawMode mode) const
+	uint32_t GLSystem::GetDrawMode(const eDrawMode mode) const
 	{
 		if (eDrawMode::ePoints == mode)
 		{
@@ -2773,7 +2775,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetPrimitiveMode(const ePrimitiveMode mode) const
+	uint32_t GLSystem::GetPrimitiveMode(const ePrimitiveMode mode) const
 	{
 		if (ePrimitiveMode::ePoint == mode)
 		{
@@ -2793,7 +2795,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetCompareFunc(const eCompareFunc func) const
+	uint32_t GLSystem::GetCompareFunc(const eCompareFunc func) const
 	{
 		if (eCompareFunc::eNever == func)
 		{
@@ -2833,7 +2835,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetStencilOp(const eStencilOp op) const
+	uint32_t GLSystem::GetStencilOp(const eStencilOp op) const
 	{
 		if (eStencilOp::eKeep == op)
 		{
@@ -2873,7 +2875,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetBlendFunc(const eBlendFunc func) const
+	uint32_t GLSystem::GetBlendFunc(const eBlendFunc func) const
 	{
 		if (eBlendFunc::eZero == func)
 		{
@@ -2921,7 +2923,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetBlendOp(const eBlendOp op) const
+	uint32_t GLSystem::GetBlendOp(const eBlendOp op) const
 	{
 		if (eBlendOp::eAdd == op)
 		{
@@ -2949,7 +2951,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetShaderType(const eShaderType type) const
+	uint32_t GLSystem::GetShaderType(const eShaderType type) const
 	{
 		if (eShaderType::eVertex == type)
 		{
@@ -2977,7 +2979,7 @@ namespace wtr
 		}
 	}
 
-	const uint32_t GLSystem::GetColorAttachment(const uint32_t slot) const
+	uint32_t GLSystem::GetColorAttachment(const uint32_t slot) const
 	{
 		uint32_t colorAttach = GL_COLOR_ATTACHMENT0;
 		colorAttach += slot;
@@ -2985,7 +2987,7 @@ namespace wtr
 		return colorAttach;
 	}
 
-	const uint32_t GLSystem::GetDepthStencilAttachment(const eAttachment attach) const
+	uint32_t GLSystem::GetDepthStencilAttachment(const eAttachment attach) const
 	{
 		if (attach == eAttachment::eDepth)
 		{
@@ -3005,7 +3007,7 @@ namespace wtr
 		}
 	}
 
-	const eCompareFunc GLSystem::GetCompareFunc(const uint32_t func) const
+	eCompareFunc GLSystem::GetCompareFunc(const uint32_t func) const
 	{
 		if (GL_NEVER == func)
 		{
@@ -3045,7 +3047,7 @@ namespace wtr
 		}
 	}
 
-	const eStencilOp GLSystem::GetStencilOp(const uint32_t op) const
+	eStencilOp GLSystem::GetStencilOp(const uint32_t op) const
 	{
 		if (GL_KEEP == op)
 		{
@@ -3085,7 +3087,7 @@ namespace wtr
 		}
 	}
 
-	const eBlendFunc GLSystem::GetBlendFunc(const uint32_t func) const
+	eBlendFunc GLSystem::GetBlendFunc(const uint32_t func) const
 	{
 		if (GL_ZERO == func)
 		{
@@ -3133,7 +3135,7 @@ namespace wtr
 		}
 	}
 
-	const eBlendOp GLSystem::GetBlendOp(const uint32_t op) const
+	eBlendOp GLSystem::GetBlendOp(const uint32_t op) const
 	{
 		if (GL_FUNC_ADD == op)
 		{
@@ -3161,7 +3163,7 @@ namespace wtr
 		}
 	}
 
-	const eCullFace GLSystem::GetCullFace(const uint32_t mode) const
+	eCullFace GLSystem::GetCullFace(const uint32_t mode) const
 	{
 		if (GL_FRONT == mode)
 		{
@@ -3181,7 +3183,7 @@ namespace wtr
 		}
 	}
 
-	const eFrontFace GLSystem::GetFrontFace(const uint32_t face) const
+	eFrontFace GLSystem::GetFrontFace(const uint32_t face) const
 	{
 		if (GL_CCW == face)
 		{
@@ -3197,7 +3199,7 @@ namespace wtr
 		}
 	}
 
-	const ePrimitiveMode GLSystem::GetPrimitiveMode(const uint32_t mode) const
+	ePrimitiveMode GLSystem::GetPrimitiveMode(const uint32_t mode) const
 	{
 		if (GL_POINT == mode)
 		{

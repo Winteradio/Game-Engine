@@ -27,7 +27,7 @@ namespace wtr
 			void Shutdown() override;
 			void Show() override;
 
-			const eWindowStatus GetStatus() const override;
+			eWindowStatus GetStatus() const override;
 			void* GetNativeHandle() const override;
 
 			void SetInputHandler(Memory::RefPtr<InputHandler> inputHandler) override;

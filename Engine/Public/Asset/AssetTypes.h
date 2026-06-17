@@ -95,7 +95,7 @@ namespace wtr
 
 	public :
 		void SetState(const eAssetState state);
-		const eAssetState GetState() const;
+		eAssetState GetState() const;
 
 	private :
 		std::atomic<eAssetState> m_state;

@@ -149,7 +149,7 @@ namespace wtr
 		return true;
 	}
 
-	const RHIDrawIndexDesc LightingPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	RHIDrawIndexDesc LightingPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		Memory::RefPtr<const RHIVertexLayout> layout = GlobalResource::GetQuad();
 		if (!layout)

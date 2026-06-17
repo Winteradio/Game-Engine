@@ -126,7 +126,7 @@ namespace wtr
 	public:
 		void AddInstance(const fvec3& position = fvec3(0.f), const fquat& rotation = fquat(1.f, 0.f, 0.f, 0.f), const fvec3& scale = fvec3(1.f, 1.f, 1.f));
 		void RemoveInstance(const size_t instanceIndex);
-		const size_t GetInstanceCount() const;
+		size_t GetInstanceCount() const;
 
 		void UpdatePosition(const size_t instanceIndex, const fvec3& position);
 		void UpdateRotation(const size_t instanceIndex, const fvec3& rotation);
@@ -163,10 +163,11 @@ namespace wtr
 		void UpdateColor(const fvec3& color);
 		void UpdateIntensity(const float intensity);
 
-		const eLightType GetLightType() const;
-		const eShadowType GetShadowType() const;
-		const fvec3 GetColor() const;
-		const float GetIntensity() const;
+		eLightType GetLightType() const;
+		eShadowType GetShadowType() const;
+		float GetIntensity() const;
+
+		const fvec3& GetColor() const;
 
 	private :
 		eLightType m_lightType;
@@ -199,7 +200,7 @@ namespace wtr
 	public :
 		void UpdateRange(const float range);
 
-		const float GetRange() const;
+		float GetRange() const;
 
 	private :
 		float m_range;
@@ -220,9 +221,9 @@ namespace wtr
 		void UpdateInnerAngle(const float innerAngle);
 		void UpdateOuterAngle(const float outerAngle);
 
-		const float GetRange() const;
-		const float GetInnerAngle() const;
-		const float GetOuterAngle() const;
+		float GetRange() const;
+		float GetInnerAngle() const;
+		float GetOuterAngle() const;
 
 	private :
 		float m_range;

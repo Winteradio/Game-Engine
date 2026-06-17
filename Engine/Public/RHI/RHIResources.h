@@ -35,9 +35,9 @@ namespace wtr
 		public :
 			void* GetRawBuffer();
 			const void* GetRawBuffer() const;
-			
+
 			void SetState(const eResourceState eState);
-			const eResourceState GetState() const;
+			eResourceState GetState() const;
 
 		private :
 			std::atomic<eResourceState> m_state = eResourceState::eNone;
@@ -50,13 +50,13 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			const eBufferType GetBufferType() const;
-			const eDataAccess GetAccessType() const;
-			const eDataType GetComponentType() const;
-			const uint32_t GetNumComponents() const;
-			const uint32_t GetCount() const;
-			const uint32_t GetSize() const;
-			const uint32_t GetStride() const;
+			eBufferType GetBufferType() const;
+			eDataAccess GetAccessType() const;
+			eDataType GetComponentType() const;
+			uint32_t GetNumComponents() const;
+			uint32_t GetCount() const;
+			uint32_t GetSize() const;
+			uint32_t GetStride() const;
 			const RHIBufferDesc& GetDesc() const;
 
 			void SetBufferType(const eBufferType bufferType);
@@ -80,7 +80,7 @@ namespace wtr
 			virtual ~RHIVertexLayout() = default;
 
 		public :
-			const size_t GetNumAttributes() const;
+			size_t GetNumAttributes() const;
 			const RHIVertexLayoutDesc& GetDesc() const;
 
 			void SetDesc(const RHIVertexLayoutDesc& desc);
@@ -96,15 +96,15 @@ namespace wtr
 			virtual ~RHITexture() = default;
 
 		public :
-			const uint32_t GetWidth() const;
-			const uint32_t GetHeight() const;
-			const uint32_t GetDepth() const;
-			const uint32_t GetMipLevels() const;
-			const uint32_t GetSampleCount() const;
-			const ePixelFormat GetPixelFormat() const;
-			const eTextureUsage GetTextureUsage() const;
-			const eTextureType GetTextureType() const;
-			const eDataType GetDataType() const;
+			uint32_t GetWidth() const;
+			uint32_t GetHeight() const;
+			uint32_t GetDepth() const;
+			uint32_t GetMipLevels() const;
+			uint32_t GetSampleCount() const;
+			ePixelFormat GetPixelFormat() const;
+			eTextureUsage GetTextureUsage() const;
+			eTextureType GetTextureType() const;
+			eDataType GetDataType() const;
 			const RHITextureDesc& GetDesc() const;
 
 			void SetWidth(const uint32_t width);
@@ -130,11 +130,11 @@ namespace wtr
 			virtual ~RHISampler() = default;
 
 		public :
-			const eFilterMode GetMinFilter() const;
-			const eFilterMode GetMagFilter() const;
-			const eWrapMode GetWrapS() const;
-			const eWrapMode GetWrapT() const;
-			const eWrapMode GetWrapR() const;
+			eFilterMode GetMinFilter() const;
+			eFilterMode GetMagFilter() const;
+			eWrapMode GetWrapS() const;
+			eWrapMode GetWrapT() const;
+			eWrapMode GetWrapR() const;
 			const RHISamplerDesc& GetDesc() const;
 
 			void SetMinFilter(const eFilterMode minFilter);
@@ -156,7 +156,7 @@ namespace wtr
 		virtual ~RHIShader() = default;
 
 	public :
-		const eShaderType GetShaderType() const;
+		eShaderType GetShaderType() const;
 		const RHIShaderDesc& GetDesc() const;
 
 	private :
@@ -191,8 +191,8 @@ namespace wtr
 		bool HasSlot(const eResourceSlot slot) const;
 
 		size_t GetSlotCount() const;
-		const RHIResourceBinding GetBindingSlot(const std::string& name) const;
-		const RHIResourceBinding GetBindingSlot(const eResourceSlot slot) const;
+		const RHIResourceBinding& GetBindingSlot(const std::string& name) const;
+		const RHIResourceBinding& GetBindingSlot(const eResourceSlot slot) const;
 
 	private :
 		RHIPipeLineDesc m_desc;
@@ -221,7 +221,7 @@ namespace wtr
 		bool HasColorAttach(const uint32_t slot) const;
 		bool HasDepthStencilAttach() const;
 
-		const size_t GetColorAttachCount() const;
+		size_t GetColorAttachCount() const;
 
 	private :
 		RHIRenderTargetDesc m_desc;
