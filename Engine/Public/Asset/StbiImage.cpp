@@ -58,27 +58,27 @@ namespace wtr
 		return m_pixels;
 	}
 
-	const uint32_t StbiImage::GetSize() const
+	uint32_t StbiImage::GetSize() const
 	{
 		return m_size;
 	}
 
-	const int32_t StbiImage::GetWidth() const
+	int32_t StbiImage::GetWidth() const
 	{
 		return m_width;
 	}
 
-	const int32_t StbiImage::GetHeight() const
+	int32_t StbiImage::GetHeight() const
 	{
 		return m_height;
 	}
 
-	const int32_t StbiImage::GetChannels() const
+	int32_t StbiImage::GetChannels() const
 	{
 		return m_channels;
 	}
 
-	const bool StbiImage::Is16Bit() const
+	bool StbiImage::Is16Bit() const
 	{
 		return m_16bit;
 	}

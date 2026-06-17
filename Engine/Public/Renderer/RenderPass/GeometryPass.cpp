@@ -306,7 +306,7 @@ namespace wtr
 		cmdList->UnsetVertexLayout();
 	}
 
-	const RHIDrawIndexDesc GeometryPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	RHIDrawIndexDesc GeometryPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		if (!drawCommand)
 		{

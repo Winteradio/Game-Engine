@@ -48,7 +48,7 @@ namespace wtr
 		m_frame = frame;
 	}
 
-	const size_t RHICommandList::GetFrame() const
+	size_t RHICommandList::GetFrame() const
 	{
 		return m_frame;
 	}

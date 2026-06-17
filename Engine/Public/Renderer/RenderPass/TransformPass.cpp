@@ -26,7 +26,7 @@ namespace wtr
 		return m_computeShader ? m_computeShader->GetResourceState() : eResourceState::eNone;
 	}
 
-	const RHIDispatchDesc TransformPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	RHIDispatchDesc TransformPass::GetDispatchCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		if (!drawCommand)
 		{

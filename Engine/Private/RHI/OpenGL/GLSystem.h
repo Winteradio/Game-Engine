@@ -101,45 +101,45 @@ namespace wtr
 		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
 
-		const uint32_t GetBufferType(const eBufferType buffer) const override;
-		const uint32_t GetDataAccess(const eDataAccess access) const override;
-		const uint32_t GetDataType(const eDataType data) const override;
-		const uint32_t GetMapAccess(const eMapAccess access) const override;
+		uint32_t GetBufferType(const eBufferType buffer) const override;
+		uint32_t GetDataAccess(const eDataAccess access) const override;
+		uint32_t GetDataType(const eDataType data) const override;
+		uint32_t GetMapAccess(const eMapAccess access) const override;
 
-		const uint32_t GetTextureType(const eTextureType texture) const override;
-		const uint32_t GetTextureDimension(const eTextureType texture) const override;
-		const uint32_t GetInternalFormat(const ePixelFormat pixel) const;
-		const uint32_t GetBaseFormat(const ePixelFormat pixel) const;
-		const uint32_t GetPixelDataType(const ePixelFormat pixel) const;
+		uint32_t GetTextureType(const eTextureType texture) const override;
+		uint32_t GetTextureDimension(const eTextureType texture) const override;
+		uint32_t GetInternalFormat(const ePixelFormat pixel) const;
+		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
+		uint32_t GetPixelDataType(const ePixelFormat pixel) const;
 		
-		const uint32_t GetFilterMode(const eFilterMode filter) const override;
-		const uint32_t GetWrapMode(const eWrapMode wrap) const override;
+		uint32_t GetFilterMode(const eFilterMode filter) const override;
+		uint32_t GetWrapMode(const eWrapMode wrap) const override;
 		
-		const uint32_t GetCullFace(const eCullFace face) const override;
-		const uint32_t GetFrontFace(const eFrontFace face) const override;
+		uint32_t GetCullFace(const eCullFace face) const override;
+		uint32_t GetFrontFace(const eFrontFace face) const override;
 		
-		const uint32_t GetDrawMode(const eDrawMode mode) const override;
-		const uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const override;
+		uint32_t GetDrawMode(const eDrawMode mode) const override;
+		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const override;
 		
-		const uint32_t GetCompareFunc(const eCompareFunc func) const override;
+		uint32_t GetCompareFunc(const eCompareFunc func) const override;
 		
-		const uint32_t GetStencilOp(const eStencilOp op) const override;
+		uint32_t GetStencilOp(const eStencilOp op) const override;
 		
-		const uint32_t GetBlendFunc(const eBlendFunc func) const override;
-		const uint32_t GetBlendOp(const eBlendOp op) const override;
+		uint32_t GetBlendFunc(const eBlendFunc func) const override;
+		uint32_t GetBlendOp(const eBlendOp op) const override;
 		
-		const uint32_t GetShaderType(const eShaderType type) const override;
+		uint32_t GetShaderType(const eShaderType type) const override;
 
-		const uint32_t GetColorAttachment(const uint32_t slot) const override;
-		const uint32_t GetDepthStencilAttachment(const eAttachment attach) const override;
+		uint32_t GetColorAttachment(const uint32_t slot) const override;
+		uint32_t GetDepthStencilAttachment(const eAttachment attach) const override;
 
-		const eCompareFunc GetCompareFunc(const uint32_t func) const;
-		const eStencilOp GetStencilOp(const uint32_t op) const;
-		const eBlendFunc GetBlendFunc(const uint32_t func) const;
-		const eBlendOp GetBlendOp(const uint32_t op) const;
-		const eCullFace GetCullFace(const uint32_t face) const;
-		const eFrontFace GetFrontFace(const uint32_t face) const;
-		const ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
+		eCompareFunc GetCompareFunc(const uint32_t func) const;
+		eStencilOp GetStencilOp(const uint32_t op) const;
+		eBlendFunc GetBlendFunc(const uint32_t func) const;
+		eBlendOp GetBlendOp(const uint32_t op) const;
+		eCullFace GetCullFace(const uint32_t face) const;
+		eFrontFace GetFrontFace(const uint32_t face) const;
+		ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
 
 		bool IsSampler(const int32_t type) const;
 

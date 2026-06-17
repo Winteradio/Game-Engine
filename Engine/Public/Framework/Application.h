@@ -33,8 +33,8 @@ namespace wtr
 			bool InitEngine(const wtr::WindowDesc& windowDesc, const wtr::RenderDesc& renderDesc);
 			bool InitDefault();
 
-			virtual const WindowDesc GetWindowDesc() const;
-			virtual const RenderDesc GetRenderDesc() const;
+			virtual WindowDesc GetWindowDesc() const;
+			virtual RenderDesc GetRenderDesc() const;
 
 			Memory::ObjectPtr<World> GetWorld() const;
 			Memory::RefPtr<ViewController> GetViewController() const;

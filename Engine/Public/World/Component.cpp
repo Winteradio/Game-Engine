@@ -160,7 +160,7 @@ namespace wtr
 		this->OnUpdate();
 	}
 
-	const size_t InstancedTransformComponent::GetInstanceCount() const
+	size_t InstancedTransformComponent::GetInstanceCount() const
 	{
 		return m_instanceTransforms.Size();
 	}
@@ -337,24 +337,24 @@ namespace wtr
 		}
 	}
 
-	const eLightType LightComponent::GetLightType() const
+	eLightType LightComponent::GetLightType() const
 	{
 		return m_lightType;
 	}
 
-	const eShadowType LightComponent::GetShadowType() const
+	eShadowType LightComponent::GetShadowType() const
 	{
 		return m_shadowType;
 	}
 
-	const fvec3 LightComponent::GetColor() const
-	{
-		return m_color;
-	}
-
-	const float LightComponent::GetIntensity() const
+	float LightComponent::GetIntensity() const
 	{
 		return m_intensity;
+	}
+
+	const fvec3& LightComponent::GetColor() const
+	{
+		return m_color;
 	}
 
 	PointLightComponent::PointLightComponent()
@@ -372,7 +372,7 @@ namespace wtr
 		}
 	}
 
-	const float PointLightComponent::GetRange() const
+	float PointLightComponent::GetRange() const
 	{
 		return m_range;
 	}
@@ -414,17 +414,17 @@ namespace wtr
 		}
 	}
 
-	const float SpotLightComponent::GetRange() const
+	float SpotLightComponent::GetRange() const
 	{
 		return m_range;
 	}
 
-	const float SpotLightComponent::GetInnerAngle() const
+	float SpotLightComponent::GetInnerAngle() const
 	{
 		return m_innerAngle;
 	}
 
-	const float SpotLightComponent::GetOuterAngle() const
+	float SpotLightComponent::GetOuterAngle() const
 	{
 		return m_outerAngle;
 	}

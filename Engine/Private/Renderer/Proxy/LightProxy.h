@@ -77,8 +77,8 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        const fmat4 GetViewMatrix() const;
-        const fmat4 GetProjectionMatrix() const;
+        fmat4 GetViewMatrix() const;
+        fmat4 GetProjectionMatrix() const;
 
     private :
         Light* GetLightData() override;
@@ -105,8 +105,8 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        const fmat4 GetViewMatrix() const;
-        const fmat4 GetProjectionMatrix() const;
+        fmat4 GetViewMatrix() const;
+        fmat4 GetProjectionMatrix() const;
 
     public :
 		void SetRange(const float range);
@@ -136,8 +136,8 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        const fmat4 GetViewMatrix() const;
-        const fmat4 GetProjectionMatrix() const;
+        fmat4 GetViewMatrix() const;
+        fmat4 GetProjectionMatrix() const;
 
     public :
         void SetRange(const float range);

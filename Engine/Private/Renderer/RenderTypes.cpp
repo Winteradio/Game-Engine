@@ -145,11 +145,13 @@ namespace wtr
 		};
 	};
 
-	const VertexKey GetVertexKey(const std::string& attributeName)
+	const VertexKey& GetVertexKey(const std::string& attributeName)
 	{
+		static const VertexKey emptyKey = { eVertexSemantic::eNone, 0xFF };
+
 		if (attributeName.empty())
 		{
-			return { eVertexSemantic::eNone, 0xFF };
+			return emptyKey;
 		}
 
 		// Change the upper case of the attribute name
@@ -165,7 +167,7 @@ namespace wtr
 
 		const uint8_t semanticIndex = (pos < upper.size()) ? static_cast<uint8_t>(std::stoi(upper.substr(pos))) : 0x00;
 
-		static const wtr::HashMap<std::string, eVertexSemantic> SEMANTIC_MAP = 
+		static const wtr::HashMap<std::string, eVertexSemantic> SEMANTIC_MAP =
 		{
 			{ "POSITION", eVertexSemantic::ePosition },
 			{ "NORMAL", eVertexSemantic::eNormal },
@@ -180,56 +182,59 @@ namespace wtr
 		const auto itr = SEMANTIC_MAP.Find(upper.substr(0, pos));
 		if (itr != SEMANTIC_MAP.end())
 		{
-			return { itr->second, semanticIndex };
+			static VertexKey resultKey = { eVertexSemantic::eNone, 0 };
+			resultKey = { itr->second, semanticIndex };
+			return resultKey;
 		}
 
-		return { eVertexSemantic::eNone, 0xFF };
+		return emptyKey;
 	}
 
-	const std::string GetSlotName(const eResourceSlot slot)
+	const std::string& GetSlotName(const eResourceSlot slot)
 	{
 		// Texture - Material
-		if (slot == eResourceSlot::eAmbient)			return "tAmbient";
-		if (slot == eResourceSlot::eDiffuse)			return "tDiffuse";
-		if (slot == eResourceSlot::eSpecular)			return "tSpecular";
-		if (slot == eResourceSlot::eEmissive)			return "tEmissive";
-		if (slot == eResourceSlot::eOpacity)			return "tOpacity";
-		if (slot == eResourceSlot::eBump)				return "tBump";
-		if (slot == eResourceSlot::eNormal)				return "tNormal";
-		if (slot == eResourceSlot::eRoughness)			return "tRoughness";
-		if (slot == eResourceSlot::eMetallic)			return "tMetallic";
-		if (slot == eResourceSlot::eAmbientOcclusion)	return "tAmbientOcclusion";
-		if (slot == eResourceSlot::eSheen)				return "tSheen";
+		if (slot == eResourceSlot::eAmbient)			{ static const std::string s = "tAmbient"; return s; }
+		if (slot == eResourceSlot::eDiffuse)			{ static const std::string s = "tDiffuse"; return s; }
+		if (slot == eResourceSlot::eSpecular)			{ static const std::string s = "tSpecular"; return s; }
+		if (slot == eResourceSlot::eEmissive)			{ static const std::string s = "tEmissive"; return s; }
+		if (slot == eResourceSlot::eOpacity)			{ static const std::string s = "tOpacity"; return s; }
+		if (slot == eResourceSlot::eBump)				{ static const std::string s = "tBump"; return s; }
+		if (slot == eResourceSlot::eNormal)				{ static const std::string s = "tNormal"; return s; }
+		if (slot == eResourceSlot::eRoughness)			{ static const std::string s = "tRoughness"; return s; }
+		if (slot == eResourceSlot::eMetallic)			{ static const std::string s = "tMetallic"; return s; }
+		if (slot == eResourceSlot::eAmbientOcclusion)	{ static const std::string s = "tAmbientOcclusion"; return s; }
+		if (slot == eResourceSlot::eSheen)				{ static const std::string s = "tSheen"; return s; }
 
 		// Texture - GBuffer
-		if (slot == eResourceSlot::eGNormal)			return "tGNormal";
-		if (slot == eResourceSlot::eGAlbedo)			return "tGAlbedo";
-		if (slot == eResourceSlot::eGPhong)				return "tGPhong";
-		if (slot == eResourceSlot::eGPBR)				return "tGPBR";
-		if (slot == eResourceSlot::eGAlpha)				return "tGAlpha";
-		if (slot == eResourceSlot::eGDepth)				return "tGDepth";
+		if (slot == eResourceSlot::eGNormal)			{ static const std::string s = "tGNormal"; return s; }
+		if (slot == eResourceSlot::eGAlbedo)			{ static const std::string s = "tGAlbedo"; return s; }
+		if (slot == eResourceSlot::eGPhong)				{ static const std::string s = "tGPhong"; return s; }
+		if (slot == eResourceSlot::eGPBR)				{ static const std::string s = "tGPBR"; return s; }
+		if (slot == eResourceSlot::eGAlpha)				{ static const std::string s = "tGAlpha"; return s; }
+		if (slot == eResourceSlot::eGDepth)				{ static const std::string s = "tGDepth"; return s; }
 
 		// Uniform - Material
-		if (slot == eResourceSlot::eMaterial)				return "uMaterial";
+		if (slot == eResourceSlot::eMaterial)				{ static const std::string s = "uMaterial"; return s; }
 
 		// Uniform - Camera
-		if (slot == eResourceSlot::eCamera)				return "uCamera";
+		if (slot == eResourceSlot::eCamera)				{ static const std::string s = "uCamera"; return s; }
 
 		// Uniform - Instance
-		if (slot == eResourceSlot::eInstanceCount)		return "uInstanceCount";
-		if (slot == eResourceSlot::eRawTransform)		return "uRawTransform";
-		if (slot == eResourceSlot::eTransform)			return "uTransform";
-		if (slot == eResourceSlot::eIndirect)			return "uIndirect";
-		if (slot == eResourceSlot::eVisible)			return "uVisible";
-		if (slot == eResourceSlot::eLocalBounding)		return "uLocalBounding";
+		if (slot == eResourceSlot::eInstanceCount)		{ static const std::string s = "uInstanceCount"; return s; }
+		if (slot == eResourceSlot::eRawTransform)		{ static const std::string s = "uRawTransform"; return s; }
+		if (slot == eResourceSlot::eTransform)			{ static const std::string s = "uTransform"; return s; }
+		if (slot == eResourceSlot::eIndirect)			{ static const std::string s = "uIndirect"; return s; }
+		if (slot == eResourceSlot::eVisible)			{ static const std::string s = "uVisible"; return s; }
+		if (slot == eResourceSlot::eLocalBounding)		{ static const std::string s = "uLocalBounding"; return s; }
 
 		// Uniform - Light
-		if (slot == eResourceSlot::eLight)				return "uLight";
+		if (slot == eResourceSlot::eLight)				{ static const std::string s = "uLight"; return s; }
 
-		return "";
+		static const std::string emptyString = "";
+		return emptyString;
 	}
 
-	const eResourceSlot GetResourceSlot(const std::string& name)
+	eResourceSlot GetResourceSlot(const std::string& name)
 	{
 		// Texture - Material
 		if (name == "tAmbient")				return eResourceSlot::eAmbient;

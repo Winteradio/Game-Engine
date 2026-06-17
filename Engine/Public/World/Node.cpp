@@ -2,7 +2,7 @@
 
 namespace wtr
 {
-	const fmat4 CameraNode::GetViewMatrix() const
+	fmat4 CameraNode::GetViewMatrix() const
 	{
 		if (!transform)
 		{
@@ -18,7 +18,7 @@ namespace wtr
 		return viewMatrix;
 	}
 
-	const fmat4 CameraNode::GetProjectionMatrix() const
+	fmat4 CameraNode::GetProjectionMatrix() const
 	{
 		if (!camera)
 		{

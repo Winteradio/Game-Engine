@@ -73,7 +73,7 @@ namespace wtr
 		void ExecuteAll();
 		void Reset();
 		void SetFrame(const size_t frame);
-		const size_t GetFrame() const;
+		size_t GetFrame() const;
 
 	public :
 		void Clear(const RHIClearState& state);

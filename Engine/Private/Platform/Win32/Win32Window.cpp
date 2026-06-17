@@ -147,7 +147,7 @@ namespace wtr
 		}
 	}
 
-	const eWindowStatus Win32Window::GetStatus() const
+	eWindowStatus Win32Window::GetStatus() const
 	{
 		return m_status;
 	}
