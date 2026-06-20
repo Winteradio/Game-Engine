@@ -152,7 +152,7 @@ namespace demo
 			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = color;
 			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
 
-			const std::string dragonPath = "asset/mesh/3d/cube.obj";
+			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(matName);
 
@@ -164,10 +164,9 @@ namespace demo
 			auto transformComponent = cubeEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				const wtr::fvec3 position = { static_cast<float>(col), 0.f, static_cast<float>(row) };
-				const wtr::fvec3 scale = wtr::fvec3(0.3f);
+				const wtr::fvec3 position = { static_cast<float>(col), -0.47f, static_cast<float>(row) };
 				transformComponent->UpdatePosition(position);
-				transformComponent->UpdateScale(scale);
+				transformComponent->UpdateRotation(wtr::fquat(0.701, 0.0, 0.701, 0.0));
 			}
 
 			world->scene.Attach(cubeEntity->GetNode<wtr::StaticMeshNode>());

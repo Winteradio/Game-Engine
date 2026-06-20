@@ -653,11 +653,31 @@ namespace wtr
 			return;
 		}
 
-		glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, GetFilterMode(info.minFilter));
-		glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, GetFilterMode(info.magFilter));
-		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, GetWrapMode(info.wrapS));
-		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, GetWrapMode(info.wrapT));
-		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, GetWrapMode(info.wrapR));
+		glBindSampler(GL_ONE, samplerID);
+
+		const uint32_t minFilter = GetFilterMode(info.minFilter);
+		const uint32_t magFilter = GetFilterMode(info.magFilter);
+
+		const uint32_t wrapS = GetWrapMode(info.wrapS);
+		const uint32_t wrapT = GetWrapMode(info.wrapT);
+		const uint32_t wrapR = GetWrapMode(info.wrapR);
+
+		glSamplerParameteri(samplerID, GL_TEXTURE_MIN_FILTER, minFilter);
+		glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, magFilter);
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapS);
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapT);
+		glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_R, wrapR);
+
+		if (eWrapMode::eClampToBorder == info.wrapS ||
+			eWrapMode::eClampToBorder == info.wrapT ||
+			eWrapMode::eClampToBorder == info.wrapR)
+		{
+			const fvec4 borderColor = GetWrapBorderColor(info.wrapBorderColor);
+
+			glSamplerParameterfv(samplerID, GL_TEXTURE_BORDER_COLOR, reinterpret_cast<const GLfloat*>(&borderColor));
+		}
+
+		glBindSampler(GL_ONE, GL_NONE);
 
 		glSampler->SetID(samplerID);
 		glSampler->SetState(eResourceState::eReady);
@@ -1717,19 +1737,15 @@ namespace wtr
 			return;
 		}
 
-		if (info.dimension > 4)
-		{
-			LOGWARN() << "[GL] The dimension over than 4 (matrix) is not supported";
-			return;
-		}
-
-		const uint32_t dataDimension = info.dimension;
+		const uint32_t dataRow = info.row;
+		const uint32_t dataColumn = info.column;
 		const uint32_t dataType = GetDataType(info.dataType);
 		const uint32_t dataCount = info.data->GetCount();
 		const uint32_t dataSize = info.data->GetSize();
+		const bool dataTranspose = info.transpose;
 		const void* data = info.data->GetPointer();
 
-		const uint32_t expectedSize = GetDataTypeSize(info.dataType) * dataDimension * dataCount;
+		const uint32_t expectedSize = GetDataTypeSize(info.dataType) * dataRow * dataColumn * dataCount;
 		if (expectedSize != dataSize)
 		{
 			LOGWARN() << "[GL] The constant buffer size is same as the expected size";
@@ -1738,19 +1754,25 @@ namespace wtr
 
 		if (dataType == GL_INT)
 		{
-			if (dataDimension == 1)
+			if (dataColumn != 1)
+			{
+				LOGWARN() << "[GL] Not supported column count(" << dataColumn << ") for the integer const buffer";
+				return;
+			}
+
+			if (dataRow == 1)
 			{
 				glUniform1iv(binding.location, dataCount, static_cast<const GLint*>(data));
 			}
-			else if (dataDimension == 2)
+			else if (dataRow == 2)
 			{
 				glUniform2iv(binding.location, dataCount, static_cast<const GLint*>(data));
 			}
-			else if (dataDimension == 3)
+			else if (dataRow == 3)
 			{
 				glUniform3iv(binding.location, dataCount, static_cast<const GLint*>(data));
 			}
-			else if (dataDimension == 4)
+			else if (dataRow == 4)
 			{
 				glUniform4iv(binding.location, dataCount, static_cast<const GLint*>(data));
 			}
@@ -1761,19 +1783,25 @@ namespace wtr
 		}
 		else if (dataType == GL_UNSIGNED_INT)
 		{
-			if (dataDimension == 1)
+			if (dataColumn != 1)
+			{
+				LOGWARN() << "[GL] Not supported column count(" << dataColumn << ") for the unsigned integer const buffer";
+				return;
+			}
+
+			if (dataRow == 1)
 			{
 				glUniform1uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
 			}
-			else if (dataDimension == 2)
+			else if (dataRow == 2)
 			{
 				glUniform2uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
 			}
-			else if (dataDimension == 3)
+			else if (dataRow == 3)
 			{
 				glUniform3uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
 			}
-			else if (dataDimension == 4)
+			else if (dataRow == 4)
 			{
 				glUniform4uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
 			}
@@ -1784,21 +1812,81 @@ namespace wtr
 		}
 		else if (dataType == GL_FLOAT)
 		{
-			if (dataDimension == 1)
+			if (dataRow == 1)
 			{
-				glUniform1fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform1fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				}
 			}
-			else if (dataDimension == 2)
+			else if (dataRow == 2)
 			{
-				glUniform2fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform2fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix2x3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix2x4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
-			else if (dataDimension == 3)
+			else if (dataRow == 3)
 			{
-				glUniform3fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform3fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix3x2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix3x4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
-			else if (dataDimension == 4)
+			else if (dataRow == 4)
 			{
-				glUniform4fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform4fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix4x2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix4x3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
 			else
 			{
@@ -1807,21 +1895,81 @@ namespace wtr
 		}
 		else if (dataType == GL_DOUBLE)
 		{
-			if (dataDimension == 1)
+			if (dataRow == 1)
 			{
-				glUniform1dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform1dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				}
 			}
-			else if (dataDimension == 2)
+			else if (dataRow == 2)
 			{
-				glUniform2dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform2dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix2x3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix2x4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
-			else if (dataDimension == 3)
+			else if (dataRow == 3)
 			{
-				glUniform3dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform3dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix3x2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix3x4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
-			else if (dataDimension == 4)
+			else if (dataRow == 4)
 			{
-				glUniform4dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				if (dataColumn == 1)
+				{
+					glUniform4dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 2)
+				{
+					glUniformMatrix4x2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 3)
+				{
+					glUniformMatrix4x3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else if (dataColumn == 4)
+				{
+					glUniformMatrix4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+				}
+				else
+				{
+					// nothing
+				}
 			}
 			else
 			{
@@ -2794,6 +2942,26 @@ namespace wtr
 		else
 		{
 			return GL_NONE;
+		}
+	}
+
+	fvec4 GLSystem::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
+	{
+		if (eWrapBorderColor::eTransparentBlack == wrapBorderColor)
+		{
+			return fvec4(0.f, 0.f, 0.f, 0.f);
+		}
+		else if (eWrapBorderColor::eOpaqueBlack == wrapBorderColor)
+		{
+			return fvec4(0.f, 0.f, 0.f, 1.f);
+		}
+		else if (eWrapBorderColor::eOpaqueWhite == wrapBorderColor)
+		{
+			return fvec4(1.f, 1.f, 1.f, 1.f);
+		}
+		else
+		{
+			return fvec4(0.f, 0.f, 0.f, 0.f);
 		}
 	}
 

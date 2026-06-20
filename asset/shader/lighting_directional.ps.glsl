@@ -6,6 +6,7 @@ layout(binding = 0) uniform sampler2D tGDepth;
 layout(binding = 1) uniform sampler2D tGNormal;
 layout(binding = 2) uniform sampler2D tGAlbedo;
 layout(binding = 3) uniform usampler2D tGPhong;
+layout(binding = 4) uniform sampler2D tGShadow;
 
 layout(std430, binding = 0) readonly buffer uLight
 {
@@ -25,9 +26,57 @@ layout(std140, binding = 1) uniform uCamera
 	vec3 direction;
 } camera;
 
+uniform mat4 uLightView;
+uniform mat4 uLightProj;
+
 in vec2 outTexCoord;
 
 const float PI = 3.14159265359;
+
+float GetShadowFactor(vec3 worldPos, vec3 worldNor)
+{
+    vec4 clipPos = uLightProj * uLightView * vec4(worldPos, 1.0);
+    vec4 ndcPos = mix(clipPos, clipPos/clipPos.w, step(1e-6, abs(clipPos.w)));
+
+    vec3 projCoords = ndcPos.xyz * 0.5 + 0.5;
+	projCoords.z = clamp(projCoords.z, 0.0, 1.0);
+
+    vec2 shadowUV = projCoords.xy;
+
+    vec2 texelSize = textureSize(tGShadow, 0);
+    float texelRatio = 1.0 / float(max(texelSize.x, texelSize.y));
+    float tangentRatio = length(light.direction - worldNor * dot(light.direction, worldNor));
+    
+	float shadowBias = texelRatio * tangentRatio;
+
+    float currentDepth = projCoords.z;
+
+    float shadowFactor = 0.0;
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            vec2 pcfUV = shadowUV + vec2(x,y) / texelSize;
+            float pcfDepth = texture(tGShadow, pcfUV).r;
+            
+            shadowFactor += step(pcfDepth, currentDepth - shadowBias);
+        }
+    }
+
+    shadowFactor /= 9.0;
+
+    float fadeMargin = 0.1; 
+    
+    float distToEdgeX = min(projCoords.x, 1.0 - projCoords.x);
+    float distToEdgeY = min(projCoords.y, 1.0 - projCoords.y);
+    float distToEdgeZ = abs(1.0 - projCoords.z);
+    
+    float minFade = min(min(distToEdgeX, distToEdgeY), distToEdgeZ);
+
+	float fadeFactor = mix(1.0, smoothstep(0.0, fadeMargin, minFade), step(1e-6, fadeMargin - minFade));
+
+    return shadowFactor * fadeFactor;
+}
 
 vec3 GetWorldPosition(vec2 uv)
 {
@@ -87,5 +136,7 @@ void main()
 
     vec3 ambient = albedo.rgb * 0.03;
 
-    FragColor = vec4(lightOut + ambient, opacity);
+    float shadowFactor = GetShadowFactor(position, normal);
+
+    FragColor = vec4(lightOut * (1.0 - shadowFactor) + ambient, opacity);
 }

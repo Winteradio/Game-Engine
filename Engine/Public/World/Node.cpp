@@ -49,20 +49,20 @@ namespace wtr
 			projMatrix[0][0] = cotHalfFovY / aspectRatio;
 			projMatrix[1][1] = cotHalfFovY;
 			projMatrix[2][2] = -(far + near) / (far - near);
-			projMatrix[3][2] = -2.0f * far * near / (far - near);
 			projMatrix[2][3] = -1.0f;
+			projMatrix[3][2] = -2.0f * far * near / (far - near);
 			projMatrix[3][3] = 0.0f;
 		}
 		else
 		{
-			const float nearHeight = 2.0f * near * cotHalfFovY;
-			const float nearWidth = nearHeight * aspectRatio;
+			const float orthoScale = 100;
+			const float orthoHeight = orthoScale * near * cotHalfFovY;
+			const float orthoWidth = orthoHeight * aspectRatio;
 
-			projMatrix[0][0] = 2.0f / nearWidth;
-			projMatrix[1][1] = 2.0f / nearHeight;
+			projMatrix[0][0] = 2.0f / orthoWidth;
+			projMatrix[1][1] = 2.0f / orthoHeight;
 			projMatrix[2][2] = -2.0f / (far - near);
 			projMatrix[3][2] = -(far + near) / (far - near);
-			projMatrix[2][3] = 0.0f;
 			projMatrix[3][3] = 1.0f;
 		}
 

@@ -253,10 +253,12 @@ namespace wtr
 		const auto normalTexture = GlobalResource::GetGBuffer(eGBufferSlot::eNormal);
 		const auto albedoTexture = GlobalResource::GetGBuffer(eGBufferSlot::eAlbedo);
 		const auto phongTexture = GlobalResource::GetGBuffer(eGBufferSlot::ePhong);
+		const auto shadowTexture = light->GetShadowMap();
 		if (!depthTexture || depthTexture->GetState() != eResourceState::eReady ||
 			!normalTexture || normalTexture->GetState() != eResourceState::eReady ||
 			!albedoTexture || albedoTexture->GetState() != eResourceState::eReady ||
-			!phongTexture || phongTexture->GetState() != eResourceState::eReady)
+			!phongTexture || phongTexture->GetState() != eResourceState::eReady ||
+			!shadowTexture || shadowTexture->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -265,10 +267,12 @@ namespace wtr
 		const auto normalSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGNormal);
 		const auto albedoSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGAlbedo);
 		const auto phongSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGPhong);
+		const auto shadowSampler = GlobalResource::GetSampler(cmdList, eResourceSlot::eGShadow);
 		if (!depthSampler || depthSampler->GetState() != eResourceState::eReady ||
 			!normalSampler || normalSampler->GetState() != eResourceState::eReady ||
 			!albedoSampler || albedoSampler->GetState() != eResourceState::eReady ||
-			!phongSampler || phongSampler->GetState() != eResourceState::eReady)
+			!phongSampler || phongSampler->GetState() != eResourceState::eReady ||
+			!shadowSampler || shadowSampler->GetState() != eResourceState::eReady)
 		{
 			return false;
 		}
@@ -293,6 +297,26 @@ namespace wtr
 
 		cmdList->SetTexture(pipeline, phongTexture, eResourceSlot::eGPhong);
 		cmdList->SetSampler(pipeline, phongSampler, eResourceSlot::eGPhong);
+
+		cmdList->SetTexture(pipeline, shadowTexture, eResourceSlot::eGShadow);
+		cmdList->SetSampler(pipeline, shadowSampler, eResourceSlot::eGShadow);
+
+		RHIConstDesc viewDesc;
+		viewDesc.dataType = eDataType::eFloat;
+		viewDesc.row = 4;
+		viewDesc.column = 4;
+		viewDesc.offset = 0;
+		viewDesc.data = light->GetLightView();
+
+		RHIConstDesc projDesc;
+		projDesc.dataType = eDataType::eFloat;
+		projDesc.row = 4;
+		projDesc.column = 4;
+		projDesc.offset = 0;
+		projDesc.data = light->GetLightProj();
+
+		cmdList->SetConstant(pipeline, viewDesc, "uLightView");
+		cmdList->SetConstant(pipeline, projDesc, "uLightProj");
 
 		return true;
 	}

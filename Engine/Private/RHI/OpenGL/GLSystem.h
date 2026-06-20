@@ -3,7 +3,7 @@
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIStates.h>
-#include <RHI/OpenGL/Win32/WGLContext.h>
+#include <Platform/Win32/WGLContext.h>
 
 namespace wtr
 {
@@ -114,7 +114,7 @@ namespace wtr
 		
 		uint32_t GetFilterMode(const eFilterMode filter) const override;
 		uint32_t GetWrapMode(const eWrapMode wrap) const override;
-		
+
 		uint32_t GetCullFace(const eCullFace face) const override;
 		uint32_t GetFrontFace(const eFrontFace face) const override;
 		
@@ -140,6 +140,8 @@ namespace wtr
 		eCullFace GetCullFace(const uint32_t face) const;
 		eFrontFace GetFrontFace(const uint32_t face) const;
 		ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
+
+		fvec4 GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
 
 		bool IsSampler(const int32_t type) const;
 

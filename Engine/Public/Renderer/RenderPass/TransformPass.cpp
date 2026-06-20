@@ -120,7 +120,7 @@ namespace wtr
 
 		RHIConstDesc info;
 		info.dataType = eDataType::eUInt;
-		info.dimension = 1;
+		info.row = 1;
 		info.offset = 0;
 		info.data = instanceCount;
 

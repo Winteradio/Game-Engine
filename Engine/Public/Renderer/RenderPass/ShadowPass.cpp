@@ -102,6 +102,8 @@ namespace wtr
 			m_lights[pipeline].PushBack(lightProxy);
 		}
 
+		SetState(cmdList);
+
 		for (const auto& [pipeline, proxies] : m_lights)
 		{
 			if (!pipeline || pipeline->GetState() != eResourceState::eReady)
@@ -118,7 +120,9 @@ namespace wtr
 					continue;
 				}
 
+				cmdList->Resize(0, 0, 1024, 1024);
 				cmdList->SetRenderTarget(lightProxy->GetShadowTarget());
+				cmdList->ClearRenderTarget(lightProxy->GetShadowTarget(), *m_clear);
 
 				for (const auto& drawCommand : drawCommands)
 				{
@@ -204,17 +208,27 @@ namespace wtr
 			return false;
 		}
 		
-		RHIConstDesc viewDesc, projDesc;
-		Memory::RefPtr<ScalarData<fmat4>> viewMatrix = Memory::MakeRef<ScalarData<fmat4>>();
-		Memory::RefPtr<ScalarData<fmat4>> projMatrix = Memory::MakeRef<ScalarData<fmat4>>();
+		RHIConstDesc viewDesc;
+		viewDesc.dataType = eDataType::eFloat;
+		viewDesc.row = 4;
+		viewDesc.column = 4;
+		viewDesc.offset = 0;
+		viewDesc.data = light->GetLightView();
 
-		cmdList->SetConstant(pipeline, viewDesc, "viewMatrix");
-		cmdList->SetConstant(pipeline, projDesc, "projMatrix");
+		RHIConstDesc projDesc;
+		projDesc.dataType = eDataType::eFloat;
+		projDesc.row = 4;
+		projDesc.column = 4;
+		projDesc.offset = 0;
+		projDesc.data = light->GetLightProj();
+
+		cmdList->SetConstant(pipeline, viewDesc, "uLightView");
+		cmdList->SetConstant(pipeline, projDesc, "uLightProj");
 
 		return true;
 	}
 
-	const RHIDrawIndexDesc ShadowPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
+	RHIDrawIndexDesc ShadowPass::GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand)
 	{
 		if (!drawCommand)
 		{
@@ -250,9 +264,11 @@ namespace wtr
 		
 		auto vsAsset = shaderProxy->GetShader<ShadowVSState>();
 		auto gsAsset = shaderProxy->GetShader<ShadowGSState>();
+		auto psAsset = shaderProxy->GetShader<ShadowPSState>();
 		
 		desc.vertexShader = vsAsset ? vsAsset->GetShader() : nullptr;
 		desc.geometryShader = gsAsset ? gsAsset->GetShader() : nullptr;
+		desc.pixelShader = psAsset ? psAsset->GetShader() : nullptr;
 		
 		Memory::RefPtr<const RHIPipeLine> pipeline = GlobalResource::GetPipeLine(cmdList, desc);
 		if (pipeline && pipeline->GetState() == eResourceState::eReady)

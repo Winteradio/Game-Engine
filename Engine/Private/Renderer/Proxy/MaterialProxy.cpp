@@ -151,14 +151,10 @@ namespace wtr
 			materialParams = params;
 		}
 
+		const RHIBufferDesc prevDesc = m_materialBuffer->GetDesc();
+
 		RHIBufferUpdateDesc desc;
-		desc.bufferType = eBufferType::eStorage;
-		desc.accessType = eDataAccess::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.numComponents = 1;
-		desc.count = 1;
-		desc.size = materialParams->GetSize();
-		desc.stride = materialParams->GetSize();
+		desc = prevDesc;
 		desc.dataRanges.PushBack({ 0, materialParams });
 
 		cmdList->UpdateBuffer(desc, m_materialBuffer);

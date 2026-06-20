@@ -177,6 +177,14 @@ namespace wtr
 		eClampToBorder	= 0x04,
 	};
 
+	enum class eWrapBorderColor : uint8_t
+	{
+		eNone				= 0x00,
+		eTransparentBlack	= 0x01,
+		eOpaqueBlack		= 0x02,
+		eOpaqueWhite		= 0x03
+	};
+
 	enum class eShaderType : uint8_t
 	{
 		eNone			= 0x00,
@@ -343,7 +351,8 @@ namespace wtr
 		eGPBR,
 		eGAlpha,
 		eGDepth,
-		eEnd_Texture = eGDepth,
+		eGShadow,
+		eEnd_Texture = eGShadow,
 
 		eBegin_Uniform = eEnd_Texture,
 		// Uniform - Material
@@ -362,6 +371,8 @@ namespace wtr
 
 		// Uniform - Light
 		eLight,
+		eLightView,
+		eLightProj,
 
 		eEnd_Uniform
 	};

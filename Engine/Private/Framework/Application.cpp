@@ -111,8 +111,8 @@ namespace wtr
 		auto cameraComponent = cameraEntity->GetComponent<wtr::CameraComponent>();
 		if (cameraComponent)
 		{
-			cameraComponent->nearPlane = 1.f;
-			cameraComponent->farPlane = 1000.0f;
+			cameraComponent->nearPlane = 0.1f;
+			cameraComponent->farPlane = 100.0f;
 			cameraComponent->width = static_cast<float>(viewInfo.GetWidth());
 			cameraComponent->height = static_cast<float>(viewInfo.GetHeight());
 			cameraComponent->perspective = true;
@@ -137,6 +137,8 @@ namespace wtr
 
 		cameraPlayer->Activate();
 		cameraPlayer->Register(view);
+
+		return true;
 	}
 
 	WindowDesc Application::GetWindowDesc() const

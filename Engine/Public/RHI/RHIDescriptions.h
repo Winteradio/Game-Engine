@@ -72,8 +72,11 @@ namespace wtr
 	{
 		eDataType dataType = eDataType::eNone;
 
-		uint32_t dimension = 0;
+		uint32_t row = 1;
+		uint32_t column = 1;
 		uint32_t offset = 0;
+
+		bool transpose = false;
 
 		Memory::RefPtr<const RawData> data;
 	};
@@ -117,14 +120,26 @@ namespace wtr
 		{
 			if (this != &desc)
 			{
-				return RHIBufferDesc::operator=(desc);
+				RHIBufferDesc::operator=(desc);
 			}
+
+			return *this;
 		}
 	};
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
 		eMapAccess mapAccess = eMapAccess::eNone;
+
+		RHIBufferUpdateDesc& operator=(const RHIBufferDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIBufferDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHIVertexLayoutDesc : RHIDesc<eResourceType::eLayout>
@@ -143,10 +158,28 @@ namespace wtr
 
 	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
 	{
+		RHIVertexLayoutCreateDesc& operator=(const RHIVertexLayoutDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIVertexLayoutDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
 	{
+		RHIVertexLayoutUpdateDesc& operator=(const RHIVertexLayoutDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIVertexLayoutDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHITextureDesc : RHIDesc<eResourceType::eTexture>
@@ -186,19 +219,39 @@ namespace wtr
 	struct RHITextureCreateDesc : RHITextureDesc
 	{
 		wtr::DynamicArray<RHITextureFace> faces;
+
+		RHITextureCreateDesc& operator=(const RHITextureDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHITextureDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
+		RHITextureUpdateDesc& operator=(const RHITextureDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHITextureDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHISamplerDesc : RHIDesc<eResourceType::eSampler>
 	{
-		eFilterMode		minFilter = eFilterMode::eNone;
-		eFilterMode		magFilter = eFilterMode::eNone;
-		eWrapMode		wrapS = eWrapMode::eNone;
-		eWrapMode		wrapT = eWrapMode::eNone;
-		eWrapMode		wrapR = eWrapMode::eNone;
+		eFilterMode			minFilter = eFilterMode::eNone;
+		eFilterMode			magFilter = eFilterMode::eNone;
+		eWrapMode			wrapS = eWrapMode::eNone;
+		eWrapMode			wrapT = eWrapMode::eNone;
+		eWrapMode			wrapR = eWrapMode::eNone;
+		eWrapBorderColor	wrapBorderColor = eWrapBorderColor::eNone;
 
 		RHISamplerDesc& operator=(const RHISamplerDesc& other)
 		{
@@ -207,6 +260,7 @@ namespace wtr
 			wrapS = other.wrapS;
 			wrapT = other.wrapT;
 			wrapR = other.wrapR;
+			wrapBorderColor = other.wrapBorderColor;
 
 			return *this;
 		}
@@ -217,7 +271,8 @@ namespace wtr
 				magFilter != other.magFilter ||
 				wrapS != other.wrapS ||
 				wrapT != other.wrapT ||
-				wrapR != other.wrapR)
+				wrapR != other.wrapR ||
+				wrapBorderColor != other.wrapBorderColor)
 			{
 				return false;
 			}
@@ -227,7 +282,17 @@ namespace wtr
 	};
 
 	struct RHISamplerCreateDesc : RHISamplerDesc
-	{};
+	{
+		RHISamplerCreateDesc& operator=(const RHISamplerDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHISamplerDesc::operator=(desc);
+			}
+
+			return *this;
+		}
+	};
 
 	struct RHIShaderDesc : RHIDesc<eResourceType::eShader>
 	{
@@ -284,6 +349,16 @@ namespace wtr
 		Memory::RefPtr<const RHIShader> domainShader;
 		Memory::RefPtr<const RHIShader> computeShader;
 		Memory::RefPtr<const RHIShader> pixelShader;
+
+		RHIPipeLineCreateDesc& operator=(const RHIPipeLineDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIPipeLineDesc::operator=(desc);
+			}
+
+			return *this;
+		}
 
 		bool operator==(const RHIPipeLineCreateDesc& other) const noexcept
 		{
@@ -347,11 +422,30 @@ namespace wtr
 	{
 		wtr::DynamicArray<RHIColorAttachment> colors;
 		RHIDepthStencilAttachment depthStencil;
+
+		RHIRenderTargetDesc& operator=(const RHIRenderTargetDesc& desc)
+		{
+			if (this != &desc)
+			{
+				colors = desc.colors;
+				depthStencil = desc.depthStencil;
+			}
+
+			return *this;
+		}
 	};
 
 	struct RHIRenderTargetCreateDesc : RHIRenderTargetDesc
 	{
+		RHIRenderTargetCreateDesc& operator=(const RHIRenderTargetDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIRenderTargetDesc::operator=(desc);
+			}
 
+			return *this;
+		}
 	};
 };
 

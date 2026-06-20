@@ -212,6 +212,7 @@ namespace wtr
 		if (slot == eResourceSlot::eGPBR)				{ static const std::string s = "tGPBR"; return s; }
 		if (slot == eResourceSlot::eGAlpha)				{ static const std::string s = "tGAlpha"; return s; }
 		if (slot == eResourceSlot::eGDepth)				{ static const std::string s = "tGDepth"; return s; }
+		if (slot == eResourceSlot::eGShadow)			{ static const std::string s = "tGShadow"; return s; }
 
 		// Uniform - Material
 		if (slot == eResourceSlot::eMaterial)				{ static const std::string s = "uMaterial"; return s; }
@@ -229,6 +230,8 @@ namespace wtr
 
 		// Uniform - Light
 		if (slot == eResourceSlot::eLight)				{ static const std::string s = "uLight"; return s; }
+		if (slot == eResourceSlot::eLightView)			{ static const std::string s = "uLightView"; return s; }
+		if (slot == eResourceSlot::eLightProj)			{ static const std::string s = "uLightProj"; return s; }
 
 		static const std::string emptyString = "";
 		return emptyString;
@@ -256,9 +259,10 @@ namespace wtr
 		if (name == "tGPBR")				return eResourceSlot::eGPBR;
 		if (name == "tGAlpha")				return eResourceSlot::eGAlpha;
 		if (name == "tGDepth")				return eResourceSlot::eGDepth;
+		if (name == "tGShadow")				return eResourceSlot::eGShadow;
 
 		// Uniform - Material
-		if (name == "uMaterial")				return eResourceSlot::eMaterial;
+		if (name == "uMaterial")			return eResourceSlot::eMaterial;
 
 		// Uniform - Camera
 		if (name == "uCamera")				return eResourceSlot::eCamera;
@@ -273,6 +277,8 @@ namespace wtr
 
 		// Uniform - Light
 		if (name == "uLight")				return eResourceSlot::eLight;
+		if (name == "uLightView")			return eResourceSlot::eLightView;
+		if (name == "uLightProj")			return eResourceSlot::eLightProj;
 
 		return eResourceSlot::eNone;
 	}

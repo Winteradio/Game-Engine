@@ -33,9 +33,9 @@ namespace wtr
         void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
         virtual void UpdateView(const RenderView& renderView) = 0;
 
-        virtual const float GetViewWidth() const = 0;
-        virtual const float GetViewHeight() const = 0;
-        virtual const fvec2 GetViewDepth() const = 0;
+        virtual float GetViewWidth() const = 0;
+        virtual float GetViewHeight() const = 0;
+        virtual fvec2 GetViewDepth() const = 0;
 
     public :
         void SetLightType(const eLightType lightType);
@@ -90,9 +90,9 @@ namespace wtr
 
 		void UpdateView(const RenderView& renderView) override;
 
-        const float GetViewWidth() const override;
-        const float GetViewHeight() const override;
-        const fvec2 GetViewDepth() const override;
+        float GetViewWidth() const override;
+        float GetViewHeight() const override;
+        fvec2 GetViewDepth() const override;
 
     private :
         Light* GetLightData() override;
@@ -121,9 +121,9 @@ namespace wtr
 
         void UpdateView(const RenderView& renderView) override;
 
-        const float GetViewWidth() const override;
-        const float GetViewHeight() const override;
-        const fvec2 GetViewDepth() const override;
+        float GetViewWidth() const override;
+        float GetViewHeight() const override;
+        fvec2 GetViewDepth() const override;
 
     public :
 		void SetRange(const float range);
@@ -155,9 +155,9 @@ namespace wtr
 
         void UpdateView(const RenderView& renderView) override;
 
-		const float GetViewWidth() const override;
-		const float GetViewHeight() const override;
-		const fvec2 GetViewDepth() const override;
+		float GetViewWidth() const override;
+		float GetViewHeight() const override;
+		fvec2 GetViewDepth() const override;
 
     public :
         void SetRange(const float range);
