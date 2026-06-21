@@ -170,7 +170,7 @@ namespace wtr
 		}
 
 		auto& data = m_directional->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -247,7 +247,7 @@ namespace wtr
 		if (m_lightBuffer && m_directional)
 		{
 			auto& data = m_directional->data;
-			data.direction = GetRotation() * BASE_DIR;
+			data.direction = GetRotation() * util::GetForwardDirection();
 			data.pos = GetPosition();
 
 			const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
@@ -281,10 +281,8 @@ namespace wtr
 			return;
 		}
 
-		m_lightView->data = glm::lookAt(GetPosition() - GetRotation() * BASE_DIR,
-			GetPosition(),
-			glm::vec3(0.0f, 1.0f, 0.0f));
-		m_lightProj->data = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -7.5f, 7.5f);
+		m_lightView->data = util::GetLookAt(GetPosition(), GetRotation());
+		m_lightProj->data = util::GetOrthographicMatrix(20.f, 20.f, -7.5f, 7.5f);
 
 		//// Get the world camera's frustum position
 		//const fmat4 invViewMatrix = glm::inverse(renderView.camera.viewMatrix);
@@ -580,7 +578,7 @@ namespace wtr
 		}
 
 		auto& data = m_spot->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -613,7 +611,7 @@ namespace wtr
 		}
 
 		auto& data = m_spot->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
 		const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();

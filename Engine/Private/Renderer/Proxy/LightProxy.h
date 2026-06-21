@@ -71,8 +71,6 @@ namespace wtr
         Memory::RefPtr<RHIBuffer> m_lightBuffer;
         Memory::RefPtr<RHITexture> m_shadowMap;
         Memory::RefPtr<RHIRenderTarget> m_shadowTarget;
-
-        static inline const fvec3 BASE_DIR = fvec3(0.f, -1.f, 0.f);
     };
 
     class DirectionalLightProxy : public LightProxy
@@ -100,7 +98,7 @@ namespace wtr
     private :
         struct alignas(16) DirectionalLight : Light
         {
-            alignas(16) fvec3 direction = BASE_DIR;
+            alignas(16) fvec3 direction = util::GetForwardDirection();
         };
 
         Memory::RefPtr<ScalarData<DirectionalLight>> m_directional;
@@ -170,7 +168,7 @@ namespace wtr
     private :
         struct alignas(16) SpotLight : Light
         {
-            alignas(16) fvec3 direction = BASE_DIR;
+            alignas(16) fvec3 direction = util::GetForwardDirection();
             alignas(4) float range = 0.f;
             alignas(4) float innerAngle = 30.f;
             alignas(4) float outerAngle = 90.f;

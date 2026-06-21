@@ -664,7 +664,7 @@ namespace wtr
 			GlobalShaderSelector::SetShader(data.material);
 
 			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
-			data.light->SetIntensity(0.1);
+			data.light->SetIntensity(0.5);
 			data.light->UpdateRotation(glm::angleAxis(glm::radians(-45.f), fvec3(1.f, 0.f, 0.f)));
 			data.light->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.light);

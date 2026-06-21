@@ -30,42 +30,21 @@ namespace wtr
 		const float width = std::abs(camera->width) <= std::numeric_limits<float>::epsilon() ? 1.0f : camera->width;
 		const float height = std::abs(camera->height) <= std::numeric_limits<float>::epsilon() ? 1.0f : camera->height;
 		const float aspectRatio = width / height;
-		if (std::abs(far - near) <= std::numeric_limits<float>::epsilon())
-		{
-			return fmat4(1.0f);
-		}
+		const float fovY = std::abs(camera->fovY) <= std::numeric_limits<float>::epsilon() ? glm::radians(45.f) : camera->fovY;
 
-		static float prevFovY = 0.0f;
-		static float cotHalfFovY = 1.0f;
-		if (std::abs(prevFovY - camera->fovY) > std::numeric_limits<float>::epsilon())
-		{
-			cotHalfFovY = 1.0f / glm::tan(glm::radians(camera->fovY) * 0.5f);
-			prevFovY = camera->fovY;
-		}
-
-		fmat4 projMatrix = 1.0f;
 		if (camera->perspective)
 		{
-			projMatrix[0][0] = cotHalfFovY / aspectRatio;
-			projMatrix[1][1] = cotHalfFovY;
-			projMatrix[2][2] = -(far + near) / (far - near);
-			projMatrix[2][3] = -1.0f;
-			projMatrix[3][2] = -2.0f * far * near / (far - near);
-			projMatrix[3][3] = 0.0f;
+			return util::GetPerspectiveMatrix(fovY, aspectRatio, near, far);
 		}
 		else
 		{
+			const float cotHalfFovY = 1.0f / glm::tan(glm::radians(fovY) * 0.5f);
+
 			const float orthoScale = 100;
 			const float orthoHeight = orthoScale * near * cotHalfFovY;
 			const float orthoWidth = orthoHeight * aspectRatio;
 
-			projMatrix[0][0] = 2.0f / orthoWidth;
-			projMatrix[1][1] = 2.0f / orthoHeight;
-			projMatrix[2][2] = -2.0f / (far - near);
-			projMatrix[3][2] = -(far + near) / (far - near);
-			projMatrix[3][3] = 1.0f;
+			return util::GetOrthographicMatrix(orthoWidth, orthoHeight, near, far);
 		}
-
-		return projMatrix;
 	}
 }

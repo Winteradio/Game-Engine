@@ -92,6 +92,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputTypes.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.h
+	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.cpp
 
 	${ENGINE_PUBLIC_DIR}/Framework/Name.h
 	${ENGINE_PUBLIC_DIR}/Framework/Name.cpp
