@@ -21,6 +21,25 @@ Every layer is directly controlled — custom containers, purpose-built allocato
 
 ## 📸 Progress & Demo
 
+**Milestone: Shadow Mapping — Directional Light (Slope-based Bias + PCF)**  
+Directional Light shadow mapping fully implemented with:
+- **Perspective → Light Space AABB**: Camera frustum transformed to light space, AABB calculated for tight shadow frustum
+- **Slope-based Dynamic Bias**: `shadowBias = texelRatio × tangentRatio` (TexelSize + Surface Normal angle)
+- **PCF (9-sample)**: Soft shadow edges via neighboring texel sampling
+- **Border Color (GL_CLAMP_TO_BORDER)**: Range-out regions rendered as unshadowed (white border)
+- **Far Plane Check & Margin Fade**: Boundary artifacts smoothed via `smoothstep()` blending
+
+Remaining work:
+- **Perspective Shadow Mapping**: Shadow shimmering mitigation in perspective projections
+- **Cascade Shadow Maps**: Multiple frustums for depth-dependent resolution
+- **Spot/Point Light Shadows**: Omnidirectional cubemap shadow rendering
+
+*[26-06-21] Directional Shadow — Slope-based Bias + PCF + Border Color*
+
+<img src="asset/screenshot/shadow-directional-not-perfect.png" width="700" />
+
+---
+
 **Milestone: Spot Light — Angular & Distance Attenuation**  
 Spot Light implemented with `cosine-weighted` angular falloff between `innerAngle` and `outerAngle` (linear blend via epsilon factor).  
 Distance attenuation via `falloff² / (dist² + 1)` (shared with Point Light).  
@@ -117,7 +136,10 @@ Core backbone, asset parsers, and foundational RHI rendering pipeline.
 | UInt Texture / usampler2D support | ✅ Complete |
 | Asset System (OBJ, MTL, Async pipeline) | ✅ Complete |
 | CullingPass (GPU frustum culling) | 🚧 Stub |
-| Shadow Map | 🚧 Planned |
+| Shadow Map — Directional Light (Slope-based Bias + PCF) | ✅ Complete |
+| Shadow Map — Cascade Shadow Maps | 🚧 Planned |
+| Shadow Map — Perspective (shadow shimmering) | 🚧 Planned |
+| Shadow Map — Spot/Point Light (cubemap) | 🚧 Planned |
 | [Point Light: Incident Direction Artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) | 🐛 Known Issue |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
 | DirectX 11 / 12 RHI backend | 🚧 Planned |
