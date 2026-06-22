@@ -8,6 +8,11 @@
 #include <World/RenderNode.h>
 #include <World/Entity.h>
 #include <World/System/MoveSystem.h>
+#include <World/System/CameraSystem.h>
+
+#include <Framework/ViewController.h>
+#include <Framework/Window.h>
+
 #include <Log/include/Log.h>
 
 #include <random>
@@ -28,6 +33,13 @@ namespace demo
 		{
 			LOGERROR() << "[Game] Failed to initialize the entity";
 
+			onShutdown();
+			return;
+		}
+
+		if (!InitMultiView())
+		{
+			LOGERROR() << "[Game] Failed to initialize the multi view";
 			onShutdown();
 			return;
 		}
@@ -54,17 +66,17 @@ namespace demo
 			return false;
 		}
 
-		if (!InitPointLight())
-		{
-			LOGERROR() << "[Game] Failed to initialize the point light entities";
-			return false;
-		}
+		//if (!InitPointLight())
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the point light entities";
+		//	return false;
+		//}
 
-		if (!InitSpotLight())
-		{
-			LOGERROR() << "[Game] Failed to initialize the spot light entities";
-			return false;
-		}
+		//if (!InitSpotLight())
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the spot light entities";
+		//	return false;
+		//}
 
 		return true;
 	}
@@ -140,7 +152,7 @@ namespace demo
 			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = color;
 			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
 
-			const std::string dragonPath = "asset/mesh/3d/cube.obj";
+			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);
 			Memory::RefPtr<wtr::Asset> materialAsset = wtr::AssetSystem::Load(matName);
 
@@ -152,10 +164,9 @@ namespace demo
 			auto transformComponent = cubeEntity->GetComponent<wtr::TransformComponent>();
 			if (transformComponent)
 			{
-				const wtr::fvec3 position = { static_cast<float>(col), 0.f, static_cast<float>(row) };
-				const wtr::fvec3 scale = wtr::fvec3(0.3f);
+				const wtr::fvec3 position = { static_cast<float>(col), -0.47f, static_cast<float>(row) };
 				transformComponent->UpdatePosition(position);
-				transformComponent->UpdateScale(scale);
+				transformComponent->UpdateRotation(wtr::fquat(0.701, 0.0, 0.701, 0.0));
 			}
 
 			world->scene.Attach(cubeEntity->GetNode<wtr::StaticMeshNode>());
@@ -285,6 +296,35 @@ namespace demo
 		return true;
 	}
 
+	bool Game::InitMultiView()
+	{
+		const auto& windowDesc = GetWindowDesc();
+
+		wtr::ViewInfo mainView;
+		mainView.SetName("Main View");
+		mainView.SetPosition(0, 0);
+		mainView.SetSize(windowDesc.Width, windowDesc.Height);
+
+		//wtr::ViewInfo debugView;
+		//debugView.SetName("Debug View");
+		//debugView.SetPosition(windowDesc.Width * 3.f / 4.f, windowDesc.Height * 3.f / 4.f);
+		//debugView.SetSize(windowDesc.Width / 4.f, windowDesc.Height / 4.f);
+
+		if (!InitView(mainView))
+		{
+			LOGERROR() << "[Game] Failed to initialize the main view";
+			return false;
+		}
+		
+		//if (!InitView(debugView, false))
+		//{
+		//	LOGERROR() << "[Game] Failed to initialize the debug view";
+		//	return false;
+		//}
+
+		return true;
+	}
+
 	bool Game::InitSystem()
 	{
 		auto world = GetWorld();
@@ -294,12 +334,16 @@ namespace demo
 			return false;
 		}
 
-		//auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
-		//if (!moveSystem)
-		//{
-		//	LOGERROR() << "[Game] Failed to create the render system";
-		//	return false;
-		//}
+		{
+			auto cameraSystem = world->CreateSystem<wtr::CameraSystem>();
+			if (!cameraSystem)
+			{
+				LOGERROR() << "[Application] Failed to create the camera system";
+				return false;
+			}
+
+			cameraSystem->SetInputStorage(GetInputStorage());
+		}
 
 		{
 			auto moveSystem = world->CreateSystem<wtr::LightMoveSystem>();
@@ -309,6 +353,13 @@ namespace demo
 				return false;
 			}
 		}
+
+		//auto moveSystem = world->CreateSystem<wtr::MoveSystem>();
+		//if (!moveSystem)
+		//{
+		//	LOGERROR() << "[Game] Failed to create the render system";
+		//	return false;
+		//}
 
 		//auto instancedMoveSystem = world->CreateSystem<wtr::InstancedMoveSystem>();
 		//if (!instancedMoveSystem)

@@ -2,13 +2,25 @@
 
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIResources.h>
+#include <Renderer/RenderView.h>
+#include <Framework/Math/MathTypes.h>
 #include <Memory/include/Core.h>
+#include <Container/include/StaticArray.h>
 
 namespace wtr
 {
+	constexpr size_t NUM_CUBE_VERTEX = 8;
+
+	const StaticArray<fvec3, NUM_CUBE_VERTEX> NDC_CUBE = {
+		fvec3(-1.f, -1.f, -1.f), fvec3(1.f, -1.f, -1.f), fvec3(-1.f, 1.f, -1.f), fvec3(1.f, 1.f, -1.f),
+		fvec3(-1.f, -1.f, 1.f), fvec3(1.f, -1.f, 1.f), fvec3(-1.f, 1.f, 1.f), fvec3(1.f, 1.f, 1.f) 
+	};
+
 	LightProxy::LightProxy(const ECS::UUID& id)
 		: SceneProxy(id)
 		, m_lightDesc()
+		, m_lightView()
+		, m_lightProj()
 		, m_lightBuffer()
 		, m_shadowMap()
 		, m_shadowTarget()
@@ -18,8 +30,8 @@ namespace wtr
 	{
 		eResourceState allState = m_lightBuffer ? m_lightBuffer->GetState() : eResourceState::eNone;
 
-		//allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
-		//allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
+		allState &= m_shadowMap ? m_shadowMap->GetState() : eResourceState::eNone;
+		allState &= m_shadowTarget ? m_shadowTarget->GetState() : eResourceState::eNone;
 
 		return allState;
 	}
@@ -72,9 +84,6 @@ namespace wtr
 			m_lightDesc.shadowType = shadowType;
 
 			OnUpdate();
-
-			// TODO : Shadow
-			// GlobalShaderSelector�� ���� ShadowRenderTarget ����
 		}
 	}
 
@@ -132,6 +141,16 @@ namespace wtr
 		return m_lightDesc;
 	}
 
+	Memory::RefPtr<const ScalarData<fmat4>> LightProxy::GetLightView() const
+	{
+		return m_lightView;
+	}
+
+	Memory::RefPtr<const ScalarData<fmat4>> LightProxy::GetLightProj() const
+	{
+		return m_lightProj;
+	}
+
 	DirectionalLightProxy::DirectionalLightProxy(const ECS::UUID& id)
 		: LightProxy(id)
 		, m_directional(Memory::MakeRef<ScalarData<DirectionalLight>>())
@@ -151,7 +170,7 @@ namespace wtr
 		}
 
 		auto& data = m_directional->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -173,52 +192,246 @@ namespace wtr
 			}
 		}
 
-		// TODO : Shadow
+		if (!m_shadowMap)
+		{
+			RHITextureCreateDesc desc;
+			desc.width = 1024;
+			desc.height = 1024;
+			desc.depth = 1;
+			desc.face = 1;
+			desc.mipLevels = 1;
+			desc.sampleCount = 1;
+			desc.format = ePixelFormat::eD32;
+			desc.usage = eTextureUsage::eDepthStencil;
+			desc.textureType = eTextureType::eTexture2D;
+			desc.dataType = eDataType::eFloat;
+			desc.generateMips = false;
+			desc.compressed = false;
+
+			Memory::RefPtr<RHITexture> texture = cmdList->CreateTexture(desc);
+			if (texture)
+			{
+				m_shadowMap = texture;
+			}
+		}
+
+		if (!m_shadowTarget)
+		{
+			RHIRenderTargetCreateDesc desc;
+
+			RHIDepthStencilAttachment depth;
+			depth.type = eAttachment::eDepth;
+			depth.texture = m_shadowMap;
+			if (!m_shadowMap || m_shadowMap->GetState() != eResourceState::eReady)
+			{
+				return;
+			}
+
+			desc.depthStencil = depth;
+
+			Memory::RefPtr<RHIRenderTarget> target = cmdList->CreateRenderTarget(desc);
+			if (target)
+			{
+				m_shadowTarget = target;
+			}
+		}
 	}
 
 	void DirectionalLightProxy::Sync(Memory::RefPtr<RHICommandList> cmdList)
 	{
-		if (!cmdList || !m_lightBuffer || !m_directional)
+		if (!cmdList)
 		{
 			return;
 		}
 
-		auto& data = m_directional->data;
-		data.direction = GetRotation() * BASE_DIR;
-		data.pos = GetPosition();
+		if (m_lightBuffer && m_directional)
+		{
+			auto& data = m_directional->data;
+			data.direction = GetRotation() * util::GetForwardDirection();
+			data.pos = GetPosition();
 
-		RHIBufferUpdateDesc desc;
-		desc.bufferType = eBufferType::eStorage;
-		desc.accessType = eDataAccess::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.numComponents = 1;
-		desc.count = 1;
-		desc.size = sizeof(DirectionalLight);
-		desc.stride = sizeof(DirectionalLight);
-		desc.dataRanges.PushBack({ 0, m_directional });
+			const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
 
-		cmdList->UpdateBuffer(desc, m_lightBuffer);
+			RHIBufferUpdateDesc desc;
+			desc = prevDesc;
+			desc.dataRanges.PushBack({ 0, m_directional });
+
+			cmdList->UpdateBuffer(desc, m_lightBuffer);
+		}
 	}
 
-	fmat4 DirectionalLightProxy::GetViewMatrix() const
+	void DirectionalLightProxy::UpdateView(const RenderView& renderView)
 	{
-		fmat4 viewMatrix = fmat4(1.0f);
+		if (!m_lightProj)
+		{
+			m_lightProj = Memory::MakeRef<ScalarData<fmat4>>();
+			m_lightProj->data = glm::fmat4(1.f);
+		}
 
-		fmat4 rotation = glm::toMat4(GetRotation());
+		if (!m_lightView)
+		{
+			m_lightView = Memory::MakeRef<ScalarData<fmat4>>();
+			m_lightView->data = glm::fmat4(1.f);
+		}
 
-		fmat4 inverseRotation = glm::transpose(rotation);
-		fmat4 inverseTranslate = glm::translate(fmat4(1.0f), -1.0f * GetPosition());
-		
-		viewMatrix *= inverseRotation * inverseTranslate;
+		if (!m_lightProj || !m_lightView ||
+			glm::determinant(renderView.camera.viewMatrix) == 0 ||
+			glm::determinant(renderView.camera.projMatrix) == 0)
+		{
+			return;
+		}
 
-		return viewMatrix;
+		m_lightView->data = util::GetLookAt(GetPosition(), GetRotation());
+		m_lightProj->data = util::GetOrthographicMatrix(20.f, 20.f, -7.5f, 7.5f);
+
+		//// Get the world camera's frustum position
+		//const fmat4 invViewMatrix = glm::inverse(renderView.camera.viewMatrix);
+		//const fmat4 invProjMatrix = glm::inverse(renderView.camera.projMatrix);
+
+		//StaticArray<fvec3, NUM_CUBE_VERTEX> frustum = {};
+
+		//for (size_t index = 0; index < NDC_CUBE.Size(); index++)
+		//{
+		//	fvec4 viewPos = invProjMatrix * fvec4(NDC_CUBE[index], 1.f);
+
+		//	const bool valid = std::abs(viewPos.w - 0.f) > std::numeric_limits<float>::epsilon();
+		//	if (valid)
+		//	{
+		//		viewPos /= viewPos.w;
+		//	}
+
+		//	fvec4 worldPos = invViewMatrix * viewPos;
+
+		//	frustum[index] = fvec3(worldPos);
+		//}
+
+		//// Transform the world frustum position to the light space
+		//const fquat baseRotation = glm::fquat(0.f, -1.f, 0.f, 0.f);
+		//const fmat4 lightRotation = glm::mat4(GetRotation() * baseRotation);
+
+		//const fmat4 invLightRotation = glm::transpose(lightRotation);
+		//const fmat4 invLightTranslation = glm::translate(fmat4(1.f), -1.f * GetPosition());
+
+		//const fmat4 lightViewMatrix = invLightRotation * invLightTranslation;
+
+		//glm::fvec3 minPosition(0.f);
+		//glm::fvec3 maxPosition(0.f);
+
+		//for (size_t index = 0; index < frustum.Size(); index++)
+		//{
+		//	fvec4 frustumPos = fvec4(frustum[index], 1.f);
+		//	frustumPos = lightViewMatrix * frustumPos;
+
+		//	frustum[index] = fvec3(frustumPos);
+
+		//	if (index == 0)
+		//	{
+		//		minPosition = frustum[index];
+		//		maxPosition = frustum[index];
+		//	}
+		//	else
+		//	{
+		//		minPosition.x = std::min(minPosition.x, frustum[index].x);
+		//		minPosition.y = std::min(minPosition.y, frustum[index].y);
+		//		minPosition.z = std::min(minPosition.z, frustum[index].z);
+
+		//		maxPosition.x = std::max(maxPosition.x, frustum[index].x);
+		//		maxPosition.y = std::max(maxPosition.y, frustum[index].y);
+		//		maxPosition.z = std::max(maxPosition.z, frustum[index].z);
+		//	}
+		//}
+
+		//const fvec3 offsetDir = minPosition.z * fvec3(0.f, 0.f, 1.f);
+		//const fvec3 offsetTranslation = fvec3(glm::inverse(lightViewMatrix) * fvec4(offsetDir, 1.f));
+
+		//const float width = std::abs(maxPosition.x - minPosition.x);
+		//const float height = std::abs(maxPosition.y - minPosition.y);
+		//const float far = std::abs(maxPosition.z - minPosition.z);
+		//const float near = 0.f;
+
+		//const float rect = std::max(width, height);
+
+		//const float prevWidth = GetViewWidth();
+		//const float prevHeight = GetViewHeight();
+
+		//const fvec2 prevDepth = GetViewDepth();
+		//const float prevNear = prevDepth.x;
+		//const float prevFar = prevDepth.y;
+
+		//const fmat4 viewMatrix = invLightRotation * glm::translate(glm::mat4(1.f), offsetTranslation - GetPosition());
+		//
+		//if (std::abs(rect - prevWidth) > std::numeric_limits<float>::epsilon() ||
+		//	std::abs(rect - prevHeight) > std::numeric_limits<float>::epsilon() ||
+		//	std::abs(near - prevNear) > std::numeric_limits<float>::epsilon() ||
+		//	std::abs(far - prevFar) > std::numeric_limits<float>::epsilon())
+		//{
+		//	m_lightView->data = viewMatrix;
+
+		//	m_lightProj->data[0][0] = 2.f / rect;
+		//	m_lightProj->data[1][1] = 2.f / rect;
+		//	m_lightProj->data[2][2] = -2.f / (far - near);
+		//	m_lightProj->data[3][2] = -(far + near) / (far - near);
+		//	m_lightProj->data[2][3] = 0.f;
+		//	m_lightProj->data[3][3] = 1.f;
+
+		//	OnUpdate();
+		//}
 	}
 
-	fmat4 DirectionalLightProxy::GetProjectionMatrix() const
+	float DirectionalLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		if (!m_lightProj)
+		{
+			return 1.f;
+		}
 
-		return fmat4(1.0f);
+		const float nearRatio = m_lightProj->data[0][0];
+		if (std::abs(nearRatio) <= std::numeric_limits<float>::epsilon())
+		{
+			return 1.f;
+		}
+
+		const float width = 2.f / nearRatio;
+
+		return width;
+	}
+
+	float DirectionalLightProxy::GetViewHeight() const
+	{
+		if (!m_lightProj)
+		{
+			return 1.f;
+		}
+
+		const float nearRatio = m_lightProj->data[1][1];
+		if (std::abs(nearRatio) <= std::numeric_limits<float>::epsilon())
+		{
+			return 1.f;
+		}
+
+		const float height = 2.f / nearRatio;
+
+		return height;
+	}
+
+	fvec2 DirectionalLightProxy::GetViewDepth() const
+	{
+		if (!m_lightProj)
+		{
+			return fvec2(0.0, 1.f);
+		}
+
+		const float zRatio = m_lightProj->data[2][2];
+		const float wRatio = m_lightProj->data[3][2];
+		if (std::abs(zRatio - wRatio) <= std::numeric_limits<float>::epsilon() || 
+			std::abs(zRatio - 0.f) <= std::numeric_limits<float>::epsilon())
+		{
+			return fvec2(0.f, 1.f);
+		}
+
+		const fvec2 depthRange = fvec2((wRatio + 1.f) / zRatio, (wRatio - 1.f) / zRatio);
+
+		return depthRange;
 	}
 
 	LightProxy::Light* DirectionalLightProxy::GetLightData()
@@ -286,31 +499,36 @@ namespace wtr
 		auto& data = m_point->data;
 		data.pos = GetPosition();
 
+		const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
+
 		RHIBufferUpdateDesc desc;
-		desc.bufferType = eBufferType::eStorage;
-		desc.accessType = eDataAccess::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.numComponents = 1;
-		desc.count = 1;
-		desc.size = sizeof(PointLight);
-		desc.stride = sizeof(PointLight);
+		desc = prevDesc;
 		desc.dataRanges.PushBack({ 0, m_point });
 
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	fmat4 PointLightProxy::GetViewMatrix() const
+	void PointLightProxy::UpdateView(const RenderView& renderView)
 	{
 		// TODO : Shadow
-
-		return fmat4(1.0f);
 	}
 
-	fmat4 PointLightProxy::GetProjectionMatrix() const
+	float PointLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		// TODO : View's near width
+		return 0.f;
+	}
 
-		return  fmat4(1.0f);
+	float PointLightProxy::GetViewHeight() const
+	{
+		// TODO : View's near height
+		return 0.f;
+	}
+
+	fvec2 PointLightProxy::GetViewDepth() const
+	{
+		// TODO : Near, Far
+		return fvec2(0.f);
 	}
 
 	LightProxy::Light* PointLightProxy::GetLightData()
@@ -360,7 +578,7 @@ namespace wtr
 		}
 
 		auto& data = m_spot->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
 		if (!m_lightBuffer)
@@ -393,34 +611,39 @@ namespace wtr
 		}
 
 		auto& data = m_spot->data;
-		data.direction = GetRotation() * BASE_DIR;
+		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
+		const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
+
 		RHIBufferUpdateDesc desc;
-		desc.bufferType = eBufferType::eStorage;
-		desc.accessType = eDataAccess::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.numComponents = 1;
-		desc.count = 1;
-		desc.size = sizeof(SpotLight);
-		desc.stride = sizeof(SpotLight);
+		desc = prevDesc;
 		desc.dataRanges.PushBack({ 0, m_spot });
 
 		cmdList->UpdateBuffer(desc, m_lightBuffer);
 	}
 
-	fmat4 SpotLightProxy::GetViewMatrix() const
+	void SpotLightProxy::UpdateView(const RenderView& renderView)
 	{
 		// TODO : Shadow
-
-		return fmat4(1.0f);
 	}
 
-	fmat4 SpotLightProxy::GetProjectionMatrix() const
+	float SpotLightProxy::GetViewWidth() const
 	{
-		// TODO : Shadow
+		// TODO : View's near width
+		return 0.f;
+	}
 
-		return fmat4(1.0f);
+	float SpotLightProxy::GetViewHeight() const
+	{
+		// TODO : View's near height
+		return 0.f;
+	}
+
+	fvec2 SpotLightProxy::GetViewDepth() const
+	{
+		// TODO : Near, Far
+		return fvec2(0.f);
 	}
 
 	LightProxy::Light* SpotLightProxy::GetLightData()

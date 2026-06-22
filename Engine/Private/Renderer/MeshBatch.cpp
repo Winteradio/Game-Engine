@@ -389,13 +389,10 @@ namespace wtr
 		{
 			// RawTransform Buffer Resizes
 			{
-				RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
+				const RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
 
 				RHIBufferCreateDesc bufferDesc;
-				bufferDesc.bufferType = prevDesc.bufferType;
-				bufferDesc.accessType = prevDesc.accessType;
-				bufferDesc.componentType = prevDesc.componentType;
-				bufferDesc.numComponents = prevDesc.numComponents;
+				bufferDesc = prevDesc;
 				bufferDesc.count = totalCount;
 				bufferDesc.size = totalCount * sizeof(ftransform);
 				bufferDesc.stride = sizeof(ftransform);
@@ -406,46 +403,34 @@ namespace wtr
 
 			// Transform Buffer Resizes
 			{
-				RHIBufferDesc prevDesc = m_drawCommand->transform->GetDesc();
+				const RHIBufferDesc prevDesc = m_drawCommand->transform->GetDesc();
 
 				RHIBufferCreateDesc bufferDesc;
-				bufferDesc.bufferType = prevDesc.bufferType;
-				bufferDesc.accessType = prevDesc.accessType;
-				bufferDesc.componentType = prevDesc.componentType;
-				bufferDesc.numComponents = prevDesc.numComponents;
+				bufferDesc = prevDesc;
 				bufferDesc.count = totalCount;
 				bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
-				bufferDesc.stride = prevDesc.stride;
 
 				cmdList->ResizeBuffer(bufferDesc, m_drawCommand->transform);
 			}
 
 			// Visible Buffer Resizes
 			{
-				RHIBufferDesc prevDesc = m_drawCommand->visible->GetDesc();
+				const RHIBufferDesc prevDesc = m_drawCommand->visible->GetDesc();
 
 				RHIBufferCreateDesc bufferDesc;
-				bufferDesc.bufferType = prevDesc.bufferType;
-				bufferDesc.accessType = prevDesc.accessType;
-				bufferDesc.componentType = prevDesc.componentType;
-				bufferDesc.numComponents = prevDesc.numComponents;
+				bufferDesc = prevDesc;
 				bufferDesc.count = totalCount;
 				bufferDesc.size = totalCount * prevDesc.numComponents * GetDataTypeSize(prevDesc.componentType);
-				bufferDesc.stride = prevDesc.stride;
 
 				cmdList->ResizeBuffer(bufferDesc, m_drawCommand->visible);
 			}
 		}
 		else
 		{
-			// RawTransform Buffer Updates			
-			RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
+			const RHIBufferDesc prevDesc = m_drawCommand->rawTransform->GetDesc();
 
 			RHIBufferUpdateDesc bufferDesc;
-			bufferDesc.bufferType = prevDesc.bufferType;
-			bufferDesc.accessType = prevDesc.accessType;
-			bufferDesc.componentType = prevDesc.componentType;
-			bufferDesc.numComponents = prevDesc.numComponents;
+			bufferDesc = prevDesc;
 			bufferDesc.count = totalCount;
 			bufferDesc.size = totalCount * sizeof(ftransform);
 			bufferDesc.stride = sizeof(ftransform);

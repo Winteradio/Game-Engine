@@ -90,6 +90,7 @@ namespace wtr
 
 		for (const auto& renderView : m_renderViews)
 		{
+			m_refScene->UpdateView(renderView);
 			m_refGraph->Execute(cmdList, m_refScene, renderView);
 		}
 	}

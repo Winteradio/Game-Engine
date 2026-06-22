@@ -91,13 +91,7 @@ namespace wtr
 			updateData->data = m_cameraData->data;
 
 			RHIBufferUpdateDesc updateDesc;
-			updateDesc.bufferType = eBufferType::eConst;
-			updateDesc.accessType = eDataAccess::eDynamic;
-			updateDesc.componentType = eDataType::eNone;
-			updateDesc.numComponents = 0;
-			updateDesc.count = 1;
-			updateDesc.stride = sizeof(CameraResource::CameraData);
-			updateDesc.size = sizeof(CameraResource::CameraData);
+			updateDesc = m_buffer->GetDesc();
 			updateDesc.dataRanges.PushBack({ 0, updateData });
 			updateDesc.mapAccess = eMapAccess::eNone;
 
@@ -116,7 +110,7 @@ namespace wtr
 				return;
 			}
 
-			if (std::abs(glm::determinant(viewMatrix) - 0.f) >= std::numeric_limits<float>::epsilon())
+			if (std::abs(glm::determinant(viewMatrix) - 0.f) > std::numeric_limits<float>::epsilon())
 			{
 				auto& cameraData = m_cameraData->data;
 				cameraData.view = viewMatrix;
@@ -131,7 +125,7 @@ namespace wtr
 				return;
 			}
 
-			if (std::abs(glm::determinant(projMatrix) - 0.f) >= std::numeric_limits<float>::epsilon())
+			if (std::abs(glm::determinant(projMatrix) - 0.f) > std::numeric_limits<float>::epsilon())
 			{
 				auto& cameraData = m_cameraData->data;
 				cameraData.proj = projMatrix;
@@ -670,7 +664,7 @@ namespace wtr
 			GlobalShaderSelector::SetShader(data.material);
 
 			data.light = Memory::MakeRef<DirectionalLightProxy>(ECS::UUID::Null());
-			data.light->SetIntensity(0.2);
+			data.light->SetIntensity(0.5);
 			data.light->UpdateRotation(glm::angleAxis(glm::radians(-45.f), fvec3(1.f, 0.f, 0.f)));
 			data.light->Upload(cmdList);
 			GlobalShaderSelector::SetShader(data.light);
@@ -734,6 +728,19 @@ namespace wtr
 				data.camera.UpdateProjection(renderView.camera.projMatrix);
 
 				data.camera.Sync(cmdList);
+			}
+
+			{
+				data.light->UpdateView(renderView);
+
+				if (data.light->GetResourceState() != eResourceState::eReady)
+				{
+					data.light->Upload(cmdList);
+				}
+				else
+				{
+					data.light->Sync(cmdList);
+				}
 			}
 
 			{
@@ -877,6 +884,17 @@ namespace wtr
 				desc.wrapT = eWrapMode::eRepeat;
 				desc.wrapR = eWrapMode::eRepeat;
 			}
+			else if (slot == eResourceSlot::eGShadow)
+			{
+				desc.minFilter = eFilterMode::eLinear;
+				desc.magFilter = eFilterMode::eLinear;
+
+				desc.wrapS = eWrapMode::eClampToBorder;
+				desc.wrapT = eWrapMode::eClampToBorder;
+				desc.wrapR = eWrapMode::eClampToBorder;
+
+				desc.wrapBorderColor = eWrapBorderColor::eOpaqueWhite;
+			}
 			else
 			{
 				desc.minFilter = eFilterMode::eLinear;
@@ -989,7 +1007,7 @@ namespace wtr
 			if (auto directional = Memory::Cast<DirectionalLightProxy>(light))
 			{
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
 
 				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.ps.glsl"));
@@ -1002,7 +1020,7 @@ namespace wtr
 			else if (auto spot = Memory::Cast<SpotLightProxy>(light))
 			{
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
 
 				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.ps.glsl"));
@@ -1016,7 +1034,7 @@ namespace wtr
 			{
 				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> shadowGS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.gs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
 
 				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
 				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.ps.glsl"));

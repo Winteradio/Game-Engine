@@ -293,7 +293,8 @@ namespace wtr
 		, m_shadowType(eShadowType::eSoft)
 		, m_color(1.f, 1.f, 1.f)
 		, m_intensity(1.f)
-	{}
+	{
+	}
 
 	void LightComponent::SetLightType(const eLightType lightType)
 	{

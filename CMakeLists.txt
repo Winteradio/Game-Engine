@@ -92,6 +92,7 @@ set(ENGINE_FRAMEWORK_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Framework/Input/InputTypes.h
 
 	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.h
+	${ENGINE_PUBLIC_DIR}/Framework/Math/MathTypes.cpp
 
 	${ENGINE_PUBLIC_DIR}/Framework/Name.h
 	${ENGINE_PUBLIC_DIR}/Framework/Name.cpp
@@ -124,6 +125,9 @@ set(ENGINE_PLATFORM_FILES
 
 	${ENGINE_PRIVATE_DIR}/Platform/Win32/Win32Window.h
 	${ENGINE_PRIVATE_DIR}/Platform/Win32/Win32Window.cpp
+
+	${ENGINE_PRIVATE_DIR}/Platform/Win32/WGLContext.h
+	${ENGINE_PRIVATE_DIR}/Platform/Win32/WGLContext.cpp
 )
 
 set(ENGINE_RENDERER_PUBLIC_FILES
@@ -141,10 +145,16 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/CullingPass.cpp
 
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/ShadowPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/ShadowPass.cpp
+
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.cpp
+
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.cpp
 )
 
 set(ENGINE_RENDERER_PRIVATE_FILES
@@ -230,9 +240,6 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.cpp
-
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLContext.h
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/Win32/WGLContext.cpp
 )
 
 set(ENGINE_WORLD_PUBLIC_FILES

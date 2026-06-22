@@ -4,6 +4,7 @@ layout(location = 0) in vec2 position;
 layout(location = 5) in vec2 texcoord;
 
 out vec2 outTexCoord;
+out vec2 outLightPos;
 
 void main()
 {

@@ -10,6 +10,7 @@ namespace wtr
 {
     enum class eResourceState : uint8_t;
     
+    struct RenderView;
     class RHIBuffer;
     class RHITexture;
     class RHIRenderTarget;
@@ -30,6 +31,11 @@ namespace wtr
         eResourceState GetResourceState() const override;
         bool IsUploadable() const override;
         void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
+        virtual void UpdateView(const RenderView& renderView) = 0;
+
+        virtual float GetViewWidth() const = 0;
+        virtual float GetViewHeight() const = 0;
+        virtual fvec2 GetViewDepth() const = 0;
 
     public :
         void SetLightType(const eLightType lightType);
@@ -43,6 +49,8 @@ namespace wtr
         Memory::RefPtr<const RHIRenderTarget> GetShadowTarget() const;
 
 		const LightDesc& GetLightDesc() const;
+        Memory::RefPtr<const ScalarData<fmat4>> GetLightView() const;
+        Memory::RefPtr<const ScalarData<fmat4>> GetLightProj() const;
 
     private :
         virtual Light* GetLightData() = 0;
@@ -57,11 +65,12 @@ namespace wtr
 
 		LightDesc m_lightDesc;
 
+        Memory::RefPtr<ScalarData<fmat4>> m_lightView;
+        Memory::RefPtr<ScalarData<fmat4>> m_lightProj;
+
         Memory::RefPtr<RHIBuffer> m_lightBuffer;
         Memory::RefPtr<RHITexture> m_shadowMap;
         Memory::RefPtr<RHIRenderTarget> m_shadowTarget;
-
-        static inline const fvec3 BASE_DIR = fvec3(0.f, -1.f, 0.f);
     };
 
     class DirectionalLightProxy : public LightProxy
@@ -77,8 +86,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+		void UpdateView(const RenderView& renderView) override;
+
+        float GetViewWidth() const override;
+        float GetViewHeight() const override;
+        fvec2 GetViewDepth() const override;
 
     private :
         Light* GetLightData() override;
@@ -86,7 +98,7 @@ namespace wtr
     private :
         struct alignas(16) DirectionalLight : Light
         {
-            alignas(16) fvec3 direction = BASE_DIR;
+            alignas(16) fvec3 direction = util::GetForwardDirection();
         };
 
         Memory::RefPtr<ScalarData<DirectionalLight>> m_directional;
@@ -105,8 +117,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+        void UpdateView(const RenderView& renderView) override;
+
+        float GetViewWidth() const override;
+        float GetViewHeight() const override;
+        fvec2 GetViewDepth() const override;
 
     public :
 		void SetRange(const float range);
@@ -136,8 +151,11 @@ namespace wtr
         void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
         void Sync(Memory::RefPtr<RHICommandList> cmdList) override;
 
-        fmat4 GetViewMatrix() const;
-        fmat4 GetProjectionMatrix() const;
+        void UpdateView(const RenderView& renderView) override;
+
+		float GetViewWidth() const override;
+		float GetViewHeight() const override;
+		fvec2 GetViewDepth() const override;
 
     public :
         void SetRange(const float range);
@@ -150,7 +168,7 @@ namespace wtr
     private :
         struct alignas(16) SpotLight : Light
         {
-            alignas(16) fvec3 direction = BASE_DIR;
+            alignas(16) fvec3 direction = util::GetForwardDirection();
             alignas(4) float range = 0.f;
             alignas(4) float innerAngle = 30.f;
             alignas(4) float outerAngle = 90.f;

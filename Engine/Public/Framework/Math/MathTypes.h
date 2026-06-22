@@ -116,6 +116,22 @@ namespace wtr
 		}
 	};
 
+	namespace util
+	{
+		fmat4 GetPerspectiveMatrix(const float fovY, const float width, const float height, const float near, const float far);
+		fmat4 GetPerspectiveMatrix(const float fovY, const float aspectRatio, const float near, const float far);
+		fmat4 GetOrthographicMatrix(const float width, const float height, const float near, const float far);
+		fmat4 GetLookAt(const fvec3 pos, const fquat angle);
+		fmat4 GetLookAt(const fvec3 pos, const fvec3 dir);
+		fmat4 GetLookAt(const fvec3 pos, const fvec3 focus, const fvec3 up);
+		fmat4 GetRotation(const fvec3 baseDir, const fvec3 nextDir);
+		fmat4 GetRotation(const fvec3 axis, const float degree);
+		fmat4 GetTranslation(const fvec3 offset);
+		fmat4 GetTranslation(const fvec3 fromPos, const fvec3 toPos);
+		fmat4 GetScale(const fvec3 scale);
+		const fvec3& GetForwardDirection();
+		const fquat& GetForwardAngle();
+	};
 #endif //
 };
 

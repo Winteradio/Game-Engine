@@ -168,8 +168,8 @@ namespace wtr
 			m_commands[pipeline].PushBack(drawCommand);
 		}
 
-		cmdList->SetRenderTarget(m_target);
 		SetState(cmdList);
+		cmdList->SetRenderTarget(m_target);
 		cmdList->ClearRenderTarget(m_target, *m_clear);
 
 		for (const auto& [pipeline, commands] : m_commands)
