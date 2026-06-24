@@ -16,10 +16,26 @@ Every layer is directly controlled — custom containers, purpose-built allocato
 | [RHI](Docs/Design_RHI.md) | RHISystem, CommandList, FrameExecutor, GLSystem |
 | [Asset Pipeline](Docs/Design_Asset.md) | Async 3-stage parse → load → upload pipeline |
 | [Threading & Sequences](Docs/Design_Threading.md) | Worker threads, FrameGate, frame/asset sequences |
+| [**Directional Shadow Mapping (TechNote)**](Docs/TechNote_DirectionalShadowMapping.md) | **Fundamentals, shimmering problem, texel snapping solution, implementation details, debugging** |
 
 ---
 
 ## 📸 Progress & Demo
+
+**Milestone: Shadow Mapping — Texel Snapping Stabilization**  
+Fixed directional light shadow map temporal stability (camera movement flickering):
+- **Texel Snapping in Light Space**: Transform camera frustum center to light space, quantize to shadow map texel grid, reconstruct snapped world position
+- **Light View Matrix Refinement**: Recompute view matrix based on snapped world position instead of raw frustum center → fixed shadow placement across frames
+- **Frustum Bounding Sphere**: Calculate camera frustum AABB + bounding sphere for tight, camera-relative light frustum
+- **Fixed Snap Grid Size**: `texelSize = frustumRadius * 2.f / shadowMapSize` correctly scales with frustum
+
+Result: Shadow position quantized to fixed grid → eliminates temporal drift during camera movement.
+
+*[26-06-25] Shadow Shimmering Fix — Texel snapping in light space*
+
+<img src="asset/screenshot/fixed_shadow_shimmering.gif" width="700" />
+
+---
 
 **Milestone: Shadow Mapping — Directional Light (Slope-based Bias + PCF)**  
 Directional Light shadow mapping fully implemented with:
@@ -30,9 +46,9 @@ Directional Light shadow mapping fully implemented with:
 - **Far Plane Check & Margin Fade**: Boundary artifacts smoothed via `smoothstep()` blending
 
 Remaining work:
-- **Perspective Shadow Mapping**: Shadow shimmering mitigation in perspective projections
 - **Cascade Shadow Maps**: Multiple frustums for depth-dependent resolution
 - **Spot/Point Light Shadows**: Omnidirectional cubemap shadow rendering
+- **[Bug] Shadow Blinking**: Occurs when depth bias CPU/GPU mismatch under specific geometry configurations
 
 *[26-06-21] Directional Shadow — Slope-based Bias + PCF + Border Color*
 
@@ -136,11 +152,12 @@ Core backbone, asset parsers, and foundational RHI rendering pipeline.
 | UInt Texture / usampler2D support | ✅ Complete |
 | Asset System (OBJ, MTL, Async pipeline) | ✅ Complete |
 | CullingPass (GPU frustum culling) | 🚧 Stub |
-| Shadow Map — Directional Light (Slope-based Bias + PCF) | ✅ Complete |
+| [Shadow Map — Directional Light](Docs/Feature_DirectionalShadowMapping.md) (Slope-based Bias + PCF + Texel Snapping) | ✅ Complete |
 | Shadow Map — Cascade Shadow Maps | 🚧 Planned |
-| Shadow Map — Perspective (shadow shimmering) | 🚧 Planned |
+| Shadow Map — Perspective Shadow Mapping | 🚧 Planned |
 | Shadow Map — Spot/Point Light (cubemap) | 🚧 Planned |
 | [Point Light: Incident Direction Artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) | 🐛 Known Issue |
+| [Shadow Blinking (Geometry-dependent)](Docs/Bug_ShadowBlinking.md) | 🐛 Open Issue |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
 | DirectX 11 / 12 RHI backend | 🚧 Planned |
 | Physics integration | 🚧 Planned |

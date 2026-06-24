@@ -7,6 +7,8 @@
 #include <Memory/include/Core.h>
 #include <Container/include/StaticArray.h>
 
+#include <Log/include/Log.h>
+
 namespace wtr
 {
 	constexpr size_t NUM_CUBE_VERTEX = 8;
@@ -355,6 +357,8 @@ namespace wtr
 			frustumRadius = glm::max(frustumRadius, length);
 		}
 
+		frustumRadius = std::floor(frustumRadius + 0.5f);
+
 		// Get the AABB on the light space
 		const fmat4 lightRotation = glm::toMat4(GetRotation());
 		const fmat4 invLightRotation = glm::transpose(lightRotation);
@@ -371,18 +375,27 @@ namespace wtr
 		const fvec3 worldPos = GetPosition() + frustumCenter;
 		const fvec3 lightPos = lightView * fvec4(worldPos, 1.f);
 
-		// World space에서의 texel 크기
+		// Get the editted world position by snapped using the texel size in the light space
 		const float texelSize = frustumRadius * 2.f / shadowMapSize;
 
-		const fvec3 snappedPos = glm::floor(lightPos / texelSize + 0.5f) * texelSize;
+		const fvec3 lightSnappedPos = fvec3(
+			glm::floor(lightPos.x / texelSize + 0.5f) * texelSize,
+			glm::floor(lightPos.y / texelSize + 0.5f) * texelSize,
+			lightPos.z);
 
-		const fvec3 worldTexelPos = lightTranslation * lightRotation * fvec4(snappedPos, 1.f);
+		const fvec3 worldTexelPos = lightTranslation * lightRotation * fvec4(lightSnappedPos, 1.f);
 		const fmat4 invLightTexelTranslation = glm::translate(fmat4(1.f), -1.f * worldTexelPos);
 
-		m_lightView->data = invLightRotation * invLightTexelTranslation;
-		m_lightProj->data = util::GetOrthographicMatrix(frustumRadius * 2.f, frustumRadius * 2.f, -frustumRadius, frustumRadius);
+		const fmat4 currentLightView = invLightRotation * invLightTexelTranslation;
+		const fmat4 currentLightProj = util::GetOrthographicMatrix(frustumRadius * 2.f, frustumRadius * 2.f, -frustumRadius, frustumRadius);
 
-		OnUpdate();
+		if (currentLightView != m_lightView->data || currentLightProj != m_lightProj->data)
+		{
+			m_lightView->data = currentLightView;
+			m_lightProj->data = currentLightProj;
+
+			OnUpdate();
+		}
 	}
 
 	float DirectionalLightProxy::GetViewWidth() const
