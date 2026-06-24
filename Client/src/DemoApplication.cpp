@@ -148,9 +148,18 @@ namespace demo
 			Memory::RefPtr<wtr::MaterialAsset> mat = Memory::Cast<wtr::MaterialAsset>(wtr::AssetSystem::Create(matName, wtr::eAsset::eMaterial));
 			if (!mat) continue;
 
-			const wtr::fvec3 color = wtr::fvec3(static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)));
-			mat->vectorValues[wtr::eVectorSlot::eBaseColor] = color;
-			mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
+			if (col == 0 && row == 0)
+			{
+				const wtr::fvec3 color = wtr::fvec3(static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)));
+				mat->vectorValues[wtr::eVectorSlot::eBaseColor] = wtr::fvec3(1.0, 0.1, 0.1);
+				mat->scalarValues[wtr::eScalarSlot::eShininess] = 300.0f;
+			}
+			else
+			{
+				const wtr::fvec3 color = wtr::fvec3(static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)), static_cast<float>(distribution(generator)));
+				mat->vectorValues[wtr::eVectorSlot::eBaseColor] = color;
+				mat->scalarValues[wtr::eScalarSlot::eShininess] = shiniess;
+			}
 
 			const std::string dragonPath = "asset/mesh/3d/dragon.obj";
 			Memory::RefPtr<wtr::Asset> dragonAsset = wtr::AssetSystem::Load(dragonPath);

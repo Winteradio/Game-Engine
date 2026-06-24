@@ -10,6 +10,7 @@
 #include <Renderer/RenderPass/ShadowPass.h>
 #include <Renderer/RenderPass/GeometryPass.h>
 #include <Renderer/RenderPass/LightingPass.h>
+#include <Renderer/RenderPass/DebugPass.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHICommandList.h>
 
@@ -34,8 +35,9 @@ namespace wtr
 		Memory::RefPtr<ShadowPass> shadowPass = Memory::MakeRef<ShadowPass>();
 		Memory::RefPtr<GeometryPass> geometryPass = Memory::MakeRef<GeometryPass>();
 		Memory::RefPtr<LightingPass> lightingPass = Memory::MakeRef<LightingPass>();
+		Memory::RefPtr<DebugPass> debugPass = Memory::MakeRef<DebugPass>();
 
-		if (!transformPass || !shadowPass || !geometryPass || !lightingPass)
+		if (!transformPass || !shadowPass || !geometryPass || !lightingPass || !debugPass)
 		{
 			return false;
 		}
@@ -43,20 +45,24 @@ namespace wtr
 		shadowPass->InitState();
 		geometryPass->InitState();
 		lightingPass->InitState();
+		debugPass->InitState();
 
 		Add(transformPass);
 		Add(shadowPass);
 		Add(geometryPass);
 		Add(lightingPass);
+		Add(debugPass);
 
 		auto& transformNode = GetNode(transformPass->GetID());
 		auto& shadowNode = GetNode(shadowPass->GetID());
 		auto& geometryNode = GetNode(geometryPass->GetID());
 		auto& lightingNode = GetNode(lightingPass->GetID());
+		auto& debugNode = GetNode(debugPass->GetID());
 
 		shadowNode.SetDependency(transformNode);
 		geometryNode.SetDependency(shadowNode);
 		lightingNode.SetDependency(geometryNode);
+		debugNode.SetDependency(lightingNode);
 
 		return GlobalResource::Init(cmdList);
 	}

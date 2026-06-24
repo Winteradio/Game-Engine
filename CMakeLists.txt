@@ -152,6 +152,8 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/GeometryPass.cpp
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/LightingPass.cpp
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/DebugPass.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/DebugPass.cpp
 
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/OverlayPass.cpp

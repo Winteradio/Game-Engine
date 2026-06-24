@@ -457,6 +457,236 @@ namespace wtr
 		{
 			return m_layout;
 		}
+
+		CubeResource::CubeResource()
+			: m_position()
+			, m_normal()
+			, m_index()
+			, m_layout()
+		{
+		}
+
+		eResourceState CubeResource::GetResourceState() const
+		{
+			if (!m_position)
+			{
+				return eResourceState::eNone;
+			}
+
+			if (!m_normal)
+			{
+				return eResourceState::eNone;
+			}
+
+			if (!m_index)
+			{
+				return eResourceState::eNone;
+			}
+
+			if (!m_layout)
+			{
+				return eResourceState::eNone;
+			}
+
+			return m_position->GetState() & m_normal->GetState() & m_index->GetState() & m_layout->GetState();
+		}
+
+		void CubeResource::Upload(Memory::RefPtr<RHICommandList> cmdList)
+		{
+			if (!cmdList)
+			{
+				return;
+			}
+
+			constexpr size_t vertexCount = 8;
+			constexpr size_t indexCount = 36;
+
+			Memory::RefPtr<ArrayData<fvec3>> positionData = Memory::MakeRef<ArrayData<fvec3>>();
+			Memory::RefPtr<ArrayData<fvec3>> normalData = Memory::MakeRef<ArrayData<fvec3>>();
+			Memory::RefPtr<ArrayData<uint32_t>> indexData = Memory::MakeRef<ArrayData<uint32_t>>();
+			if (!positionData || !normalData || !indexData)
+			{
+				return;
+			}
+
+			positionData->data.Resize(vertexCount);
+			normalData->data.Resize(vertexCount);
+			indexData->data.Resize(indexCount);
+
+			// Cube vertices (-1 ~ 1)
+			// Back face (z = -1)
+			positionData->data[0] = fvec3(-1.0f, -1.0f, -1.0f);
+			positionData->data[1] = fvec3(1.0f, -1.0f, -1.0f);
+			positionData->data[2] = fvec3(1.0f, 1.0f, -1.0f);
+			positionData->data[3] = fvec3(-1.0f, 1.0f, -1.0f);
+
+			// Front face (z = 1)
+			positionData->data[4] = fvec3(-1.0f, -1.0f, 1.0f);
+			positionData->data[5] = fvec3(1.0f, -1.0f, 1.0f);
+			positionData->data[6] = fvec3(1.0f, 1.0f, 1.0f);
+			positionData->data[7] = fvec3(-1.0f, 1.0f, 1.0f);
+
+			// Cube normals (averaged per corner)
+			// Vertex 0 (-,-,-): Back, Left, Bottom
+			normalData->data[0] = glm::normalize(fvec3(-1.0f, -1.0f, -1.0f));
+			// Vertex 1 (+,-,-): Back, Right, Bottom
+			normalData->data[1] = glm::normalize(fvec3(1.0f, -1.0f, -1.0f));
+			// Vertex 2 (+,+,-): Back, Right, Top
+			normalData->data[2] = glm::normalize(fvec3(1.0f, 1.0f, -1.0f));
+			// Vertex 3 (-,+,-): Back, Left, Top
+			normalData->data[3] = glm::normalize(fvec3(-1.0f, 1.0f, -1.0f));
+			// Vertex 4 (-,-,+): Front, Left, Bottom
+			normalData->data[4] = glm::normalize(fvec3(-1.0f, -1.0f, 1.0f));
+			// Vertex 5 (+,-,+): Front, Right, Bottom
+			normalData->data[5] = glm::normalize(fvec3(1.0f, -1.0f, 1.0f));
+			// Vertex 6 (+,+,+): Front, Right, Top
+			normalData->data[6] = glm::normalize(fvec3(1.0f, 1.0f, 1.0f));
+			// Vertex 7 (-,+,+): Front, Left, Top
+			normalData->data[7] = glm::normalize(fvec3(-1.0f, 1.0f, 1.0f));
+
+			// Cube indices (6 faces × 6 indices)
+			// Back face (z = -1)
+			indexData->data[0] = 0;  indexData->data[1] = 1;  indexData->data[2] = 2;
+			indexData->data[3] = 0;  indexData->data[4] = 2;  indexData->data[5] = 3;
+
+			// Front face (z = 1)
+			indexData->data[6] = 5;  indexData->data[7] = 4;  indexData->data[8] = 7;
+			indexData->data[9] = 5;  indexData->data[10] = 7; indexData->data[11] = 6;
+
+			// Left face (x = -1)
+			indexData->data[12] = 4; indexData->data[13] = 0; indexData->data[14] = 3;
+			indexData->data[15] = 4; indexData->data[16] = 3; indexData->data[17] = 7;
+
+			// Right face (x = 1)
+			indexData->data[18] = 1; indexData->data[19] = 5; indexData->data[20] = 6;
+			indexData->data[21] = 1; indexData->data[22] = 6; indexData->data[23] = 2;
+
+			// Top face (y = 1)
+			indexData->data[24] = 3; indexData->data[25] = 2; indexData->data[26] = 6;
+			indexData->data[27] = 3; indexData->data[28] = 6; indexData->data[29] = 7;
+
+			// Bottom face (y = -1)
+			indexData->data[30] = 4; indexData->data[31] = 5; indexData->data[32] = 1;
+			indexData->data[33] = 4; indexData->data[34] = 1; indexData->data[35] = 0;
+
+			RHIBufferCreateDesc positionDesc;
+			positionDesc.bufferType = eBufferType::eVertex;
+			positionDesc.accessType = eDataAccess::eStatic;
+			positionDesc.componentType = eDataType::eFloat;
+			positionDesc.numComponents = 3;
+			positionDesc.count = vertexCount;
+			positionDesc.stride = sizeof(fvec3);
+			positionDesc.size = sizeof(fvec3) * vertexCount;
+			positionDesc.dataRanges.PushBack({ 0, positionData });
+
+			RHIBufferCreateDesc normalDesc;
+			normalDesc.bufferType = eBufferType::eVertex;
+			normalDesc.accessType = eDataAccess::eStatic;
+			normalDesc.componentType = eDataType::eFloat;
+			normalDesc.numComponents = 3;
+			normalDesc.count = vertexCount;
+			normalDesc.stride = sizeof(fvec3);
+			normalDesc.size = sizeof(fvec3) * vertexCount;
+			normalDesc.dataRanges.PushBack({ 0, normalData });
+
+			RHIBufferCreateDesc indexDesc;
+			indexDesc.bufferType = eBufferType::eIndex;
+			indexDesc.accessType = eDataAccess::eStatic;
+			indexDesc.componentType = eDataType::eUInt;
+			indexDesc.numComponents = 1;
+			indexDesc.count = indexCount;
+			indexDesc.stride = sizeof(uint32_t);
+			indexDesc.size = sizeof(uint32_t) * indexCount;
+			indexDesc.dataRanges.PushBack({ 0, indexData });
+
+			Memory::RefPtr<RHIBuffer> positionBuffer = cmdList->CreateBuffer(positionDesc);
+			Memory::RefPtr<RHIBuffer> normalBuffer = cmdList->CreateBuffer(normalDesc);
+			Memory::RefPtr<RHIBuffer> indexBuffer = cmdList->CreateBuffer(indexDesc);
+			if (!positionBuffer || !normalBuffer || !indexBuffer)
+			{
+				return;
+			}
+
+			RHIVertexLayoutCreateDesc layoutDesc;
+
+			VertexKey positionKey{ eVertexSemantic::ePosition, 0 };
+			RHIVertexStream positionStream;
+			positionStream.buffer = positionBuffer;
+			positionStream.attribute.location = static_cast<uint16_t>(GetVertexLocation(positionKey));
+			positionStream.attribute.semantic = eVertexSemantic::ePosition;
+			positionStream.attribute.semanticIndex = 0;
+			positionStream.attribute.componentType = eDataType::eFloat;
+			positionStream.attribute.numComponents = 3;
+			positionStream.attribute.normalized = false;
+			positionStream.attribute.integer = false;
+			positionStream.attribute.divisor = 0;
+			positionStream.attribute.offset = 0;
+
+			VertexKey normalKey{ eVertexSemantic::eNormal, 0 };
+			RHIVertexStream normalStream;
+			normalStream.buffer = normalBuffer;
+			normalStream.attribute.location = static_cast<uint16_t>(GetVertexLocation(normalKey));
+			normalStream.attribute.semantic = eVertexSemantic::eNormal;
+			normalStream.attribute.semanticIndex = 0;
+			normalStream.attribute.componentType = eDataType::eFloat;
+			normalStream.attribute.numComponents = 3;
+			normalStream.attribute.normalized = false;
+			normalStream.attribute.integer = false;
+			normalStream.attribute.divisor = 0;
+			normalStream.attribute.offset = 0;
+
+			layoutDesc.vertexStreams.Insert(std::make_pair(positionKey, positionStream));
+			layoutDesc.vertexStreams.Insert(std::make_pair(normalKey, normalStream));
+			layoutDesc.indexBuffer = indexBuffer;
+
+			Memory::RefPtr<RHIVertexLayout> vertexLayout = cmdList->CreateVertexLayout(layoutDesc);
+			if (!vertexLayout)
+			{
+				return;
+			}
+
+			m_position = positionBuffer;
+			m_normal = normalBuffer;
+			m_index = indexBuffer;
+			m_layout = vertexLayout;
+		}
+
+		void CubeResource::Unload(Memory::RefPtr<RHICommandList> cmdList)
+		{
+			if (!cmdList)
+			{
+				return;
+			}
+
+			if (m_position)
+			{
+				cmdList->RemoveBuffer(m_position);
+				m_position.Reset();
+			}
+
+			if (m_normal)
+			{
+				cmdList->RemoveBuffer(m_normal);
+				m_normal.Reset();
+			}
+
+			if (m_index)
+			{
+				cmdList->RemoveBuffer(m_index);
+				m_index.Reset();
+			}
+
+			if (m_layout)
+			{
+				cmdList->RemoveVertexLayout(m_layout);
+				m_layout.Reset();
+			}
+		}
+
+		Memory::RefPtr<const RHIVertexLayout> CubeResource::GetLayout() const
+		{
+			return m_layout;
+		}
 	}
 
 	namespace GlobalResource
@@ -514,6 +744,7 @@ namespace wtr
 
 			CameraResource camera;
 			QuadResource quad;
+			CubeResource cube;
 
 			GBufferContainer gBuffers;
 			PipeLineContainer pipelines;
@@ -656,6 +887,7 @@ namespace wtr
 			auto& data = GetData();
 			data.camera.Upload(cmdList);
 			data.quad.Upload(cmdList);
+			data.cube.Upload(cmdList);
 
 			Memory::RefPtr<MaterialAsset> defaultMaterial = Memory::Cast<MaterialAsset>(AssetSystem::Create("default", eAsset::eMaterial));
 			data.material = Memory::MakeRef<MaterialProxy>(ECS::UUID::Null());
@@ -677,6 +909,7 @@ namespace wtr
 			auto& data = GetData();
 			data.camera.Unload(cmdList);
 			data.quad.Unload(cmdList);
+			data.cube.Unload(cmdList);
 			data.material->Unload(cmdList);
 			data.light->Unload(cmdList);
 
@@ -792,6 +1025,19 @@ namespace wtr
 			if (data.quad.GetResourceState() == eResourceState::eReady)
 			{
 				return data.quad.GetLayout();
+			}
+			else
+			{
+				return {};
+			}
+		}
+
+		Memory::RefPtr<const RHIVertexLayout> GetCube()
+		{
+			auto& data = GetData();
+			if (data.cube.GetResourceState() == eResourceState::eReady)
+			{
+				return data.cube.GetLayout();
 			}
 			else
 			{

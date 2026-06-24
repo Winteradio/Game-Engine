@@ -12,8 +12,14 @@ namespace wtr
 	constexpr size_t NUM_CUBE_VERTEX = 8;
 
 	const StaticArray<fvec3, NUM_CUBE_VERTEX> NDC_CUBE = {
-		fvec3(-1.f, -1.f, -1.f), fvec3(1.f, -1.f, -1.f), fvec3(-1.f, 1.f, -1.f), fvec3(1.f, 1.f, -1.f),
-		fvec3(-1.f, -1.f, 1.f), fvec3(1.f, -1.f, 1.f), fvec3(-1.f, 1.f, 1.f), fvec3(1.f, 1.f, 1.f) 
+		fvec3(1.f, -1.f, -1.f), // Near Right Bottom
+		fvec3(1.f, 1.f, -1.f), // Near Right Top
+		fvec3(-1.f, 1.f, -1.f), // Near Left Top
+		fvec3(-1.f, -1.f, -1.f), // Near Left Bottom
+		fvec3(1.f, -1.f, 1.f), // Right Right Bottom
+		fvec3(1.f, 1.f, 1.f), // Right Right Top
+		fvec3(-1.f, 1.f, 1.f), // Right Left Top
+		fvec3(-1.f, -1.f, 1.f) // Right Left Bottom
 	};
 
 	LightProxy::LightProxy(const ECS::UUID& id)
@@ -281,101 +287,108 @@ namespace wtr
 			return;
 		}
 
-		m_lightView->data = util::GetLookAt(GetPosition(), GetRotation());
-		m_lightProj->data = util::GetOrthographicMatrix(20.f, 20.f, -7.5f, 7.5f);
+		//m_lightView->data = util::GetLookAt(GetPosition(), GetRotation());
+		//m_lightProj->data = util::GetOrthographicMatrix(20.f, 20.f, -7.5f, 7.5f);
 
-		//// Get the world camera's frustum position
-		//const fmat4 invViewMatrix = glm::inverse(renderView.camera.viewMatrix);
-		//const fmat4 invProjMatrix = glm::inverse(renderView.camera.projMatrix);
+		// Get the world camera' frustum position
+		const fmat4 invCameraView = glm::inverse(renderView.camera.viewMatrix);
+		const fmat4 invCameraProj = glm::inverse(renderView.camera.projMatrix);
 
-		//StaticArray<fvec3, NUM_CUBE_VERTEX> frustum = {};
+		StaticArray<fvec3, NUM_CUBE_VERTEX> frustum = {};
 
-		//for (size_t index = 0; index < NDC_CUBE.Size(); index++)
-		//{
-		//	fvec4 viewPos = invProjMatrix * fvec4(NDC_CUBE[index], 1.f);
+		for (size_t index = 0; index < NDC_CUBE.Size(); index++)
+		{
+			const fvec3& ndcPos = NDC_CUBE[index];
+			fvec4 viewPos = invCameraProj * fvec4(ndcPos, 1.f);
+			
+			if (std::abs(viewPos.w) > std::numeric_limits<float>::epsilon())
+			{
+				viewPos /= viewPos.w;
+			}
 
-		//	const bool valid = std::abs(viewPos.w - 0.f) > std::numeric_limits<float>::epsilon();
-		//	if (valid)
-		//	{
-		//		viewPos /= viewPos.w;
-		//	}
+			fvec4 worldPos = invCameraView * viewPos;
 
-		//	fvec4 worldPos = invViewMatrix * viewPos;
+			frustum[index] = fvec3(worldPos);
+		}
 
-		//	frustum[index] = fvec3(worldPos);
-		//}
+		// Get the shadow distance's direction in the world space
+		fvec4 nearCenter = fvec4(0.f, 0.f, -1.f, 1.f);
+		nearCenter = invCameraProj * nearCenter;
+		nearCenter /= std::abs(nearCenter.w) > std::numeric_limits<float>::epsilon() ? nearCenter.w : 1.f;
+		nearCenter = invCameraView * nearCenter;
 
-		//// Transform the world frustum position to the light space
-		//const fquat baseRotation = glm::fquat(0.f, -1.f, 0.f, 0.f);
-		//const fmat4 lightRotation = glm::mat4(GetRotation() * baseRotation);
+		fvec4 farCenter = fvec4(0.f, 0.f, 1.f, 1.f);
+		farCenter = invCameraProj * farCenter;
+		farCenter /= std::abs(farCenter.w) > std::numeric_limits<float>::epsilon() ? farCenter.w : 1.f;
+		farCenter = invCameraView * farCenter;
 
-		//const fmat4 invLightRotation = glm::transpose(lightRotation);
-		//const fmat4 invLightTranslation = glm::translate(fmat4(1.f), -1.f * GetPosition());
+		const float frustumDepth = glm::length(fvec3(nearCenter) - fvec3(farCenter));
+		const float shadowDistance = 10.f;
 
-		//const fmat4 lightViewMatrix = invLightRotation * invLightTranslation;
+		const float depthLength = glm::length(farCenter - nearCenter);
+		const float shadowRatio = std::abs(depthLength) > std::numeric_limits<float>::epsilon() ? shadowDistance / depthLength : 0.f;
 
-		//glm::fvec3 minPosition(0.f);
-		//glm::fvec3 maxPosition(0.f);
+		// Get the Shadow Frustum in the world space
+		constexpr size_t pairIndex = 4;
+		for (size_t index = 0; index < NDC_CUBE.Size() / 2; index++)
+		{
+			const fvec3& nearPos = frustum[index];
+			const fvec3& farPos = frustum[index + pairIndex];
 
-		//for (size_t index = 0; index < frustum.Size(); index++)
-		//{
-		//	fvec4 frustumPos = fvec4(frustum[index], 1.f);
-		//	frustumPos = lightViewMatrix * frustumPos;
+			const fvec3 shadowPos = nearPos + (farPos - nearPos) * shadowRatio;
+			frustum[index + pairIndex] = shadowPos;
+		}
 
-		//	frustum[index] = fvec3(frustumPos);
+		// Get the AABB on the light space
+		const fmat4 lightRotation = glm::toMat4(GetRotation());
+		const fmat4 invLightRotation = glm::transpose(lightRotation);
+		const fmat4 invLightTranslation = glm::translate(fmat4(1.f), -1.f * GetPosition());
 
-		//	if (index == 0)
-		//	{
-		//		minPosition = frustum[index];
-		//		maxPosition = frustum[index];
-		//	}
-		//	else
-		//	{
-		//		minPosition.x = std::min(minPosition.x, frustum[index].x);
-		//		minPosition.y = std::min(minPosition.y, frustum[index].y);
-		//		minPosition.z = std::min(minPosition.z, frustum[index].z);
+		const fmat4 lightView = invLightRotation * invLightTranslation;
 
-		//		maxPosition.x = std::max(maxPosition.x, frustum[index].x);
-		//		maxPosition.y = std::max(maxPosition.y, frustum[index].y);
-		//		maxPosition.z = std::max(maxPosition.z, frustum[index].z);
-		//	}
-		//}
+		glm::fvec3 minPos(0.f);
+		glm::fvec3 maxPos(0.f);
 
-		//const fvec3 offsetDir = minPosition.z * fvec3(0.f, 0.f, 1.f);
-		//const fvec3 offsetTranslation = fvec3(glm::inverse(lightViewMatrix) * fvec4(offsetDir, 1.f));
+		for (size_t index = 0; index < frustum.Size(); index++)
+		{
+			fvec4 frustumVertex = fvec4(frustum[index], 1.f);
+			frustumVertex = lightView * frustumVertex;
 
-		//const float width = std::abs(maxPosition.x - minPosition.x);
-		//const float height = std::abs(maxPosition.y - minPosition.y);
-		//const float far = std::abs(maxPosition.z - minPosition.z);
-		//const float near = 0.f;
+			frustum[index] = fvec3(frustumVertex);
 
-		//const float rect = std::max(width, height);
+			if (index == 0)
+			{
+				minPos = frustum[index];
+				maxPos = frustum[index];
+			}
+			else
+			{
+				minPos.x = std::min(minPos.x, frustum[index].x);
+				minPos.y = std::min(minPos.y, frustum[index].y);
+				minPos.z = std::min(minPos.z, frustum[index].z);
 
-		//const float prevWidth = GetViewWidth();
-		//const float prevHeight = GetViewHeight();
+				maxPos.x = std::max(maxPos.x, frustum[index].x);
+				maxPos.y = std::max(maxPos.y, frustum[index].y);
+				maxPos.z = std::max(maxPos.z, frustum[index].z);
+			}
+		}
 
-		//const fvec2 prevDepth = GetViewDepth();
-		//const float prevNear = prevDepth.x;
-		//const float prevFar = prevDepth.y;
+		const fvec3 lightCenter = (minPos + maxPos) / 2.f;
+		const float width = std::abs(maxPos.x - minPos.x);
+		const float height = std::abs(maxPos.y - minPos.y);
+		const float depth = std::abs(maxPos.z - minPos.z);
 
-		//const fmat4 viewMatrix = invLightRotation * glm::translate(glm::mat4(1.f), offsetTranslation - GetPosition());
-		//
-		//if (std::abs(rect - prevWidth) > std::numeric_limits<float>::epsilon() ||
-		//	std::abs(rect - prevHeight) > std::numeric_limits<float>::epsilon() ||
-		//	std::abs(near - prevNear) > std::numeric_limits<float>::epsilon() ||
-		//	std::abs(far - prevFar) > std::numeric_limits<float>::epsilon())
-		//{
-		//	m_lightView->data = viewMatrix;
+		const float frustumSize = std::max(width, std::max(height, depth));
 
-		//	m_lightProj->data[0][0] = 2.f / rect;
-		//	m_lightProj->data[1][1] = 2.f / rect;
-		//	m_lightProj->data[2][2] = -2.f / (far - near);
-		//	m_lightProj->data[3][2] = -(far + near) / (far - near);
-		//	m_lightProj->data[2][3] = 0.f;
-		//	m_lightProj->data[3][3] = 1.f;
+		const float prevWidth = GetViewWidth();
+		const float prevHeight = GetViewHeight();
+		const fvec2 prevDepth = GetViewDepth();
 
-		//	OnUpdate();
-		//}
+		const fmat4 lightOffset = glm::translate(fmat4(1.f), -1.f * lightCenter);
+		m_lightView->data = lightOffset * lightView;
+		m_lightProj->data = util::GetOrthographicMatrix(frustumSize, frustumSize, -0.5f * frustumSize, 0.5f * frustumSize);
+
+		OnUpdate();
 	}
 
 	float DirectionalLightProxy::GetViewWidth() const
@@ -499,13 +512,15 @@ namespace wtr
 		auto& data = m_point->data;
 		data.pos = GetPosition();
 
-		const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
+		{
+			const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
 
-		RHIBufferUpdateDesc desc;
-		desc = prevDesc;
-		desc.dataRanges.PushBack({ 0, m_point });
+			RHIBufferUpdateDesc desc;
+			desc = prevDesc;
+			desc.dataRanges.PushBack({ 0, m_point });
 
-		cmdList->UpdateBuffer(desc, m_lightBuffer);
+			cmdList->UpdateBuffer(desc, m_lightBuffer);
+		}
 	}
 
 	void PointLightProxy::UpdateView(const RenderView& renderView)
@@ -614,13 +629,26 @@ namespace wtr
 		data.direction = GetRotation() * util::GetForwardDirection();
 		data.pos = GetPosition();
 
-		const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
+		{
+			const RHIBufferDesc prevDesc = m_lightBuffer->GetDesc();
 
-		RHIBufferUpdateDesc desc;
-		desc = prevDesc;
-		desc.dataRanges.PushBack({ 0, m_spot });
+			RHIBufferUpdateDesc desc;
+			desc = prevDesc;
+			desc.dataRanges.PushBack({ 0, m_spot });
 
-		cmdList->UpdateBuffer(desc, m_lightBuffer);
+			cmdList->UpdateBuffer(desc, m_lightBuffer);
+		}
+
+		{
+			const RHITextureDesc prevDesc = m_shadowMap->GetDesc();
+
+			RHITextureUpdateDesc desc;
+			desc = prevDesc;
+			desc.width = GetViewWidth();
+			desc.height = GetViewHeight();
+
+			cmdList->ResizeTexture(desc, m_shadowMap);
+		}
 	}
 
 	void SpotLightProxy::UpdateView(const RenderView& renderView)
