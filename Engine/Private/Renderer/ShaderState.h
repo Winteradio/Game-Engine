@@ -162,6 +162,24 @@ namespace wtr
 
 		virtual ~ComputeCSState() = default;
 	};
+
+	class DebugVSState : public ShaderState
+	{
+		GENERATE(ShaderState);
+	public :
+		using ShaderState::ShaderState;
+
+		virtual ~DebugVSState() = default;
+	};
+
+	class DebugPSState : public ShaderState
+	{
+		GENERATE(DebugPSState);
+	public :
+		using ShaderState::ShaderState;
+
+		virtual ~DebugPSState() = default;
+	};
 };
 
 #endif // __WTR_SHADERSTATE_H__

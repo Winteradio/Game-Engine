@@ -120,7 +120,13 @@ namespace wtr
 					continue;
 				}
 
-				cmdList->Resize(0, 0, 1024, 1024);
+				const auto shadowMap = lightProxy->GetShadowMap();
+				if (!shadowMap)
+				{
+					continue;
+				}
+
+				cmdList->Resize(0, 0, shadowMap->GetWidth(), shadowMap->GetHeight());
 				cmdList->SetRenderTarget(lightProxy->GetShadowTarget());
 				cmdList->ClearRenderTarget(lightProxy->GetShadowTarget(), *m_clear);
 

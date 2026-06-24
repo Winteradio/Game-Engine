@@ -16,6 +16,8 @@ namespace wtr
 	struct RHIPipeLineCreateDesc;
 	struct RHISamplerCreateDesc;
 
+	class MeshAsset;
+
 	class RHIBuffer;
 	class RHIVertexLayout;
 	class RHITexture;
@@ -117,6 +119,28 @@ namespace wtr
 			Memory::RefPtr<RHIVertexLayout> m_layout;
 		};
 
+		class CubeResource : public RenderResource
+		{
+		public:
+			CubeResource();
+			virtual ~CubeResource() = default;
+
+		public:
+			eResourceState GetResourceState() const override;
+
+			void Upload(Memory::RefPtr<RHICommandList> cmdList) override;
+			void Unload(Memory::RefPtr<RHICommandList> cmdList) override;
+
+			Memory::RefPtr<const RHIVertexLayout> GetLayout() const;
+
+		private:
+			Memory::RefPtr<RHIBuffer> m_position;
+			Memory::RefPtr<RHIBuffer> m_normal;
+			Memory::RefPtr<RHIBuffer> m_index;
+
+			Memory::RefPtr<RHIVertexLayout> m_layout;
+		};
+
 		bool Init(Memory::RefPtr<RHICommandList> cmdLIst);
 		void Release(Memory::RefPtr<RHICommandList> cmdList);
 
@@ -125,6 +149,7 @@ namespace wtr
 		Memory::RefPtr<const RHIBuffer> GetCamera();
 		Memory::RefPtr<const RHITexture> GetGBuffer(const eGBufferSlot slot);
 		Memory::RefPtr<const RHIVertexLayout> GetQuad();
+		Memory::RefPtr<const RHIVertexLayout> GetCube();
 		Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, const RHIPipeLineCreateDesc desc);
 		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const eResourceSlot slot);
 		Memory::RefPtr<const RHISampler> GetSampler(Memory::RefPtr<RHICommandList> cmdList, const RHISamplerCreateDesc desc);
