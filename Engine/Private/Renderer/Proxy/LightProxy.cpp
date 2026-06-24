@@ -268,6 +268,11 @@ namespace wtr
 
 	void DirectionalLightProxy::UpdateView(const RenderView& renderView)
 	{
+		if (!m_shadowMap || m_shadowMap->GetState() != eResourceState::eReady)
+		{
+			return;
+		}
+
 		if (!m_lightProj)
 		{
 			m_lightProj = Memory::MakeRef<ScalarData<fmat4>>();
@@ -286,9 +291,6 @@ namespace wtr
 		{
 			return;
 		}
-
-		//m_lightView->data = util::GetLookAt(GetPosition(), GetRotation());
-		//m_lightProj->data = util::GetOrthographicMatrix(20.f, 20.f, -7.5f, 7.5f);
 
 		// Get the world camera' frustum position
 		const fmat4 invCameraView = glm::inverse(renderView.camera.viewMatrix);
@@ -329,6 +331,7 @@ namespace wtr
 		const float shadowRatio = std::abs(depthLength) > std::numeric_limits<float>::epsilon() ? shadowDistance / depthLength : 0.f;
 
 		// Get the Shadow Frustum in the world space
+		fvec3 frustumCenter = fvec3(0.f);
 		constexpr size_t pairIndex = 4;
 		for (size_t index = 0; index < NDC_CUBE.Size() / 2; index++)
 		{
@@ -337,56 +340,47 @@ namespace wtr
 
 			const fvec3 shadowPos = nearPos + (farPos - nearPos) * shadowRatio;
 			frustum[index + pairIndex] = shadowPos;
+
+			frustumCenter += frustum[index] + frustum[index + pairIndex];
+		}
+
+		frustumCenter /= static_cast<float>(NDC_CUBE.Size());
+
+		// Get the world sphere that cover the entire frustum
+		float frustumRadius = 0.f;
+		for (size_t index = 0; index < NDC_CUBE.Size(); index++)
+		{
+			const float length = glm::length(frustumCenter - frustum[index]);
+
+			frustumRadius = glm::max(frustumRadius, length);
 		}
 
 		// Get the AABB on the light space
 		const fmat4 lightRotation = glm::toMat4(GetRotation());
 		const fmat4 invLightRotation = glm::transpose(lightRotation);
-		const fmat4 invLightTranslation = glm::translate(fmat4(1.f), -1.f * GetPosition());
 
+		const fmat4 lightTranslation = glm::translate(fmat4(1.f), GetPosition());
+		const fmat4 invLightTranslation = glm::translate(fmat4(1.f), -1.f * GetPosition());
+		
 		const fmat4 lightView = invLightRotation * invLightTranslation;
 
-		glm::fvec3 minPos(0.f);
-		glm::fvec3 maxPos(0.f);
+		const float shadowWidth = m_shadowMap->GetWidth();
+		const float shadowHeight = m_shadowMap->GetHeight();
+		const float shadowMapSize = std::max(shadowWidth, shadowHeight);
 
-		for (size_t index = 0; index < frustum.Size(); index++)
-		{
-			fvec4 frustumVertex = fvec4(frustum[index], 1.f);
-			frustumVertex = lightView * frustumVertex;
+		const fvec3 worldPos = GetPosition() + frustumCenter;
+		const fvec3 lightPos = lightView * fvec4(worldPos, 1.f);
 
-			frustum[index] = fvec3(frustumVertex);
+		// World space에서의 texel 크기
+		const float texelSize = frustumRadius * 2.f / shadowMapSize;
 
-			if (index == 0)
-			{
-				minPos = frustum[index];
-				maxPos = frustum[index];
-			}
-			else
-			{
-				minPos.x = std::min(minPos.x, frustum[index].x);
-				minPos.y = std::min(minPos.y, frustum[index].y);
-				minPos.z = std::min(minPos.z, frustum[index].z);
+		const fvec3 snappedPos = glm::floor(lightPos / texelSize + 0.5f) * texelSize;
 
-				maxPos.x = std::max(maxPos.x, frustum[index].x);
-				maxPos.y = std::max(maxPos.y, frustum[index].y);
-				maxPos.z = std::max(maxPos.z, frustum[index].z);
-			}
-		}
+		const fvec3 worldTexelPos = lightTranslation * lightRotation * fvec4(snappedPos, 1.f);
+		const fmat4 invLightTexelTranslation = glm::translate(fmat4(1.f), -1.f * worldTexelPos);
 
-		const fvec3 lightCenter = (minPos + maxPos) / 2.f;
-		const float width = std::abs(maxPos.x - minPos.x);
-		const float height = std::abs(maxPos.y - minPos.y);
-		const float depth = std::abs(maxPos.z - minPos.z);
-
-		const float frustumSize = std::max(width, std::max(height, depth));
-
-		const float prevWidth = GetViewWidth();
-		const float prevHeight = GetViewHeight();
-		const fvec2 prevDepth = GetViewDepth();
-
-		const fmat4 lightOffset = glm::translate(fmat4(1.f), -1.f * lightCenter);
-		m_lightView->data = lightOffset * lightView;
-		m_lightProj->data = util::GetOrthographicMatrix(frustumSize, frustumSize, -0.5f * frustumSize, 0.5f * frustumSize);
+		m_lightView->data = invLightRotation * invLightTexelTranslation;
+		m_lightProj->data = util::GetOrthographicMatrix(frustumRadius * 2.f, frustumRadius * 2.f, -frustumRadius, frustumRadius);
 
 		OnUpdate();
 	}
