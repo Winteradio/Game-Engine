@@ -48,7 +48,9 @@ Directional Light shadow mapping fully implemented with:
 Remaining work:
 - **Cascade Shadow Maps**: Multiple frustums for depth-dependent resolution
 - **Spot/Point Light Shadows**: Omnidirectional cubemap shadow rendering
-- **[Bug] Shadow Blinking**: Occurs when depth bias CPU/GPU mismatch under specific geometry configurations
+
+Resolved:
+- **[Bug] Shadow Acne / NaN / Grazing artifacts**: Receiver Plane Depth Bias (RPDB) + Normal Offset + safe determinant (NaN-free) + grazing cutoff. See [Bug report](Docs/Bug_ShadowBlinking.md).
 
 *[26-06-21] Directional Shadow — Slope-based Bias + PCF + Border Color*
 
@@ -157,7 +159,7 @@ Core backbone, asset parsers, and foundational RHI rendering pipeline.
 | Shadow Map — Perspective Shadow Mapping | 🚧 Planned |
 | Shadow Map — Spot/Point Light (cubemap) | 🚧 Planned |
 | [Point Light: Incident Direction Artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) | 🐛 Known Issue |
-| [Shadow Blinking (Geometry-dependent)](Docs/Bug_ShadowBlinking.md) | 🐛 Open Issue |
+| [Shadow Acne / NaN / Grazing artifacts](Docs/Bug_ShadowBlinking.md) (RPDB + Normal Offset + safe det) | ✅ Resolved |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
 | DirectX 11 / 12 RHI backend | 🚧 Planned |
 | Physics integration | 🚧 Planned |
