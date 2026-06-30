@@ -47,6 +47,13 @@ set(YAML_CPP_INSTALL_CMAKEDIR
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE) # CTest 타겟 생성 방지
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp yaml-cpp)
 
+find_package(Vulkan REQUIRED)
+if (NOT Vulkan_FOUND)
+	message(FATAL_ERROR "Not Found the Vulkan SD")
+endif()
+
+find_program(GLSLC glslc HINTS $ENV{VULKAN_SDK}/bin)
+
 # ------ Set the properties the executable program ------ #
 set(MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
@@ -125,9 +132,6 @@ set(ENGINE_PLATFORM_FILES
 
 	${ENGINE_PRIVATE_DIR}/Platform/Win32/Win32Window.h
 	${ENGINE_PRIVATE_DIR}/Platform/Win32/Win32Window.cpp
-
-	${ENGINE_PRIVATE_DIR}/Platform/Win32/WGLContext.h
-	${ENGINE_PRIVATE_DIR}/Platform/Win32/WGLContext.cpp
 )
 
 set(ENGINE_RENDERER_PUBLIC_FILES
@@ -242,6 +246,15 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.h
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.cpp
+
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkSystem.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkSystem.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkResources.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkResources.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkContext.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkContext.cpp
 )
 
 set(ENGINE_WORLD_PUBLIC_FILES
@@ -382,11 +395,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	MemoryProject 
 	ReflectionProject 
 	LogProject
+
+	PRIVATE
 	glm
 	opengl32
 	gdi32
+	Vulkan::Vulkan
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE GLM_FORCE_INTRINSICS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:__VK_DEBUG__> GLM_FORCE_INTRINSICS)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -18,6 +18,7 @@
 #include <RHI/RHIFrameExecutor.h>
 #include <RHI/RHITaskExecutor.h>
 #include <RHI/OpenGL/GLSystem.h>
+#include <RHI/Vulkan/VkSystem.h>
 #include <RHI/RHIWorker.h>
 
 #include <Asset/AssetWorker.h>
@@ -172,6 +173,10 @@ namespace wtr
 			if (eRenderType::eOpenGL == renderDesc.Type)
 			{
 				m_rhiSystem = Memory::MakeRef<GLSystem>();
+			}
+			else if (eRenderType::eVulkan == renderDesc.Type)
+			{
+				m_rhiSystem = Memory::MakeRef<VkSystem>();
 			}
 			else
 			{

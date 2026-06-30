@@ -3,7 +3,7 @@
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIStates.h>
-#include <Platform/Win32/WGLContext.h>
+#include <RHI/OpenGL/WGL/WGLContext.h>
 
 namespace wtr
 {
