@@ -157,7 +157,7 @@ namespace wtr
 	RenderDesc Application::GetRenderDesc() const
 	{
 		RenderDesc desc;
-		desc.Type = eRenderType::eOpenGL;
+		desc.Type = eRenderType::eVulkan;
 		return desc;
 	}
 

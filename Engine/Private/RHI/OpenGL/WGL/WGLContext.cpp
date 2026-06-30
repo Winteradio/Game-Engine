@@ -1,4 +1,4 @@
-#include <Platform/Win32/WGLContext.h>
+#include <RHI/OpenGL/WGL/WGLContext.h>
 
 #include <Log/include/Log.h>
 #include <glad/glad_wgl.h>
