@@ -229,6 +229,8 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommands.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHICommandList.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHIResources.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIUtils.h
+	${ENGINE_PRIVATE_DIR}/RHI/RHIUtils.cpp
 	
 	${ENGINE_PRIVATE_DIR}/RHI/RHIExecutor.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHIExecutor.cpp
@@ -249,12 +251,18 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.cpp
 
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkSystem.h
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkSystem.cpp
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkResources.h
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkResources.cpp
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkContext.h
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VkContext.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSystem.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSystem.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanResources.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanResources.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanDevice.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanDevice.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanCommand.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanCommand.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSurface.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSurface.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanMemory.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanMemory.cpp
 )
 
 set(ENGINE_WORLD_PUBLIC_FILES
@@ -364,6 +372,9 @@ set(ENGINE_SOURCE_LIST
 	${ENGINE_RHI_PRIVATE_FILES}
 	${ENGINE_WORLD_PRIVATE_FILES}
 	${ENGINE_ASSET_PRIVATE_FILES}
+
+	$ENV{VULKAN_SDK}/Source/SPIRV-Reflect/spirv_reflect.h
+	$ENV{VULKAN_SDK}/Source/SPIRV-Reflect/spirv_reflect.c
 )
 
 set(CLIENT_DIR ${MAIN_DIR}/Client)
@@ -389,8 +400,15 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${IMGUI_FILES}
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_LIST})
-target_link_libraries(${PROJECT_NAME} PUBLIC 
+target_include_directories(${PROJECT_NAME} 
+	PUBLIC 
+	${HEADER_LIST} 
+	$ENV{VULKAN_SDK}/Include
+	$ENV{VULKAN_SDK}/Source/SPIRV-Reflect
+)
+
+target_link_libraries(${PROJECT_NAME} 
+	PUBLIC 
 	ECSProject 
 	MemoryProject 
 	ReflectionProject 
@@ -400,7 +418,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	glm
 	opengl32
 	gdi32
+
 	Vulkan::Vulkan
+	$ENV{VULKAN_SDK}/Lib/shaderc_shared.lib
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:__VK_DEBUG__> GLM_FORCE_INTRINSICS)

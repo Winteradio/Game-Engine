@@ -61,18 +61,25 @@ namespace wtr
 		virtual ~GLVertexShader();
 	};
 
+	class GLHullShader : public GLShader
+	{
+	public:
+		GLHullShader(const RHIShaderDesc& desc);
+		virtual ~GLHullShader();
+	};
+
+	class GLDomainShader : public GLShader
+	{
+	public:
+		GLDomainShader(const RHIShaderDesc& desc);
+		virtual ~GLDomainShader();
+	};
+
 	class GLGeometryShader : public GLShader
 	{
 	public :
 		GLGeometryShader(const RHIShaderDesc& desc);
 		virtual ~GLGeometryShader();
-	};
-
-	class GLHullShader : public GLShader
-	{
-	public :
-		GLHullShader(const RHIShaderDesc& desc);
-		virtual ~GLHullShader();
 	};
 
 	class GLPixelShader : public GLShader
@@ -107,6 +114,15 @@ namespace wtr
 
 	private :
 		wtr::DynamicArray<uint32_t> m_colorAttachments;
+	};
+
+	class GLRenderPass : public RHIRenderPass
+	{
+	public:
+		GLRenderPass(const RHIRenderPassDesc& desc);
+		virtual ~GLRenderPass();
+
+	public :
 	};
 };
 

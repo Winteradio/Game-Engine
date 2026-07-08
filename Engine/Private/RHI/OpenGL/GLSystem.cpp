@@ -6,6 +6,7 @@
 
 #include <RHI/RHIStates.h>
 #include <RHI/RHIResources.h>
+#include <RHI/RHIUtils.h>
 #include <RHI/OpenGL/GLResources.h>
 
 #include <cmath>
@@ -41,7 +42,8 @@ namespace wtr
 	thread_local char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
 
 	GLSystem::GLSystem()
-		: m_context()
+		: RHISystem(eRenderType::eOpenGL)
+		, m_context()
 		, m_colorState()
 		, m_depthState()
 		, m_stencilState()
@@ -142,6 +144,9 @@ namespace wtr
 		glGetIntegerv(GL_STENCIL_CLEAR_VALUE, ivals); m_clearState.stencil = static_cast<uint32_t>(ivals[0]);
 
 		glEnable(GL_FRAMEBUFFER_SRGB);
+
+		// Set the clip control to lower left and zero to one for Vulkan-like behavior
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
 		m_clearState.clearBuffer = eClearBuffer::eNone;
 	}
@@ -430,6 +435,13 @@ namespace wtr
 		return refHullShader;
 	}
 
+	Memory::RefPtr<RHIShader> GLSystem::CreateDomainShader(const RHIShaderDesc desc)
+	{
+		Memory::RefPtr<RHIShader> refDomainShader = Memory::MakeRef<GLDomainShader>(desc);
+
+		return refDomainShader;
+	}
+
 	Memory::RefPtr<RHIShader> GLSystem::CreatePixelShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
@@ -458,6 +470,13 @@ namespace wtr
 		return refRenderTarget;
 	}
 
+	Memory::RefPtr<RHIRenderPass> GLSystem::CreateRenderPass(const RHIRenderPassDesc desc)
+	{
+		Memory::RefPtr<RHIRenderPass> refRenderPass = Memory::MakeRef<GLRenderPass>(desc);
+
+		return refRenderPass;
+	}
+
 	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer)
@@ -481,6 +500,7 @@ namespace wtr
 		if (bufferID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to generate buffer";
+			glBuffer->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -522,6 +542,7 @@ namespace wtr
 		if (vertexLayoutID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to generate vertex layout buffer";
+			glVertexLayout->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -628,11 +649,9 @@ namespace wtr
 			glTexture->SetID(GL_NONE);
 			glTexture->SetState(eResourceState::eError);
 		}
-		else
-		{
-			glTexture->SetID(textureID);
-			glTexture->SetState(eResourceState::eReady);
-		}
+
+		glTexture->SetID(textureID);
+		glTexture->SetState(eResourceState::eReady);
 	}
 
 	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
@@ -653,6 +672,7 @@ namespace wtr
 		if (samplerID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to create sampler";
+			glSampler->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -703,6 +723,7 @@ namespace wtr
 		if (!shaderSource)
 		{
 			LOGERROR() << "[GL] Failed to get shader source code, the shader type : " << static_cast<uint32_t>(info.shaderType);
+			glShader->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -710,13 +731,14 @@ namespace wtr
 		if (shaderType == GL_NONE)
 		{
 			LOGERROR() << "[GL] Unrecognized shader type: " << static_cast<uint32_t>(shaderType);
+			glShader->SetState(eResourceState::eError);
 			return;
 		}
 
 		const uint32_t shaderID = glCreateShader(shaderType);
-		const int32_t length = static_cast<int32_t>(info.data->GetSize());
+		const int32_t shaderLength = static_cast<int32_t>(info.data->GetSize());
 
-		glShaderSource(shaderID, 1, &shaderSource, &length);
+		glShaderSource(shaderID, 1, &shaderSource, &shaderLength);
 		glCompileShader(shaderID);
 
 		int32_t success = GL_NONE;
@@ -728,6 +750,28 @@ namespace wtr
 			LOGERROR() << "[GL] Failed to compile shader: " << GL_MESSAGE;
 			glDeleteShader(shaderID);
 
+			glShader->SetState(eResourceState::eError);
+			return;
+		}
+
+		const DynamicArray<uint32_t> convertedSource = RHIUtils::CompileShader(info);
+		if (convertedSource.Empty())
+		{
+			LOGERROR() << "[GL] Failed to compile shader source code, the shader type : " << static_cast<uint32_t>(info.shaderType);
+			glDeleteShader(shaderID);
+
+			glShader->SetState(eResourceState::eError);
+			return;
+		}
+
+		RHIUtils::ReflectShader(convertedSource, shader);
+
+		if (!CheckShaderVariable(shader))
+		{
+			LOGERROR() << "[GL] The shader has wrong attribute location or naming";
+			glDeleteShader(shaderID);
+
+			glShader->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -752,6 +796,7 @@ namespace wtr
 		if (programID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to create shader program";
+			glPipeLine->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -769,6 +814,11 @@ namespace wtr
 			}
 
 			glAttachShader(programID, glShader->GetID());
+
+			for (const auto& [name, shaderBinding] : glShader->GetBindings())
+			{
+				glPipeLine->AddBinding(name, shaderBinding);
+			}
 		};
 
 		AttachShader(info.vertexShader);
@@ -794,18 +844,7 @@ namespace wtr
 		}
 
 		glPipeLine->SetID(programID);
-
-		if (!InitializeAttribute(pipeline) || !InitializeSlot(pipeline))
-		{
-			glDeleteProgram(programID);
-
-			glPipeLine->SetID(GL_NONE);
-			glPipeLine->SetState(eResourceState::eError);
-		}
-		else
-		{
-			glPipeLine->SetState(eResourceState::eReady);
-		}
+		glPipeLine->SetState(eResourceState::eReady);
 	}
 
 	void GLSystem::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
@@ -826,6 +865,8 @@ namespace wtr
 		if (frameBufferID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to create the frame buffer";
+			
+			glRenderTarget->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -895,6 +936,9 @@ namespace wtr
 		glRenderTarget->SetState(eResourceState::eReady);
 	}
 
+	void GLSystem::InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass)
+	{ }
+
 	bool GLSystem::InitializeFrameBuffer(Memory::RefPtr<const RHITexture> texture, const eAttachment attach, const uint32_t slot)
 	{
 		if (!texture)
@@ -938,151 +982,6 @@ namespace wtr
 			eTextureMultisampleArray
 			*/
 			glFramebufferTexture(GL_FRAMEBUFFER, glAttach, glTextureID, level);
-		}
-
-		return true;
-	}
-
-	bool GLSystem::InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline)
-	{
-		if (!pipeline)
-		{
-			return false;
-		}
-
-		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
-		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t programID = glPipeLine->GetID();
-
-		GLint attributeCount = GL_NONE;
-		glGetProgramInterfaceiv(programID, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &attributeCount);
-
-		for (GLint index = 0; index < attributeCount; ++index)
-		{
-			GLsizei nameLength = GL_NONE;
-			glGetProgramResourceName(programID, GL_PROGRAM_INPUT, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
-
-			const std::string attributeName(GL_MESSAGE, nameLength);
-			if (nameLength == GL_NONE || attributeName.empty())
-			{
-				LOGWARN() << "[GL] Failed to get vertex attribute name for index: " << index;
-				continue;
-			}
-
-			if (attributeName.substr(0, 3) == "gl_")
-			{
-				continue;
-			}
-
-			const VertexKey vertexKey = GetVertexKey(attributeName);
-			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
-			{
-				LOGWARN() << "[GL] Unrecognized vertex attribute: " << attributeName;
-				continue;
-			}
-
-			const int32_t expectedLocation = GetVertexLocation(vertexKey);
-
-			GLint location = -1;
-			const GLenum locationProp = { GL_LOCATION };
-			glGetProgramResourceiv(programID, GL_PROGRAM_INPUT, index, 1, &locationProp, 1, nullptr, &location);
-
-			if (static_cast<int16_t>(location) != expectedLocation)
-			{
-				LOGWARN() << "[GL] Vertex attribute location mismatch: " << attributeName << ", expected location: " << expectedLocation << ", actual location: " << location;
-
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	bool GLSystem::InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline)
-	{
-		if (!pipeline)
-		{
-			return false;
-		}
-
-		GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
-		if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
-		{
-			return false;
-		}
-
-		const uint32_t programID = glPipeLine->GetID();
-
-		for (const auto& desc : BUFFER_BINDINGS)
-		{
-			GLint bindingCount = GL_NONE;
-			glGetProgramInterfaceiv(programID, desc.enumType, GL_ACTIVE_RESOURCES, &bindingCount);
-
-			for (GLint index = 0; index < bindingCount; ++index)
-			{
-				GLsizei nameLength = GL_NONE;
-				glGetProgramResourceName(programID, desc.enumType, index, MAX_GL_MESSAGE_LENGTH, &nameLength, GL_MESSAGE);
-			
-				const std::string blockName(GL_MESSAGE, nameLength);
-				if (nameLength == GL_NONE || blockName.empty())
-				{
-					continue;
-				}
-
-				RHIResourceBinding bindingSlot;
-				bindingSlot.location = -1;
-				bindingSlot.type = eBindingType::eNone;
-
-				if (desc.enumType == GL_UNIFORM)
-				{
-					const GLenum props[] = { GL_TYPE, GL_BLOCK_INDEX, GL_LOCATION };
-					GLint results[3] = { GL_NONE, GL_NONE, GL_NONE };
-
-					glGetProgramResourceiv(programID, desc.enumType, index, 3, props, 3, nullptr, results);
-
-					const bool bufferBlock = results[1] != -1;
-					if (bufferBlock || results[0] == -1)
-					{
-						continue;
-					}
-
-					if (IsSampler(results[0]))
-					{
-						const GLint uniformLocation = results[2];
-
-						GLint textureUnit = -1;
-						glGetUniformiv(programID, uniformLocation, &textureUnit);
-
-						bindingSlot.location = textureUnit;
-						bindingSlot.type = eBindingType::eSampler;
-					}
-					else
-					{
-						bindingSlot.location = results[2];
-						bindingSlot.type = eBindingType::eUniform;
-					}
-				}
-				else
-				{
-					GLint bindingIndex = GL_NONE;
-					const GLenum props = GL_BUFFER_BINDING;
-					glGetProgramResourceiv(programID, desc.enumType, index, 1, &props, 1, nullptr, &bindingIndex);
-
-					if (bindingIndex == -1)
-					{
-						continue;
-					}
-
-					bindingSlot.location = static_cast<int32_t>(bindingIndex);
-					bindingSlot.type = desc.bindingType;
-				}
-
-				pipeline->AddSlot(blockName, bindingSlot);
-			}
 		}
 
 		return true;
@@ -1722,15 +1621,15 @@ namespace wtr
 		return true;
 	}
 
-	void GLSystem::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName)
+	void GLSystem::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& name)
 	{
-		if (!pipeline || slotName.empty())
+		if (!pipeline || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eUniform)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eUniform)
 		{
 			return;
 		}
@@ -1765,19 +1664,19 @@ namespace wtr
 
 			if (dataRow == 1)
 			{
-				glUniform1iv(binding.location, dataCount, static_cast<const GLint*>(data));
+				glUniform1iv(shaderBinding.binding, dataCount, static_cast<const GLint*>(data));
 			}
 			else if (dataRow == 2)
 			{
-				glUniform2iv(binding.location, dataCount, static_cast<const GLint*>(data));
+				glUniform2iv(shaderBinding.binding, dataCount, static_cast<const GLint*>(data));
 			}
 			else if (dataRow == 3)
 			{
-				glUniform3iv(binding.location, dataCount, static_cast<const GLint*>(data));
+				glUniform3iv(shaderBinding.binding, dataCount, static_cast<const GLint*>(data));
 			}
 			else if (dataRow == 4)
 			{
-				glUniform4iv(binding.location, dataCount, static_cast<const GLint*>(data));
+				glUniform4iv(shaderBinding.binding, dataCount, static_cast<const GLint*>(data));
 			}
 			else
 			{
@@ -1794,19 +1693,19 @@ namespace wtr
 
 			if (dataRow == 1)
 			{
-				glUniform1uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+				glUniform1uiv(shaderBinding.binding, dataCount, static_cast<const GLuint*>(data));
 			}
 			else if (dataRow == 2)
 			{
-				glUniform2uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+				glUniform2uiv(shaderBinding.binding, dataCount, static_cast<const GLuint*>(data));
 			}
 			else if (dataRow == 3)
 			{
-				glUniform3uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+				glUniform3uiv(shaderBinding.binding, dataCount, static_cast<const GLuint*>(data));
 			}
 			else if (dataRow == 4)
 			{
-				glUniform4uiv(binding.location, dataCount, static_cast<const GLuint*>(data));
+				glUniform4uiv(shaderBinding.binding, dataCount, static_cast<const GLuint*>(data));
 			}
 			else
 			{
@@ -1819,26 +1718,26 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform1fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+					glUniform1fv(shaderBinding.binding, dataCount, static_cast<const GLfloat*>(data));
 				}
 			}
 			else if (dataRow == 2)
 			{
 				if (dataColumn == 1)
 				{
-					glUniform2fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+					glUniform2fv(shaderBinding.binding, dataCount, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix2fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix2x3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix2x3fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix2x4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix2x4fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else
 				{
@@ -1849,19 +1748,19 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform3fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+					glUniform3fv(shaderBinding.binding, dataCount, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix3x2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix3x2fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix3fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix3x4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix3x4fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else
 				{
@@ -1872,19 +1771,19 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform4fv(binding.location, dataCount, static_cast<const GLfloat*>(data));
+					glUniform4fv(shaderBinding.binding, dataCount, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix4x2fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix4x2fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix4x3fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix4x3fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix4fv(binding.location, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
+					glUniformMatrix4fv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
 				}
 				else
 				{
@@ -1902,26 +1801,26 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform1dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+					glUniform1dv(shaderBinding.binding, dataCount, static_cast<const GLdouble*>(data));
 				}
 			}
 			else if (dataRow == 2)
 			{
 				if (dataColumn == 1)
 				{
-					glUniform2dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+					glUniform2dv(shaderBinding.binding, dataCount, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix2dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix2x3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix2x3dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix2x4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix2x4dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else
 				{
@@ -1932,19 +1831,19 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform3dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+					glUniform3dv(shaderBinding.binding, dataCount, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix3x2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix3x2dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix3dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix3x4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix3x4dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else
 				{
@@ -1955,19 +1854,19 @@ namespace wtr
 			{
 				if (dataColumn == 1)
 				{
-					glUniform4dv(binding.location, dataCount, static_cast<const GLdouble*>(data));
+					glUniform4dv(shaderBinding.binding, dataCount, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 2)
 				{
-					glUniformMatrix4x2dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix4x2dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 3)
 				{
-					glUniformMatrix4x3dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix4x3dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else if (dataColumn == 4)
 				{
-					glUniformMatrix4dv(binding.location, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
+					glUniformMatrix4dv(shaderBinding.binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
 				}
 				else
 				{
@@ -1986,15 +1885,15 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	void GLSystem::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name)
 	{
-		if (!pipeline || !buffer || slotName.empty())
+		if (!pipeline || !buffer || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || (binding.type != eBindingType::eStorageBuffer && binding.type != eBindingType::eUniformBuffer))
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || (shaderBinding.type != eBindingType::eStorageBuffer && shaderBinding.type != eBindingType::eUniformBuffer))
 		{
 			return;
 		}
@@ -2006,18 +1905,18 @@ namespace wtr
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindBufferBase(bufferType, binding.location, glBuffer->GetID());
+		glBindBufferBase(bufferType, shaderBinding.binding, glBuffer->GetID());
 	}
 
-	void GLSystem::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	void GLSystem::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name)
 	{
-		if (!pipeline || !texture || slotName.empty())
+		if (!pipeline || !texture || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eSampler)
 		{
 			return;
 		}
@@ -2029,19 +1928,19 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(texture->GetTextureType());
-		glActiveTexture(GL_TEXTURE0 + binding.location);
+		glActiveTexture(GL_TEXTURE0 + shaderBinding.binding);
 		glBindTexture(textureType, glTexture->GetID());
 	}
 
-	void GLSystem::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	void GLSystem::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name)
 	{
-		if (!pipeline || !sampler || slotName.empty())
+		if (!pipeline || !sampler || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eSampler)
 		{
 			return;
 		}
@@ -2052,7 +1951,7 @@ namespace wtr
 			return;
 		}
 
-		glBindSampler(binding.location, glSampler->GetID());
+		glBindSampler(shaderBinding.binding, glSampler->GetID());
 	}
 
 	void GLSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
@@ -2213,15 +2112,15 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
+	void GLSystem::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& name)
 	{
-		if (!pipeline || slotName.empty())
+		if (!pipeline || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eUniform)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eUniform)
 		{
 			return;
 		}
@@ -2229,55 +2128,55 @@ namespace wtr
 		// TODO
 	}
 
-	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name)
 	{
-		if (!pipeline || !buffer || slotName.empty())
+		if (!pipeline || !buffer || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || (binding.type != eBindingType::eStorageBuffer && binding.type != eBindingType::eUniformBuffer))
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || (shaderBinding.type != eBindingType::eStorageBuffer && shaderBinding.type != eBindingType::eUniformBuffer))
 		{
 			return;
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindBufferBase(bufferType, binding.location, GL_NONE);
+		glBindBufferBase(bufferType, shaderBinding.binding, GL_NONE);
 	}
 
-	void GLSystem::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	void GLSystem::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name)
 	{
-		if (!pipeline || !texture || slotName.empty())
+		if (!pipeline || !texture || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eSampler)
 		{
 			return;
 		}
 
 		const uint32_t textureType = GetTextureType(texture->GetTextureType());
-		glActiveTexture(GL_TEXTURE0 + binding.location);
+		glActiveTexture(GL_TEXTURE0 + shaderBinding.binding);
 		glBindTexture(textureType, GL_NONE);
 	}
 
-	void GLSystem::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	void GLSystem::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name)
 	{
-		if (!pipeline || !sampler || slotName.empty())
+		if (!pipeline || !sampler || name.empty())
 		{
 			return;
 		}
 
-		const RHIResourceBinding binding = pipeline->GetBindingSlot(slotName);
-		if (binding.location == -1 || binding.type != eBindingType::eSampler)
+		const RHIShaderBinding shaderBinding = pipeline->GetBinding(name);
+		if (shaderBinding.binding == -1 || shaderBinding.type != eBindingType::eSampler)
 		{
 			return;
 		}
 
-		glBindSampler(binding.location, GL_NONE);
+		glBindSampler(shaderBinding.binding, GL_NONE);
 	}
 
 	void GLSystem::UnsetVertexLayout()

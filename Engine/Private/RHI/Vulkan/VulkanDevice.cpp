@@ -1,10 +1,17 @@
-#include <RHI/Vulkan/VkContext.h>
+#include <RHI/Vulkan/VulkanDevice.h>
+
+#include <RHI/Vulkan/VulkanSurface.h>
 
 #include <Log/include/Log.h>
 #include <Container/include/StaticArray.h>
-#include <Container/include/DynamicArray.h>
 
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <Windows.h>
 #include <vulkan/vulkan_win32.h>
+#else
+// TODO
+#endif
 
 #include <string.h>
 
@@ -23,7 +30,7 @@ namespace wtr
 	const StaticArray<const char*, 3> INSTANCE_EXTENTIONS = {
 		VK_KHR_SURFACE_EXTENSION_NAME,        // Common
 		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,  // HWND
-		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,    // Validation Layer
+		VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 	};
 
 	const StaticArray<const char*, 1> DEVICE_EXTENSIONS = {
@@ -36,13 +43,17 @@ namespace wtr
 		const VkDebugUtilsMessengerCallbackDataEXT* data,
 		void* userData)
 	{
-		if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+		if (severity & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 		{
-			LOGERROR() << "[VK] " << data->pMessage;
+			LOGERROR() << "[VK] Error :" << data->pMessage;
 		}
-		else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+		else if (severity & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 		{
-			LOGWARN() << "[VK] " << data->pMessage;
+			LOGWARN() << "[VK] Warning :" << data->pMessage;
+		}
+		else if (severity & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+		{
+			LOGWARN() << "[Vk] Performance Warning :" << data->pMessage;
 		}
 		else
 		{
@@ -71,8 +82,8 @@ namespace wtr
 
 	const VkDebugUtilsMessengerCreateInfoEXT DEBUG_CREATE_INFO = DebugCreateInfo();
 
-	VkContext::VkContext()
-		: m_debugMessager(VK_NULL_HANDLE)
+	VulkanDevice::VulkanDevice()
+		: m_debugMessenger(VK_NULL_HANDLE)
 		, m_instance(VK_NULL_HANDLE)
 		, m_physicalDevice(VK_NULL_HANDLE)
 		, m_logicalDevice(VK_NULL_HANDLE)
@@ -84,71 +95,7 @@ namespace wtr
 		, m_queueBit(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)
 	{}
 
-	VkContext::~VkContext()
-	{
-		if (m_logicalDevice != VK_NULL_HANDLE)
-		{
-			vkDestroyDevice(m_logicalDevice, nullptr);
-		}
-
-		if (m_physicalDevice != VK_NULL_HANDLE)
-		{
-			// TODO
-		}
-
-		if (m_instance != VK_NULL_HANDLE)
-		{
-			auto DestroyFunc = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
-			if (DestroyFunc)
-			{
-				DestroyFunc(m_instance, m_debugMessager, nullptr);
-
-				LOGINFO() << "[Vk] Destroy the debug messenger";
-			}
-
-			vkDestroyInstance(m_instance, nullptr);
-
-			LOGINFO() << "[Vk] Destroy the vkInstance";
-		}
-
-		m_debugMessager = VK_NULL_HANDLE;
-		m_instance = VK_NULL_HANDLE;
-		m_physicalDevice = VK_NULL_HANDLE;
-		m_logicalDevice = VK_NULL_HANDLE;
-	}
-
-	bool VkContext::Init(void* nativeHandle)
-	{
-		if (!InitInstance())
-		{
-			LOGERROR() << "[Vk] Failed to initialize the vkInstance";
-			return false;
-		}
-
-		if (!InitDebugMessenger())
-		{
-			LOGERROR() << "[Vk] Failed to initialize the vkDebugMessenger";
-			return false;
-		}
-
-		if (!InitPhysicalDevice())
-		{
-			LOGERROR() << "[Vk] Failed to initialize the vkPhysicalDevice";
-			return false;
-		}
-
-		if (!InitLogicalDevice())
-		{
-			LOGERROR() << "[Vk] Failed to initialize the vkDevice";
-			return false;
-		}
-
-		LOGINFO() << "[Vk] Succeed to initialize the vkContext";
-
-		return true;
-	}
-
-	bool VkContext::InitInstance()
+	bool VulkanDevice::InitInstance()
 	{
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -179,16 +126,16 @@ namespace wtr
 		VkResult result = vkCreateInstance(&createInfo, nullptr, &m_instance);
 		if (VK_SUCCESS != result)
 		{
-			LOGERROR() << "[Vk] Failed to create the vk instance";
+			LOGERROR() << "[Vk][Device] Failed to create the vk instance";
 			return false;
 		}
 
-		LOGINFO() << "[Vk] Succeed to create the vkInstance";
+		LOGINFO() << "[Vk][Device] Succeed to create the vkInstance";
 
 		return true;
 	}
 
-	bool VkContext::InitDebugMessenger()
+	bool VulkanDevice::InitDebugMessenger()
 	{
 		if (!ENABLE_VALIDATION)
 		{
@@ -198,27 +145,71 @@ namespace wtr
 		auto CreateFunc = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
 		if (nullptr == CreateFunc)
 		{
-			LOGERROR() << "[Vk] Failed to initialize the debug messenger, cause the create func isn't existed";
+			LOGERROR() << "[Vk][Device] Failed to initialize the debug messenger, cause the create func isn't existed";
 			return false;
 		}
 
-		VkResult result = CreateFunc(m_instance, &DEBUG_CREATE_INFO, nullptr, &m_debugMessager);
+		VkResult result = CreateFunc(m_instance, &DEBUG_CREATE_INFO, nullptr, &m_debugMessenger);
 		if (result != VK_SUCCESS)
 		{
-			LOGERROR() << "[Vk] Failed to set up the debug messenger";
+			LOGERROR() << "[Vk][Device] Failed to set up the debug messenger";
 			return false;
 		}
 
-		LOGINFO() << "[Vk] Succeed to create the vkDebugMessenger";
+		LOGINFO() << "[Vk][Device] Succeed to create the vkDebugMessenger";
 
 		return true;
 	}
 
-	bool VkContext::InitPhysicalDevice()
+	bool VulkanDevice::InitDevice(Memory::RefPtr<const VulkanSurface> surface)
 	{
-		if (m_instance == VK_NULL_HANDLE)
+		if (!InitPhysicalDevice(surface))
 		{
-			LOGERROR() << "[Vk] The vkInstance is invalid, failed to initialize the vkPhysicalDevice";
+			return false;
+		}
+
+		if (!InitLogicalDevice())
+		{
+			return false;
+		}
+
+		LOGINFO() << "[Vk][Device] Succeed to initialize the physical and logical device";
+		return true;
+	}
+
+	void VulkanDevice::Release()
+	{
+		if (m_instance == VK_NULL_HANDLE || m_logicalDevice == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Device] The instance or logical device is invalid, failed to release the vulkan device";
+			return;
+		}
+
+		vkDestroyDevice(m_logicalDevice, nullptr);
+
+		auto DestroyFunc = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
+		if (DestroyFunc)
+		{
+			DestroyFunc(m_instance, m_debugMessenger, nullptr);
+
+			LOGINFO() << "[Vk][Device] Destroy the debug messenger";
+		}
+
+		vkDestroyInstance(m_instance, nullptr);
+
+		m_debugMessenger = VK_NULL_HANDLE;
+		m_instance = VK_NULL_HANDLE;
+		m_physicalDevice = VK_NULL_HANDLE;
+		m_logicalDevice = VK_NULL_HANDLE;
+
+		LOGINFO() << "[Vk][Device] Destroy the vkInstance";
+	}
+
+	bool VulkanDevice::InitPhysicalDevice(Memory::RefPtr<const VulkanSurface> surface)
+	{
+		if (m_instance == VK_NULL_HANDLE || !surface || surface->GetSurface() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Device] The vkInstance or vulkan surface is invalid, failed to initialize the vkPhysicalDevice";
 			return false;
 		}
 
@@ -226,12 +217,12 @@ namespace wtr
 		vkEnumeratePhysicalDevices(m_instance, &gpuCount, nullptr);
 		if (gpuCount == 0)
 		{
-			LOGERROR() << "[Vk] No GPU with Vulkan support";
+			LOGERROR() << "[Vk][Device] No GPU with Vulkan support";
 			return false;
 		}
 		else
 		{
-			LOGINFO() << "[Vk] The GPU with Vulkan support's count is " << gpuCount;
+			LOGINFO() << "[Vk][Device] The GPU with Vulkan support's count is " << gpuCount;
 		}
 
 		DynamicArray<VkPhysicalDevice> devices(gpuCount);
@@ -239,7 +230,7 @@ namespace wtr
 
 		for (auto device : devices)
 		{
-			if (CheckDevice(device))
+			if (CheckDevice(device, surface))
 			{
 				m_physicalDevice = device;
 				break;
@@ -248,53 +239,53 @@ namespace wtr
 
 		if (m_physicalDevice == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk] Failed to find a suitable GPU for the vulkan";
+			LOGERROR() << "[Vk][Device] Failed to find a suitable GPU for the vulkan";
 			return false;
 		}
 
 		VkPhysicalDeviceProperties deviceProperties{};
 		vkGetPhysicalDeviceProperties(m_physicalDevice, &deviceProperties);
 
-		LOGINFO() << "[Vk] ------ Selected GPU Info -----";
-		LOGINFO() << "[Vk] API Version : " << deviceProperties.apiVersion;
-		LOGINFO() << "[Vk] Driver Version : " << deviceProperties.driverVersion;
-		LOGINFO() << "[Vk] Vender ID : " << deviceProperties.vendorID;
-		LOGINFO() << "[Vk] Device Name : " << deviceProperties.deviceName;
-		LOGINFO() << "[Vk] Device ID : " << deviceProperties.deviceID;
+		LOGINFO() << "[Vk][Device] ------ Selected GPU Info -----";
+		LOGINFO() << "[Vk][Device] API Version : " << deviceProperties.apiVersion;
+		LOGINFO() << "[Vk][Device] Driver Version : " << deviceProperties.driverVersion;
+		LOGINFO() << "[Vk][Device] Vender ID : " << deviceProperties.vendorID;
+		LOGINFO() << "[Vk][Device] Device Name : " << deviceProperties.deviceName;
+		LOGINFO() << "[Vk][Device] Device ID : " << deviceProperties.deviceID;
 		
 		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
 		{
-			LOGINFO() << "[Vk] Device Type : Intergrated GPU";
+			LOGINFO() << "[Vk][Device] Device Type : Intergrated GPU";
 		}
 		else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 		{
-			LOGINFO() << "[Vk] Device Type : Discrete GPU";
+			LOGINFO() << "[Vk][Device] Device Type : Discrete GPU";
 		}
 		else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU)
 		{
-			LOGINFO() << "[Vk] Device Type : Virtual GPU";
+			LOGINFO() << "[Vk][Device] Device Type : Virtual GPU";
 		}
 		else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
 		{
-			LOGINFO() << "[Vk] Device Type : CPU";
+			LOGINFO() << "[Vk][Device] Device Type : CPU";
 		}
 		else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER)
 		{
-			LOGINFO() << "[Vk] Device Type : Other";
+			LOGINFO() << "[Vk][Device] Device Type : Other";
 		}
 		else
 		{
-			LOGINFO() << "[Vk] Device Type : None";
+			LOGINFO() << "[Vk][Device] Device Type : None";
 		}
 
-		LOGINFO() << "[Vk] ------ Selected GPU Info -----";
+		LOGINFO() << "[Vk][Device] ------ Selected GPU Info -----";
 
-		LOGINFO() << "[Vk] Succeed to create the vkPhysicalDevice";
+		LOGINFO() << "[Vk][Device] Succeed to create the vkPhysicalDevice";
 
 		return true;
 	}
 
-	bool VkContext::InitLogicalDevice()
+	bool VulkanDevice::InitLogicalDevice()
 	{
 		float priority = 1.f;
 
@@ -340,24 +331,26 @@ namespace wtr
 		VkResult result = vkCreateDevice(m_physicalDevice, &deviceInfo, nullptr, &m_logicalDevice);
 		if (result != VK_SUCCESS)
 		{
-			LOGERROR() << "[Vk] Failed to create the vkDevice(logical device)";
+			LOGERROR() << "[Vk][Device] Failed to create the vkDevice(logical device)";
 			return false;
 		}
 
 		vkGetDeviceQueue(m_logicalDevice, m_queueFamily, 0, &m_queue);
 
-		LOGINFO() << "[Vk] Succeed to create the logical device";
+		LOGINFO() << "[Vk][Device] Succeed to create the logical device";
 
 		return true;
 	}
 
-	bool VkContext::CheckDevice(VkPhysicalDevice device)
+	bool VulkanDevice::CheckDevice(VkPhysicalDevice device, Memory::RefPtr<const VulkanSurface> surface)
 	{
-		if (device == VK_NULL_HANDLE)
+		if (device == VK_NULL_HANDLE || !surface || surface->GetSurface() == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk] The device is invalid";
+			LOGERROR() << "[Vk][Device] The device or vulkan surfaceis invalid";
 			return false;
 		}
+
+		VkSurfaceKHR surfaceKHR = surface->GetSurface();
 
 		// Check the api version;
 		VkPhysicalDeviceProperties properties{};
@@ -369,6 +362,15 @@ namespace wtr
 		const uint32_t queueFamily = GetQueueFamily(device, m_queueBit);
 
 		const bool validQueue = (queueFamily != UINT32_MAX);
+
+		// Check the present support on that family
+		VkBool32 presentSupport = VK_FALSE;
+		if (validQueue)
+		{
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, queueFamily, surfaceKHR, &presentSupport);
+		}
+
+		const bool validPresent = (presentSupport == VK_TRUE);
 
 		// Check the device extensions
 		const bool validExtension = CheckDeviceExtensions(device);
@@ -385,7 +387,7 @@ namespace wtr
 
 		const bool validFeature = (feature13.dynamicRendering == VK_TRUE);
 
-		if (validApi && validQueue && validExtension && validFeature)
+		if (validApi && validQueue && validPresent && validExtension && validFeature)
 		{
 			m_queueFamily = queueFamily;
 			
@@ -395,11 +397,11 @@ namespace wtr
 		return false;
 	}
 
-	bool VkContext::CheckDeviceExtensions(VkPhysicalDevice device)
+	bool VulkanDevice::CheckDeviceExtensions(VkPhysicalDevice device)
 	{
 		if (device == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk] The device is invalid";
+			LOGERROR() << "[Vk][Device] The device is invalid";
 			return false;
 		}
 
@@ -430,7 +432,7 @@ namespace wtr
 		return true;
 	}
 
-	bool VkContext::CheckValidationLayer()
+	bool VulkanDevice::CheckValidationLayer()
 	{
 		if (!ENABLE_VALIDATION)
 		{
@@ -464,11 +466,11 @@ namespace wtr
 		return true;
 	}
 
-	uint32_t VkContext::GetQueueFamily(VkPhysicalDevice device, const uint32_t queueBit)
+	uint32_t VulkanDevice::GetQueueFamily(VkPhysicalDevice device, const uint32_t queueBit)
 	{
 		if (device == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk] The device is invalid, failed to get the graphics queue family";
+			LOGERROR() << "[Vk][Device] The device is invalid, failed to get the graphics queue family";
 			return UINT32_MAX;
 		}
 
@@ -480,12 +482,42 @@ namespace wtr
 
 		for (size_t index = 0; index < families.Size(); index++)
 		{
-			if (families[index].queueFlags & queueBit)
+			if ((families[index].queueFlags & queueBit) == queueBit)
 			{
 				return index;
 			}
 		}
 
 		return UINT32_MAX;
+	}
+
+	VkDevice VulkanDevice::GetLogicalDevice() const
+	{
+		return m_logicalDevice;
+	}
+
+	uint32_t VulkanDevice::GetApiVersion() const
+	{
+		return m_apiVersion;
+	}
+
+	uint32_t VulkanDevice::GetAppVersion() const
+	{
+		return m_appVersion;
+	}
+
+	uint32_t VulkanDevice::GetEngineVersion() const
+	{
+		return m_engineVersion;
+	}
+
+	VkQueue VulkanDevice::GetQueue() const
+	{
+		return m_queue;
+	}
+
+	uint32_t VulkanDevice::GetQueueIndex() const
+	{
+		return m_queueFamily;
 	}
 }

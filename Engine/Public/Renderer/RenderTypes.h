@@ -30,8 +30,9 @@ namespace wtr
 		eLayout		= 0x06,
 		eTarget		= 0x07,
 		eConst		= 0x08,
-		eGraphics	= 0x09,
-		eCompute	= 0x0A
+		ePass		= 0x09,
+		eGraphics	= 0x0A,
+		eCompute	= 0x0B
 	};
 
 	enum class eBufferType : uint8_t

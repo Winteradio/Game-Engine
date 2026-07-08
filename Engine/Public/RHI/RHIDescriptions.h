@@ -19,15 +19,15 @@ namespace wtr
 {
 	struct RHIVertexAttribute
 	{
-		uint16_t location = 0;	// vertex attribute binding location
-		uint16_t offset = 0;	// byte offset in stream
-		bool  normalized = 1;	// normalize fixed-point data
-		bool  integer = 0;	// treat as integer input
-		uint8_t  divisor = 0;	// instancing divisor
-		uint8_t  numComponents = 0;	// number of components (1-4)
-		eDataType  componentType = eDataType::eNone;			// enum: eDataType
-		eVertexSemantic semantic = eVertexSemantic::eNone;	// bit value for the semantic (e.g. TEXCOORD)
-		uint8_t  semanticIndex = 0;	// e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
+		uint16_t location			= 0; // vertex attribute binding location
+		uint16_t offset				= 0; // byte offset in stream
+		bool normalized				= 1; // normalize fixed-point data
+		bool integer				= 0; // treat as integer input
+		uint8_t divisor				= 0; // instancing divisor
+		uint8_t numComponents		= 0; // number of components (1-4)
+		eDataType componentType		= eDataType::eNone;			// enum: eDataType
+		eVertexSemantic semantic	= eVertexSemantic::eNone;	// bit value for the semantic (e.g. TEXCOORD)
+		uint8_t semanticIndex		= 0; // e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
 	};
 
 	struct RHIVertexStream
@@ -50,11 +50,24 @@ namespace wtr
 		wtr::DynamicArray<RHITextureMipMap> mipMaps;
 	};
 
-	struct RHIResourceBinding
+	struct RHIShaderVariable
 	{
-		int32_t location 	= -1; // resource binding location
-		eBindingType type 	= eBindingType::eNone; // type of the binding resource
+		int32_t location	= -1;				// attribute location
+		uint32_t row		= 1;				// number of rows in the variable (for matrices)
+		uint32_t column		= 1;				// number of columns in the variable (for matrices)
+		eDataType type		= eDataType::eNone; // enum: eDataType
 	};
+
+	using RHIShaderVariables = wtr::HashMap<std::string, RHIShaderVariable>;
+
+	struct RHIShaderBinding
+	{
+		int32_t binding 	= -1;					// resource binding location
+		int32_t set			= 0;					// resource binding set
+		eBindingType type 	= eBindingType::eNone;	// type of the binding resource
+	};
+
+	using RHIShaderBindings = wtr::HashMap<std::string, RHIShaderBinding>;
 
 	template<enum class eResourceType Type>
 	struct RHIDesc
@@ -442,6 +455,32 @@ namespace wtr
 			if (this != &desc)
 			{
 				RHIRenderTargetDesc::operator=(desc);
+			}
+
+			return *this;
+		}
+	};
+
+	struct RHIRenderPassDesc : RHIDesc<eResourceType::ePass>
+	{
+		RHIRenderPassDesc& operator=(const RHIRenderPassDesc& desc)
+		{
+			if (this != &desc)
+			{
+
+			}
+
+			return *this;
+		}
+	};
+
+	struct RHIRenderPassCreateDesc : RHIRenderPassDesc
+	{
+		RHIRenderPassCreateDesc& operator=(const RHIRenderPassDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIRenderPassDesc::operator=(desc);
 			}
 
 			return *this;
