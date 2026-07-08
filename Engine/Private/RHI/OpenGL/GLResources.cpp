@@ -78,6 +78,13 @@ namespace wtr
 	GLHullShader::~GLHullShader()
 	{}
 
+	GLDomainShader::GLDomainShader(const RHIShaderDesc& desc)
+		: GLShader(desc)
+	{}
+
+	GLDomainShader::~GLDomainShader()
+	{}
+
 	GLPixelShader::GLPixelShader(const RHIShaderDesc& desc)
 		: GLShader(desc)
 	{}
@@ -126,4 +133,11 @@ namespace wtr
 	{
 		return m_colorAttachments;
 	}
+
+	GLRenderPass::GLRenderPass(const RHIRenderPassDesc& desc)
+		: RHIRenderPass(desc)
+	{}
+
+	GLRenderPass::~GLRenderPass()
+	{}
 }
