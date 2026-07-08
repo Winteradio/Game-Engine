@@ -39,10 +39,12 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreateVertexShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateGeometryShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateHullShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateDomainShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) override;
+		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
@@ -51,6 +53,7 @@ namespace wtr
 		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) override;
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) override;
 		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
+		void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) override;
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
@@ -59,15 +62,15 @@ namespace wtr
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
-		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName) override;
-		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
-		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
-		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& name) override;
+		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) override;
+		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) override;
+		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) override;
 
-		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName) override;
-		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
-		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
-		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& name) override;
+		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) override;
+		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) override;
+		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) override;
 
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
@@ -86,8 +89,6 @@ namespace wtr
 		void InitializeState();
 
 		bool InitializeFrameBuffer(Memory::RefPtr<const RHITexture>, const eAttachment attach, const uint32_t slot = 0);
-		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
-		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
 
 		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
@@ -101,37 +102,37 @@ namespace wtr
 		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
 
-		uint32_t GetBufferType(const eBufferType buffer) const override;
-		uint32_t GetDataAccess(const eDataAccess access) const override;
-		uint32_t GetDataType(const eDataType data) const override;
-		uint32_t GetMapAccess(const eMapAccess access) const override;
+		uint32_t GetBufferType(const eBufferType buffer) const;
+		uint32_t GetDataAccess(const eDataAccess access) const;
+		uint32_t GetDataType(const eDataType data) const;
+		uint32_t GetMapAccess(const eMapAccess access) const;
 
-		uint32_t GetTextureType(const eTextureType texture) const override;
-		uint32_t GetTextureDimension(const eTextureType texture) const override;
+		uint32_t GetTextureType(const eTextureType texture) const;
+		uint32_t GetTextureDimension(const eTextureType texture) const;
 		uint32_t GetInternalFormat(const ePixelFormat pixel) const;
 		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
 		uint32_t GetPixelDataType(const ePixelFormat pixel) const;
 		
-		uint32_t GetFilterMode(const eFilterMode filter) const override;
-		uint32_t GetWrapMode(const eWrapMode wrap) const override;
+		uint32_t GetFilterMode(const eFilterMode filter) const;
+		uint32_t GetWrapMode(const eWrapMode wrap) const;
 
-		uint32_t GetCullFace(const eCullFace face) const override;
-		uint32_t GetFrontFace(const eFrontFace face) const override;
+		uint32_t GetCullFace(const eCullFace face) const;
+		uint32_t GetFrontFace(const eFrontFace face) const;
 		
-		uint32_t GetDrawMode(const eDrawMode mode) const override;
-		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const override;
+		uint32_t GetDrawMode(const eDrawMode mode) const;
+		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const;
 		
-		uint32_t GetCompareFunc(const eCompareFunc func) const override;
+		uint32_t GetCompareFunc(const eCompareFunc func) const;
 		
-		uint32_t GetStencilOp(const eStencilOp op) const override;
+		uint32_t GetStencilOp(const eStencilOp op) const;
 		
-		uint32_t GetBlendFunc(const eBlendFunc func) const override;
-		uint32_t GetBlendOp(const eBlendOp op) const override;
+		uint32_t GetBlendFunc(const eBlendFunc func) const;
+		uint32_t GetBlendOp(const eBlendOp op) const;
 		
-		uint32_t GetShaderType(const eShaderType type) const override;
+		uint32_t GetShaderType(const eShaderType type) const;
 
-		uint32_t GetColorAttachment(const uint32_t slot) const override;
-		uint32_t GetDepthStencilAttachment(const eAttachment attach) const override;
+		uint32_t GetColorAttachment(const uint32_t slot) const;
+		uint32_t GetDepthStencilAttachment(const eAttachment attach) const;
 
 		eCompareFunc GetCompareFunc(const uint32_t func) const;
 		eStencilOp GetStencilOp(const uint32_t op) const;

@@ -2,6 +2,7 @@
 
 #include <limits>
 
+// TODO - The vulkan coordinate system is different from the OpenGL coordinate system, so we need to adjust the projection matrix accordingly.
 namespace wtr
 {
 	namespace util

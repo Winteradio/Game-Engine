@@ -1,21 +1,24 @@
-#ifndef __WTR_VKSYSTEM_H__
-#define __WTR_VKSYSTEM_H__
+#ifndef __WTR_VULKANSYSTEM_H__
+#define __WTR_VULKANSYSTEM_H__
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIStates.h>
 
 namespace wtr
 {
-	class VkContext;
+	class VulkanDevice;
+	class VulkanSurface;
+	class VulkanCommand;
+	class VulkanMemory;
 };
 
 namespace wtr
 {
-	class VkSystem : public RHISystem
+	class VulkanSystem : public RHISystem
 	{
 	public:
-		VkSystem();
-		~VkSystem();
+		VulkanSystem();
+		~VulkanSystem();
 
 	public:
 		bool Init(void* nativeHandle) override;
@@ -43,10 +46,12 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreateVertexShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateGeometryShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateHullShader(const RHIShaderDesc desc) override;
+		Memory::RefPtr<RHIShader> CreateDomainShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) override;
+		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
@@ -55,6 +60,7 @@ namespace wtr
 		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) override;
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) override;
 		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
+		void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) override;
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
@@ -86,60 +92,15 @@ namespace wtr
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
-	private:
-		void InitializeState();
-
-		bool InitializeFrameBuffer(Memory::RefPtr<const RHITexture>, const eAttachment attach, const uint32_t slot = 0);
-		bool InitializeAttribute(Memory::RefPtr<RHIPipeLine> pipeline);
-		bool InitializeSlot(Memory::RefPtr<RHIPipeLine> pipeline);
-
-		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
-
-		bool UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID);
-		bool UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID);
-		bool UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID);
-
-		bool ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
-		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
-
-		uint32_t GetBufferType(const eBufferType buffer) const override;
-		uint32_t GetDataAccess(const eDataAccess access) const override;
-		uint32_t GetDataType(const eDataType data) const override;
-		uint32_t GetMapAccess(const eMapAccess access) const override;
-
-		uint32_t GetTextureType(const eTextureType texture) const override;
-		uint32_t GetTextureDimension(const eTextureType texture) const override;
-		uint32_t GetInternalFormat(const ePixelFormat pixel) const;
-		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
-		uint32_t GetPixelDataType(const ePixelFormat pixel) const;
-
-		uint32_t GetFilterMode(const eFilterMode filter) const override;
-		uint32_t GetWrapMode(const eWrapMode wrap) const override;
-
-		uint32_t GetCullFace(const eCullFace face) const override;
-		uint32_t GetFrontFace(const eFrontFace face) const override;
-
-		uint32_t GetDrawMode(const eDrawMode mode) const override;
-		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const override;
-
-		uint32_t GetCompareFunc(const eCompareFunc func) const override;
-
-		uint32_t GetStencilOp(const eStencilOp op) const override;
-
-		uint32_t GetBlendFunc(const eBlendFunc func) const override;
-		uint32_t GetBlendOp(const eBlendOp op) const override;
-
-		uint32_t GetShaderType(const eShaderType type) const override;
-
-		uint32_t GetColorAttachment(const uint32_t slot) const override;
-		uint32_t GetDepthStencilAttachment(const eAttachment attach) const override;
+	private :
+		bool IsValid() const;
 
 	private:
-		Memory::RefPtr<VkContext> m_context;
+		Memory::RefPtr<VulkanDevice> m_device;
+		Memory::RefPtr<VulkanSurface> m_surface;
+		Memory::RefPtr<VulkanCommand> m_command;
+		Memory::RefPtr<VulkanMemory> m_memory;
 	};
 };
 
-#endif // __WTR_GLSYSTEM_H__
+#endif // __WTR_VULKANSYSTEM_H__

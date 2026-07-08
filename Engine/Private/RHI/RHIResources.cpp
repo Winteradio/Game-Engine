@@ -336,6 +336,7 @@ namespace wtr
 
 	RHIShader::RHIShader(const RHIShaderDesc& desc)
 		: m_desc(desc)
+		, m_bindings()
 	{
 	}
 
@@ -344,8 +345,81 @@ namespace wtr
 		return m_desc.shaderType;
 	}
 
+	void RHIShader::AddInput(const std::string& name, const RHIShaderVariable& input)
+	{
+		m_inputs[name] = input;
+	}
+
+	void RHIShader::AddOutput(const std::string& name, const RHIShaderVariable& output)
+	{
+		m_outputs[name] = output;
+	}
+
+	void RHIShader::AddBinding(const std::string& name, const RHIShaderBinding& binding)
+	{
+		m_bindings[name] = binding;
+	}
+
+	const RHIShaderVariable& RHIShader::GetInput(const std::string& name) const
+	{
+		auto itr = m_inputs.Find(name);
+		if (itr != m_inputs.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderVariable emptyInput = {};
+			return emptyInput;
+		}
+	}
+
+	const RHIShaderVariable& RHIShader::GetOutput(const std::string& name) const
+	{
+		auto itr = m_outputs.Find(name);
+		if (itr != m_outputs.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderVariable emptyOutput = {};
+			return emptyOutput;
+		}
+	}
+
+	const RHIShaderBinding& RHIShader::GetBinding(const std::string& name) const
+	{
+		auto itr = m_bindings.Find(name);
+		if (itr != m_bindings.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderBinding emptyBinding = {};
+			return emptyBinding;
+		}
+	}
+
+	const RHIShaderVariables& RHIShader::GetInputs() const
+	{
+		return m_inputs;
+	}
+
+	const RHIShaderVariables& RHIShader::GetOutputs() const
+	{
+		return m_outputs;
+	}
+
+	const RHIShaderBindings& RHIShader::GetBindings() const
+	{
+		return m_bindings;
+	}
+
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
+		, m_bindings()
 	{}
 
 	Memory::RefPtr<const RHIClearState> RHIPipeLine::GetClearState() const
@@ -448,62 +522,63 @@ namespace wtr
 		m_desc = desc;
 	}
 
-	void RHIPipeLine::AddSlot(const std::string& name, const RHIResourceBinding& binding)
+	void RHIPipeLine::AddBinding(const std::string& name, const RHIShaderBinding& binding)
 	{
 		if (name.empty())
 		{
 			return;
 		}
 
-		m_slots[name] = binding;
+		m_bindings[name] = binding;
 	}
 
-	bool RHIPipeLine::HasSlot(const std::string& name) const
+	bool RHIPipeLine::HasBinding(const std::string& name) const
 	{
 		const eResourceSlot slot = GetResourceSlot(name);
 		if (slot != eResourceSlot::eNone)
 		{
-			return HasSlot(slot);
+			return HasBinding(slot);
 		}
 		
 		return false;
 	}
 
-	bool RHIPipeLine::HasSlot(const eResourceSlot slot) const
+	bool RHIPipeLine::HasBinding(const eResourceSlot slot) const
 	{
 		const std::string slotName = GetSlotName(slot);
-		return m_slots.Find(slotName) != m_slots.End();
+
+		return m_bindings.Find(slotName) != m_bindings.End();
 	}
 
-	size_t RHIPipeLine::GetSlotCount() const
+	size_t RHIPipeLine::GetBindingCount() const
 	{
-		return m_slots.Size();
+		return m_bindings.Size();
 	}
 
-	const RHIResourceBinding& RHIPipeLine::GetBindingSlot(const std::string& name) const
+	const RHIShaderBinding& RHIPipeLine::GetBinding(const std::string& name) const
 	{
 		const eResourceSlot slot = GetResourceSlot(name);
 		if (slot != eResourceSlot::eNone)
 		{
-			return GetBindingSlot(slot);
+			return GetBinding(slot);
 		}
 
-		static const RHIResourceBinding emptyBinding = {};
+		static const RHIShaderBinding emptyBinding = {};
 		return emptyBinding;
 	}
 
-	const RHIResourceBinding& RHIPipeLine::GetBindingSlot(const eResourceSlot slot) const
+	const RHIShaderBinding& RHIPipeLine::GetBinding(const eResourceSlot slot) const
 	{
 		const std::string slotName = GetSlotName(slot);
 
-		auto itr = m_slots.Find(slotName);
-		if (itr != m_slots.End())
+		auto itr = m_bindings.Find(slotName);
+		if (itr != m_bindings.End())
 		{
 			return itr->second;
 		}
 		else
 		{
-			static const RHIResourceBinding emptyBinding = {};
+			static const RHIShaderBinding emptyBinding = {};
 			return emptyBinding;
 		}
 	}
@@ -546,5 +621,15 @@ namespace wtr
 	size_t RHIRenderTarget::GetColorAttachCount() const
 	{
 		return m_desc.colors.Size();
+	}
+
+	RHIRenderPass::RHIRenderPass(const RHIRenderPassDesc& desc)
+		: m_desc(desc)
+	{
+	}
+
+	const RHIRenderPassDesc& RHIRenderPass::GetDesc() const
+	{
+		return m_desc;
 	}
 };

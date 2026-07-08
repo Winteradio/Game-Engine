@@ -159,8 +159,23 @@ namespace wtr
 		eShaderType GetShaderType() const;
 		const RHIShaderDesc& GetDesc() const;
 
+		void AddInput(const std::string& name, const RHIShaderVariable& input);
+		void AddOutput(const std::string& name, const RHIShaderVariable& output);
+		void AddBinding(const std::string& name, const RHIShaderBinding& binding);
+
+		const RHIShaderVariable& GetInput(const std::string& name) const;
+		const RHIShaderVariable& GetOutput(const std::string& name) const;
+		const RHIShaderBinding& GetBinding(const std::string& name) const;
+		
+		const RHIShaderVariables& GetInputs() const;
+		const RHIShaderVariables& GetOutputs() const;
+		const RHIShaderBindings& GetBindings() const;
+
 	private :
 		RHIShaderDesc m_desc;
+		RHIShaderVariables m_inputs;
+		RHIShaderVariables m_outputs;
+		RHIShaderBindings m_bindings;
 	};
 
 	class RHIPipeLine : public RHIResource
@@ -186,17 +201,17 @@ namespace wtr
 		void SetBlendState(const RHIBlendState blend);
 		void SetRasterizerState(const RHIRasterizerState rasterizer);
 
-		void AddSlot(const std::string& name, const RHIResourceBinding& binding);
-		bool HasSlot(const std::string& name) const;
-		bool HasSlot(const eResourceSlot slot) const;
+		void AddBinding(const std::string& name, const RHIShaderBinding& binding);
+		bool HasBinding(const std::string& name) const;
+		bool HasBinding(const eResourceSlot slot) const;
 
-		size_t GetSlotCount() const;
-		const RHIResourceBinding& GetBindingSlot(const std::string& name) const;
-		const RHIResourceBinding& GetBindingSlot(const eResourceSlot slot) const;
+		size_t GetBindingCount() const;
+		const RHIShaderBinding& GetBinding(const std::string& name) const;
+		const RHIShaderBinding& GetBinding(const eResourceSlot slot) const;
 
 	private :
 		RHIPipeLineDesc m_desc;
-		wtr::HashMap<std::string, RHIResourceBinding> m_slots;
+		RHIShaderBindings m_bindings;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine
@@ -225,6 +240,19 @@ namespace wtr
 
 	private :
 		RHIRenderTargetDesc m_desc;
+	};
+
+	class RHIRenderPass : public RHIResource
+	{
+	public:
+		RHIRenderPass(const RHIRenderPassDesc& desc);
+		virtual ~RHIRenderPass() = default;
+
+	public :
+		const RHIRenderPassDesc& GetDesc() const;
+
+	private :
+		RHIRenderPassDesc m_desc;
 	};
 };
 

@@ -1,0 +1,178 @@
+#ifndef __WTR_VULKANRESOURCES_H__
+#define __WTR_VULKANRESOURCES_H__
+
+#include <RHI/RHIResources.h>
+
+#include <vulkan/vulkan.h>
+
+namespace wtr
+{
+	class VulkanResource
+	{
+	public:
+		VulkanResource() = default;
+		virtual ~VulkanResource() = default;
+	};
+
+	class VulkanMemoryResource : public VulkanResource
+	{
+	public:
+		VulkanMemoryResource();
+		virtual ~VulkanMemoryResource();
+	};
+
+	class VulkanBuffer : public RHIBuffer, public VulkanMemoryResource
+	{
+	public :
+		VulkanBuffer(const RHIBufferDesc& desc);
+		virtual ~VulkanBuffer();
+
+	public :
+		void SetBuffer(const VkBuffer buffer);
+		const VkBuffer GetBuffer() const;
+
+	private :
+		const VkBuffer m_buffer;
+	};
+
+	class VulkanVertexLayout : public RHIVertexLayout, public VulkanResource
+	{
+	public:
+		VulkanVertexLayout(const RHIVertexLayoutDesc& desc);
+		virtual ~VulkanVertexLayout();
+	};
+
+	class VulkanTexture : public RHITexture, public VulkanMemoryResource
+	{
+	public :
+		VulkanTexture(const RHITextureDesc& desc);
+		virtual ~VulkanTexture();
+
+	public :
+		void SetImage(const VkImage image);
+		void SetImageView(const VkImageView imageView);
+
+		const VkImage     GetImage()     const;
+		const VkImageView GetImageView() const;
+
+	private :
+		const VkImage     m_image;
+		const VkImageView m_imageView;
+	};
+
+	class VulkanSampler : public RHISampler, public VulkanResource
+	{
+	public :
+		VulkanSampler(const RHISamplerDesc& desc);
+		virtual ~VulkanSampler();
+
+	public :
+		void      SetSampler(const VkSampler sampler);
+		const VkSampler GetSampler() const;
+
+	private :
+		const VkSampler m_sampler;
+	};
+
+	class VulkanShader : public RHIShader, public VulkanResource
+	{
+	public :
+		VulkanShader(const RHIShaderDesc& desc);
+		virtual ~VulkanShader() = default;
+
+	public :
+		void SetShaderModule(const VkShaderModule shaderModule);
+		const VkShaderModule GetShaderModule() const;
+
+	private :
+		const VkShaderModule m_shaderModule;
+	};
+
+	class VulkanVertexShader : public VulkanShader
+	{
+	public :
+		VulkanVertexShader(const RHIShaderDesc& desc);
+		virtual ~VulkanVertexShader();
+	};
+
+	class VulkanHullShader : public VulkanShader
+	{
+	public:
+		VulkanHullShader(const RHIShaderDesc& desc);
+		virtual ~VulkanHullShader();
+	};
+
+	class VulkanDomainShader : public VulkanShader
+	{
+	public:
+		VulkanDomainShader(const RHIShaderDesc& desc);
+		virtual ~VulkanDomainShader();
+	};
+
+	class VulkanGeometryShader : public VulkanShader
+	{
+	public :
+		VulkanGeometryShader(const RHIShaderDesc& desc);
+		virtual ~VulkanGeometryShader();
+	};
+
+	class VulkanPixelShader : public VulkanShader
+	{
+	public :
+		VulkanPixelShader(const RHIShaderDesc& desc);
+		virtual ~VulkanPixelShader();
+	};
+
+	class VulkanComputeShader : public VulkanShader
+	{
+	public :
+		VulkanComputeShader(const RHIShaderDesc& desc);
+		virtual ~VulkanComputeShader();
+	};
+
+	class VulkanPipeLine : public RHIPipeLine, public VulkanResource
+	{
+	public :
+		VulkanPipeLine(const RHIPipeLineDesc& desc);
+		virtual ~VulkanPipeLine();
+
+	public :
+		void SetPipeline(const VkPipeline pipeline);
+		void SetLayout(const VkPipelineLayout layout);
+		void AddLayoutDesc(const VkDescriptorSetLayout layoutDesc);
+
+		const VkPipeline GetPipeline()   const;
+		const VkPipelineLayout GetLayout()     const;
+		const DynamicArray<const VkDescriptorSetLayout>& GetLayoutDesc() const;
+
+	private :
+		const VkPipeline m_pipeline;
+		const VkPipelineLayout m_layout;
+		DynamicArray<const VkDescriptorSetLayout> m_layoutDesc;
+	};
+
+	class VulkanRenderTarget : public RHIRenderTarget, public VulkanResource
+	{
+	public :
+		VulkanRenderTarget(const RHIRenderTargetDesc& desc);
+		virtual ~VulkanRenderTarget();
+
+	public :
+		void SetRenderTarget(const VkFramebuffer renderTarget);
+		const VkFramebuffer GetRenderTarget() const;
+
+	private :
+		const VkFramebuffer m_renderTarget;
+	};
+
+	class VulkanRenderPass : public RHIRenderPass, public VulkanResource
+	{
+	public :
+		VulkanRenderPass(const RHIRenderPassDesc& desc);
+		virtual ~VulkanRenderPass();
+
+	public :
+	};
+};
+
+#endif // __WTR_VULKANRESOURCES_H__
