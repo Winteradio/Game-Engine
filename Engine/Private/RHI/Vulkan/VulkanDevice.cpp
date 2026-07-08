@@ -491,6 +491,16 @@ namespace wtr
 		return UINT32_MAX;
 	}
 
+	VkInstance VulkanDevice::GetInstance() const
+	{
+		return m_instance;
+	}
+
+	VkPhysicalDevice VulkanDevice::GetPhysicalDevice() const
+	{
+		return m_physicalDevice;
+	}
+
 	VkDevice VulkanDevice::GetLogicalDevice() const
 	{
 		return m_logicalDevice;

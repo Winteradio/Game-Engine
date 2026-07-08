@@ -32,7 +32,7 @@ namespace wtr
 		const VkBuffer GetBuffer() const;
 
 	private :
-		const VkBuffer m_buffer;
+		VkBuffer m_buffer;
 	};
 
 	class VulkanVertexLayout : public RHIVertexLayout, public VulkanResource
@@ -56,8 +56,8 @@ namespace wtr
 		const VkImageView GetImageView() const;
 
 	private :
-		const VkImage     m_image;
-		const VkImageView m_imageView;
+		VkImage     m_image;
+		VkImageView m_imageView;
 	};
 
 	class VulkanSampler : public RHISampler, public VulkanResource
@@ -71,7 +71,7 @@ namespace wtr
 		const VkSampler GetSampler() const;
 
 	private :
-		const VkSampler m_sampler;
+		VkSampler m_sampler;
 	};
 
 	class VulkanShader : public RHIShader, public VulkanResource
@@ -85,7 +85,7 @@ namespace wtr
 		const VkShaderModule GetShaderModule() const;
 
 	private :
-		const VkShaderModule m_shaderModule;
+		VkShaderModule m_shaderModule;
 	};
 
 	class VulkanVertexShader : public VulkanShader
@@ -143,12 +143,12 @@ namespace wtr
 
 		const VkPipeline GetPipeline()   const;
 		const VkPipelineLayout GetLayout()     const;
-		const DynamicArray<const VkDescriptorSetLayout>& GetLayoutDesc() const;
+		const DynamicArray<VkDescriptorSetLayout>& GetLayoutDesc() const;
 
 	private :
-		const VkPipeline m_pipeline;
-		const VkPipelineLayout m_layout;
-		DynamicArray<const VkDescriptorSetLayout> m_layoutDesc;
+		VkPipeline m_pipeline;
+		VkPipelineLayout m_layout;
+		DynamicArray<VkDescriptorSetLayout> m_layoutDesc;
 	};
 
 	class VulkanRenderTarget : public RHIRenderTarget, public VulkanResource
@@ -162,7 +162,7 @@ namespace wtr
 		const VkFramebuffer GetRenderTarget() const;
 
 	private :
-		const VkFramebuffer m_renderTarget;
+		VkFramebuffer m_renderTarget;
 	};
 
 	class VulkanRenderPass : public RHIRenderPass, public VulkanResource
