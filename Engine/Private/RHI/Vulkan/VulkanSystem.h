@@ -98,8 +98,33 @@ namespace wtr
 	private:
 		Memory::RefPtr<VulkanDevice> m_device;
 		Memory::RefPtr<VulkanSurface> m_surface;
-		Memory::RefPtr<VulkanCommand> m_command;
 		Memory::RefPtr<VulkanMemory> m_memory;
+
+		// Vulkan Command Architecture (planned)
+		// The Vulkan System is the single
+		// 		- it must NOT be duplicated per thread
+		// The shared owner of a fixed set of VulkanCommand instances 
+		//		- VkInstance/VkPhysicalDevice/VkDevice/VkQueue are process-wide singletons 
+		//		- only command recording needs per-thread separation
+		// 
+		//		- 1 Primary   : owned/recorded by the RHI Thread. 
+		//						Begins/ends the rendering scope and submits to the graphics queue (vkQueueSubmit -> vkQueuePresentKHR).
+		//		- N Secondary : one per RHI Worker Thread, fixed count decided at Init time 
+		//						(pool creation is relatively expensive - not recreated per frame).
+		// 
+		// Worker threads never own a VulkanSystem/VulkanDevice 
+		//		- they only receive a handle to their assigned Secondary VulkanCommand from this VulkanSystem.
+		//
+		// Per-frame flow : 
+		//		-> Workers record their assigned draw items in parallel into their own Secondary
+		//		-> RHI Thread CPU-joins all workers (not a Vulkan sync primitive) 
+		//		-> reassembles the Secondary handles in the intended draw order (NOT finish order) 
+		//		-> vkCmdExecuteCommands into the Primary 
+		//		-> vkCmdEndRendering 
+		//		-> vkQueueSubmit 
+		//		-> Present.
+		Memory::RefPtr<VulkanCommand> m_primary;
+		DynamicArray<Memory::RefPtr<VulkanCommand>> m_secondaries;
 	};
 };
 

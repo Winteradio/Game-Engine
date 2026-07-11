@@ -194,12 +194,13 @@ namespace wtr
 		for (const auto& image : swapChainImages)
 		{
 			Memory::RefPtr<VulkanTexture> texture = Memory::MakeRef<VulkanTexture>(textureDesc);
-			if (!texture)
+			if (!texture || texture->GetImage() == VK_NULL_HANDLE)
 			{
 				continue;
 			}
 
-			VkImageView imageView;
+			viewInfo.image = texture->GetImage();
+			VkImageView imageView{};
 			VkResult result = vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView);
 			if (result != VK_SUCCESS)
 			{
