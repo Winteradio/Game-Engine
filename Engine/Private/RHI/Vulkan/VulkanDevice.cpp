@@ -30,7 +30,7 @@ namespace wtr
 	const StaticArray<const char*, 3> INSTANCE_EXTENTIONS = {
 		VK_KHR_SURFACE_EXTENSION_NAME,        // Common
 		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,  // HWND
-		VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 	};
 
 	const StaticArray<const char*, 1> DEVICE_EXTENSIONS = {

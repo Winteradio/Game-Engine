@@ -172,6 +172,7 @@ namespace wtr
 		virtual ~VulkanRenderPass();
 
 	public :
+		VkRenderPass m_renderPass;
 	};
 };
 

@@ -20,8 +20,9 @@ namespace wtr
 		: RHISystem(eRenderType::eVulkan)
 		, m_device()
 		, m_surface()
-		, m_command()
 		, m_memory()
+		, m_primary()
+		, m_secondaries()
 	{
 	}
 
@@ -33,11 +34,20 @@ namespace wtr
 			m_memory.Reset();
 		}
 
-		if (m_command)
+		if (m_primary)
 		{
-			m_command->Release(m_device);
-			m_command.Reset();
+			m_primary->Release(m_device);
+			m_primary.Reset();
 		}
+
+		for (auto& secondary : m_secondaries)
+		{
+			if (secondary)
+			{
+				secondary->Release(m_device);
+			}
+		}
+		m_secondaries.Clear();
 
 		if (m_surface)
 		{
@@ -54,22 +64,26 @@ namespace wtr
 
 	bool VulkanSystem::Init(void* nativeHandle)
 	{
+		constexpr size_t MAX_SECONDARY = 2;
+
 		m_device = !m_device ? Memory::MakeRef<VulkanDevice>() : m_device;
 		m_surface = !m_surface ? Memory::MakeRef<VulkanSurface>() : m_surface;
-		m_command = !m_command ? Memory::MakeRef<VulkanCommand>() : m_command;
 		m_memory = !m_memory ? Memory::MakeRef<VulkanMemory>() : m_memory;
 
+		m_primary = !m_primary ? Memory::MakeRef<VulkanCommand>(true) : m_primary;
+		if (m_secondaries.Size() != MAX_SECONDARY)
+		{
+			for (size_t index = 0; index < MAX_SECONDARY; index++)
+			{
+				Memory::RefPtr<VulkanCommand> secondary = Memory::MakeRef<VulkanCommand>(false);
+				if (secondary)
+				{
+					m_secondaries.PushBack(secondary);
+				}
+			}
+		}
+
 		if (!m_device->InitInstance() || !m_device->InitDebugMessenger())
-		{
-			return false;
-		}
-
-		if (!m_command->Init(m_device))
-		{
-			return false;
-		}
-
-		if (!m_memory->Init(m_device))
 		{
 			return false;
 		}
@@ -85,6 +99,24 @@ namespace wtr
 		}
 
 		if (!m_surface->InitSwapChain(nativeHandle, m_device))
+		{
+			return false;
+		}
+
+		if (!m_primary->Init(m_device))
+		{
+			return false;
+		}
+
+		for (auto& secondary : m_secondaries)
+		{
+			if (!secondary || secondary->Init(m_device))
+			{
+				return false;
+			}
+		}
+
+		if (!m_memory->Init(m_device))
 		{
 			return false;
 		}
@@ -414,6 +446,6 @@ namespace wtr
 
 	bool VulkanSystem::IsValid() const
 	{
-		return !m_device || !m_surface || !m_command || !m_memory;
+		return !m_device || !m_surface || !m_memory || !m_primary || m_secondaries.Empty();
 	}
 };
