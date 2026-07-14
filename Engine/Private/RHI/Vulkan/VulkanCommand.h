@@ -14,38 +14,40 @@ namespace wtr
 namespace wtr
 {
 	// Command Buffer Level (Primary vs Secondary)
-	// Primary   - the only level submittable to a queue. 
+	// Primary   - the only level submittable to a queue.
 	//				One Primary, owned by the RHI Thread.
-	// Secondary - cannot be submitted directly, only run via a Primary's vkCmdExecuteCommands (no nesting). 
+	// Secondary - cannot be submitted directly, only run via a Primary's vkCmdExecuteCommands (no nesting).
 	//				One Secondary per RHI Worker Thread, each with its own VkCommandPool (VkCommandPool is not thread-safe).
+	//
+	// Uses the classic VkRenderPass / VkFramebuffer model (dynamicRendering is NOT enabled) -
+	// attachment load/store ops, clear values, and layout transitions are declared once on the
+	// VkRenderPass (initialLayout/finalLayout + subpass dependency), not re-specified per call.
 	//
 	// ---------------------------------------------------------------------------------------
 	// Per-Frame vkCmd Call Flow
 	// ---------------------------------------------------------------------------------------
 	//
 	// RHI Thread::Run()
-	//   vkAcquireNextImageKHR                    
+	//   vkAcquireNextImageKHR
 	//		-> imageIndex, imageAvailableSemaphore
 	//   VulkanCommand(Primary)
 	//		-> vkBeginCommandBuffer
-	//		-> [barrier] UNDEFINED -> COLOR_ATTACHMENT_OPTIMAL
-	//		-> vkCmdBeginRendering
+	//		-> vkCmdBeginRenderPass(VkRenderPassBeginInfo{renderPass, framebuffer, clearValues}, SECONDARY_COMMAND_BUFFERS)
 	//
 	//		RHI Worker Thread::Run()   (x N, ASync work with RHI Thread)
 	//			VulkanCommand(Secondary)
-	//				-> vkBeginCommandBuffer(RENDER_PASS_CONTINUE_BIT, VkCommandBufferInheritanceRenderingInfo)
+	//				-> vkBeginCommandBuffer(RENDER_PASS_CONTINUE_BIT, VkCommandBufferInheritanceInfo{renderPass, subpass, framebuffer})
 	//				-> vkCmdBindPipeline / vkCmdBindVertexBuffers / vkCmdBindDescriptorSets / vkCmdDrawIndexed ...
 	//				-> vkEndCommandBuffer
-	//		
+	//
 	//				-> (CPU) Work done
 	//
 	// ---- CPU Join: RHI Thread wait the all RHI Worker Thread ----
 	//
 	//		-> The command buffer's handle by secondary vulkan command will be re-ordered by the user's priority
-	// 
+	//
 	//		-> vkCmdExecuteCommands(secondaries[])
-	//		-> vkCmdEndRendering
-	//		-> [barrier] COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR
+	//		-> vkCmdEndRenderPass
 	//		-> vkEndCommandBuffer
 	//		-> vkQueueSubmit(wait: imageAvailableSemaphore, signal: renderFinishedSemaphore, fence)
 	//		-> vkQueuePresentKHR(wait: renderFinishedSemaphore)

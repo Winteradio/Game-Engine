@@ -58,6 +58,8 @@ namespace wtr
 		const size_t end = m_endIndex.load(std::memory_order_acquire);
 		size_t now = begin;
 
+		m_system->BeginFrame();
+
 		while (now != end)
 		{
 			Memory::RefPtr<RHICommandList> cmdList = m_listPool[now];
@@ -68,8 +70,8 @@ namespace wtr
 
 			now = GetNext(now);
 		}
-
-		m_system->Present();
+		
+		m_system->EndFrame();
 
 		m_beginIndex = end;
 	}

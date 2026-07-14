@@ -19,18 +19,12 @@ namespace wtr
 
 	public :
 		void Clear(const RHIClearState& state) override;
-		void Flush() override;
-		void MakeCurrent() override;
-		void ReleaseCurrent() override;
-		void Present() override;
+		void BeginContext() override;
+		void EndContext() override;
+		void BeginFrame() override;
+		void EndFrame() override;
 		void Resize(const uint32_t width, const uint32_t height) override;
 		void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height) override;
-
-		void SetColorState(const RHIColorState& state);
-		void SetDepthState(const RHIDepthState& state);
-		void SetStencilState(const RHIStencilState& state);
-		void SetBlendState(const RHIBlendState& state);
-		void SetRasterizerState(const RHIRasterizerState& state);
 
 		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc desc) override;
 		Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutDesc desc) override;
@@ -75,12 +69,14 @@ namespace wtr
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
+		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) override;
 
 		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) override;
 
 		void UnsetVertexLayout() override;
 		void UnsetPipeLine() override;
 		void UnsetRenderTarget() override;
+		void UnsetRenderPass() override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
@@ -93,6 +89,12 @@ namespace wtr
 		bool InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
+
+		void SetColorState(const RHIColorState& state);
+		void SetDepthState(const RHIDepthState& state);
+		void SetStencilState(const RHIStencilState& state);
+		void SetBlendState(const RHIBlendState& state);
+		void SetRasterizerState(const RHIRasterizerState& state);
 
 		bool UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID);
 		bool UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID);

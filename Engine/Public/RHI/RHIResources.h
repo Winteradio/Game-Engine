@@ -250,7 +250,6 @@ namespace wtr
 
 	public :
 		const RHIRenderPassDesc& GetDesc() const;
-
 	private :
 		RHIRenderPassDesc m_desc;
 	};

@@ -79,26 +79,6 @@ namespace wtr
 		const RHIClearState m_state;
 	};
 
-	class RHICommandFlush : public RHICommand<RHICommandFlush>
-	{
-	public :
-		RHICommandFlush() = default;
-		~RHICommandFlush() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-	};
-
-	class RHICommandPresent : public RHICommand<RHICommandPresent>
-	{
-	public :
-		RHICommandPresent() = default;
-		~RHICommandPresent() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-	};
-
 	class RHICommandResize : public RHICommand<RHICommandResize>
 	{
 	public :
@@ -114,71 +94,6 @@ namespace wtr
 		const uint32_t m_height;
 		const uint32_t m_posX;
 		const uint32_t m_posY;
-	};
-
-	class RHICommandColorState : public RHICommand<RHICommandColorState>
-	{
-	public :
-		RHICommandColorState(const RHIColorState& state);
-		~RHICommandColorState() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const RHIColorState m_state;
-	};
-
-	class RHICommandDepthState : public RHICommand<RHICommandDepthState>
-	{
-	public :
-		RHICommandDepthState(const RHIDepthState& state);
-		~RHICommandDepthState() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const RHIDepthState m_state;
-	};
-
-	class RHICommandStencilState : public RHICommand<RHICommandStencilState>
-	{
-	public :
-		RHICommandStencilState(const RHIStencilState& state);
-		~RHICommandStencilState() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const RHIStencilState m_state;
-	};
-
-	class RHICommandBlendState : public RHICommand<RHICommandBlendState>
-	{
-	public :
-		RHICommandBlendState(const RHIBlendState& state);
-		~RHICommandBlendState() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const RHIBlendState m_state;
-	};
-
-	class RHICommandRasterizerState : public RHICommand<RHICommandRasterizerState>
-	{
-	public :
-		RHICommandRasterizerState(const RHIRasterizerState& state);
-		~RHICommandRasterizerState() = default;
-
-	public :
-		void Execute(Memory::RefPtr<RHISystem> system);
-
-	private :
-		const RHIRasterizerState m_state;
 	};
 
 	class RHICommandInitializeBuffer : public RHICommand<RHICommandInitializeBuffer>

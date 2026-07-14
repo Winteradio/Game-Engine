@@ -295,34 +295,9 @@ namespace wtr
 		queueInfo.queueCount = 1;
 		queueInfo.pQueuePriorities = &priority;
 
-		/* VkPhysicalDeviceFeatures vs VkPhysicalDeviceFeatures2
-		 *
-		 * - VkPhysicalDeviceFeatures : a flat struct holding only the Vulkan 1.0 feature flags.
-		 *   It cannot grow, so features added by later versions (1.1/1.2/1.3) are NOT included.
-		 *
-		 * - VkPhysicalDeviceFeatures2 : an extensible wrapper.
-		 *   It embeds the 1.0 features in its `.features` member, and provides a `pNext` (void*)
-		 *   chain so that newer per-version feature structs can be attached.
-		 *
-		 * - To enable features from a specific version, chain that version's struct to `pNext`:
-		 *     VkPhysicalDeviceVulkan11Features (1.1), VkPhysicalDeviceVulkan13Features (1.3), ...
-		 *   The driver walks the pNext chain and identifies each struct by its `sType`
-		 *   (so the order in the chain does not matter).
-		 */
-
-		// Active the feature that is 'dynamic rendering'
-		VkPhysicalDeviceVulkan13Features feature13{};
-		feature13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-		feature13.dynamicRendering = VK_TRUE;
-
-		VkPhysicalDeviceFeatures2 feature2{};
-		feature2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-		feature2.pNext = &feature13;
-
 		// Create the logical device;
 		VkDeviceCreateInfo deviceInfo{};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		deviceInfo.pNext = &feature2;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &queueInfo;
 		deviceInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.Size());
@@ -375,19 +350,7 @@ namespace wtr
 		// Check the device extensions
 		const bool validExtension = CheckDeviceExtensions(device);
 
-		// Check the dynamic rendering feature
-		VkPhysicalDeviceVulkan13Features feature13{};
-		feature13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-
-		VkPhysicalDeviceFeatures2 feature2{};
-		feature2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-		feature2.pNext = &feature13;
-
-		vkGetPhysicalDeviceFeatures2(device, &feature2);
-
-		const bool validFeature = (feature13.dynamicRendering == VK_TRUE);
-
-		if (validApi && validQueue && validPresent && validExtension && validFeature)
+		if (validApi && validQueue && validPresent && validExtension)
 		{
 			m_queueFamily = queueFamily;
 			

@@ -54,7 +54,7 @@ namespace wtr
 	{
 		if (m_refSystem)
 		{
-			m_refSystem->MakeCurrent();
+			m_refSystem->BeginContext();
 
 			return true;
 		}
@@ -91,8 +91,7 @@ namespace wtr
 	{
 		if (m_refSystem)
 		{
-			m_refSystem->Flush();
-			m_refSystem->ReleaseCurrent();
+			m_refSystem->EndContext();
 		}
 	}
 
