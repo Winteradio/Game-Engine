@@ -49,10 +49,12 @@ namespace wtr
 		, m_stencilState()
 		, m_blendState()
 		, m_rasterizerState()
-	{}
+	{
+	}
 
 	GLSystem::~GLSystem()
-	{}
+	{
+	}
 
 	bool GLSystem::Init(void* nativeHandle)
 	{
@@ -65,17 +67,17 @@ namespace wtr
 		m_context.MakeCurrent();
 #ifdef __GL_DEBUG__
 
-			glEnable(GL_DEBUG_OUTPUT);
-			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback(
-				[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-				{
-					if (severity == GL_DEBUG_SEVERITY_HIGH) LOGERROR() << "[GL] Error : " << message;
-					else if (severity == GL_DEBUG_SEVERITY_MEDIUM) LOGWARN() << "[GL] Warn : " << message;
-					//else LOGINFO() << "[GL] Info : " << message;
-				},
-				nullptr
-			);
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(
+			[](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+			{
+				if (severity == GL_DEBUG_SEVERITY_HIGH) LOGERROR() << "[GL] Error : " << message;
+				else if (severity == GL_DEBUG_SEVERITY_MEDIUM) LOGWARN() << "[GL] Warn : " << message;
+				//else LOGINFO() << "[GL] Info : " << message;
+			},
+			nullptr
+		);
 #endif
 
 		InitializeState();
@@ -174,29 +176,25 @@ namespace wtr
 		}
 
 		glClear(clearMask);
-
-		m_clearState = state;
 	}
 
-	void GLSystem::Flush()
-	{
-		glFlush();
-	}
-
-	void GLSystem::MakeCurrent()
+	void GLSystem::BeginContext()
 	{
 		m_context.MakeCurrent();
 	}
 
-	void GLSystem::ReleaseCurrent()
+	void GLSystem::EndContext()
 	{
-		if (m_context.GetCurrent())
-		{
-			m_context.ReleaseCurrent();
-		}
+		glFinish();
+		m_context.ReleaseCurrent();
 	}
 
-	void GLSystem::Present()
+	void GLSystem::BeginFrame()
+	{
+		// nothing
+	}
+
+	void GLSystem::EndFrame()
 	{
 		m_context.Present();
 	}
@@ -1984,36 +1982,6 @@ namespace wtr
 		}
 
 		glUseProgram(glPipeLine->GetID());
-
-		auto colorState = pipeline->GetColorState();
-		if (colorState)
-		{
-			SetColorState(*colorState);
-		}
-
-		auto depthState = pipeline->GetDepthState();
-		if (depthState)
-		{
-			SetDepthState(*depthState);
-		}
-		
-		auto blendState = pipeline->GetBlendState();
-		if (blendState)
-		{
-			SetBlendState(*blendState);
-		}
-		
-		auto rasterizerState = pipeline->GetRasterizerState();
-		if (rasterizerState)
-		{
-			SetRasterizerState(*rasterizerState);
-		}
-
-		auto stencilState = pipeline->GetStencilState();
-		if (stencilState)
-		{
-			SetStencilState(*stencilState);
-		}
 	}
 
 	void GLSystem::SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)

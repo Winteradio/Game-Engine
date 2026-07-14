@@ -94,18 +94,14 @@ namespace wtr
 
 	public :
 		virtual void Clear(const RHIClearState& state) = 0;
-		virtual void Flush() = 0;
-		virtual void MakeCurrent() = 0;
-		virtual void ReleaseCurrent() = 0;
-		virtual void Present() = 0;
+
+		virtual void BeginContext() = 0;
+		virtual void EndContext() = 0;
+		virtual void BeginFrame() = 0;
+		virtual void EndFrame() = 0;
+
 		virtual void Resize(const uint32_t width, const uint32_t height) = 0;
 		virtual void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height) = 0;
-
-		virtual void SetColorState(const RHIColorState& state) = 0;
-		virtual void SetDepthState(const RHIDepthState& state) = 0;
-		virtual void SetStencilState(const RHIStencilState& state) = 0;
-		virtual void SetBlendState(const RHIBlendState& state) = 0;
-		virtual void SetRasterizerState(const RHIRasterizerState& state) = 0;
 
 		virtual Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc desc) = 0;
 		virtual Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutDesc desc) = 0;
@@ -150,12 +146,14 @@ namespace wtr
 		virtual void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
 		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
+		virtual void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) = 0;
 
 		virtual void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) = 0;
 
 		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetPipeLine() = 0;
 		virtual void UnsetRenderTarget() = 0;
+		virtual void UnsetRenderPass() = 0;
 
 		virtual void DispatchCompute(const RHIDispatchDesc info) = 0;
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;
@@ -171,6 +169,7 @@ namespace wtr
 		wtr::HashSet<Memory::RefPtr<RHIShader>> m_pendingShaders;
 		wtr::HashSet<Memory::RefPtr<RHIPipeLine>> m_pendingPipeLines;
 		wtr::HashSet<Memory::RefPtr<RHIRenderTarget>> m_pendingRenderTargets;
+		wtr::HashSet<Memory::RefPtr<RHIRenderPass>> m_pendingRenderPasses;
 	};
 };
 

@@ -56,6 +56,11 @@ namespace wtr
 
 	void RHITaskExecutor::Execute()
 	{
+		if (!m_system)
+		{
+			return;
+		}
+
 		static thread_local wtr::List<Memory::RefPtr<RHICommandList>> listPool;
 		static thread_local wtr::DynamicArray<Memory::RefPtr<RHICommandList>> freePool;
 
@@ -66,6 +71,8 @@ namespace wtr
 			std::lock_guard<std::mutex> lock(m_listMutex);
 			std::swap(m_listPool, listPool);
 		}
+
+		m_system->BeginFrame();
 
 		while (!listPool.Empty())
 		{
@@ -78,6 +85,8 @@ namespace wtr
 				freePool.PushBack(cmdList);
 			}
 		}
+
+		m_system->EndFrame();
 
 		{
 			std::lock_guard<std::mutex> lock(m_freeMutex);

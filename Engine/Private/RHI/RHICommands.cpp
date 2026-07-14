@@ -30,22 +30,6 @@ namespace wtr
 		}
 	}
 
-	void RHICommandFlush::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->Flush();
-		}
-	}
-
-	void RHICommandPresent::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->Present();
-		}
-	}
-
 	RHICommandResize::RHICommandResize(const uint32_t width, const uint32_t height)
 		: m_width(width)
 		, m_height(height)
