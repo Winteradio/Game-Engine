@@ -161,7 +161,7 @@ Core backbone, asset parsers, and foundational RHI rendering pipeline.
 | [Point Light: Incident Direction Artifact](Docs/Issue_PointLight_IncidentDirArtifact.md) | 🐛 Known Issue |
 | [Shadow Acne / NaN / Grazing artifacts](Docs/Bug_ShadowBlinking.md) (RPDB + Normal Offset + safe det) | ✅ Resolved |
 | GC (Mark & Sweep) full integration | 🚧 In progress |
-| DirectX 11 / 12 RHI backend | 🚧 Planned |
+| Vulkan RHI backend | 🚧 Planned |
 | Physics integration | 🚧 Planned |
 
 ---
