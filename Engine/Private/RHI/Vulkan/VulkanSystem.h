@@ -80,12 +80,14 @@ namespace wtr
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
 		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
+		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) override;
 
 		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) override;
 
 		void UnsetVertexLayout() override;
 		void UnsetPipeLine() override;
 		void UnsetRenderTarget() override;
+		void UnsetRenderPass() override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
@@ -126,7 +128,9 @@ namespace wtr
 		//		-> Present.
 
 		Memory::RefPtr<VulkanCommand> m_primary;
-		Memory::RefPtr<VulkanCommand> m_secondary;
+
+		// TODO : The rendering multi-threading
+		//Memory::RefPtr<VulkanCommand> m_secondary;
 
 		// Frame Synchronization Objects (2 Semaphore + 1 Fence)
 		// 

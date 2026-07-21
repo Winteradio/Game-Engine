@@ -116,26 +116,6 @@ namespace wtr
 			m_clear->stencil = 0.f;
 			m_clear->color = fvec4(0.2f, 0.2f, 0.2f, 1.f);
 		}
-
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-			m_depth->enable = true;
-			m_depth->write = true;
-			m_depth->func = eCompareFunc::eLessEqual;
-		}
-
-		if (!m_rasterizer)
-		{
-			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-			m_rasterizer->cullEnable = false;
-		}
-
-		if (!m_blend)
-		{
-			m_blend = Memory::MakeRef<RHIBlendState>();
-			m_blend->enable = false;
-		}
 	}
 
 	bool GeometryPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
@@ -168,7 +148,6 @@ namespace wtr
 			m_commands[pipeline].PushBack(drawCommand);
 		}
 
-		SetState(cmdList);
 		cmdList->SetRenderTarget(m_target);
 		cmdList->ClearRenderTarget(m_target, *m_clear);
 
@@ -334,11 +313,6 @@ namespace wtr
 
 		RHIPipeLineCreateDesc desc;
 		desc.clear = m_clear;
-		desc.color = m_color;
-		desc.depth = m_depth;
-		desc.stencil = m_stencil;
-		desc.blend = m_blend;
-		desc.rasterizer = m_rasterizer;
 		
 		auto vsAsset = shaderProxy->GetShader<GeometryVSState>();
 		auto gsAsset = shaderProxy->GetShader<GeometryGSState>();

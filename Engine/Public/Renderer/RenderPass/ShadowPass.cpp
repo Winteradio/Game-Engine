@@ -52,21 +52,6 @@ namespace wtr
 			m_clear->stencil = 0.f;
 			m_clear->color = fvec4(0.0f, 0.0f, 0.0f, 0.f);
 		}
-
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-			m_depth->enable = true;
-			m_depth->write = true;
-			m_depth->func = eCompareFunc::eLessEqual;
-		}
-
-		if (!m_rasterizer)
-		{
-			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-			m_rasterizer->cullEnable = true;
-			m_rasterizer->cullFace = eCullFace::eBack;
-		}
 	}
 
 	bool ShadowPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
@@ -101,8 +86,6 @@ namespace wtr
 
 			m_lights[pipeline].PushBack(lightProxy);
 		}
-
-		SetState(cmdList);
 
 		for (const auto& [pipeline, proxies] : m_lights)
 		{
@@ -262,11 +245,6 @@ namespace wtr
 
 		RHIPipeLineCreateDesc desc;
 		desc.clear = m_clear;
-		desc.color = m_color;
-		desc.depth = m_depth;
-		desc.stencil = m_stencil;
-		desc.blend = m_blend;
-		desc.rasterizer = m_rasterizer;
 		
 		auto vsAsset = shaderProxy->GetShader<ShadowVSState>();
 		auto gsAsset = shaderProxy->GetShader<ShadowGSState>();
