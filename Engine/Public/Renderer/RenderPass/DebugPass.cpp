@@ -68,29 +68,6 @@ namespace wtr
 
 	void DebugPass::InitState()
 	{
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-			m_depth->enable = true;
-			m_depth->write = false;
-		}
-
-		if (!m_blend)
-		{
-			m_blend = Memory::MakeRef<RHIBlendState>();
-			m_blend->enable = true;
-			m_blend->colorOp = eBlendOp::eAdd;
-			m_blend->srcColor = eBlendFunc::eOne;
-			m_blend->srcAlpha = eBlendFunc::eOne;
-			m_blend->destColor = eBlendFunc::eOne_Minus_Src_Alpha;
-			m_blend->destAlpha = eBlendFunc::eOne_Minus_Src_Alpha;
-		}
-
-		if (!m_rasterizer)
-		{
-			m_rasterizer = Memory::MakeRef<RHIRasterizerState>();
-			m_rasterizer->fillMode = ePrimitiveMode::eLine;
-		}
 	}
 
 	bool DebugPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
@@ -172,11 +149,6 @@ namespace wtr
 
 		RHIPipeLineCreateDesc desc;
 		desc.clear = m_clear;
-		desc.color = m_color;
-		desc.depth = m_depth;
-		desc.stencil = m_stencil;
-		desc.blend = m_blend;
-		desc.rasterizer = m_rasterizer;
 
 		auto vsAsset = shaderProxy->GetShader<DebugVSState>();
 		auto psAsset = shaderProxy->GetShader<DebugPSState>();

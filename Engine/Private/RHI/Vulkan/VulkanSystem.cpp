@@ -22,7 +22,6 @@ namespace wtr
 		, m_surface()
 		, m_memory()
 		, m_primary()
-		, m_secondary()
 		, m_acquire(VK_NULL_HANDLE)
 		, m_present(VK_NULL_HANDLE)
 		, m_fence(VK_NULL_HANDLE)
@@ -67,12 +66,6 @@ namespace wtr
 			m_primary.Reset();
 		}
 
-		if (m_secondary)
-		{
-			m_secondary->Release(m_device);
-			m_secondary.Reset();
-		}
-
 		if (m_surface)
 		{
 			m_surface->Release(m_device);
@@ -95,7 +88,6 @@ namespace wtr
 		m_memory = !m_memory ? Memory::MakeRef<VulkanMemory>() : m_memory;
 
 		m_primary = !m_primary ? Memory::MakeRef<VulkanCommand>(true) : m_primary;
-		m_secondary = !m_secondary ? Memory::MakeRef<VulkanCommand>(false) : m_secondary;
 
 		if (!m_device->InitInstance() || !m_device->InitDebugMessenger())
 		{
@@ -117,12 +109,7 @@ namespace wtr
 			return false;
 		}
 
-		if (!m_primary->Init(m_device) || !m_secondary->Init(m_device))
-		{
-			return false;
-		}
-
-		if (!m_memory->Init(m_device))
+		if (!m_primary->Init(m_device))
 		{
 			return false;
 		}
@@ -281,12 +268,12 @@ namespace wtr
 
 	void VulkanSystem::Resize(const uint32_t width, const uint32_t height)
 	{
-		if (!m_secondary || m_secondary->GetCommandBuffer() == VK_NULL_HANDLE)
+		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
 			return;
 		}
 
-		VkCommandBuffer commandBuffer = m_secondary->GetCommandBuffer();
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
 		VkViewport viewport{};
 		viewport.x = 0;
@@ -301,12 +288,12 @@ namespace wtr
 
 	void VulkanSystem::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 	{
-		if (!m_secondary || m_secondary->GetCommandBuffer() == VK_NULL_HANDLE)
+		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
 			return;
 		}
 
-		VkCommandBuffer commandBuffer = m_secondary->GetCommandBuffer();
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
 		VkViewport viewport{};
 		viewport.x = posX;
@@ -561,6 +548,10 @@ namespace wtr
 	{
 	}
 
+	void VulkanSystem::SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass)
+	{
+	}
+
 	void VulkanSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
 	{
 	}
@@ -577,6 +568,10 @@ namespace wtr
 	{
 	}
 
+	void VulkanSystem::UnsetRenderPass()
+	{
+	}
+
 	void VulkanSystem::DispatchCompute(const RHIDispatchDesc info)
 	{
 	}
@@ -587,6 +582,6 @@ namespace wtr
 
 	bool VulkanSystem::IsValid() const
 	{
-		return !m_device || !m_surface || !m_memory || !m_primary || !m_secondary;
+		return !m_device || !m_surface || !m_memory || !m_primary;
 	}
 };

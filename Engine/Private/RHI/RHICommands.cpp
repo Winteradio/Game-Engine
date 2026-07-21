@@ -52,66 +52,6 @@ namespace wtr
 		}
 	}
 
-	RHICommandColorState::RHICommandColorState(const RHIColorState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandColorState::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetColorState(m_state);
-		}
-	}
-
-	RHICommandDepthState::RHICommandDepthState(const RHIDepthState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandDepthState::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetDepthState(m_state);
-		}
-	}
-
-	RHICommandStencilState::RHICommandStencilState(const RHIStencilState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandStencilState::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetStencilState(m_state);
-		}
-	}
-
-	RHICommandBlendState::RHICommandBlendState(const RHIBlendState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandBlendState::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetBlendState(m_state);
-		}
-	}
-
-	RHICommandRasterizerState::RHICommandRasterizerState(const RHIRasterizerState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandRasterizerState::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetRasterizerState(m_state);
-		}
-	}
-
 	RHICommandInitializeBuffer::RHICommandInitializeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
 		: m_info(info)
 		, m_buffer(buffer)

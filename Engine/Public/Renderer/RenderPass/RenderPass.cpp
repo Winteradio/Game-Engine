@@ -31,32 +31,4 @@ namespace wtr
 
 		return pipeline;
 	}
-
-	void GraphicPass::SetState(Memory::RefPtr<RHICommandList> cmdList)
-	{
-		if (!cmdList)
-		{
-			return;
-		}
-
-		if (m_color)
-		{
-			cmdList->SetColorState(*m_color);
-		}
-
-		if (m_depth)
-		{
-			cmdList->SetDepthState(*m_depth);
-		}
-
-		if (m_stencil)
-		{
-			cmdList->SetStencilState(*m_stencil);
-		}
-
-		if (m_rasterizer)
-		{
-			cmdList->SetRasterizerState(*m_rasterizer);
-		}
-	}
 }

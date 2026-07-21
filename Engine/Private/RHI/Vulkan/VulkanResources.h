@@ -3,6 +3,7 @@
 
 #include <RHI/RHIResources.h>
 
+#include <RHI/Vulkan/VulkanMemory.h>
 #include <vulkan/vulkan.h>
 
 namespace wtr

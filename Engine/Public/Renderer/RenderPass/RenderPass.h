@@ -80,16 +80,8 @@ namespace wtr
 		virtual RHIDrawIndexDesc GetDrawCommand(Memory::RefPtr<const MeshDrawCommand> drawCommand) = 0;
 		virtual Memory::RefPtr<const RHIPipeLine> GetPipeLine(Memory::RefPtr<RHICommandList> cmdList, Memory::RefPtr<const ShaderProxy> shaderProxy) = 0;
 
-	public :
-		void SetState(Memory::RefPtr<RHICommandList> cmdList);
-
 	protected :
 		Memory::RefPtr<RHIClearState> m_clear;
-		Memory::RefPtr<RHIColorState> m_color;
-		Memory::RefPtr<RHIDepthState> m_depth;
-		Memory::RefPtr<RHIStencilState> m_stencil;
-		Memory::RefPtr<RHIBlendState> m_blend;
-		Memory::RefPtr<RHIRasterizerState> m_rasterizer;
 	};
 
 	struct RenderPassHasher

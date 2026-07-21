@@ -49,21 +49,6 @@ namespace wtr
 			m_clear->stencil = 0.f;
 			m_clear->color = fvec4(0.0f, 0.0f, 0.0f, 0.f);
 		}
-
-		if (!m_depth)
-		{
-			m_depth = Memory::MakeRef<RHIDepthState>();
-			m_depth->enable = false;
-		}
-
-		if (!m_blend)
-		{
-			m_blend = Memory::MakeRef<RHIBlendState>();
-			m_blend->enable = true;
-			m_blend->colorOp = eBlendOp::eAdd;
-			m_blend->srcColor = eBlendFunc::eOne;
-			m_blend->destColor = eBlendFunc::eOne;
-		}
 	}
 
 	bool LightingPass::Draw(const MeshDrawCommands& drawCommands, const LightProxies& lightProxies, Memory::RefPtr<RHICommandList> cmdList)
@@ -78,8 +63,6 @@ namespace wtr
 		cmdList->Clear(*m_clear);
 		RHIBlendState blendState;
 		blendState.enable = false;
-		cmdList->SetDepthState(*m_depth);
-		cmdList->SetBlendState(blendState);
 
 		const auto defaultLight = GlobalResource::GetDefaultLight();
 		auto directionalPipeline = GetPipeLine(cmdList, defaultLight);
@@ -100,8 +83,6 @@ namespace wtr
 		UnsetCommand(cmdList);
 
 		cmdList->UnsetPipeLine();
-
-		cmdList->SetBlendState(*m_blend);
 
 		for (const auto& lightProxy : lightProxies)
 		{
@@ -185,11 +166,6 @@ namespace wtr
 
 		RHIPipeLineCreateDesc desc;
 		desc.clear = m_clear;
-		desc.color = m_color;
-		desc.depth = m_depth;
-		desc.stencil = m_stencil;
-		desc.blend = m_blend;
-		desc.rasterizer = m_rasterizer;
 
 		auto vsAsset = shaderProxy->GetShader<LightVSState>();
 		auto psAsset = shaderProxy->GetShader<LightPSState>();

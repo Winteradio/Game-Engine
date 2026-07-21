@@ -82,6 +82,8 @@ namespace wtr
 		}
 
 		m_commandBuffers.Insert(m_commandBuffers.End(), commandBuffers.Begin(), commandBuffers.End());
+
+		return true;
 	}
 
 	void VulkanCommand::Release(Memory::RefPtr<const VulkanDevice> device)
@@ -163,5 +165,20 @@ namespace wtr
 	bool VulkanCommand::IsPrimary() const
 	{
 		return m_primary;
+	}
+
+	VkCommandBuffer VulkanCommand::GetCommandBuffer(const size_t index) const
+	{
+		if (index >= m_commandBuffers.Size())
+		{
+			return {};
+		}
+
+		return m_commandBuffers[index];
+	}
+
+	uint32_t VulkanCommand::GetCommandBufferCount() const
+	{
+		return m_commandBuffers.Size();
 	}
 };

@@ -2000,6 +2000,11 @@ namespace wtr
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
 	}
 
+	void GLSystem::SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass)
+	{
+
+	}
+
 	void GLSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
 	{
 		if (!target)
@@ -2160,6 +2165,11 @@ namespace wtr
 	void GLSystem::UnsetRenderTarget()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GL_NONE);
+	}
+
+	void GLSystem::UnsetRenderPass()
+	{
+
 	}
 
 	void GLSystem::DispatchCompute(const RHIDispatchDesc info)

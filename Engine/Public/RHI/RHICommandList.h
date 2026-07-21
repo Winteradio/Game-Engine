@@ -72,8 +72,6 @@ namespace wtr
 
 	public :
 		void Clear(const RHIClearState& state);
-		void Flush();
-		void Present();
 		void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height);
 
 		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferCreateDesc info);

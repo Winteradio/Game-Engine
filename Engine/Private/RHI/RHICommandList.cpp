@@ -58,44 +58,9 @@ namespace wtr
 		Enqueue<RHICommandClear>(state);
 	}
 
-	void RHICommandList::Flush()
-	{
-		Enqueue<RHICommandFlush>();
-	}
-
-	void RHICommandList::Present()
-	{
-		Enqueue<RHICommandPresent>();
-	}
-
 	void RHICommandList::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 	{
 		Enqueue<RHICommandResize>(posX, posY, width, height);
-	}
-
-	void RHICommandList::SetColorState(const RHIColorState& state)
-	{
-		Enqueue<RHICommandColorState>(state);
-	}
-
-	void RHICommandList::SetDepthState(const RHIDepthState& state)
-	{
-		Enqueue<RHICommandDepthState>(state);
-	}
-
-	void RHICommandList::SetStencilState(const RHIStencilState& state)
-	{
-		Enqueue<RHICommandStencilState>(state);
-	}
-
-	void RHICommandList::SetBlendState(const RHIBlendState& state)
-	{
-		Enqueue<RHICommandBlendState>(state);
-	}
-
-	void RHICommandList::SetRasterizerState(const RHIRasterizerState& state)
-	{
-		Enqueue<RHICommandRasterizerState>(state);
 	}
 
 	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateDesc info)
