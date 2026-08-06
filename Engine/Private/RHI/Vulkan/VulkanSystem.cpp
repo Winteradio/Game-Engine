@@ -114,6 +114,8 @@ namespace wtr
 			return false;
 		}
 
+		m_memory->Init(m_device);
+
 		VkDevice logicalDevice = m_device->GetLogicalDevice();
 
 		VkFenceCreateInfo fenceInfo{};
@@ -148,6 +150,209 @@ namespace wtr
 
 	void VulkanSystem::FlushPending()
 	{
+		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		vkWaitForFences(logicalDevice, 1, &m_fence, VK_TRUE, UINT64_MAX);
+		vkResetFences(logicalDevice, 1, &m_fence);
+
+		FlushBuffer();
+		FlushVertexLayout();
+		FlushTexture();
+		FlushSampler();
+		FlushShader();
+		FlushPipeline();
+		FlushRenderTarget();
+		FlushRenderPass();
+	}
+
+	void VulkanSystem::FlushBuffer()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingBuffers.begin();
+		while (itr != m_pendingBuffers.end())
+		{
+			auto& buffer = *itr;
+			if (!buffer)
+			{
+				itr = m_pendingBuffers.Erase(itr);
+				continue;
+			}
+
+			auto* refData = buffer.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+			if (vkBuffer)
+			{
+				vkDestroyBuffer(logicalDevice, vkBuffer->GetBuffer(), nullptr);
+				vkDestroyBufferView(logicalDevice, vkBuffer->GetBufferView(), nullptr);
+
+				const VulkanAllocation& allocation = vkBuffer->GetAllocation();
+
+				m_memory->Free(m_device, allocation);
+
+				vkBuffer->SetAllocation(VulkanAllocation::Null);
+				vkBuffer->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingBuffers.Erase(itr);
+		}
+	}
+
+	void VulkanSystem::FlushVertexLayout()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingVertexLayouts.begin();
+		while (itr != m_pendingVertexLayouts.end())
+		{
+			auto& layout = *itr;
+			if (!layout)
+			{
+				itr = m_pendingVertexLayouts.Erase(itr);
+				continue;
+			}
+			auto* refData = layout.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+			VulkanVertexLayout* vkLayout = static_cast<VulkanVertexLayout*>(layout->GetRawBuffer());
+			if (vkLayout)
+			{
+				//vkDestroyPipelineLayout(logicalDevice, vkLayout->GetPipelineLayout(), nullptr);
+
+				vkLayout->SetState(eResourceState::eNone);
+			}
+			itr = m_pendingVertexLayouts.Erase(itr);
+		}
+	}
+
+	void VulkanSystem::FlushTexture()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingTextures.begin();
+		while (itr != m_pendingTextures.end())
+		{
+			auto& texture = *itr;
+			if (!texture)
+			{
+				itr = m_pendingTextures.Erase(itr);
+				continue;
+			}
+
+			auto* refData = texture.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			VulkanTexture* vkTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
+			if (vkTexture)
+			{
+				vkDestroyImage(logicalDevice, vkTexture->GetImage(), nullptr);
+				vkDestroyImageView(logicalDevice, vkTexture->GetImageView(), nullptr);
+
+				const VulkanAllocation& allocation = vkTexture->GetAllocation();
+				m_memory->Free(m_device, allocation);
+
+				vkTexture->SetAllocation(VulkanAllocation::Null);
+				vkTexture->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingTextures.Erase(itr);
+		}
+	}
+
+	void VulkanSystem::FlushSampler()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+	}
+
+	void VulkanSystem::FlushShader()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+	}
+
+	void VulkanSystem::FlushPipeline()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+	}
+
+	void VulkanSystem::FlushRenderTarget()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+	}
+	
+	void VulkanSystem::FlushRenderPass()
+	{
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingRenderPasses.begin();
+		while (itr != m_pendingRenderPasses.end())
+		{
+			auto& renderPass = *itr;
+			if (!renderPass)
+			{
+				itr = m_pendingRenderPasses.Erase(itr);
+				continue;
+			}
+
+
+		}
 	}
 
 	void VulkanSystem::Clear(const RHIClearState& state)
@@ -204,9 +409,6 @@ namespace wtr
 			// so next frame's Acquire would signal m_acquire again with no wait in between -
 			// the same signal-signal violation m_acquire/m_present are split apart to avoid.
 		}
-
-		vkWaitForFences(logicalDevice, 1, &m_fence, VK_TRUE, UINT64_MAX);
-		vkResetFences(logicalDevice, 1, &m_fence);
 
 		m_primary->ResetPool(m_device);
 
@@ -399,6 +601,68 @@ namespace wtr
 
 	void VulkanSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
+		if (!buffer || !m_device || !m_device->GetLogicalDevice() || !m_memory)
+		{
+			return;
+		}
+
+		// +---------------+-------------------------+-------------------------+
+		// | Flag          | Pros                    | Cons                    |
+		// +---------------+-------------------------+-------------------------+
+		// | DEVICE_LOCAL  | fastest GPU access      | CPU can't map it        |
+		// | HOST_VISIBLE  | CPU can map it          | no DEVICE_LOCAL = GPU   |
+		// |               |                         | pays PCIe per access    |
+		// | HOST_COHERENT | no flush/invalidate     | usually = no CPU cache  |
+		// |               | needed                  | -> CPU reads are slow   |
+		// | HOST_CACHED   | CPU (re)reads are fast  | needs flush/invalidate  |
+		// |               |                         | unless COHERENT too     |
+		// +---------------+-------------------------+-------------------------+
+		//   DEVICE_LOCAL/HOST_VISIBLE aren't opposites - they coexist whenever a GPU
+		//   exposes a small CPU-mappable VRAM region (combo D below).
+		//   COHERENT/CACHED look opposed only because "no flush needed" has two
+		//   implementations: skip the CPU cache entirely (discrete GPUs, combo B),
+		//   or real CPU<->GPU cache HW coherency (only if they share one RAM, combo E).
+		//   Discrete GPUs can only do the former, so B and C can't merge there.
+		//
+		// [ path per combo ]  CPU <-> cache <-> RAM <-PCIe-> VRAM <-> GPU
+		//   (A) DEVICE_LOCAL only        : GPU<->VRAM direct, fastest. CPU fills via staging+copy.
+		//   (B) VISIBLE|COHERENT         : CPU<->RAM, no flush. GPU pays PCIe on every read.
+		//   (C) VISIBLE|CACHED           : CPU<->cache<->RAM, fast reread. needs flush/invalidate.
+		//   (D) +DEVICE_LOCAL|VISIBLE|COHERENT : small CPU-mappable VRAM. CPU pays PCIe, GPU doesn't.
+		//   (E) VISIBLE|COHERENT|CACHED  : CPU/GPU share RAM, HW-coherent, no PCIe at all.
+		//
+		// [ pick per use ]
+		// +----------------+-------+-----------------------+---------------------------+
+		// | Change freq    | Size  | CPU/GPU               | Pick                      |
+		// +----------------+-------+-----------------------+---------------------------+
+		// | never          | any   | CPU write -> GPU read | (A), staged once          |
+		// | occasional     | any   | CPU write -> GPU read | (A), re-staged on update  |
+		// | every frame    | small | CPU write -> GPU read | (D) if available, else (B)|
+		// | every frame    | large | CPU write -> GPU read | (A), re-staged every frame|
+		// | any            | any   | GPU write -> CPU read | (C)                       |
+		// +----------------+-------+-----------------------+---------------------------+
+		//   never/occasional pay the staging cost rarely either way, so size doesn't
+		//   matter there - always (A). Size only matters for "every frame": small isn't
+		//   worth re-staging each frame (direct-map via D/B), large makes the per-access
+		//   PCIe cost too high to pay every read, so (A) re-staged wins instead.
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!vkBuffer)
+		{
+			return;
+		}
+
+		VkBufferUsageFlags usageFlags = GetBufferUsageFlagBits(info.bufferType);
+		VkMemoryRequirements memRequirements = GetBufferMemoryRequirements(logicalDevice, usageFlags, info.size);
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = info.size;
+		bufferInfo.usage = GetBufferUsageFlagBits(info.bufferType);
+		VkResult result = vkCreateBuffer();
+
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	}
 
 	void VulkanSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -578,10 +842,5 @@ namespace wtr
 
 	void VulkanSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
-	}
-
-	bool VulkanSystem::IsValid() const
-	{
-		return !m_device || !m_surface || !m_memory || !m_primary;
 	}
 };
