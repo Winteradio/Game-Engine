@@ -8,7 +8,7 @@ namespace wtr
 {
 	VulkanBlock::VulkanBlock()
 		: memory(VK_NULL_HANDLE)
-		, memoryType(0)
+		, memoryFlags(VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM)
 		, arena()
 	{}
 
@@ -16,12 +16,24 @@ namespace wtr
 		: Super::Allocation()
 		, block(nullptr)
 		, memory(VK_NULL_HANDLE)
-		, memoryType()
+		, memoryFlags(VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM)
 	{}
 
 	VulkanMemory::VulkanMemory()
 		: m_blocks()
+		, m_phyProperties()
 	{}
+
+	void VulkanMemory::Init(Memory::RefPtr<const VulkanDevice> device)
+	{
+		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Memory] The vulkan device is invalid, failed to initialize the vulkan memory";
+			return;
+		}
+
+		vkGetPhysicalDeviceMemoryProperties(device->GetPhysicalDevice(), &m_phyProperties);
+	}
 
 	void VulkanMemory::Release(Memory::RefPtr<const VulkanDevice> device)
 	{
@@ -49,11 +61,13 @@ namespace wtr
 
 	VulkanAllocation VulkanMemory::Allocate(Memory::RefPtr<const VulkanDevice> device, const VkMemoryRequirements& requirements, const VkMemoryPropertyFlags& properties)
 	{
-		const uint32_t memoryType = FindMemoryType(device, requirements.memoryTypeBits, properties);
-		if (memoryType == UINT32_MAX)
+		const uint32_t memoryTypeIndex = FindMemoryTypeIndex(device, requirements.memoryTypeBits, properties);
+		if (memoryTypeIndex == UINT32_MAX)
 		{
 			return {};
 		}
+
+		VkMemoryPropertyFlags memoryType = m_phyProperties.memoryTypes[memoryTypeIndex].propertyFlags;
 
 		TLSFArena::Allocation allocatedInfo{};
 		Memory::RefPtr<VulkanBlock> block = nullptr;
@@ -93,7 +107,7 @@ namespace wtr
 			allocation.size = allocatedInfo.size;
 			allocation.index = allocatedInfo.index;
 			allocation.memory = block->memory;
-			allocation.memoryType = block->memoryType;
+			allocation.memoryFlags = block->memoryFlags;
 			allocation.block = block;
 
 			return allocation;
@@ -127,7 +141,7 @@ namespace wtr
 
 		vkFreeMemory(logicalDevice, block->memory, nullptr);
 
-		auto itrType = m_blocks.Find(allocation.memoryType);
+		auto itrType = m_blocks.Find(allocation.memoryFlags);
 		if (itrType == m_blocks.End())
 		{
 			return;
@@ -148,7 +162,7 @@ namespace wtr
 
 	}
 
-	uint32_t VulkanMemory::FindMemoryType(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const
+	uint32_t VulkanMemory::FindMemoryTypeIndex(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const
 	{
 		VkPhysicalDeviceMemoryProperties phyProperties;
 		vkGetPhysicalDeviceMemoryProperties(device->GetPhysicalDevice(), &phyProperties);
@@ -171,7 +185,7 @@ namespace wtr
 		return UINT32_MAX;
 	}
 
-	Memory::RefPtr<VulkanBlock> VulkanMemory::CreateBlock(Memory::RefPtr<const VulkanDevice> device, const uint32_t memoryType, const VkDeviceSize blockSize)
+	Memory::RefPtr<VulkanBlock> VulkanMemory::CreateBlock(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex)
 	{
 		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -185,13 +199,13 @@ namespace wtr
 		VkMemoryAllocateInfo allocateInfo{};
 		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocateInfo.allocationSize = requiredSize;
-		allocateInfo.memoryTypeIndex = memoryType;
+		allocateInfo.memoryTypeIndex = memoryTypeIndex;
 
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VkResult result = vkAllocateMemory(logicalDevice, &allocateInfo, nullptr, &memory);
 		if (result != VK_SUCCESS)
 		{
-			LOGERROR() << "[Vk][Memory] Failed to allocate a new memory block, size=" << requiredSize << ", type=" << memoryType;
+			LOGERROR() << "[Vk][Memory] Failed to allocate a new memory block, size=" << requiredSize << ", type Index =" << memoryTypeIndex;
 			return {};
 		}
 
@@ -202,7 +216,7 @@ namespace wtr
 		}
 
 		block->memory = memory;
-		block->memoryType = memoryType;
+		block->memoryFlags = m_phyProperties.memoryTypes[memoryTypeIndex].propertyFlags;
 		block->arena.Init(requiredSize);
 
 		return block;

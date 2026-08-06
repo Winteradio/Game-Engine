@@ -17,9 +17,9 @@ namespace wtr
 {
 	struct VulkanBlock
 	{
-		VkDeviceMemory	memory;
-		uint32_t		memoryType;
-		TLSFArena		arena;
+		VkDeviceMemory			memory;
+		VkMemoryPropertyFlags	memoryFlags;
+		TLSFArena				arena;
 
 		VulkanBlock();
 	};
@@ -28,10 +28,12 @@ namespace wtr
 	{
 		using Super = TLSFArena;
 
+		static VulkanAllocation Null;
+
 		Memory::RefPtr<VulkanBlock> block;
 
-		VkDeviceMemory	memory;
-		uint32_t		memoryType;
+		VkDeviceMemory			memory;
+		VkMemoryPropertyFlags	memoryFlags;
 
 		VulkanAllocation();
 	};
@@ -43,20 +45,22 @@ namespace wtr
 		~VulkanMemory() = default;
 
 	public :
+		void Init(Memory::RefPtr<const VulkanDevice> device);
 		void Release(Memory::RefPtr<const VulkanDevice> device);
 
 		VulkanAllocation Allocate(Memory::RefPtr<const VulkanDevice> device, const VkMemoryRequirements& requirements, const VkMemoryPropertyFlags& properties);
 		void Free(Memory::RefPtr<const VulkanDevice> device, const VulkanAllocation& allocation);
 
 	private :
-		uint32_t FindMemoryType(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const;
+		uint32_t FindMemoryTypeIndex(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const;
 
-		Memory::RefPtr<VulkanBlock> CreateBlock(Memory::RefPtr<const VulkanDevice> device, const uint32_t memoryType, const VkDeviceSize blockSize);
+		Memory::RefPtr<VulkanBlock> CreateBlock(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex);
 
 	private :
 		static constexpr VkDeviceSize BLOCK_SIZE = 1024ull * 1024ull * 4ull;
 
-		HashMap<uint32_t, DynamicArray<Memory::RefPtr<VulkanBlock>>> m_blocks;
+		HashMap<VkMemoryPropertyFlags, DynamicArray<Memory::RefPtr<VulkanBlock>>> m_blocks;
+		VkPhysicalDeviceMemoryProperties m_phyProperties;
 	};
 }
 

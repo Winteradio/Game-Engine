@@ -92,8 +92,28 @@ namespace wtr
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
+		wtr::HashSet<Memory::RefPtr<RHIBuffer>> m_pendingBuffers;
+		wtr::HashSet<Memory::RefPtr<RHIVertexLayout>> m_pendingVertexLayouts;
+		wtr::HashSet<Memory::RefPtr<RHITexture>> m_pendingTextures;
+		wtr::HashSet<Memory::RefPtr<RHISampler>> m_pendingSamplers;
+		wtr::HashSet<Memory::RefPtr<RHIShader>> m_pendingShaders;
+		wtr::HashSet<Memory::RefPtr<RHIPipeLine>> m_pendingPipeLines;
+		wtr::HashSet<Memory::RefPtr<RHIRenderTarget>> m_pendingRenderTargets;
+		wtr::HashSet<Memory::RefPtr<RHIRenderPass>> m_pendingRenderPasses;
+
 	private :
-		bool IsValid() const;
+		void FlushBuffer();
+		void FlushVertexLayout();
+		void FlushTexture();
+		void FlushSampler();
+		void FlushShader();
+		void FlushPipeline();
+		void FlushRenderTarget();
+		void FlushRenderPass();
+
+		VkBufferUsageFlagBits	GetBufferUsageFlagBits(const eBufferType type) const;
+		VkMemoryRequirements	GetBufferMemoryRequirements(Memory::RefPtr<const RHIBuffer> buffer) const;
+		VkMemoryPropertyFlags	GetBufferMemoryPropertyFlags(Memory::RefPtr<const RHIBuffer> buffer) const;
 
 	private:
 		Memory::RefPtr<VulkanDevice> m_device;

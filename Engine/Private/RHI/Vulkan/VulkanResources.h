@@ -20,6 +20,13 @@ namespace wtr
 	public:
 		VulkanMemoryResource();
 		virtual ~VulkanMemoryResource();
+
+	public :
+		void SetAllocation(const VulkanAllocation& allocation);
+		const VulkanAllocation& GetAllocation() const;
+
+	private :
+		VulkanAllocation m_allocation;
 	};
 
 	class VulkanBuffer : public RHIBuffer, public VulkanMemoryResource
@@ -30,10 +37,14 @@ namespace wtr
 
 	public :
 		void SetBuffer(const VkBuffer buffer);
+		void SetBufferView(const VkBufferView bufferView);
+
 		const VkBuffer GetBuffer() const;
+		const VkBufferView GetBufferView() const;
 
 	private :
 		VkBuffer m_buffer;
+		VkBufferView m_bufferView;
 	};
 
 	class VulkanVertexLayout : public RHIVertexLayout, public VulkanResource

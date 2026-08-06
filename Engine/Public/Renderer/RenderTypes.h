@@ -43,7 +43,8 @@ namespace wtr
 		eConst		= 0x03,
 		eStorage	= 0x04,
 		eStaging	= 0x05,
-		eIndirect	= 0x06
+		eIndirect	= 0x06,
+		eTexel		= 0x07
 	};
 
 	enum class eDataAccess : uint8_t
