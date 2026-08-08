@@ -196,7 +196,17 @@ namespace wtr
 			switch (uMsg)
 			{
 				case WM_CLOSE:
+				{
 					window->m_status = eWindowStatus::eClosed;
+					return window->HandleMessage(uMsg, wParam, lParam);
+				};
+
+				case WM_SIZE:
+				{
+					window->m_status = (wParam == SIZE_MINIMIZED) ? eWindowStatus::eMinimized : eWindowStatus::eActive;
+					return window->HandleMessage(uMsg, wParam, lParam);
+				};
+
 				case WM_DESTROY:
 				case WM_KEYDOWN:
 				case WM_KEYUP:
@@ -208,15 +218,7 @@ namespace wtr
 				case WM_RBUTTONUP:
 				case WM_RBUTTONDOWN:
 				case WM_MOUSEWHEEL:
-				case WM_SIZE:
-					if (wParam == SIZE_MINIMIZED)
-					{
-						window->m_status = eWindowStatus::eMinimized;
-					}
-					else
-					{
-						window->m_status = eWindowStatus::eActive;
-					}
+
 				case WM_SIZING:
 				{
 					return window->HandleMessage(uMsg, wParam, lParam);

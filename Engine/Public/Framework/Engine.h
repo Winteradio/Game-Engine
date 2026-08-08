@@ -45,7 +45,6 @@ namespace wtr
 			bool InitRender(const RenderDesc& renderDesc);
 			bool InitRHI(const RenderDesc& renderDesc);
 			bool InitWorld();
-			bool InitAsset();
 			bool InitWorker();
 
 			void UpdateInput();

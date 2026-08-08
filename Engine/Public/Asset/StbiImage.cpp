@@ -33,23 +33,37 @@ namespace wtr
 			return false;
 		}
 
-		m_pixels = stbi_load_from_memory(buffer, static_cast<int>(size), 
-			reinterpret_cast<int*>(&m_width), reinterpret_cast<int*>(&m_height), 
-			reinterpret_cast<int*>(&m_channels), 0);
+		m_16bit = stbi_is_16_bit_from_memory(buffer, static_cast<int>(size)) != 0;
 
-		if (m_pixels)
+		if (m_16bit)
 		{
-			m_16bit = stbi_is_16_bit_from_memory(buffer, static_cast<int>(size)) != 0;
-			m_size = m_width * m_height * m_channels * (m_16bit ? 2 : 1);
+			m_pixels = stbi_load_16_from_memory(buffer, static_cast<int>(size),
+				reinterpret_cast<int*>(&m_width), reinterpret_cast<int*>(&m_height),
+				reinterpret_cast<int*>(&m_channels), 0);
 
-			LOGINFO() << "[STDIMAGE] Succeed to load the image from the buffer, width : " << m_width
-				<< ", height : " << m_height << ", channels : " << m_channels;
-			return true;
+			m_size = m_width * m_height * m_channels * sizeof(uint16_t);
 		}
 		else
 		{
-			LOGINFO() << "[STDIMAGE] Failed to load the image from the buffer, stbi_load_from_memory returned null";
+			m_pixels = stbi_load_from_memory(buffer, static_cast<int>(size),
+				reinterpret_cast<int*>(&m_width), reinterpret_cast<int*>(&m_height),
+				reinterpret_cast<int*>(&m_channels), 0);
+
+			m_size = m_width * m_height * m_channels * sizeof(uint8_t);
+		}
+
+		if (!m_pixels || m_size == 0)
+		{
+			LOGINFO() << "[STDIMAGE] Failed to load the image from the buffer, stbi_load_from_memory returned null or size is zero";
 			return false;
+		}
+		else
+		{
+			LOGINFO() << "[STDIMAGE] Succeed to load the image from the buffer, width : " << m_width
+				<< ", height : " << m_height << ", channels : " << m_channels
+				<< ", 16bit : " << (m_16bit ? "true" : "false");
+
+			return true;
 		}
 	}
 

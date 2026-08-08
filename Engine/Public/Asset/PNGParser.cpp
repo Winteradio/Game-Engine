@@ -65,12 +65,12 @@ namespace wtr
 
 		// TODO: stbi_load_from_memory always returns 8-bit pixel data even if the source PNG is 16-bit.
 		//       To correctly load 16-bit data, stbi_load_16_from_memory must be used instead, which returns uint16_t*.
-		//       Until then, Is16Bit() reflects the source metadata only — the actual loaded data is always 8-bit.
+		//       Until then, Is16Bit() reflects the source metadata only the actual loaded data is always 8-bit.
 		//       componentType should be eUByte for 8-bit and eUShort for 16-bit, not eFloat/eUInt.
 		size_t dataOffset = 0;
 
 		auto& textureBuffer = textureAsset->rawTexture;
-		textureBuffer.componentType = image.Is16Bit() ? eDataType::eFloat : eDataType::eUInt;
+		textureBuffer.componentType = image.Is16Bit() ? eDataType::eUShort : eDataType::eUByte;
 		textureBuffer.faces.Resize(textureAsset->faces);
 		for (auto& textureFace : textureBuffer.faces)
 		{
@@ -121,13 +121,13 @@ namespace wtr
 			switch (channels)
 			{
 			case 1:
-				return ePixelFormat::eR16_Float;
+				return ePixelFormat::eR16_UNorm;
 			case 2:
-				return ePixelFormat::eR16G16_Float;
+				return ePixelFormat::eR16G16_UNorm;
 			case 3:
-				return ePixelFormat::eR16G16B16_Float;
+				return ePixelFormat::eR16G16B16_UNorm;
 			case 4:
-				return ePixelFormat::eR16G16B16A16_Float;
+				return ePixelFormat::eR16G16B16A16_UNorm;
 			default:
 				LOGERROR() << "[PNGParser] Invalid number of channels : " << channels;
 				return ePixelFormat::eNone;
@@ -160,40 +160,39 @@ namespace wtr
 			return false;
 		}
 
+		// PNG buffer layout, in order:
+		//   [0            .. 8)             signature      - fixed 8 bytes, always first
+		//   [8            .. 8+25)          IHDR chunk     - fixed size (4 length + 4 type + 13 data + 4 CRC), always right after the signature
+		//   [8+25         .. IDAT)          ancillary chunks - zero or more of gAMA/cHRM/PLTE/sRGB/etc., each own length+type+data+CRC
+		//   [IDAT         .. end)           pixel data (+ trailing chunks) - once IDAT is reached, sRGB (if present) already came before it
+		// So we skip straight past signature+IHDR, then walk chunk-by-chunk until we hit "sRGB" (found) or "IDAT" (too late, stop looking).
 		constexpr size_t PNG_SIGNATURE_SIZE = 8;
 		constexpr size_t PNG_IHDR_CHUNK_SIZE = 25; // 4 bytes length + 4 bytes type + 13 bytes data + 4 bytes CRC
+		constexpr uint32_t PNG_SRGB_CHUNK_TYPE = 0x73524742; // "sRGB"
+		constexpr uint32_t PNG_IDAT_CHUNK_TYPE = 0x49444154; // "IDAT"
 
+		const uint8_t* data = static_cast<const uint8_t*>(buffer);
 		size_t offset = PNG_SIGNATURE_SIZE + PNG_IHDR_CHUNK_SIZE;
-		if (offset >= size)
+		while (offset + 8 <= size)
 		{
-			LOGERROR() << "[PNGParser] Failed to check if the image is sRGB, the buffer size is too small";
-			return false;
+			const uint32_t chunkLength = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+			const uint32_t chunkType = (data[offset + 4] << 24) | (data[offset + 5] << 16) | (data[offset + 6] << 8) | data[offset + 7];
+
+			if (chunkType == PNG_SRGB_CHUNK_TYPE) 
+			{ 
+				return true; 
+			}
+			else if (chunkType == PNG_IDAT_CHUNK_TYPE)
+			{
+				return false;
+			}
+			else
+			{
+				// Skip the chunk data and CRC
+				offset += 8 + chunkLength + 4;
+			}
 		}
 
-		// TODO: PNG_SRGB_CHUNK_LENGTH (4) is the byte size of the chunk length field in the PNG chunk structure,
-		//       not the actual data length of the sRGB chunk (which is 1 byte — the rendering intent).
-		//       The name is misleading; consider renaming to PNG_CHUNK_LENGTH_FIELD_SIZE.
-		constexpr uint32_t PNG_SRGB_CHUNK_LENGTH = 4;
-		constexpr uint32_t PNG_SRGB_CHUNK_TYPE = 0x73524742; // "sRGB" in ASCII
-
-		// TODO: This only checks the first chunk after IHDR. The sRGB chunk may appear at any position before IDAT.
-		//       Should iterate through chunks (read length + type, advance by length + 12) until "sRGB" or "IDAT" is found.
-		offset += PNG_SRGB_CHUNK_LENGTH;
-		if (offset >= size)
-		{
-			LOGERROR() << "[PNGParser] Failed to check if the image is sRGB, the buffer size is too small for sRGB chunk";
-			return false;
-		}
-
-		const void* sRGBData = static_cast<const uint8_t*>(buffer) + offset;
-		std::string chunkType(reinterpret_cast<const char*>(sRGBData), 4);
-		if (chunkType != "sRGB")
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return false;
 	}
 };

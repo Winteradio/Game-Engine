@@ -53,16 +53,20 @@ namespace wtr
 		Add(lightingPass);
 		Add(debugPass);
 
-		auto& transformNode = GetNode(transformPass->GetID());
-		auto& shadowNode = GetNode(shadowPass->GetID());
-		auto& geometryNode = GetNode(geometryPass->GetID());
-		auto& lightingNode = GetNode(lightingPass->GetID());
-		auto& debugNode = GetNode(debugPass->GetID());
+		auto transformNode = GetNode(transformPass->GetID());
+		auto shadowNode = GetNode(shadowPass->GetID());
+		auto geometryNode = GetNode(geometryPass->GetID());
+		auto lightingNode = GetNode(lightingPass->GetID());
+		auto debugNode = GetNode(debugPass->GetID());
+		if (!transformNode || !shadowNode || !geometryNode || !lightingNode || !debugNode)
+		{
+			return false;
+		}
 
-		shadowNode.SetDependency(transformNode);
-		geometryNode.SetDependency(shadowNode);
-		lightingNode.SetDependency(geometryNode);
-		debugNode.SetDependency(lightingNode);
+		shadowNode->SetDependency(transformNode);
+		geometryNode->SetDependency(shadowNode);
+		lightingNode->SetDependency(geometryNode);
+		debugNode->SetDependency(lightingNode);
 
 		return GlobalResource::Init(cmdList);
 	}
