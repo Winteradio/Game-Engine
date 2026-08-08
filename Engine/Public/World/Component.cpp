@@ -195,7 +195,7 @@ namespace wtr
 			(std::abs(rotation.y - eulerAngles.y) >= std::numeric_limits<float>::epsilon()) ||
 			(std::abs(rotation.z - eulerAngles.z) >= std::numeric_limits<float>::epsilon()))
 		{
-			transform.rotation = glm::quat(eulerAngles);
+			transform.rotation = glm::quat(rotation);
 		
 			this->OnUpdate();
 		}

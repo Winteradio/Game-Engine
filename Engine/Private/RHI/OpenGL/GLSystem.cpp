@@ -592,6 +592,9 @@ namespace wtr
 		if (textureID == GL_NONE)
 		{
 			LOGERROR() << "[GL] Failed to generate texture";
+
+			glTexture->SetID(GL_NONE);
+			glTexture->SetState(eResourceState::eError);
 			return;
 		}
 
@@ -2580,6 +2583,18 @@ namespace wtr
 		{
 			return GL_RGBA8;
 		}
+		else if (ePixelFormat::eR16_UNorm == pixel)
+		{
+			return GL_R16;
+		}
+		else if (ePixelFormat::eR16G16_UNorm == pixel)
+		{
+			return GL_RG16;
+		}
+		else if (ePixelFormat::eR16G16B16_UNorm == pixel)
+		{
+			return GL_RGB16;
+		}
 		else if (ePixelFormat::eR16G16B16A16_UNorm == pixel)
 		{
 			return GL_RGBA16;
@@ -2689,18 +2704,21 @@ namespace wtr
 			return GL_NONE;
 		}
 		else if (ePixelFormat::eR8_UNorm == pixel ||
+			ePixelFormat::eR16_UNorm == pixel ||
 			ePixelFormat::eR16_Float == pixel ||
 			ePixelFormat::eR32_Float == pixel)
 		{
 			return GL_RED;
 		}
 		else if (ePixelFormat::eR8G8_UNorm == pixel ||
+			ePixelFormat::eR16G16_UNorm == pixel ||
 			ePixelFormat::eR16G16_Float == pixel ||
 			ePixelFormat::eR32G32_Float == pixel)
 		{
 			return GL_RG;
 		}
 		else if (ePixelFormat::eR8G8B8_UNorm == pixel ||
+			ePixelFormat::eR16G16B16_UNorm == pixel ||
 			ePixelFormat::eR16G16B16_Float == pixel ||
 			ePixelFormat::eR32G32B32_Float == pixel)
 		{
@@ -2777,8 +2795,11 @@ namespace wtr
 		{
 			return GL_HALF_FLOAT;
 		}
-		else if (ePixelFormat::eR16G16B16A16_UNorm == pixel ||
-			ePixelFormat::eR16_UInt == pixel ||
+		else if (ePixelFormat::eR16_UNorm == pixel ||
+			ePixelFormat::eR16G16_UNorm == pixel ||
+			ePixelFormat::eR16G16B16_UNorm == pixel ||
+			ePixelFormat::eR16G16B16A16_UNorm == pixel ||
+			ePixelFormat::eR16_UInt == pixel || 
 			ePixelFormat::eR16G16_UInt == pixel ||
 			ePixelFormat::eR16G16B16_UInt == pixel ||
 			ePixelFormat::eR16G16B16A16_UInt == pixel)
@@ -3639,7 +3660,7 @@ namespace wtr
 			}
 
 			GLPipeLine* glPipeLine = reinterpret_cast<GLPipeLine*>(pipeline->GetRawBuffer());
-			if (!glPipeLine || glPipeLine->GetID() == GL_NONE)
+			if (glPipeLine && glPipeLine->GetID() != GL_NONE)
 			{
 				const uint32_t pipelineID = glPipeLine->GetID();
 				glDeleteProgram(pipelineID);

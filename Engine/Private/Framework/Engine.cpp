@@ -81,12 +81,6 @@ namespace wtr
 			return false;
 		}
 
-		if (!InitAsset())
-		{
-			LOGERROR() << "[Engine] Failed to initialize the Asset Manager";
-			return false;
-		}
-
 		if (!InitWorld())
 		{
 			LOGERROR() << "[Engine] Failed to initialize the world";
@@ -250,20 +244,6 @@ namespace wtr
 		}
 
 		LOGINFO() << "[Engine] Succeed to initialize the world";
-
-		return true;
-	}
-
-	bool Engine::InitAsset()
-	{
-		m_assetWorker = Memory::MakeRef<AssetWorker>();
-		if (!m_assetWorker)
-		{
-			LOGERROR() << "[Engine] Failed to create the asset worker";
-			return false;
-		}
-
-		LOGINFO() << "[Engine] Succeed to initialize the asset worker";
 
 		return true;
 	}

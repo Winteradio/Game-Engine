@@ -40,6 +40,7 @@ namespace wtr
 
 		case ePixelFormat::eR8G8_UNorm:
 		case ePixelFormat::eR8G8_UInt:
+		case ePixelFormat::eR16_UNorm:
 		case ePixelFormat::eR16_UInt:
 		case ePixelFormat::eR16_Float:
 			return 2;
@@ -51,6 +52,7 @@ namespace wtr
 		case ePixelFormat::eR8G8B8A8_UNorm:
 		case ePixelFormat::eR8G8B8A8_sRGB:
 		case ePixelFormat::eR8G8B8A8_UInt:
+		case ePixelFormat::eR16G16_UNorm:
 		case ePixelFormat::eR16G16_UInt:
 		case ePixelFormat::eR16G16_Float:
 		case ePixelFormat::eR32_UInt:
@@ -59,6 +61,7 @@ namespace wtr
 		case ePixelFormat::eD32:
 			return 4;
 
+		case ePixelFormat::eR16G16B16_UNorm:
 		case ePixelFormat::eR16G16B16_UInt:
 		case ePixelFormat::eR16G16B16_Float:
 			return 6;

@@ -30,6 +30,8 @@ namespace wtr
 		eLayout		= 0x06,
 		eTarget		= 0x07,
 		eConst		= 0x08,
+		eGraphics	= 0x09,
+		eCompute	= 0x0A
 	};
 
 	enum class eBufferType : uint8_t
@@ -120,34 +122,41 @@ namespace wtr
 		eR8G8_UNorm = 0x02,
 		eR8G8B8_UNorm = 0x03,
 		eR8G8B8A8_UNorm = 0x04,
-		eR16G16B16A16_UNorm = 0x05,
-		eR8G8B8A8_sRGB = 0x06,
 
-		eR8_UInt = 0x07,
-		eR8G8_UInt = 0x08,
-		eR8G8B8_UInt = 0x09,
-		eR8G8B8A8_UInt = 0x0A,
-		eR16_UInt = 0x0B,
-		eR16G16_UInt = 0x0C,
-		eR16G16B16_UInt = 0x0D,
-		eR16G16B16A16_UInt = 0x0E,
-		eR32_UInt = 0x0F,
-		eR32G32_UInt = 0x10,
-		eR32G32B32_UInt = 0x11,
-		eR32G32B32A32_UInt = 0x12,
+		eR16_UNorm = 0x05,
+		eR16G16_UNorm = 0x06,
+		eR16G16B16_UNorm = 0x07,
+		eR16G16B16A16_UNorm = 0x08,
 
-		eR16_Float = 0x13,
-		eR16G16_Float = 0x14,
-		eR16G16B16_Float = 0x15,
-		eR16G16B16A16_Float = 0x16,
+		eR8G8B8A8_sRGB = 0x09,
 
-		eR32_Float = 0x17,
-		eR32G32_Float = 0x18,
-		eR32G32B32_Float = 0x19,
-		eR32G32B32A32_Float = 0x1A,
+		eR8_UInt = 0x0A,
+		eR8G8_UInt = 0x0B,
+		eR8G8B8_UInt = 0x0C,
+		eR8G8B8A8_UInt = 0x0D,
+		
+		eR16_UInt = 0x0E,
+		eR16G16_UInt = 0x0F,
+		eR16G16B16_UInt = 0x10,
+		eR16G16B16A16_UInt = 0x11,
 
-		eD24_S8 = 0x1B,
-		eD32 = 0x1C,
+		eR32_UInt = 0x12,
+		eR32G32_UInt = 0x13,
+		eR32G32B32_UInt = 0x14,
+		eR32G32B32A32_UInt = 0x15,
+
+		eR16_Float = 0x16,
+		eR16G16_Float = 0x17,
+		eR16G16B16_Float = 0x18,
+		eR16G16B16A16_Float = 0x19,
+
+		eR32_Float = 0x1A,
+		eR32G32_Float = 0x1B,
+		eR32G32B32_Float = 0x1C,
+		eR32G32B32A32_Float = 0x1D,
+
+		eD24_S8 = 0x1E,
+		eD32 = 0x1F,
 		// TODO : Not yet the compressed pixel format
 	};
 

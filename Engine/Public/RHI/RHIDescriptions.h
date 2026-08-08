@@ -381,7 +381,7 @@ namespace wtr
 		}
 	};
 
-	struct RHIDrawIndexDesc : RHIDesc<eResourceType::eLayout>
+	struct RHIDrawIndexDesc : RHIDesc<eResourceType::eGraphics>
 	{
 		eDrawMode drawMode = eDrawMode::eNone;
 		eDataType indexType = eDataType::eNone;
@@ -394,7 +394,7 @@ namespace wtr
 		bool indirectDraw = false;
 	};
 
-	struct RHIDispatchDesc : RHIDesc<eResourceType::ePipeLine>
+	struct RHIDispatchDesc : RHIDesc<eResourceType::eCompute>
 	{
 		uint32_t groupX = 0;
 		uint32_t groupY = 0;

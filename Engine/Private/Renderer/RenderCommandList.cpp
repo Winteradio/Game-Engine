@@ -66,8 +66,9 @@ namespace wtr
 		while (nullptr != execute)
 		{
 			(*execute)(renderer, cmdList);
+			RenderTask* nextTask = execute->next;
 			execute->~RenderTask();
-			execute = execute->next;
+			execute = nextTask;
 		}
 	}
 
