@@ -72,6 +72,11 @@ namespace wtr
 		return m_desc.bufferType;
 	}
 
+	eBufferTransfer RHIBuffer::GetBufferTransfer() const
+	{
+		return m_desc.bufferTransfer;
+	}
+
 	eDataAccess RHIBuffer::GetAccessType() const
 	{
 		return m_desc.accessType;
@@ -110,6 +115,11 @@ namespace wtr
 	void RHIBuffer::SetBufferType(const eBufferType bufferType)
 	{
 		m_desc.bufferType = bufferType;
+	}
+
+	void RHIBuffer::SetBufferTransfer(const eBufferTransfer bufferTransfer)
+	{
+		m_desc.bufferTransfer = bufferTransfer;
 	}
 
 	void RHIBuffer::SetAccessType(const eDataAccess accessType)

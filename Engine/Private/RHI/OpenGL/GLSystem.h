@@ -81,6 +81,51 @@ namespace wtr
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
+	public :
+		uint32_t GetBufferType(const eBufferType buffer) const;
+		uint32_t GetDataAccess(const eDataAccess access) const;
+		uint32_t GetDataType(const eDataType data) const;
+		uint32_t GetMapAccess(const eMapAccess access) const;
+
+		uint32_t GetTextureType(const eTextureType texture) const;
+		uint32_t GetTextureDimension(const eTextureType texture) const;
+		uint32_t GetPixelFormat(const ePixelFormat pixel) const;
+		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
+		uint32_t GetPixelDataType(const ePixelFormat pixel) const;
+
+		uint32_t GetFilterMode(const eFilterMode filter) const;
+		uint32_t GetWrapMode(const eWrapMode wrap) const;
+
+		uint32_t GetCullFace(const eCullFace face) const;
+		uint32_t GetFrontFace(const eFrontFace face) const;
+
+		uint32_t GetDrawMode(const eDrawMode mode) const;
+		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const;
+
+		uint32_t GetCompareFunc(const eCompareFunc func) const;
+
+		uint32_t GetStencilOp(const eStencilOp op) const;
+
+		uint32_t GetBlendFunc(const eBlendFunc func) const;
+		uint32_t GetBlendOp(const eBlendOp op) const;
+
+		uint32_t GetShaderType(const eShaderType type) const;
+
+		uint32_t GetColorAttachment(const uint32_t slot) const;
+		uint32_t GetDepthStencilAttachment(const eAttachment attach) const;
+
+		eCompareFunc GetCompareFunc(const uint32_t func) const;
+		eStencilOp GetStencilOp(const uint32_t op) const;
+		eBlendFunc GetBlendFunc(const uint32_t func) const;
+		eBlendOp GetBlendOp(const uint32_t op) const;
+		eCullFace GetCullFace(const uint32_t face) const;
+		eFrontFace GetFrontFace(const uint32_t face) const;
+		ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
+
+		fvec4 GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
+
+		bool IsSampler(const int32_t type) const;
+
 	private :
 		void InitializeState();
 
@@ -103,50 +148,6 @@ namespace wtr
 		bool ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID);
 		bool ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID);
-
-		uint32_t GetBufferType(const eBufferType buffer) const;
-		uint32_t GetDataAccess(const eDataAccess access) const;
-		uint32_t GetDataType(const eDataType data) const;
-		uint32_t GetMapAccess(const eMapAccess access) const;
-
-		uint32_t GetTextureType(const eTextureType texture) const;
-		uint32_t GetTextureDimension(const eTextureType texture) const;
-		uint32_t GetInternalFormat(const ePixelFormat pixel) const;
-		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
-		uint32_t GetPixelDataType(const ePixelFormat pixel) const;
-		
-		uint32_t GetFilterMode(const eFilterMode filter) const;
-		uint32_t GetWrapMode(const eWrapMode wrap) const;
-
-		uint32_t GetCullFace(const eCullFace face) const;
-		uint32_t GetFrontFace(const eFrontFace face) const;
-		
-		uint32_t GetDrawMode(const eDrawMode mode) const;
-		uint32_t GetPrimitiveMode(const ePrimitiveMode mode) const;
-		
-		uint32_t GetCompareFunc(const eCompareFunc func) const;
-		
-		uint32_t GetStencilOp(const eStencilOp op) const;
-		
-		uint32_t GetBlendFunc(const eBlendFunc func) const;
-		uint32_t GetBlendOp(const eBlendOp op) const;
-		
-		uint32_t GetShaderType(const eShaderType type) const;
-
-		uint32_t GetColorAttachment(const uint32_t slot) const;
-		uint32_t GetDepthStencilAttachment(const eAttachment attach) const;
-
-		eCompareFunc GetCompareFunc(const uint32_t func) const;
-		eStencilOp GetStencilOp(const uint32_t op) const;
-		eBlendFunc GetBlendFunc(const uint32_t func) const;
-		eBlendOp GetBlendOp(const uint32_t op) const;
-		eCullFace GetCullFace(const uint32_t face) const;
-		eFrontFace GetFrontFace(const uint32_t face) const;
-		ePrimitiveMode GetPrimitiveMode(const uint32_t mode) const;
-
-		fvec4 GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
-
-		bool IsSampler(const int32_t type) const;
 
 		void FlushBuffer();
 		void FlushVertexLayout();

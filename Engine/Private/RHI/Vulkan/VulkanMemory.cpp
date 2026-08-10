@@ -6,21 +6,28 @@
 
 namespace wtr
 {
-	VulkanBlock::VulkanBlock()
-		: memory(VK_NULL_HANDLE)
+	VulkanArena::VulkanArena()
+		: TLSFArena()
+		, memory(VK_NULL_HANDLE)
 		, memoryFlags(VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM)
-		, arena()
-	{}
+	{
+	}
 
 	VulkanAllocation::VulkanAllocation()
 		: Super::Allocation()
-		, block(nullptr)
+		, arena(nullptr)
 		, memory(VK_NULL_HANDLE)
 		, memoryFlags(VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM)
 	{}
 
+	bool VulkanAllocation::IsValid() const
+	{
+		return arena && memory != VK_NULL_HANDLE && memoryFlags != VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+	}
+	const VulkanAllocation VulkanAllocation::Null = VulkanAllocation();
+
 	VulkanMemory::VulkanMemory()
-		: m_blocks()
+		: m_arenas()
 		, m_phyProperties()
 	{}
 
@@ -45,18 +52,18 @@ namespace wtr
 
 		VkDevice logicalDevice = device->GetLogicalDevice();
 
-		for (auto& [memorType, blocks] : m_blocks)
+		for (auto& [memorType, arenas] : m_arenas)
 		{
-			for (auto& block : blocks)
+			for (auto& arena : arenas)
 			{
-				if (block && block->memory != VK_NULL_HANDLE)
+				if (arena && arena->memory != VK_NULL_HANDLE)
 				{
-					vkFreeMemory(logicalDevice, block->memory, nullptr);
+					vkFreeMemory(logicalDevice, arena->memory, nullptr);
 				}
 			}
 		}
-
-		m_blocks.Clear();
+		
+		m_arenas.Clear();
 	}
 
 	VulkanAllocation VulkanMemory::Allocate(Memory::RefPtr<const VulkanDevice> device, const VkMemoryRequirements& requirements, const VkMemoryPropertyFlags& properties)
@@ -70,18 +77,19 @@ namespace wtr
 		VkMemoryPropertyFlags memoryType = m_phyProperties.memoryTypes[memoryTypeIndex].propertyFlags;
 
 		TLSFArena::Allocation allocatedInfo{};
-		Memory::RefPtr<VulkanBlock> block = nullptr;
 
-		auto& typeBlocks = m_blocks[memoryType];
-		for (size_t index = 0; index < typeBlocks.Size(); index++)
+		Memory::RefPtr<VulkanArena> arena = nullptr;
+
+		auto& typeArenas = m_arenas[memoryType];
+		for (size_t index = 0; index < typeArenas.Size(); index++)
 		{
-			block = typeBlocks[index];
-			if (!block)
+			arena = typeArenas[index];
+			if (!arena)
 			{
 				continue;
 			}
 
-			allocatedInfo = block->arena.Allocate(requirements.size);
+			allocatedInfo = arena->Allocate(requirements.size, requirements.alignment);
 			if (allocatedInfo.index != TLSFArena::NULL_INDEX)
 			{
 				break;
@@ -90,14 +98,14 @@ namespace wtr
 
 		if (allocatedInfo.index == TLSFArena::NULL_INDEX)
 		{
-			block = CreateBlock(device, memoryType, requirements.size);
-			if (!block)
+			arena = CreateArena(device, requirements.size, FindMemoryTypeIndex(device, requirements.memoryTypeBits, properties));
+			if (!arena)
 			{
 				return {};
 			}
 
-			typeBlocks.PushBack(block);
-			allocatedInfo = block->arena.Allocate(requirements.size);
+			typeArenas.PushBack(arena);
+			allocatedInfo = arena->Allocate(requirements.size, requirements.alignment);
 		}
 
 		if (allocatedInfo.index != TLSFArena::NULL_INDEX)
@@ -106,9 +114,9 @@ namespace wtr
 			allocation.offset = allocatedInfo.offset;
 			allocation.size = allocatedInfo.size;
 			allocation.index = allocatedInfo.index;
-			allocation.memory = block->memory;
-			allocation.memoryFlags = block->memoryFlags;
-			allocation.block = block;
+			allocation.memory = arena->memory;
+			allocation.memoryFlags = arena->memoryFlags;
+			allocation.arena = arena;
 
 			return allocation;
 		}
@@ -125,41 +133,17 @@ namespace wtr
 
 		VkDevice logicalDevice = device->GetLogicalDevice();
 
-		auto& block = allocation.block;
-		if (!block)
+		auto& arena = allocation.arena;
+		if (!arena)
 		{
 			return;
 		}
 
-		auto& arena = block->arena;
-		arena.Free(allocation);
-
-		if (!arena.IsEmpty())
+		arena->Free(allocation);
+		if (arena->IsEmpty())
 		{
-			return;
+			ReleaseArena(device, arena);
 		}
-
-		vkFreeMemory(logicalDevice, block->memory, nullptr);
-
-		auto itrType = m_blocks.Find(allocation.memoryFlags);
-		if (itrType == m_blocks.End())
-		{
-			return;
-		}
-
-		auto& typeBlocks = itrType->second;
-
-		auto itrBlock = typeBlocks.Find(block);
-		if (itrBlock != typeBlocks.End())
-		{
-			typeBlocks.Erase(itrBlock);
-		}
-
-		if (typeBlocks.Empty())
-		{
-			m_blocks.Erase(itrType);
-		}
-
 	}
 
 	uint32_t VulkanMemory::FindMemoryTypeIndex(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const
@@ -185,11 +169,11 @@ namespace wtr
 		return UINT32_MAX;
 	}
 
-	Memory::RefPtr<VulkanBlock> VulkanMemory::CreateBlock(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex)
+	Memory::RefPtr<VulkanArena> VulkanMemory::CreateArena(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex)
 	{
 		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk][Memory] Failed to create the vulkan block";
+			LOGERROR() << "[Vk][Memory] Failed to create the vulkan arena";
 			return {};
 		}
 
@@ -209,16 +193,52 @@ namespace wtr
 			return {};
 		}
 
-		Memory::RefPtr<VulkanBlock> block = Memory::MakeRef<VulkanBlock>();
-		if (!block)
+		Memory::RefPtr<VulkanArena> arena = Memory::MakeRef<VulkanArena>();
+		if (!arena)
 		{
+			vkFreeMemory(logicalDevice, memory, nullptr);
 			return {};
 		}
+		else
+		{
+			arena->memory = memory;
+			arena->memoryFlags = m_phyProperties.memoryTypes[memoryTypeIndex].propertyFlags;
+			arena->Init(requiredSize);
+		}
 
-		block->memory = memory;
-		block->memoryFlags = m_phyProperties.memoryTypes[memoryTypeIndex].propertyFlags;
-		block->arena.Init(requiredSize);
+		return arena;
+	}
 
-		return block;
+	void VulkanMemory::ReleaseArena(Memory::RefPtr<const VulkanDevice> device, Memory::RefPtr<VulkanArena> arena)
+	{
+		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		if (!arena || arena->memory == VK_NULL_HANDLE || !arena->IsEmpty())
+		{
+			return;
+		}
+
+		VkDevice logicalDevice = device->GetLogicalDevice();
+
+		vkFreeMemory(logicalDevice, arena->memory, nullptr);
+		
+		auto itrType = m_arenas.Find(arena->memoryFlags);
+		if (itrType == m_arenas.End())
+		{
+			return;
+		}
+
+		auto& typeArenas = itrType->second;
+		auto itrArena = typeArenas.Find(arena);
+		if (itrArena != typeArenas.End())
+		{
+			arena->memory = VK_NULL_HANDLE;
+			arena->memoryFlags = VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+
+			typeArenas.Erase(itrArena);
+		}
 	}
 };

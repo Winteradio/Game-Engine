@@ -9,6 +9,7 @@
 #endif
 
 #include <RHI/Vulkan/VulkanDevice.h>
+#include <RHI/Vulkan/VulkanSystem.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -22,6 +23,9 @@ namespace wtr
 		, m_swapChainExtent()
 		, m_requiredFormat{VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
 		, m_requiredPresent(VK_PRESENT_MODE_FIFO_KHR)
+		, m_swapChainTextures()
+		, m_swapChainRenderTargets()
+		, m_depthStencilTexture()
 	{
 	}
 
@@ -55,12 +59,23 @@ namespace wtr
 #endif
 	}
 
-	bool VulkanSurface::InitSwapChain(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device)
+	bool VulkanSurface::InitSwapChain(void* nativeHandle, VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
 	{
-		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE || device->GetPhysicalDevice() == VK_NULL_HANDLE ||
-			m_surface == VK_NULL_HANDLE)
+		if (nativeHandle == nullptr)
+		{ 
+			LOGERROR() << "[Vk][Surface] The native handle is invalid, failed to initialize the vkSwapChain";
+			return false;
+		}
+
+		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE || device->GetPhysicalDevice() == VK_NULL_HANDLE)
 		{
-			LOGERROR() << "[Vk][Surface] The vulkan device's logical and physical or vkSurface is invalid, failed to initialize the vkSwpaChain";
+			LOGERROR() << "[Vk][Surface] The vulkan device's logical and physical is invalid, failed to initialize the vkSwapChain";
+			return false;
+		}
+
+		if (m_surface == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Surface] The vulkan surface is invalid, failed to initialize the vkSwapChain";
 			return false;
 		}
 
@@ -128,20 +143,32 @@ namespace wtr
 		m_swapChainFormat = surfaceFormat.format;
 		m_swapChainExtent = extent;
 
-		if (!InitSwapChainImages(device))
+		if (!InitSwapChainImages(system, device))
 		{
 			LOGERROR() << "[Vk][Surface] Failed to initialize the images for the swap chain";
+			return false;
+		}
+
+		if (!InitSwapChainRenderTargets(system, device))
+		{
+			LOGERROR() << "[Vk][Surface] Failed to initialize the render targets for the swap chain";
 			return false;
 		}
 
 		return true;
 	}
 
-	bool VulkanSurface::InitSwapChainImages(Memory::RefPtr<const VulkanDevice> device)
+	bool VulkanSurface::InitSwapChainImages(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
 	{
 		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
 			LOGERROR() << "[Vk][Surface] The vulkan device is invalid, failed to initialize the swap chain's image";
+			return false;
+		}
+
+		if (m_swapChain == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Surface] The vulkan swap chain is invalid, failed to initialize the swap chain's image";
 			return false;
 		}
 
@@ -161,60 +188,128 @@ namespace wtr
 
 		m_swapChainTextures.Reserve(swapChainImageCount);
 
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = m_swapChainFormat;
+		RHITextureCreateDesc colorDesc{};
+		colorDesc.width = m_swapChainExtent.width;
+		colorDesc.height = m_swapChainExtent.height;
+		colorDesc.depth = 1;
+		colorDesc.face = 1;
+		colorDesc.mipLevels = 1;
+		colorDesc.sampleCount = 1;
+		colorDesc.format = system.GetPixelFormat(m_swapChainFormat);
+		colorDesc.usage = eTextureUsage::eRenderTarget;
+		colorDesc.textureType = eTextureType::eTexture2D;
+		colorDesc.dataType = eDataType::eUByte;
+		colorDesc.generateMips = false;
+		colorDesc.compressed = false;
 
-		viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-
-		RHITextureDesc textureDesc;
-		textureDesc.width = m_swapChainExtent.width;
-		textureDesc.height = m_swapChainExtent.height;
-		textureDesc.depth = 1;
-		textureDesc.face = 1;
-		textureDesc.mipLevels = 1;
-		textureDesc.sampleCount = 1;
-		textureDesc.dataType = eDataType::eFloat;
-		textureDesc.format = ePixelFormat::eR8G8B8A8_sRGB;
-		textureDesc.usage = eTextureUsage::eRenderTarget;
-		textureDesc.textureType = eTextureType::eTexture2D;
-		textureDesc.generateMips = false;
-		textureDesc.compressed = false;
-
-		for (const auto& image : swapChainImages)
+		for (size_t index = 0; index < swapChainImages.Size(); ++index)
 		{
-			Memory::RefPtr<VulkanTexture> texture = Memory::MakeRef<VulkanTexture>(textureDesc);
-			if (!texture || texture->GetImage() == VK_NULL_HANDLE)
+			VkImage image = swapChainImages[index];
+			if (image == VK_NULL_HANDLE)
 			{
-				continue;
+				LOGERROR() << "[Vk] The image for the swap chain is invalid, failed to initialize the swap chain's image";
+				return false;
 			}
 
-			viewInfo.image = texture->GetImage();
-			VkImageView imageView{};
-			VkResult result = vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView);
-			if (result != VK_SUCCESS)
+			Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(system.CreateTexture(colorDesc));
+			if (!texture)
 			{
-				LOGERROR() << "[Vk][Surface] Failed to create the image views for the swap chain";
+				LOGERROR() << "[Vk] Failed to create the texture for the swap chain's image";
 				return false;
 			}
 
 			texture->SetImage(image);
-			texture->SetImageView(imageView);
+
+			system.InitializeTextureSwapChain(colorDesc, texture);
+			if (texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE || texture->GetState() != eResourceState::eReady)
+			{
+				LOGERROR() << "[Vk] The texture's image or image view is invalid, failed to initialize the swap chain's image";
+				return false;
+			}
 
 			m_swapChainTextures.PushBack(texture);
 		}
 
+		RHITextureCreateDesc depthStencilDesc{};
+		depthStencilDesc.width = m_swapChainExtent.width;
+		depthStencilDesc.height = m_swapChainExtent.height;
+		depthStencilDesc.depth = 1;
+		depthStencilDesc.face = 1;
+		depthStencilDesc.mipLevels = 1;
+		depthStencilDesc.sampleCount = 1;
+		depthStencilDesc.format = ePixelFormat::eD24_S8;
+		depthStencilDesc.usage = eTextureUsage::eDepthStencil;
+		depthStencilDesc.textureType = eTextureType::eTexture2D;
+		depthStencilDesc.dataType = eDataType::eFloat;
+		depthStencilDesc.generateMips = false;
+		depthStencilDesc.compressed = false;
+
+		Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(system.CreateTexture(depthStencilDesc));
+		if (!texture)
+		{
+			LOGERROR() << "[Vk] Failed to create the depth stencil texture for the swap chain";
+			return false;
+		}
+
+		system.InitializeTexture(depthStencilDesc, texture);
+		if (texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE || texture->GetState() != eResourceState::eReady)
+		{
+			LOGERROR() << "[Vk] The depth stencil texture's image or image view is invalid, failed to initialize the swap chain's depth stencil texture";
+			return false;
+		}
+
+		m_depthStencilTexture = texture;
+
 		LOGINFO() << "[Vk] Succeed to create the vkSwapChain( image Count : " << swapChainImages.Size();
+
+		return true;
+	}
+
+	bool VulkanSurface::InitSwapChainRenderTargets(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
+	{
+		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk][Surface] The vulkan device is invalid, failed to initialize the swap chain's render targets";
+			return false;
+		}
+
+		if (m_swapChainTextures.Empty())
+		{
+			LOGERROR() << "[Vk][Surface] The swap chain's textures is empty, failed to initialize the swap chain's render targets";
+			return false;
+		}
+
+		m_swapChainRenderTargets.Reserve(m_swapChainTextures.Size());
+		for (const auto& texture : m_swapChainTextures)
+		{
+			if (!texture || texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE || texture->GetState() != eResourceState::eReady)
+			{
+				continue;
+			}
+
+			RHIRenderTargetCreateDesc targetDesc{};
+			targetDesc.colors = { RHIColorAttachment{eAttachment::eColor, texture, 0 } };
+			targetDesc.depthStencil.texture = m_depthStencilTexture;
+			targetDesc.depthStencil.type = eAttachment::eDepthStencil;
+
+			Memory::RefPtr<VulkanRenderTarget> renderTarget = Memory::Cast<VulkanRenderTarget>(system.CreateRenderTarget(targetDesc));
+			if (!renderTarget)
+			{
+				LOGERROR() << "[Vk][Surface] Failed to create the render target for the swap chain";
+				return false;
+			}
+
+			system.InitializeRenderTarget(targetDesc, renderTarget);
+			if (renderTarget->GetRenderTarget() == VK_NULL_HANDLE || renderTarget->GetState() != eResourceState::eReady)
+			{
+				LOGERROR() << "[Vk][Surface] The render target is not ready, failed to initialize the swap chain's render targets";
+				return false;
+			}
+
+			m_swapChainRenderTargets.PushBack(renderTarget);
+		}
+
+		LOGINFO() << "[Vk][Surface] Succeed to create the vkSwapChain's render targets( render target Count : " << m_swapChainRenderTargets.Size();
 
 		return true;
 	}
@@ -232,7 +327,7 @@ namespace wtr
 
 		for (auto& texture : m_swapChainTextures)
 		{
-			if (!texture || texture->GetImageView() == VK_NULL_HANDLE)
+			if (!texture || texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE)
 			{
 				continue;
 			}
@@ -241,12 +336,34 @@ namespace wtr
 			vkDestroyImageView(logicalDevice, imageView, nullptr);
 		}
 
+		if (m_depthStencilTexture && m_depthStencilTexture->GetImage() != VK_NULL_HANDLE && m_depthStencilTexture->GetImageView() != VK_NULL_HANDLE)
+		{
+			VkImageView imageView = m_depthStencilTexture->GetImageView();
+			VkImage image = m_depthStencilTexture->GetImage();
+
+			vkDestroyImageView(logicalDevice, imageView, nullptr);
+			vkDestroyImage(logicalDevice, image, nullptr);
+		}
+
+		for (auto& renderTarget : m_swapChainRenderTargets)
+		{
+			if (!renderTarget || renderTarget->GetRenderTarget() == VK_NULL_HANDLE)
+			{
+				continue;
+			}
+
+			VkFramebuffer framebuffer = renderTarget->GetRenderTarget();
+			vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+		}
+
 		vkDestroySwapchainKHR(logicalDevice, m_swapChain, nullptr);
 		vkDestroySurfaceKHR(instance, m_surface, nullptr);
 
 		m_surface = VK_NULL_HANDLE;
 		m_swapChain = VK_NULL_HANDLE;
+		m_depthStencilTexture.Reset();
 		m_swapChainTextures.Clear();
+		m_swapChainRenderTargets.Clear();
 
 		LOGINFO() << "[Vk][Surface] Succeed to release the vulkan surface";
 	}
@@ -269,6 +386,16 @@ namespace wtr
 	VkExtent2D VulkanSurface::GetSwapChainExtent() const
 	{
 		return m_swapChainExtent;
+	}
+
+	Memory::RefPtr<const VulkanRenderTarget> VulkanSurface::GetSwapChainRenderTarget(const size_t index) const
+	{
+		if (index >= m_swapChainRenderTargets.Size())
+		{
+			return nullptr;
+		}
+
+		return m_swapChainRenderTargets[index];
 	}
 
 	VkSurfaceFormatKHR VulkanSurface::ChooseSurfaceFormat(const DynamicArray<VkSurfaceFormatKHR>& formats)

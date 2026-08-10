@@ -15,27 +15,28 @@ namespace wtr
 
 namespace wtr
 {
-	struct VulkanBlock
+	struct VulkanArena : TLSFArena
 	{
 		VkDeviceMemory			memory;
 		VkMemoryPropertyFlags	memoryFlags;
-		TLSFArena				arena;
 
-		VulkanBlock();
+		VulkanArena();
 	};
 
 	struct VulkanAllocation : TLSFArena::Allocation
 	{
 		using Super = TLSFArena;
 
-		static VulkanAllocation Null;
+		static const VulkanAllocation Null;
 
-		Memory::RefPtr<VulkanBlock> block;
+		Memory::RefPtr<VulkanArena> arena;
 
 		VkDeviceMemory			memory;
 		VkMemoryPropertyFlags	memoryFlags;
 
 		VulkanAllocation();
+
+		bool IsValid() const;
 	};
 
 	class VulkanMemory
@@ -54,12 +55,13 @@ namespace wtr
 	private :
 		uint32_t FindMemoryTypeIndex(Memory::RefPtr<const VulkanDevice> device, const uint32_t typeBit, const VkMemoryPropertyFlags properties) const;
 
-		Memory::RefPtr<VulkanBlock> CreateBlock(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex);
+		Memory::RefPtr<VulkanArena> CreateArena(Memory::RefPtr<const VulkanDevice> device, const VkDeviceSize blockSize, const uint32_t memoryTypeIndex);
+		void ReleaseArena(Memory::RefPtr<const VulkanDevice> device, Memory::RefPtr<VulkanArena> arena);
 
 	private :
 		static constexpr VkDeviceSize BLOCK_SIZE = 1024ull * 1024ull * 4ull;
 
-		HashMap<VkMemoryPropertyFlags, DynamicArray<Memory::RefPtr<VulkanBlock>>> m_blocks;
+		HashMap<VkMemoryPropertyFlags, DynamicArray<Memory::RefPtr<VulkanArena>>> m_arenas;
 		VkPhysicalDeviceMemoryProperties m_phyProperties;
 	};
 }

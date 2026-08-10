@@ -42,11 +42,22 @@ namespace wtr
 		eIndex		= 0x02,
 		eConst		= 0x03,
 		eStorage	= 0x04,
-		eStaging	= 0x05,
-		eIndirect	= 0x06,
-		eTexel		= 0x07
+		eIndirect	= 0x07,
+		eTexel		= 0x08
 	};
 
+	// Buffer Transfer Type
+	// eSource : Buffer is source of transfer (e.g. copy from this buffer to another buffer or texture)
+	// eDestination : Buffer is destination of transfer (e.g. copy from another buffer or texture to this buffer)
+	enum class eBufferTransfer : uint8_t
+	{
+		eNone			= 0x00,
+		eSource			= 0x01 << 1,
+		eDestination	= 0x01 << 2
+	};
+
+	// GPU Binding Datas : eStatic, eDynamic, eStream
+	// GPU Transfer Datas : eStaging
 	enum class eDataAccess : uint8_t
 	{
 		eNone		= 0x00,
@@ -604,6 +615,16 @@ namespace wtr
 	inline eMapAccess operator&(eMapAccess a, eMapAccess b)
 	{
 		return static_cast<eMapAccess>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eBufferTransfer operator|(eBufferTransfer a, eBufferTransfer b)
+	{
+		return static_cast<eBufferTransfer>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+
+	inline eBufferTransfer operator&(eBufferTransfer a, eBufferTransfer b)
+	{
+		return static_cast<eBufferTransfer>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)

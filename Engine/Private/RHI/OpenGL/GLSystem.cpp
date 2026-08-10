@@ -1083,7 +1083,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -1130,7 +1130,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -1226,7 +1226,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -1527,7 +1527,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -1552,7 +1552,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -1589,7 +1589,7 @@ namespace wtr
 		}
 
 		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t internalFormat = GetInternalFormat(info.format);
+		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
 
@@ -2438,7 +2438,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetInternalFormat(const ePixelFormat pixel) const
+	uint32_t GLSystem::GetPixelFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{

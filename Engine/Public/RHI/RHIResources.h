@@ -51,6 +51,7 @@ namespace wtr
 
 		public :
 			eBufferType GetBufferType() const;
+			eBufferTransfer GetBufferTransfer() const;
 			eDataAccess GetAccessType() const;
 			eDataType GetComponentType() const;
 			uint32_t GetNumComponents() const;
@@ -60,6 +61,7 @@ namespace wtr
 			const RHIBufferDesc& GetDesc() const;
 
 			void SetBufferType(const eBufferType bufferType);
+			void SetBufferTransfer(const eBufferTransfer bufferTransfer);
 			void SetAccessType(const eDataAccess accessType);
 			void SetComponentType(const eDataType componentType);
 			void SetNumComponents(const uint32_t numComponents);

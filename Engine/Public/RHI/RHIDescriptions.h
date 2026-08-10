@@ -97,6 +97,7 @@ namespace wtr
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
 	{
 		eBufferType bufferType = eBufferType::eNone;
+		eBufferTransfer bufferTransfer = eBufferTransfer::eNone;
 		eDataAccess	accessType = eDataAccess::eNone;
 		eDataType	componentType = eDataType::eNone;
 
@@ -108,6 +109,7 @@ namespace wtr
 		RHIBufferDesc& operator=(const RHIBufferDesc& other)
 		{
 			bufferType = other.bufferType;
+			bufferTransfer = other.bufferTransfer;
 			accessType = other.accessType;
 			componentType = other.componentType;
 			numComponents = other.numComponents;
