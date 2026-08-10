@@ -49,25 +49,6 @@ namespace wtr
 	struct RHIClearState;
 
 	enum class eRenderType : uint8_t;
-	enum class eBufferType : uint8_t;
-	enum class eDataAccess : uint8_t;
-	enum class eDataType : uint8_t;
-	enum class eMapAccess : uint8_t;
-	enum class eTextureType : uint8_t;
-	enum class ePixelFormat : uint8_t;
-	enum class eFilterMode : uint8_t;
-	enum class eWrapMode : uint8_t;
-	enum class eCullFace : uint8_t;
-	enum class eFrontFace : uint8_t;
-	enum class eDrawMode : uint8_t;
-	enum class ePrimitiveMode : uint8_t;
-	enum class eCompareFunc : uint8_t;
-	enum class eStencilOp : uint8_t;
-	enum class eBlendFunc : uint8_t;
-	enum class eBlendOp : uint8_t;
-	enum class eShaderType : uint8_t;
-	enum class eAttachment : uint8_t;
-	enum class eResourceSlot : uint8_t;
 };
 
 namespace wtr

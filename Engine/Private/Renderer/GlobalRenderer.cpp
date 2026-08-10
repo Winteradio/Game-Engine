@@ -860,7 +860,7 @@ namespace wtr
 					desc.format = ePixelFormat::eD24_S8;
 					desc.usage = eTextureUsage::eDepthStencil;
 					desc.textureType = eTextureType::eTexture2D;
-					desc.dataType = eDataType::eFloat;
+					desc.dataType = eDataType::eUInt;
 					desc.generateMips = false;
 					desc.compressed = false;
 				}

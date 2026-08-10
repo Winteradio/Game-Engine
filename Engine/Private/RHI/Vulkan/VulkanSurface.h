@@ -9,6 +9,7 @@
 namespace wtr
 {
 	class VulkanDevice;
+	class VulkanSystem;
 };
 
 namespace wtr
@@ -21,7 +22,7 @@ namespace wtr
 
 	public :
 		bool InitSurface(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device);
-		bool InitSwapChain(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChain(void* nativeHandle, VulkanSystem& system,Memory::RefPtr<const VulkanDevice> device);
 		void Release(Memory::RefPtr<const VulkanDevice> device);
 
 		VkSurfaceKHR	GetSurface() const;
@@ -29,10 +30,11 @@ namespace wtr
 		VkFormat		GetSwapChainFormat() const;
 		VkExtent2D		GetSwapChainExtent() const;
 
-		Memory::RefPtr<const VulkanTexture> GetSwapChainTexture(const size_t index);
+		Memory::RefPtr<const VulkanRenderTarget> GetSwapChainRenderTarget(const size_t index) const;
 
 	private :
-		bool InitSwapChainImages(Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChainImages(VulkanSystem& system,Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChainRenderTargets(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device);
 
 		VkSurfaceFormatKHR	ChooseSurfaceFormat(const DynamicArray<VkSurfaceFormatKHR>& formats);
 		VkPresentModeKHR	ChoosePresentMode(const DynamicArray<VkPresentModeKHR>& modes);
@@ -49,6 +51,8 @@ namespace wtr
 		VkPresentModeKHR m_requiredPresent;
 
 		DynamicArray<Memory::RefPtr<VulkanTexture>> m_swapChainTextures;
+		DynamicArray<Memory::RefPtr<VulkanRenderTarget>> m_swapChainRenderTargets;
+		Memory::RefPtr<VulkanTexture> m_depthStencilTexture;
 	};
 };
 

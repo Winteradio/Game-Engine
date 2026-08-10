@@ -25,12 +25,8 @@ namespace wtr
 		bool InitDevice(Memory::RefPtr<const VulkanSurface> surface);
 		void Release();
 
-		bool MakeCurrent();
-		bool ReleaseCurrent();
-		bool GetCurrent();
-		void Preset();
-
 		VkInstance GetInstance() const;
+		const VkPhysicalDeviceLimits& GetPhysicalLimits() const;
 		VkPhysicalDevice GetPhysicalDevice() const;
 		VkDevice GetLogicalDevice() const;
 
@@ -54,10 +50,11 @@ namespace wtr
 	private:
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 
-		VkInstance			m_instance;
-		VkPhysicalDevice	m_physicalDevice;
-		VkDevice			m_logicalDevice;
-		VkQueue				m_queue;
+		VkInstance				m_instance;
+		VkPhysicalDeviceLimits	m_physicalLimits;
+		VkPhysicalDevice		m_physicalDevice;
+		VkDevice				m_logicalDevice;
+		VkQueue					m_queue;
 
 		uint32_t m_apiVersion;
 		uint32_t m_appVersion;

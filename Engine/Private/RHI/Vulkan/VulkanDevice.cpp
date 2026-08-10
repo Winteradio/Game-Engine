@@ -37,23 +37,22 @@ namespace wtr
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+	VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
 		VkDebugUtilsMessageTypeFlagsEXT type,
 		const VkDebugUtilsMessengerCallbackDataEXT* data,
 		void* userData)
 	{
-		if (severity & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+		if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 		{
 			LOGERROR() << "[VK] Error :" << data->pMessage;
 		}
-		else if (severity & VK_DEBUG_REPORT_WARNING_BIT_EXT)
+		else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		{
 			LOGWARN() << "[VK] Warning :" << data->pMessage;
 		}
-		else if (severity & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+		else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 		{
-			LOGWARN() << "[Vk] Performance Warning :" << data->pMessage;
+			LOGINFO() << "[VK] Info :" << data->pMessage;
 		}
 		else
 		{
@@ -245,6 +244,8 @@ namespace wtr
 
 		VkPhysicalDeviceProperties deviceProperties{};
 		vkGetPhysicalDeviceProperties(m_physicalDevice, &deviceProperties);
+
+		m_physicalLimits = deviceProperties.limits;
 
 		LOGINFO() << "[Vk][Device] ------ Selected GPU Info -----";
 		LOGINFO() << "[Vk][Device] API Version : " << deviceProperties.apiVersion;
@@ -457,6 +458,11 @@ namespace wtr
 	VkInstance VulkanDevice::GetInstance() const
 	{
 		return m_instance;
+	}
+
+	const VkPhysicalDeviceLimits& VulkanDevice::GetPhysicalLimits() const
+	{
+		return m_physicalLimits;
 	}
 
 	VkPhysicalDevice VulkanDevice::GetPhysicalDevice() const

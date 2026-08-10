@@ -60,6 +60,8 @@ namespace wtr
 		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
 		void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) override;
 
+		void InitializeTextureSwapChain(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
+
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
 		void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
@@ -92,14 +94,56 @@ namespace wtr
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
-		wtr::HashSet<Memory::RefPtr<RHIBuffer>> m_pendingBuffers;
-		wtr::HashSet<Memory::RefPtr<RHIVertexLayout>> m_pendingVertexLayouts;
-		wtr::HashSet<Memory::RefPtr<RHITexture>> m_pendingTextures;
-		wtr::HashSet<Memory::RefPtr<RHISampler>> m_pendingSamplers;
-		wtr::HashSet<Memory::RefPtr<RHIShader>> m_pendingShaders;
-		wtr::HashSet<Memory::RefPtr<RHIPipeLine>> m_pendingPipeLines;
-		wtr::HashSet<Memory::RefPtr<RHIRenderTarget>> m_pendingRenderTargets;
-		wtr::HashSet<Memory::RefPtr<RHIRenderPass>> m_pendingRenderPasses;
+	public :
+		VkBufferUsageFlags GetBufferType(const eBufferType bufferType) const;
+		VkBufferUsageFlags GetBufferTransfer(const eBufferTransfer bufferTransfer) const;
+		VkMemoryPropertyFlags GetBufferProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const;
+
+		VkFormat GetDataType(const eDataType data) const;
+		VkIndexType GetIndexType(const eDataType data) const;
+
+		VkImageViewType GetTextureType(const eTextureType texture) const;
+		VkImageType GetTextureDimension(const eTextureType texture) const;
+		VkFormat GetPixelFormat(const ePixelFormat pixel) const;
+
+		VkFilter GetFilterMode(const eFilterMode filter) const;
+		VkSamplerAddressMode GetWrapMode(const eWrapMode wrap) const;
+
+		VkCullModeFlags GetCullFace(const eCullFace face) const;
+		VkFrontFace GetFrontFace(const eFrontFace face) const;
+
+		VkPrimitiveTopology GetDrawMode(const eDrawMode mode) const;
+		VkPolygonMode GetPrimitiveMode(const ePrimitiveMode mode) const;
+
+		VkCompareOp GetCompareFunc(const eCompareFunc func) const;
+
+		VkStencilOp GetStencilOp(const eStencilOp op) const;
+
+		VkBlendFactor GetBlendFunc(const eBlendFunc func) const;
+		VkBlendOp GetBlendOp(const eBlendOp op) const;
+
+		VkShaderStageFlagBits GetShaderType(const eShaderType type) const;
+
+		VkBorderColor GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
+
+		VkImageAspectFlags GetImageAspect(const eAttachment attach) const;
+
+		eCompareFunc GetCompareFunc(const VkCompareOp func) const;
+		eStencilOp GetStencilOp(const VkStencilOp op) const;
+		eBlendFunc GetBlendFunc(const VkBlendFactor func) const;
+		eBlendOp GetBlendOp(const VkBlendOp op) const;
+		eCullFace GetCullFace(const VkCullModeFlags face) const;
+		eFrontFace GetFrontFace(const VkFrontFace face) const;
+		ePrimitiveMode GetPrimitiveMode(const VkPolygonMode mode) const;
+
+		eTextureType GetTextureType(const VkImageViewType texture) const;
+		ePixelFormat GetPixelFormat(const VkFormat pixel) const;
+
+		eFilterMode GetFilterMode(const VkFilter filter) const;
+		eWrapMode GetWrapMode(const VkSamplerAddressMode wrap) const;
+		eWrapBorderColor GetWrapBorderColor(const VkBorderColor wrapBorderColor) const;
+
+		eAttachment GetImageAspect(const VkImageAspectFlags aspect) const;
 
 	private :
 		void FlushBuffer();
@@ -110,10 +154,6 @@ namespace wtr
 		void FlushPipeline();
 		void FlushRenderTarget();
 		void FlushRenderPass();
-
-		VkBufferUsageFlagBits	GetBufferUsageFlagBits(const eBufferType type) const;
-		VkMemoryRequirements	GetBufferMemoryRequirements(Memory::RefPtr<const RHIBuffer> buffer) const;
-		VkMemoryPropertyFlags	GetBufferMemoryPropertyFlags(Memory::RefPtr<const RHIBuffer> buffer) const;
 
 	private:
 		Memory::RefPtr<VulkanDevice> m_device;
