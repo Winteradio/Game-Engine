@@ -204,12 +204,4 @@ namespace wtr
 	{
 		return m_renderTarget;
 	}
-
-	VulkanRenderPass::VulkanRenderPass(const RHIRenderPassDesc& desc)
-		: RHIRenderPass(desc)
-		, VulkanResource()
-	{}
-
-	VulkanRenderPass::~VulkanRenderPass()
-	{}
 };

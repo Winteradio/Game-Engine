@@ -52,6 +52,27 @@ namespace wtr
 	public:
 		VulkanVertexLayout(const RHIVertexLayoutDesc& desc);
 		virtual ~VulkanVertexLayout();
+
+	public :
+		VkVertexInputAttributeDescription GetAttribute(const VertexKey& key) const;
+		VkVertexInputBindingDescription GetBinding(const VertexKey& key) const;
+
+		void SetBinding(const VertexKey& key, const VkVertexInputBindingDescription& binding);
+		void SetAttribute(const VertexKey& key, const VkVertexInputAttributeDescription& attribute);
+		void Clear();
+
+		const VkVertexInputBindingDescription& GetBindingDesc(const VertexKey& key) const;
+		const VkVertexInputAttributeDescription& GetAttributeDesc(const VertexKey& key) const;
+
+	private :
+		struct VkVertexStream
+		{
+			VkVertexInputAttributeDescription attribute;
+			VkVertexInputBindingDescription binding;
+			uint32_t bindingIndex = 0;
+		};
+
+		wtr::HashMap<VertexKey, VkVertexStream> m_vertexStreams;
 	};
 
 	class VulkanTexture : public RHITexture, public VulkanMemoryResource
@@ -171,19 +192,13 @@ namespace wtr
 
 	public :
 		void SetRenderTarget(const VkFramebuffer renderTarget);
+		void SetRenderPass(const VkRenderPass renderPass);
+
 		const VkFramebuffer GetRenderTarget() const;
+		const VkRenderPass GetRenderPass() const;
 
 	private :
 		VkFramebuffer m_renderTarget;
-	};
-
-	class VulkanRenderPass : public RHIRenderPass, public VulkanResource
-	{
-	public :
-		VulkanRenderPass(const RHIRenderPassDesc& desc);
-		virtual ~VulkanRenderPass();
-
-	public :
 		VkRenderPass m_renderPass;
 	};
 };

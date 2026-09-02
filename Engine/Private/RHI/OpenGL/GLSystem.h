@@ -38,7 +38,6 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) override;
-		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
@@ -47,7 +46,6 @@ namespace wtr
 		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) override;
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) override;
 		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
-		void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) override;
 
 		void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) override;
@@ -56,27 +54,30 @@ namespace wtr
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
-		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& name) override;
-		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) override;
-		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) override;
-		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) override;
+		void SetConstant(const RHIConstDesc info, const int32_t binding);
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding);
+		void SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding);
+		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding);
 
-		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& name) override;
-		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) override;
-		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) override;
-		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) override;
+		void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset);
+		void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset);
 
-		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
-		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
-		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
-		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) override;
+		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
+		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
 
-		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) override;
+		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding);
+		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding);
+		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding);
 
-		void UnsetVertexLayout() override;
-		void UnsetPipeLine() override;
-		void UnsetRenderTarget() override;
-		void UnsetRenderPass() override;
+		void UnsetVertexBuffer(const uint32_t bidingIndex);
+		void UnsetIndexBuffer();
+
+		void UnsetVertexLayout();
+		void UnsetPipeLine();
+
+		void BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target);
+		void EndRenderPass();
+		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state);
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
@@ -85,6 +86,7 @@ namespace wtr
 		uint32_t GetBufferType(const eBufferType buffer) const;
 		uint32_t GetDataAccess(const eDataAccess access) const;
 		uint32_t GetDataType(const eDataType data) const;
+		uint32_t GetDataDivisor(const eDataDivisor divisor) const;
 		uint32_t GetMapAccess(const eMapAccess access) const;
 
 		uint32_t GetTextureType(const eTextureType texture) const;

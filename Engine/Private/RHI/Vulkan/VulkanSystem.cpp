@@ -22,6 +22,8 @@ namespace wtr
 		, m_surface()
 		, m_memory()
 		, m_primary()
+		, m_staging()
+		, m_releaseStaging()
 		, m_acquire(VK_NULL_HANDLE)
 		, m_present(VK_NULL_HANDLE)
 		, m_fence(VK_NULL_HANDLE)
@@ -167,192 +169,6 @@ namespace wtr
 		FlushShader();
 		FlushPipeline();
 		FlushRenderTarget();
-		FlushRenderPass();
-	}
-
-	void VulkanSystem::FlushBuffer()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		auto itr = m_pendingBuffers.begin();
-		while (itr != m_pendingBuffers.end())
-		{
-			auto& buffer = *itr;
-			if (!buffer)
-			{
-				itr = m_pendingBuffers.Erase(itr);
-				continue;
-			}
-
-			auto* refData = buffer.GetRefData();
-			if (refData->GetRefCount() > 1)
-			{
-				itr++;
-				continue;
-			}
-
-			VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
-			if (vkBuffer)
-			{
-				vkDestroyBuffer(logicalDevice, vkBuffer->GetBuffer(), nullptr);
-				vkDestroyBufferView(logicalDevice, vkBuffer->GetBufferView(), nullptr);
-
-				const VulkanAllocation& allocation = vkBuffer->GetAllocation();
-
-				m_memory->Free(m_device, allocation);
-
-				vkBuffer->SetAllocation(VulkanAllocation::Null);
-				vkBuffer->SetState(eResourceState::eNone);
-			}
-
-			itr = m_pendingBuffers.Erase(itr);
-		}
-	}
-
-	void VulkanSystem::FlushVertexLayout()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		auto itr = m_pendingVertexLayouts.begin();
-		while (itr != m_pendingVertexLayouts.end())
-		{
-			auto& layout = *itr;
-			if (!layout)
-			{
-				itr = m_pendingVertexLayouts.Erase(itr);
-				continue;
-			}
-			auto* refData = layout.GetRefData();
-			if (refData->GetRefCount() > 1)
-			{
-				itr++;
-				continue;
-			}
-			VulkanVertexLayout* vkLayout = static_cast<VulkanVertexLayout*>(layout->GetRawBuffer());
-			if (vkLayout)
-			{
-				//vkDestroyPipelineLayout(logicalDevice, vkLayout->GetPipelineLayout(), nullptr);
-
-				vkLayout->SetState(eResourceState::eNone);
-			}
-			itr = m_pendingVertexLayouts.Erase(itr);
-		}
-	}
-
-	void VulkanSystem::FlushTexture()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		auto itr = m_pendingTextures.begin();
-		while (itr != m_pendingTextures.end())
-		{
-			auto& texture = *itr;
-			if (!texture)
-			{
-				itr = m_pendingTextures.Erase(itr);
-				continue;
-			}
-
-			auto* refData = texture.GetRefData();
-			if (refData->GetRefCount() > 1)
-			{
-				itr++;
-				continue;
-			}
-
-			VulkanTexture* vkTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
-			if (vkTexture)
-			{
-				vkDestroyImage(logicalDevice, vkTexture->GetImage(), nullptr);
-				vkDestroyImageView(logicalDevice, vkTexture->GetImageView(), nullptr);
-
-				const VulkanAllocation& allocation = vkTexture->GetAllocation();
-				m_memory->Free(m_device, allocation);
-
-				vkTexture->SetAllocation(VulkanAllocation::Null);
-				vkTexture->SetState(eResourceState::eNone);
-			}
-
-			itr = m_pendingTextures.Erase(itr);
-		}
-	}
-
-	void VulkanSystem::FlushSampler()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-	}
-
-	void VulkanSystem::FlushShader()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-	}
-
-	void VulkanSystem::FlushPipeline()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-	}
-
-	void VulkanSystem::FlushRenderTarget()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-	}
-	
-	void VulkanSystem::FlushRenderPass()
-	{
-		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		auto itr = m_pendingRenderPasses.begin();
-		while (itr != m_pendingRenderPasses.end())
-		{
-			auto& renderPass = *itr;
-			if (!renderPass)
-			{
-				itr = m_pendingRenderPasses.Erase(itr);
-				continue;
-			}
-
-
-		}
 	}
 
 	void VulkanSystem::Clear(const RHIClearState& state)
@@ -385,7 +201,6 @@ namespace wtr
 
 		VkDevice logicalDevice = m_device->GetLogicalDevice();
 		VkSwapchainKHR swapChain = m_surface->GetSwapChain();
-		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
 		VkResult result = vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, m_acquire, VK_NULL_HANDLE, &m_imageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -414,11 +229,15 @@ namespace wtr
 		vkResetFences(logicalDevice, 1, &m_fence);
 
 		m_primary->ResetPool(m_device);
+		m_staging.Insert(m_staging.End(), m_releaseStaging.Begin(), m_releaseStaging.End());
+		m_releaseStaging.Clear();
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.pNext = nullptr;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 	}
@@ -595,164 +414,182 @@ namespace wtr
 		return refRenderTarget;
 	}
 
-	Memory::RefPtr<RHIRenderPass> VulkanSystem::CreateRenderPass(const RHIRenderPassDesc desc)
-	{
-		Memory::RefPtr<RHIRenderPass> refRenderPass = Memory::MakeRef<VulkanRenderPass>(desc);
-
-		return refRenderPass;
-	}
-
 	void VulkanSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || !m_device || !m_device->GetLogicalDevice() || !m_memory)
+		if (!buffer)
 		{
+			LOGERROR() << "[Vk] Failed to initialize the buffer, the buffer is invalid";
 			return;
 		}
 
-		// eBufferType     -> primary binding role bit, i.e. which pipeline stage/fixed-function
-		//                    unit is allowed to read (or write, for storage buffers) this buffer
-		//                    during a draw/dispatch:
-		//   eVertex   -> VERTEX_BUFFER_BIT      : read by the vertex-input-assembly stage
-		//   eIndex    -> INDEX_BUFFER_BIT       : read by the index-fetch stage
-		//   eConst    -> UNIFORM_BUFFER_BIT     : read by shader stages via a uniform binding
-		//   eStorage  -> STORAGE_BUFFER_BIT     : read/written by shader stages via SSBO binding
-		//   eIndirect -> INDIRECT_BUFFER_BIT    : read by the command processor for draw/dispatch args
-		//   eTexel    -> UNIFORM/STORAGE_TEXEL_BUFFER_BIT : read via a texel buffer view
-		//   eNone     -> no role bit at all - this buffer is never bound for a draw/dispatch,
-		//                only used by the copy/transfer engine (see eBufferTransfer below)
-		//
-		// eBufferTransfer -> additive bit for the COPY engine specifically (vkCmdCopyBuffer and
-		//                    friends), completely independent of the role bit above - binding a
-		//                    buffer as VERTEX_BUFFER_BIT does NOT also make it eligible as a copy
-		//                    argument, each participation has to be declared separately:
-		//   eSource      -> TRANSFER_SRC_BIT : buffer may be passed as srcBuffer to a copy command
-		//                    (the transfer engine reads FROM this buffer's memory)
-		//   eDestination -> TRANSFER_DST_BIT : buffer may be passed as dstBuffer to a copy command
-		//                    (the transfer engine writes INTO this buffer's memory)
-		//   both may be combined (e.g. a scratch/intermediate buffer copied into and back out of)
-		//
-		// Combined: VkBufferUsageFlags = GetBufferType(bufferType) | GetBufferTransfer(bufferTransfer)
-		//
-		// | eBufferType | eBufferTransfer | Result                                | Typical case                                    |
-		// |-------------|------------------|----------------------------------------|---------------------------------------------------|
-		// | eNone       | eSource          | TRANSFER_SRC_BIT                      | staging (upload) buffer - copy engine reads it     |
-		// | eNone       | eDestination     | TRANSFER_DST_BIT                      | readback buffer - copy engine writes it            |
-		// | eVertex     | eNone            | VERTEX_BUFFER_BIT                     | eStatic - never touched again after upload         |
-		// | eVertex     | eDestination     | VERTEX_BUFFER_BIT | TRANSFER_DST_BIT | eDynamic / eStream(large) - re-staged via copy     |
-		// | eVertex     | eSource          | VERTEX_BUFFER_BIT | TRANSFER_SRC_BIT | debug/tooling readback of this buffer's own data   |
-		// | eIndex/eConst/eStorage/eIndirect/eTexel | eNone/eDestination/eSource | matching role bit [| TRANSFER_*_BIT] | same pattern as eVertex above |
-
-		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
-		if (!vkBuffer)
+		if (!AllocateBuffer(info, buffer))
 		{
+			LOGERROR() << "[Vk] Failed to initialize the buffer, failed to allocate the buffer";
+
+			buffer->SetState(eResourceState::eError);
+		}
+		else
+		{
+			RHIBufferUpdateDesc updateInfo = info;
+			updateInfo.mapAccess = eMapAccess::eWrite;
+
+			UpdateBuffer(updateInfo, buffer);
+
+			buffer->SetState(eResourceState::eReady);
+		}
+	}
+
+		void VulkanSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!texture)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the texture, the texture is invalid";
 			return;
 		}
 
-		VkBufferUsageFlags usageFlags = GetBufferType(info.bufferType) | GetBufferTransfer(info.bufferTransfer);
-
-		// VkBufferCreateInfo
-		// shading Mode
-		//	1. VK_SHADING_MODE_EXCLUSIVE : Only one queue family at a time can access the buffer.
-		//  2. VK_SHADING_MODE_CONCURRENT : Multiple queue families can access the buffer without explicit ownership transfers.
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.pNext = nullptr;
-		bufferInfo.size = info.size;
-		bufferInfo.usage = usageFlags;
-		bufferInfo.queueFamilyIndexCount = 0;
-		bufferInfo.pQueueFamilyIndices = nullptr;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		VkBuffer bufferInstance;
-		VkResult result = vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &bufferInstance);
-		if (result != VK_SUCCESS)
+		if (!AllocateTexture(info, texture))
 		{
-			LOGERROR() << "[Vk] Failed to create the buffer, error code: " << result;
-			return;
+			LOGERROR() << "[Vk] Failed to initialize the texture, failed to allocate the texture";
+
+			texture->SetState(eResourceState::eError);
 		}
-
-		VkMemoryRequirements requiremenets;
-		vkGetBufferMemoryRequirements(logicalDevice, bufferInstance, &requiremenets);
-
-		VkMemoryPropertyFlags properties = GetBufferProperty(info.accessType, info.bufferTransfer);
-		
-		VulkanAllocation allocation = m_memory->Allocate(m_device, requiremenets, properties);
-		bool allocated = allocation.IsValid();
-		if (!allocated)
+		else
 		{
-			properties = GetBufferProperty(eDataAccess::eStaging, eBufferTransfer::eSource);
+			RHITextureUpdateDesc updateInfo = info;
 
-			allocation = m_memory->Allocate(m_device, requiremenets, properties);
+			UpdateTexture(updateInfo, texture);
 
-			allocated = allocation.IsValid();
+			texture->SetState(eResourceState::eReady);
 		}
-
-		if (!allocated)
-		{
-			LOGERROR() << "[Vk] Failed to allocate the buffer memory";
-
-			vkDestroyBuffer(logicalDevice, bufferInstance, nullptr);
-
-			vkBuffer->SetAllocation(VulkanAllocation::Null);
-			vkBuffer->SetBuffer(VK_NULL_HANDLE);
-			vkBuffer->SetState(eResourceState::eError);
-
-			return;
-		}
-
-		result = vkBindBufferMemory(logicalDevice, bufferInstance, allocation.memory, allocation.offset);
-		if (result != VK_SUCCESS)
-		{
-			LOGERROR() << "[Vk] Failed to bind the buffer memory, error code: " << result;
-
-			vkDestroyBuffer(logicalDevice, bufferInstance, nullptr);
-
-			m_memory->Free(m_device, allocation);
-
-			vkBuffer->SetAllocation(VulkanAllocation::Null);
-			vkBuffer->SetBuffer(VK_NULL_HANDLE);
-			vkBuffer->SetState(eResourceState::eError);
-			
-			return;
-		}
-
-		vkBuffer->SetAllocation(allocation);
-		vkBuffer->SetBuffer(bufferInstance);
-		vkBuffer->SetState(eResourceState::eReady);
-
-		// TODO - Texel Buffer View
 	}
 
 	void VulkanSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
-	}
+		if (!layout)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the vertex layout, the layout is invalid";
+			return;
+		}
+		
+		VulkanVertexLayout* rhiVertexLayout = static_cast<VulkanVertexLayout*>(layout->GetRawBuffer());
+		if (!rhiVertexLayout)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the vertex layout, the raw buffer is invalid";
+			return;
+		}
 
-	void VulkanSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
-	{
+		for (const auto& [vertexKey, vertexStream] : info.streams)
+		{
+			const auto& attribute = vertexStream.attribute;
+			const auto& binding = vertexStream.binding;
+			const uint32_t bindingIndex = vertexStream.bindingIndex;
+
+			VkVertexInputAttributeDescription attributeDesc{};
+			attributeDesc.location = attribute.location;
+			attributeDesc.binding = bindingIndex;
+			attributeDesc.format = GetDataFormat(attribute.componentType);
+			attributeDesc.offset = attribute.offset;
+
+			VkVertexInputBindingDescription bindingDesc{};
+			bindingDesc.binding = bindingIndex;
+			bindingDesc.inputRate = GetVertexDivisor(binding.divisor);
+			bindingDesc.stride = binding.stride;
+
+			rhiVertexLayout->SetAttribute(vertexKey, attributeDesc);
+			rhiVertexLayout->SetBinding(vertexKey, bindingDesc);
+		}
+
+		rhiVertexLayout->SetState(eResourceState::eReady);
 	}
 
 	void VulkanSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
 	{
+		if (!m_device || !m_device->IsValid())
+		{
+			LOGERROR() << "[Vk] Failed to initialize the sampler, the device is invalid";
+			return;
+		}
+
+		if (!sampler)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the sampler, the sampler is invalid";
+			return;
+		}
+
+		VulkanSampler* rhiSampler = static_cast<VulkanSampler*>(sampler->GetRawBuffer());
+		if (!rhiSampler)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the sampler, the raw buffer is invalid";
+			return;
+		}
+
+		if (rhiSampler->GetSampler() != VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] The sampler is already created";
+			return;
+		}
+
+		const VkFilter magFilter = GetFilterMode(info.magFilter);
+		const VkFilter minFilter = GetFilterMode(info.minFilter);
+		const VkSamplerAddressMode wrapS = GetWrapMode(info.wrapS);
+		const VkSamplerAddressMode wrapT = GetWrapMode(info.wrapT);
+		const VkSamplerAddressMode wrapR = GetWrapMode(info.wrapR);
+		const VkBorderColor borderColor = GetWrapBorderColor(info.wrapBorderColor);
+		
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = magFilter;
+		samplerInfo.minFilter = minFilter;
+		samplerInfo.addressModeU = wrapS;
+		samplerInfo.addressModeV = wrapT;
+		samplerInfo.addressModeW = wrapR;
+		samplerInfo.borderColor = borderColor;
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		VkSampler vkSampler;
+		VkResult result = vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &vkSampler);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to create sampler, error code: " << result;
+			return;
+		}
+
+		rhiSampler->SetSampler(vkSampler);
+		rhiSampler->SetState(eResourceState::eReady);
 	}
 
 	void VulkanSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
 	{
-		if (!shader || !info.data || !m_device)
+		if (!m_device || !m_device->IsValid())
 		{
+			LOGERROR() << "[Vk] Failed to initialize the shader, the device is invalid";
+			return;
+		}
+
+		if (!shader || !info.data)
+		{
+			LOGERROR() << "[Vk] Failed to initialize the shader, the shader or the source code is invalid";
 			return;
 		}
 
 		VulkanShader* vkShader = static_cast<VulkanShader*>(shader->GetRawBuffer());
 		if (!vkShader)
 		{
+			LOGERROR() << "[Vk] Failed to initialize the shader, the shader is invalid";
+			return;
+		}
+
+		if (vkShader->GetShaderModule() != VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] The shader module is already created";
 			return;
 		}
 
 		const DynamicArray<uint32_t> compiledSource = RHIUtils::CompileShader(info);
 		if (compiledSource.Empty())
 		{
+			LOGERROR() << "[Vk] Failed to compile the shader source code";
 			return;
 		}
 
@@ -761,8 +598,10 @@ namespace wtr
 		moduleInfo.codeSize = compiledSource.Size() * sizeof(decltype(compiledSource)::ValueType);
 		moduleInfo.pCode = compiledSource.Data();
 
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
 		VkShaderModule shaderModule;
-		VkResult result = vkCreateShaderModule(m_device->GetLogicalDevice(), &moduleInfo, nullptr, &shaderModule);
+		VkResult result = vkCreateShaderModule(logicalDevice, &moduleInfo, nullptr, &shaderModule);
 		if (result != VK_SUCCESS)
 		{
 			LOGERROR() << "[Vk] Failed to create shader module, error code: " << result;
@@ -774,7 +613,7 @@ namespace wtr
 		{
 			LOGERROR() << "[Vk] The shader has wrong attribute location or naming";
 
-			vkDestroyShaderModule(m_device->GetLogicalDevice(), shaderModule, nullptr);
+			vkDestroyShaderModule(logicalDevice, shaderModule, nullptr);
 			vkShader->SetState(eResourceState::eError);
 
 			return;
@@ -804,39 +643,29 @@ namespace wtr
 	{
 	}
 
-	void VulkanSystem::InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass)
-	{
-	}
-
 	void VulkanSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
-		if (!buffer || info.dataRanges.Empty() || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
+		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to update buffer";
 			return;
 		}
 
-		if (info.size > buffer->GetSize())
+		if (!buffer || info.size == 0)
 		{
-			LOGERROR() << "[Vk] Buffer size is smaller than the data size, resizing the buffer";
+			LOGERROR() << "[Vk] Buffer is null or size is zero, failed to update buffer";
+			return;
+		}
+
+		VulkanBuffer* rhiBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer || rhiBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk] VulkanBuffer is null or invalid, failed to update buffer";
 			return;
 		}
 
 		VkDevice logicalDevice = m_device->GetLogicalDevice();
-
-		VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
-		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
-		{
-			return;
-		}
-
-		VkBuffer bufferInstance = vkBuffer->GetBuffer();
-		if (bufferInstance == VK_NULL_HANDLE)
-		{
-			LOGERROR() << "[Vk] Buffer instance is invalid";
-			return;
-		}
-
-		const VulkanAllocation& allocation = vkBuffer->GetAllocation();
+		const VulkanAllocation& allocation = rhiBuffer->GetAllocation();
 
 		const bool useMapBuffer = (info.mapAccess != eMapAccess::eNone) && ((allocation.memoryFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0);
 		if (useMapBuffer)
@@ -845,9 +674,7 @@ namespace wtr
 
 			uint8_t* mappedBuffer = nullptr;
 
-			VkResult result = vkMapMemory(logicalDevice, allocation.memory, allocation.offset, 
-				info.size, VK_MEMORY_MAP_PLACED_BIT_EXT, reinterpret_cast<void**>(&mappedBuffer));
-
+			VkResult result = vkMapMemory(logicalDevice, allocation.memory, allocation.offset, info.size, 0, reinterpret_cast<void**>(&mappedBuffer));
 			if (result != VK_SUCCESS || mappedBuffer == nullptr)
 			{
 				LOGERROR() << "[Vk] Failed to map the buffer memory, error code: " << result;
@@ -863,12 +690,12 @@ namespace wtr
 
 				const void* dataPointer = dataRange.data->GetPointer();
 				const size_t dataSize = dataRange.data->GetSize();
-				if (dataSize + dataRange.offset > buffer->GetSize())
+				if (dataSize + dataRange.offset[0] > buffer->GetSize())
 				{
 					continue;
 				}
 
-				char* offsetPointer = reinterpret_cast<char*>(mappedBuffer) + dataRange.offset;
+				char* offsetPointer = reinterpret_cast<char*>(mappedBuffer) + dataRange.offset[0];
 
 				std::memcpy(offsetPointer, dataPointer, dataSize);
 			}
@@ -881,7 +708,7 @@ namespace wtr
 				const VkDeviceSize alignedSize = (allocation.offset + allocation.size + nonCoherentAtomSize - 1) & ~(nonCoherentAtomSize - 1);
 				const VkDeviceSize flushOffset = allocation.offset & ~(nonCoherentAtomSize - 1);
 				const VkDeviceSize flushSize = alignedSize - flushOffset;
-				
+
 				VkMappedMemoryRange memoryRange{};
 				memoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 				memoryRange.pNext = nullptr;
@@ -893,6 +720,7 @@ namespace wtr
 				if (result != VK_SUCCESS)
 				{
 					LOGERROR() << "[Vk] Failed to flush the map buffer";
+					return;
 				}
 			}
 
@@ -900,91 +728,248 @@ namespace wtr
 		}
 		else
 		{
-
+			const RHIBufferCreateDesc stagingInfo = GetStagingDesc(info);
+			Memory::RefPtr<RHIBuffer> stagingBuffer = AcquireStaging(stagingInfo);
+			CopyBuffer(stagingBuffer, stagingInfo, buffer, info);
+			ReleaseStaging(stagingBuffer);
 		}
+
+		buffer->SetDesc(info);
 	}
 
 	void VulkanSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to update texture";
+			return;
+		}
+
+		if (!texture || info.faces.Empty() == 0)
+		{
+			LOGERROR() << "[Vk] Texture is null or size is zero, failed to update texture";
+			return;
+		}
+
+		VulkanTexture* rhiTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
+		if (!rhiTexture || rhiTexture->GetImage() == VK_NULL_HANDLE || rhiTexture->GetImageView() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk] VulkanTexture is null or invalid, failed to update texture";
+			return;
+		}
+
+		texture->SetDesc(info);
 	}
 
 	void VulkanSystem::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
+		// TODO: Implement this function if needed
+
+		return;
 	}
 
 	void VulkanSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to resize buffer";
+			return;
+		}
+
+		if (!buffer || info.size == 0)
+		{
+			LOGERROR() << "[Vk] Buffer is null or size is zero, failed to resize buffer";
+			return;
+		}
+
+		VulkanBuffer* rhiBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer)
+		{
+			LOGERROR() << "[Vk] VulkanBuffer is null, failed to resize buffer";
+			return;
+		}
+
+		if (rhiBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk] VulkanBuffer is not created, failed to resize buffer";
+			return;
+		}
+
+		const bool neededResize = (info.size > rhiBuffer->GetSize()) || (info.size < (rhiBuffer->GetSize() / 4));
+		if (neededResize)
+		{
+			Memory::RefPtr<RHIBuffer> newBuffer = CreateBuffer(info);
+			VulkanBuffer* rhiNewBuffer = static_cast<VulkanBuffer*>(newBuffer->GetRawBuffer());
+			if (!rhiNewBuffer)
+			{
+				LOGERROR() << "[Vk] Failed to create the new buffer for resizing";
+				return;
+			}
+
+			if (AllocateBuffer(info, newBuffer))
+			{
+				UpdateBuffer(info, newBuffer);
+				CopyBuffer(buffer, info, newBuffer, info);
+
+				const VkBuffer oldVkBuffer = rhiBuffer->GetBuffer();
+				const VkBuffer newVkBuffer = rhiNewBuffer->GetBuffer();
+
+				const RHIBufferDesc oldDesc = rhiBuffer->GetDesc();
+				const RHIBufferDesc newDesc = rhiNewBuffer->GetDesc();
+
+				const VulkanAllocation oldAllocation = rhiBuffer->GetAllocation();
+				const VulkanAllocation newAllocation = rhiNewBuffer->GetAllocation();
+
+				rhiBuffer->SetDesc(newDesc);
+				rhiBuffer->SetBuffer(newVkBuffer);
+				rhiBuffer->SetAllocation(newAllocation);
+
+				rhiNewBuffer->SetDesc(oldDesc);
+				rhiNewBuffer->SetBuffer(oldVkBuffer);
+				rhiNewBuffer->SetAllocation(oldAllocation);
+			}
+			else
+			{
+				LOGERROR() << "[Vk] Failed to allocate the new buffer for resizing";
+			}
+
+			RemoveBuffer(newBuffer);
+		}
+		else
+		{
+			RHIBufferUpdateDesc updateDesc = info;
+			updateDesc.mapAccess = eMapAccess::eWrite;
+
+			UpdateBuffer(updateDesc, buffer);
+		}
 	}
 
 	void VulkanSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 	}
 
-	void VulkanSystem::SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName)
+	void VulkanSystem::SetConstant(const RHIConstDesc info, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	void VulkanSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
+	void VulkanSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
+	void VulkanSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
+	void VulkanSystem::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset)
 	{
+		if (!buffer)
+		{
+			return;
+		}
+
+		const VulkanBuffer* vkBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+
+		const VkBuffer nativeBuffer = vkBuffer->GetBuffer();
+		const VkDeviceSize nativeOffset = static_cast<VkDeviceSize>(offset);
+
+		vkCmdBindVertexBuffers(commandBuffer, bidingIndex, 1, &nativeBuffer, &nativeOffset);
 	}
 
-	void VulkanSystem::UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
+	void VulkanSystem::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
 	{
-	}
+		if (!buffer)
+		{
+			return;
+		}
 
-	void VulkanSystem::UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
-	{
-	}
+		const VulkanBuffer* vkBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
 
-	void VulkanSystem::UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
-	{
+		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+
+		const RHIBufferDesc& desc = buffer->GetDesc();
+		const VkIndexType indexType = GetIndexFormat(desc.componentType);
+		const VkDeviceSize nativeOffset = static_cast<VkDeviceSize>(offset);
+
+		vkCmdBindIndexBuffer(commandBuffer, vkBuffer->GetBuffer(),	nativeOffset, indexType);
 	}
 
 	void VulkanSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
+		// nothing
 	}
 
 	void VulkanSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 	}
 
-	void VulkanSystem::SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	void VulkanSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
+		// No descriptor unbind in Vulkan - a slot just holds whatever was last written.
 	}
 
-	void VulkanSystem::SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass)
+	void VulkanSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
+		// See UnsetBuffer.
 	}
 
-	void VulkanSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+	void VulkanSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
+		// See UnsetBuffer.
+	}
+
+	void VulkanSystem::UnsetVertexBuffer(const uint32_t bidingIndex)
+	{
+		// No vertex-buffer unbind in Vulkan - a slot just holds whatever was last bound.
+	}
+
+	void VulkanSystem::UnsetIndexBuffer()
+	{
+		// See UnsetVertexBuffer.
 	}
 
 	void VulkanSystem::UnsetVertexLayout()
 	{
+		// VertexLayout is baked into the bound Pipeline, not a separate bind target.
 	}
 
 	void VulkanSystem::UnsetPipeLine()
 	{
+		// No unbind - a draw can't run without some pipeline bound anyway.
 	}
 
-	void VulkanSystem::UnsetRenderTarget()
+	void VulkanSystem::BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target)
 	{
 	}
 
-	void VulkanSystem::UnsetRenderPass()
+	void VulkanSystem::EndRenderPass()
+	{
+	}
+
+	void VulkanSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state)
 	{
 	}
 
@@ -996,7 +981,366 @@ namespace wtr
 	{
 	}
 
-	VkBufferUsageFlags VulkanSystem::GetBufferType(const eBufferType bufferType) const
+	bool VulkanSystem::AllocateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to allocate buffer";
+			return false;
+		}
+
+		if (!buffer || info.size == 0)
+		{
+			LOGERROR() << "[Vk] Buffer is null or size is zero, failed to allocate buffer";
+			return false;
+		}
+
+		VulkanBuffer* rhiBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer)
+		{
+			LOGERROR() << "[Vk] VulkanBuffer is null, failed to allocate buffer";
+			return false;
+		}
+
+		if (rhiBuffer->GetBuffer() != VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] Buffer already has a valid VkBuffer, skipping the allocation";
+			return true;
+		}
+
+		const VkBufferUsageFlags usageFlags = GetBufferUsage(info.bufferType) | GetBufferUsage(info.bufferTransfer);
+
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.pNext = nullptr;
+		bufferInfo.size = info.size;
+		bufferInfo.usage = usageFlags;
+		bufferInfo.queueFamilyIndexCount = 0;
+		bufferInfo.pQueueFamilyIndices = nullptr;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		VkBuffer vkBuffer;
+		VkResult result = vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &vkBuffer);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to create the buffer, error code: " << result;
+			return false;
+		}
+
+		VkMemoryRequirements requirements;
+		vkGetBufferMemoryRequirements(logicalDevice, vkBuffer, &requirements);
+
+		const VkMemoryPropertyFlags properties = GetMemoryProperty(info.accessType, info.bufferTransfer);
+
+		VulkanAllocation allocation = m_memory->Allocate(m_device, requirements, properties);
+		if (!allocation.IsValid())
+		{
+			LOGERROR() << "[Vk] Failed to allocate the buffer memory";
+
+			vkDestroyBuffer(logicalDevice, vkBuffer, nullptr);
+
+			return false;
+		}
+
+		result = vkBindBufferMemory(logicalDevice, vkBuffer, allocation.memory, allocation.offset);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to bind the buffer memory, error code: " << result;
+
+			vkDestroyBuffer(logicalDevice, vkBuffer, nullptr);
+			m_memory->Free(m_device, allocation);
+
+			return false;
+		}
+
+		rhiBuffer->SetBuffer(vkBuffer);
+		rhiBuffer->SetAllocation(allocation);
+
+		return true;
+	}
+
+	bool VulkanSystem::AllocateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to allocate texture";
+			return false;
+		}
+
+		if (!texture || info.width == 0 || info.height == 0 || info.depth == 0)
+		{
+			LOGERROR() << "[Vk] Texture is null or dimensions are zero, failed to allocate texture";
+			return false;
+		}
+
+		VulkanTexture* rhiTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
+		if (!rhiTexture)
+		{
+			LOGERROR() << "[Vk] VulkanTexture is null, failed to allocate texture";
+			return false;
+		}
+
+		if (rhiTexture->GetImage() != VK_NULL_HANDLE || rhiTexture->GetImageView() != VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk] Texture already has a valid VkImage";
+			return true;
+		}
+
+		const VkImageUsageFlags imageUsage = GetImageUsage(info.usage, info.generateMips);
+		const VkImageCreateFlags imageCreate = GetImageCreate(info.textureType);
+		const VkImageType imageType = GetImageType(info.textureType);
+		const VkFormat imageFormat = GetImageFormat(info.format);
+		const VkSampleCountFlags sampleCount = GetSampleCount(info.sampleCount);
+
+		const bool hasHeight = (imageType == VK_IMAGE_TYPE_2D) || (imageType == VK_IMAGE_TYPE_3D);
+		const bool hasDepth = (imageType == VK_IMAGE_TYPE_3D);
+		const bool hasArray = (imageType != VK_IMAGE_TYPE_3D); // TODO : Texture Array
+
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.flags = imageCreate;
+		imageInfo.imageType = imageType;
+		imageInfo.format = imageFormat;
+		imageInfo.usage = imageUsage;
+		imageInfo.extent.width = info.width;
+		imageInfo.extent.height = hasHeight ? info.height : 1;
+		imageInfo.extent.depth = hasDepth ? info.depth : 1;
+		imageInfo.arrayLayers = hasArray ? info.face : 1;
+		imageInfo.mipLevels = info.mipLevels;
+		imageInfo.samples = static_cast<VkSampleCountFlagBits>(sampleCount);
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		VkImage vkImage;
+		VkResult result = vkCreateImage(logicalDevice, &imageInfo, nullptr, &vkImage);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to create the image, error code: " << result;
+			return false;
+		}
+
+		VkMemoryRequirements requirements;
+		vkGetImageMemoryRequirements(logicalDevice, vkImage, &requirements);
+
+		VulkanAllocation allocation = m_memory->Allocate(m_device, requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		if (!allocation.IsValid())
+		{
+			LOGERROR() << "[Vk] Failed to allocate the image memory";
+
+			vkDestroyImage(logicalDevice, vkImage, nullptr);
+			return false;
+		}
+
+		result = vkBindImageMemory(logicalDevice, vkImage, allocation.memory, allocation.offset);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to bind the image memory, error code: " << result;
+
+			vkDestroyImage(logicalDevice, vkImage, nullptr);
+			m_memory->Free(m_device, allocation);
+
+			return false;
+		}
+
+		const VkImageViewType imageViewType = GetImageViewType(info.textureType);
+		const VkImageAspectFlags imageAspect = GetImageAspect(info.format);
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = vkImage;
+		viewInfo.viewType = imageViewType;
+		viewInfo.format = imageFormat;
+		viewInfo.subresourceRange.aspectMask = imageAspect;
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = info.mipLevels;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = imageInfo.arrayLayers;
+
+		VkImageView vkImageView;
+		result = vkCreateImageView(logicalDevice, &viewInfo, nullptr, &vkImageView);
+		if (result != VK_SUCCESS)
+		{
+			LOGERROR() << "[Vk] Failed to create the image view, error code: " << result;
+
+			vkDestroyImage(logicalDevice, vkImage, nullptr);
+			m_memory->Free(m_device, allocation);
+
+			return false;
+		}
+
+		rhiTexture->SetImage(vkImage);
+		rhiTexture->SetImageView(vkImageView);
+		rhiTexture->SetAllocation(allocation);
+
+		return true;
+	}
+
+	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHIBufferCreateDesc info)
+	{
+		RHIBufferCreateDesc stagingDesc{};
+		stagingDesc.accessType = eDataAccess::eStaging;
+		stagingDesc.bufferTransfer = eBufferTransfer::eSource;
+		stagingDesc.dataRanges.Reserve(info.dataRanges.Size());
+
+		uint32_t offset = 0;
+		for (const auto& dataRange : info.dataRanges)
+		{
+			if (!dataRange.data)
+			{
+				continue;
+			}
+
+			RHIDataRange<1> currRange = dataRange;
+			currRange.offset[0] = offset;
+
+			offset += currRange.data->GetSize();
+
+			stagingDesc.dataRanges.PushBack(currRange);
+		}
+
+		stagingDesc.size = offset;
+
+		return stagingDesc;
+	}
+
+	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHITextureCreateDesc info)
+	{
+		RHIBufferCreateDesc stagingDesc{};
+		stagingDesc.accessType = eDataAccess::eStaging;
+		stagingDesc.bufferTransfer = eBufferTransfer::eSource;
+
+		uint32_t offset = 0;
+		for (const auto& face : info.faces)
+		{
+			for (const auto& mipmap : face.mipMaps)
+			{
+				if (!mipmap.data)
+				{
+					continue;
+				}
+
+				RHIDataRange<1> currRange;
+				currRange.data = mipmap.data;
+				currRange.offset[0] = offset;
+
+				offset += currRange.data->GetSize();
+
+				stagingDesc.dataRanges.PushBack(currRange);
+			}
+		}
+
+		stagingDesc.size = offset;
+
+		return stagingDesc;
+	}
+
+	Memory::RefPtr<RHIBuffer> VulkanSystem::AcquireStaging(const RHIBufferCreateDesc info)
+	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to get staging buffer";
+			return nullptr;
+		}
+
+		Memory::RefPtr<RHIBuffer> stagingBuffer = nullptr;		
+		for (auto itr = m_staging.begin(); itr != m_staging.end(); itr++)
+		{
+			Memory::RefPtr<RHIBuffer> buffer = *itr;
+			if (buffer && buffer->GetSize() >= info.size)
+			{
+				stagingBuffer = buffer;
+				m_staging.Erase(itr);
+				break;
+			}
+		}
+
+		RHIBufferUpdateDesc updateDesc = info;
+		updateDesc.mapAccess = eMapAccess::eWrite;
+
+		if (!stagingBuffer)
+		{
+			stagingBuffer = CreateBuffer(info);
+			AllocateBuffer(info, stagingBuffer);
+		}
+		
+		UpdateBuffer(updateDesc, stagingBuffer);
+
+		return stagingBuffer;
+	}
+
+	void VulkanSystem::ReleaseStaging(Memory::RefPtr<RHIBuffer> staging)
+	{
+		if (!staging)
+		{
+			return;
+		}
+
+		m_releaseStaging.PushBack(staging);
+	}
+
+	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHIBuffer> dest, const RHIBufferCreateDesc destInfo)
+	{
+		if (!m_device || !m_device->IsValid() || !m_primary)
+		{
+			LOGERROR() << "[Vk] Device or primary command is not valid, failed to copy the buffer";
+			return;
+		}
+
+		if (!src || !dest)
+		{
+			return;
+		}
+
+		if (srcInfo.dataRanges.Empty() || destInfo.dataRanges.Empty() || srcInfo.dataRanges.Size() != destInfo.dataRanges.Size())
+		{
+			return;
+		}
+
+		const VulkanBuffer* rhiSrc = static_cast<const VulkanBuffer*>(src->GetRawBuffer());
+		VulkanBuffer* rhiDest = static_cast<VulkanBuffer*>(dest->GetRawBuffer());
+		if (!rhiSrc || rhiSrc->GetBuffer() == VK_NULL_HANDLE ||
+			!rhiDest || rhiDest->GetBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		wtr::DynamicArray<VkBufferCopy> regions(srcInfo.dataRanges.Size());
+		for (size_t index = 0; index < srcInfo.dataRanges.Size(); index++)
+		{
+			const auto& stagingRange = srcInfo.dataRanges[index];
+			const auto& bufferRange = destInfo.dataRanges[index];
+			if (!stagingRange.data || !bufferRange.data)
+			{
+				continue;
+			}
+
+			auto& region = regions[index];
+			region.size = stagingRange.data->GetSize();
+			region.srcOffset = stagingRange.offset[0];
+			region.dstOffset = bufferRange.offset[0];
+		}
+
+		VkBuffer vkSrc = rhiSrc->GetBuffer();
+		VkBuffer vkDest = rhiDest->GetBuffer();
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+
+		vkCmdCopyBuffer(commandBuffer, vkSrc, vkDest, regions.Size(), regions.Data());
+	}
+
+	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHITextureCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo)
+	{
+		//VkBufferImageCopy region{};
+		//region.bufferImageHeight = 0;
+		//vkCmdCopyBufferToImage(m_primary->GetCommandBuffer(), static_cast<const VulkanBuffer*>(src->GetRawBuffer())->GetBuffer(),
+		//	static_cast<VulkanTexture*>(dest->GetRawBuffer())->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, nullptr);
+	}
+
+	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferType bufferType) const
 	{
 		VkBufferUsageFlags usageFlags = 0x00;
 		if (eBufferType::eVertex == bufferType)
@@ -1034,7 +1378,7 @@ namespace wtr
 		return usageFlags;
 	}
 
-	VkBufferUsageFlags VulkanSystem::GetBufferTransfer(const eBufferTransfer bufferTransfer) const
+	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferTransfer bufferTransfer) const
 	{
 		VkBufferUsageFlags usageFlags = 0x00;
 		if (eBufferTransfer::eSource == bufferTransfer)
@@ -1050,7 +1394,7 @@ namespace wtr
 		return usageFlags;
 	}
 
-	VkMemoryPropertyFlags VulkanSystem::GetBufferProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const
+	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const
 	{
 		if (eDataAccess::eStatic == dataAccess)
 		{
@@ -1062,18 +1406,15 @@ namespace wtr
 		}
 		else if (eDataAccess::eStaging == dataAccess)
 		{
-			if (eBufferTransfer::eSource == bufferTransfer)
-			{
-				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-			}
-			else if (eBufferTransfer::eDestination == bufferTransfer)
-			{
-				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-			}
-			else
-			{
-				// nothing
-			}
+			const bool isSource = (bufferTransfer & eBufferTransfer::eSource) != eBufferTransfer::eNone;
+			const bool isDestination = (bufferTransfer & eBufferTransfer::eDestination) != eBufferTransfer::eNone;
+
+			VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+			flags = isSource ? (flags | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : flags;
+			flags = isDestination ? (flags | VK_MEMORY_PROPERTY_HOST_CACHED_BIT) : flags;
+
+			return flags;
 		}
 		else
 		{
@@ -1083,7 +1424,7 @@ namespace wtr
 		return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
 
-	VkFormat VulkanSystem::GetDataType(const eDataType data) const
+	VkFormat VulkanSystem::GetDataFormat(const eDataType data) const
 	{
 		// Single-component scalar format - the building block a vertex attribute's real
 		// VkFormat (e.g. VK_FORMAT_R32G32B32_SFLOAT) is chosen from once component count is
@@ -1127,11 +1468,150 @@ namespace wtr
 		}
 	}
 
-	VkIndexType VulkanSystem::GetIndexType(const eDataType data) const
+	VkFormat VulkanSystem::GetVertexFormat(const eDataType data, const uint32_t count, const bool normalized) const
 	{
-		// Unlike GL's glDrawElements (which accepts the same type token for any integer width),
-		// vkCmdBindIndexBuffer only accepts these two widths - there is no 8/32-bit VkIndexType
-		// without the separate VK_EXT_index_type_uint8 extension.
+		const VkFormat baseFormat = GetDataFormat(data);
+		if (VK_FORMAT_UNDEFINED == baseFormat || count < 1 || count > 4)
+		{
+			return VK_FORMAT_UNDEFINED;
+		}
+
+		const uint32_t index = count - 1;
+
+		if (VK_FORMAT_R8_UINT == baseFormat)
+		{
+			static constexpr VkFormat table[4][2] =
+			{
+				{ VK_FORMAT_R8_UINT,       VK_FORMAT_R8_UNORM },
+				{ VK_FORMAT_R8G8_UINT,     VK_FORMAT_R8G8_UNORM },
+				{ VK_FORMAT_R8G8B8_UINT,   VK_FORMAT_R8G8B8_UNORM },
+				{ VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_R8G8B8A8_UNORM },
+			};
+
+			return table[index][normalized ? 1 : 0];
+		}
+		else if (VK_FORMAT_R8_SINT == baseFormat)
+		{
+			static constexpr VkFormat table[4][2] =
+			{
+				{ VK_FORMAT_R8_SINT,       VK_FORMAT_R8_SNORM },
+				{ VK_FORMAT_R8G8_SINT,     VK_FORMAT_R8G8_SNORM },
+				{ VK_FORMAT_R8G8B8_SINT,   VK_FORMAT_R8G8B8_SNORM },
+				{ VK_FORMAT_R8G8B8A8_SINT, VK_FORMAT_R8G8B8A8_SNORM },
+			};
+
+			return table[index][normalized ? 1 : 0];
+		}
+		else if (VK_FORMAT_R16_UINT == baseFormat)
+		{
+			static constexpr VkFormat table[4][2] =
+			{
+				{ VK_FORMAT_R16_UINT,          VK_FORMAT_R16_UNORM },
+				{ VK_FORMAT_R16G16_UINT,       VK_FORMAT_R16G16_UNORM },
+				{ VK_FORMAT_R16G16B16_UINT,    VK_FORMAT_R16G16B16_UNORM },
+				{ VK_FORMAT_R16G16B16A16_UINT, VK_FORMAT_R16G16B16A16_UNORM },
+			};
+
+			return table[index][normalized ? 1 : 0];
+		}
+		else if (VK_FORMAT_R16_SINT == baseFormat)
+		{
+			static constexpr VkFormat table[4][2] =
+			{
+				{ VK_FORMAT_R16_SINT,          VK_FORMAT_R16_SNORM },
+				{ VK_FORMAT_R16G16_SINT,       VK_FORMAT_R16G16_SNORM },
+				{ VK_FORMAT_R16G16B16_SINT,    VK_FORMAT_R16G16B16_SNORM },
+				{ VK_FORMAT_R16G16B16A16_SINT, VK_FORMAT_R16G16B16A16_SNORM },
+			};
+
+			return table[index][normalized ? 1 : 0];
+		}
+		else if (VK_FORMAT_R32_UINT == baseFormat)
+		{
+			// Vulkan has no 32-bit normalized integer format - UNORM/SNORM stop at 16-bit.
+			// A normalized request here is a caller mistake, not something to silently coerce.
+			if (normalized)
+			{
+				return VK_FORMAT_UNDEFINED;
+			}
+
+			static constexpr VkFormat table[4] =
+			{
+				VK_FORMAT_R32_UINT, 
+				VK_FORMAT_R32G32_UINT, 
+				VK_FORMAT_R32G32B32_UINT, 
+				VK_FORMAT_R32G32B32A32_UINT,
+			};
+
+			return table[index];
+		}
+		else if (VK_FORMAT_R32_SINT == baseFormat)
+		{
+			if (normalized)
+			{
+				return VK_FORMAT_UNDEFINED;
+			}
+
+			static constexpr VkFormat table[4] =
+			{
+				VK_FORMAT_R32_SINT, 
+				VK_FORMAT_R32G32_SINT, 
+				VK_FORMAT_R32G32B32_SINT, 
+				VK_FORMAT_R32G32B32A32_SINT,
+			};
+
+			return table[index];
+		}
+		else if (VK_FORMAT_R32_SFLOAT == baseFormat)
+		{
+			// normalized is meaningless for a float source - always ignored.
+			static constexpr VkFormat table[4] =
+			{
+				VK_FORMAT_R32_SFLOAT, 
+				VK_FORMAT_R32G32_SFLOAT, 
+				VK_FORMAT_R32G32B32_SFLOAT, 
+				VK_FORMAT_R32G32B32A32_SFLOAT,
+			};
+
+			return table[index];
+		}
+		else if (VK_FORMAT_R64_SFLOAT == baseFormat)
+		{
+			// Same as R32_SFLOAT - no normalized variant exists, and normalized is meaningless anyway.
+			static constexpr VkFormat table[4] =
+			{
+				VK_FORMAT_R64_SFLOAT, 
+				VK_FORMAT_R64G64_SFLOAT, 
+				VK_FORMAT_R64G64B64_SFLOAT, 
+				VK_FORMAT_R64G64B64A64_SFLOAT,
+			};
+
+			return table[index];
+		}
+		else
+		{
+			return VK_FORMAT_UNDEFINED;
+		}
+	}
+
+	VkVertexInputRate VulkanSystem::GetVertexDivisor(const eDataDivisor divisor) const
+	{
+		if (eDataDivisor::ePerVertex == divisor)
+		{
+			return VK_VERTEX_INPUT_RATE_VERTEX;
+		}
+		else if (eDataDivisor::ePerInstance == divisor)
+		{
+			return VK_VERTEX_INPUT_RATE_INSTANCE;
+		}
+		else
+		{
+			return VK_VERTEX_INPUT_RATE_MAX_ENUM;
+		}
+	}
+
+	VkIndexType VulkanSystem::GetIndexFormat(const eDataType data) const
+	{
 		if (eDataType::eUShort == data)
 		{
 			return VK_INDEX_TYPE_UINT16;
@@ -1146,7 +1626,89 @@ namespace wtr
 		}
 	}
 
-	VkImageViewType VulkanSystem::GetTextureType(const eTextureType texture) const
+	VkImageAspectFlags VulkanSystem::GetImageAspect(const ePixelFormat pixel) const
+	{
+		if (ePixelFormat::eD32 == pixel)
+		{
+			return VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		else if (ePixelFormat::eD24_S8 == pixel)
+		{
+			return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		else
+		{
+			return VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+	}
+
+	VkImageAspectFlags VulkanSystem::GetImageAspect(const eAttachment attach) const
+	{
+		if (eAttachment::eColor == attach)
+		{
+			return VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+		else if (eAttachment::eDepth == attach)
+		{
+			return VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		else if (eAttachment::eStencil == attach)
+		{
+			return VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		else if (eAttachment::eDepthStencil == attach)
+		{
+			return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	VkImageUsageFlags VulkanSystem::GetImageUsage(const eTextureUsage usage, const bool mipmaps) const
+	{
+		VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+		if ((usage & eTextureUsage::eSampled) != eTextureUsage::eNone)
+		{
+			usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		}
+
+		if ((usage & eTextureUsage::eRenderTarget) != eTextureUsage::eNone)
+		{
+			usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
+
+		if ((usage & eTextureUsage::eDepthStencil) != eTextureUsage::eNone)
+		{
+			usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		}
+
+		if ((usage & eTextureUsage::eStorage) != eTextureUsage::eNone)
+		{
+			usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
+		}
+
+		if (mipmaps)
+		{
+			usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		}
+
+		return usageFlags;
+	}
+
+	VkImageCreateFlags VulkanSystem::GetImageCreate(const eTextureType type) const
+	{
+		if (type == eTextureType::eTextureCube || type == eTextureType::eTextureCubeArray)
+		{
+			return VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		}
+
+		return VK_IMAGE_CREATE_FLAG_BITS_MAX_ENUM;
+	}
+
+	VkImageViewType VulkanSystem::GetImageViewType(const eTextureType texture) const
 	{
 		if (eTextureType::eTexture1D == texture)
 		{
@@ -1192,12 +1754,8 @@ namespace wtr
 		}
 	}
 
-	VkImageType VulkanSystem::GetTextureDimension(const eTextureType texture) const
+	VkImageType VulkanSystem::GetImageType(const eTextureType texture) const
 	{
-		// GL's GetTextureDimension() returns 1/2/3 to pick InitializeTexture1D/2D/3D. VkImageType
-		// is the same underlying "how many storage dimensions does this image have" concept,
-		// just expressed as an enum instead of an int - a cube map's storage is still 2D
-		// (6 layers), and array-ness doesn't add a storage dimension either.
 		if (eTextureType::eTexture1D == texture || eTextureType::eTexture1DArray == texture)
 		{
 			return VK_IMAGE_TYPE_1D;
@@ -1221,7 +1779,7 @@ namespace wtr
 		}
 	}
 
-	VkFormat VulkanSystem::GetPixelFormat(const ePixelFormat pixel) const
+	VkFormat VulkanSystem::GetImageFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eR8_UNorm == pixel)
 		{
@@ -1353,6 +1911,42 @@ namespace wtr
 		}
 	}
 
+	VkSampleCountFlags VulkanSystem::GetSampleCount(const uint32_t count) const
+	{
+		if (count == 1)
+		{
+			return VK_SAMPLE_COUNT_1_BIT;
+		}
+		else if (count == 2)
+		{
+			return VK_SAMPLE_COUNT_2_BIT;
+		}
+		else if (count == 4)
+		{
+			return VK_SAMPLE_COUNT_4_BIT;
+		}
+		else if (count == 8)
+		{
+			return VK_SAMPLE_COUNT_8_BIT;
+		}
+		else if (count == 16)
+		{
+			return VK_SAMPLE_COUNT_16_BIT;
+		}
+		else if (count == 32)
+		{
+			return VK_SAMPLE_COUNT_32_BIT;
+		}
+		else if (count == 64)
+		{
+			return VK_SAMPLE_COUNT_64_BIT;
+		}
+		else
+		{
+			return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
+		}
+	}
+
 	VkFilter VulkanSystem::GetFilterMode(const eFilterMode filter) const
 	{
 		if (eFilterMode::eNearest == filter)
@@ -1390,6 +1984,26 @@ namespace wtr
 		else
 		{
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		}
+	}
+
+	VkBorderColor VulkanSystem::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
+	{
+		if (eWrapBorderColor::eTransparentBlack == wrapBorderColor)
+		{
+			return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+		}
+		else if (eWrapBorderColor::eOpaqueBlack == wrapBorderColor)
+		{
+			return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+		}
+		else if (eWrapBorderColor::eOpaqueWhite == wrapBorderColor)
+		{
+			return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		}
+		else
+		{
+			return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 		}
 	}
 
@@ -1680,517 +2294,174 @@ namespace wtr
 		}
 	}
 
-	eCompareFunc VulkanSystem::GetCompareFunc(const VkCompareOp func) const
+	void VulkanSystem::FlushBuffer()
 	{
-		if (VK_COMPARE_OP_NEVER == func)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eCompareFunc::eNever;
+			return;
 		}
-		else if (VK_COMPARE_OP_EQUAL == func)
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingBuffers.begin();
+		while (itr != m_pendingBuffers.end())
 		{
-			return eCompareFunc::eEqual;
-		}
-		else if (VK_COMPARE_OP_NOT_EQUAL == func)
-		{
-			return eCompareFunc::eNotEqual;
-		}
-		else if (VK_COMPARE_OP_LESS == func)
-		{
-			return eCompareFunc::eLess;
-		}
-		else if (VK_COMPARE_OP_LESS_OR_EQUAL == func)
-		{
-			return eCompareFunc::eLessEqual;
-		}
-		else if (VK_COMPARE_OP_GREATER == func)
-		{
-			return eCompareFunc::eGreater;
-		}
-		else if (VK_COMPARE_OP_GREATER_OR_EQUAL == func)
-		{
-			return eCompareFunc::eGreatorEqual;
-		}
-		else if (VK_COMPARE_OP_ALWAYS == func)
-		{
-			return eCompareFunc::eAlways;
-		}
-		else
-		{
-			return eCompareFunc::eNone;
+			auto& buffer = *itr;
+			if (!buffer)
+			{
+				itr = m_pendingBuffers.Erase(itr);
+				continue;
+			}
+
+			auto* refData = buffer.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			VulkanBuffer* vkBuffer = static_cast<VulkanBuffer*>(buffer->GetRawBuffer());
+			if (vkBuffer)
+			{
+				vkDestroyBuffer(logicalDevice, vkBuffer->GetBuffer(), nullptr);
+				vkDestroyBufferView(logicalDevice, vkBuffer->GetBufferView(), nullptr);
+
+				const VulkanAllocation& allocation = vkBuffer->GetAllocation();
+
+				m_memory->Free(m_device, allocation);
+
+				vkBuffer->SetAllocation(VulkanAllocation::Null);
+				vkBuffer->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingBuffers.Erase(itr);
 		}
 	}
 
-	eStencilOp VulkanSystem::GetStencilOp(const VkStencilOp op) const
+	void VulkanSystem::FlushVertexLayout()
 	{
-		if (VK_STENCIL_OP_KEEP == op)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eStencilOp::eKeep;
+			return;
 		}
-		else if (VK_STENCIL_OP_ZERO == op)
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingVertexLayouts.begin();
+		while (itr != m_pendingVertexLayouts.end())
 		{
-			return eStencilOp::eZero;
-		}
-		else if (VK_STENCIL_OP_REPLACE == op)
-		{
-			return eStencilOp::eReplace;
-		}
-		else if (VK_STENCIL_OP_INCREMENT_AND_CLAMP == op)
-		{
-			return eStencilOp::eInc_Clamp;
-		}
-		else if (VK_STENCIL_OP_DECREMENT_AND_CLAMP == op)
-		{
-			return eStencilOp::eDec_Clamp;
-		}
-		else if (VK_STENCIL_OP_INVERT == op)
-		{
-			return eStencilOp::eInvert;
-		}
-		else if (VK_STENCIL_OP_INCREMENT_AND_WRAP == op)
-		{
-			return eStencilOp::eInc_Wrap;
-		}
-		else if (VK_STENCIL_OP_DECREMENT_AND_WRAP == op)
-		{
-			return eStencilOp::eDec_Wrap;
-		}
-		else
-		{
-			return eStencilOp::eNone;
+			auto& layout = *itr;
+			if (!layout)
+			{
+				itr = m_pendingVertexLayouts.Erase(itr);
+				continue;
+			}
+
+			auto* refData = layout.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			VulkanVertexLayout* vkLayout = static_cast<VulkanVertexLayout*>(layout->GetRawBuffer());
+			if (vkLayout)
+			{
+				vkLayout->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingVertexLayouts.Erase(itr);
 		}
 	}
 
-	eBlendFunc VulkanSystem::GetBlendFunc(const VkBlendFactor func) const
+	void VulkanSystem::FlushTexture()
 	{
-		if (VK_BLEND_FACTOR_ZERO == func)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eBlendFunc::eZero;
+			return;
 		}
-		else if (VK_BLEND_FACTOR_ONE == func)
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		auto itr = m_pendingTextures.begin();
+		while (itr != m_pendingTextures.end())
 		{
-			return eBlendFunc::eOne;
-		}
-		else if (VK_BLEND_FACTOR_SRC_COLOR == func)
-		{
-			return eBlendFunc::eSrc_Color;
-		}
-		else if (VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR == func)
-		{
-			return eBlendFunc::eOne_Minus_Src_Color;
-		}
-		else if (VK_BLEND_FACTOR_DST_COLOR == func)
-		{
-			return eBlendFunc::eDst_Color;
-		}
-		else if (VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR == func)
-		{
-			return eBlendFunc::eOne_Minus_Dst_Color;
-		}
-		else if (VK_BLEND_FACTOR_SRC_ALPHA == func)
-		{
-			return eBlendFunc::eSrc_Alpha;
-		}
-		else if (VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA == func)
-		{
-			return eBlendFunc::eOne_Minus_Src_Alpha;
-		}
-		else if (VK_BLEND_FACTOR_DST_ALPHA == func)
-		{
-			return eBlendFunc::eDst_Alpha;
-		}
-		else if (VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA == func)
-		{
-			return eBlendFunc::eOne_Minus_Dst_Alpha;
-		}
-		else
-		{
-			return eBlendFunc::eNone;
+			auto& texture = *itr;
+			if (!texture)
+			{
+				itr = m_pendingTextures.Erase(itr);
+				continue;
+			}
+
+			auto* refData = texture.GetRefData();
+			if (refData->GetRefCount() > 1)
+			{
+				itr++;
+				continue;
+			}
+
+			VulkanTexture* vkTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
+			if (vkTexture)
+			{
+				vkDestroyImage(logicalDevice, vkTexture->GetImage(), nullptr);
+				vkDestroyImageView(logicalDevice, vkTexture->GetImageView(), nullptr);
+
+				const VulkanAllocation& allocation = vkTexture->GetAllocation();
+				m_memory->Free(m_device, allocation);
+
+				vkTexture->SetAllocation(VulkanAllocation::Null);
+				vkTexture->SetState(eResourceState::eNone);
+			}
+
+			itr = m_pendingTextures.Erase(itr);
 		}
 	}
 
-	eBlendOp VulkanSystem::GetBlendOp(const VkBlendOp op) const
+	void VulkanSystem::FlushSampler()
 	{
-		if (VK_BLEND_OP_ADD == op)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eBlendOp::eAdd;
+			return;
 		}
-		else if (VK_BLEND_OP_SUBTRACT == op)
-		{
-			return eBlendOp::eSub;
-		}
-		else if (VK_BLEND_OP_REVERSE_SUBTRACT == op)
-		{
-			return eBlendOp::eReverse_Sub;
-		}
-		else if (VK_BLEND_OP_MIN == op)
-		{
-			return eBlendOp::eMin;
-		}
-		else if (VK_BLEND_OP_MAX == op)
-		{
-			return eBlendOp::eMax;
-		}
-		else
-		{
-			return eBlendOp::eNone;
-		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		// TODO: Flush the sampler resources
 	}
 
-	eCullFace VulkanSystem::GetCullFace(const VkCullModeFlags face) const
+	void VulkanSystem::FlushShader()
 	{
-		if (VK_CULL_MODE_FRONT_BIT == face)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eCullFace::eFront;
+			return;
 		}
-		else if (VK_CULL_MODE_BACK_BIT == face)
-		{
-			return eCullFace::eBack;
-		}
-		else if (VK_CULL_MODE_FRONT_AND_BACK == face)
-		{
-			return eCullFace::eFront_Back;
-		}
-		else
-		{
-			return eCullFace::eNone;
-		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		// TODO: Flush the shader resources
 	}
 
-	eFrontFace VulkanSystem::GetFrontFace(const VkFrontFace face) const
+	void VulkanSystem::FlushPipeline()
 	{
-		if (VK_FRONT_FACE_COUNTER_CLOCKWISE == face)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return eFrontFace::eCCW;
+			return;
 		}
-		else if (VK_FRONT_FACE_CLOCKWISE == face)
-		{
-			return eFrontFace::eCW;
-		}
-		else
-		{
-			return eFrontFace::eNone;
-		}
+
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+
+		// TODO: Flush the pipeline resources
 	}
 
-	ePrimitiveMode VulkanSystem::GetPrimitiveMode(const VkPolygonMode mode) const
+	void VulkanSystem::FlushRenderTarget()
 	{
-		if (VK_POLYGON_MODE_POINT == mode)
+		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
-			return ePrimitiveMode::ePoint;
+			return;
 		}
-		else if (VK_POLYGON_MODE_LINE == mode)
-		{
-			return ePrimitiveMode::eLine;
-		}
-		else if (VK_POLYGON_MODE_FILL == mode)
-		{
-			return ePrimitiveMode::eFill;
-		}
-		else
-		{
-			return ePrimitiveMode::eNone;
-		}
-	}
 
-	eTextureType VulkanSystem::GetTextureType(const VkImageViewType texture) const
-	{
-		if (VK_IMAGE_VIEW_TYPE_1D == texture)
-		{
-			return eTextureType::eTexture1D;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_2D == texture)
-		{
-			// Ambiguous: the forward direction also sends eTextureMultisample here (Vulkan has no
-			// separate multisample view type, sample count lives on VkImageCreateInfo::samples
-			// instead). Resolves to the non-multisampled variant since that's the common case.
-			return eTextureType::eTexture2D;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_3D == texture)
-		{
-			return eTextureType::eTexture3D;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_CUBE == texture)
-		{
-			return eTextureType::eTextureCube;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_1D_ARRAY == texture)
-		{
-			return eTextureType::eTexture1DArray;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_2D_ARRAY == texture)
-		{
-			// Same ambiguity as above - also covers eTextureMultisampleArray.
-			return eTextureType::eTexture2DArray;
-		}
-		else if (VK_IMAGE_VIEW_TYPE_CUBE_ARRAY == texture)
-		{
-			return eTextureType::eTextureCubeArray;
-		}
-		else
-		{
-			return eTextureType::eNone;
-		}
-	}
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
 
-	ePixelFormat VulkanSystem::GetPixelFormat(const VkFormat pixel) const
-	{
-		if (VK_FORMAT_R8_UNORM == pixel)
-		{
-			return ePixelFormat::eR8_UNorm;
-		}
-		else if (VK_FORMAT_R8G8_UNORM == pixel)
-		{
-			return ePixelFormat::eR8G8_UNorm;
-		}
-		else if (VK_FORMAT_R8G8B8_UNORM == pixel)
-		{
-			return ePixelFormat::eR8G8B8_UNorm;
-		}
-		else if (VK_FORMAT_R8G8B8A8_UNORM == pixel)
-		{
-			return ePixelFormat::eR8G8B8A8_UNorm;
-		}
-		else if (VK_FORMAT_R16_UNORM == pixel)
-		{
-			return ePixelFormat::eR16_UNorm;
-		}
-		else if (VK_FORMAT_R16G16_UNORM == pixel)
-		{
-			return ePixelFormat::eR16G16_UNorm;
-		}
-		else if (VK_FORMAT_R16G16B16_UNORM == pixel)
-		{
-			return ePixelFormat::eR16G16B16_UNorm;
-		}
-		else if (VK_FORMAT_R16G16B16A16_UNORM == pixel)
-		{
-			return ePixelFormat::eR16G16B16A16_UNorm;
-		}
-		else if (VK_FORMAT_R8G8B8A8_SRGB == pixel)
-		{
-			return ePixelFormat::eR8G8B8A8_sRGB;
-		}
-		else if (VK_FORMAT_R8_UINT == pixel)
-		{
-			return ePixelFormat::eR8_UInt;
-		}
-		else if (VK_FORMAT_R8G8_UINT == pixel)
-		{
-			return ePixelFormat::eR8G8_UInt;
-		}
-		else if (VK_FORMAT_R8G8B8_UINT == pixel)
-		{
-			return ePixelFormat::eR8G8B8_UInt;
-		}
-		else if (VK_FORMAT_R8G8B8A8_UINT == pixel)
-		{
-			return ePixelFormat::eR8G8B8A8_UInt;
-		}
-		else if (VK_FORMAT_R16_UINT == pixel)
-		{
-			return ePixelFormat::eR16_UInt;
-		}
-		else if (VK_FORMAT_R16G16_UINT == pixel)
-		{
-			return ePixelFormat::eR16G16_UInt;
-		}
-		else if (VK_FORMAT_R16G16B16_UINT == pixel)
-		{
-			return ePixelFormat::eR16G16B16_UInt;
-		}
-		else if (VK_FORMAT_R16G16B16A16_UINT == pixel)
-		{
-			return ePixelFormat::eR16G16B16A16_UInt;
-		}
-		else if (VK_FORMAT_R32_UINT == pixel)
-		{
-			return ePixelFormat::eR32_UInt;
-		}
-		else if (VK_FORMAT_R32G32_UINT == pixel)
-		{
-			return ePixelFormat::eR32G32_UInt;
-		}
-		else if (VK_FORMAT_R32G32B32_UINT == pixel)
-		{
-			return ePixelFormat::eR32G32B32_UInt;
-		}
-		else if (VK_FORMAT_R32G32B32A32_UINT == pixel)
-		{
-			return ePixelFormat::eR32G32B32A32_UInt;
-		}
-		else if (VK_FORMAT_R16_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR16_Float;
-		}
-		else if (VK_FORMAT_R16G16_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR16G16_Float;
-		}
-		else if (VK_FORMAT_R16G16B16_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR16G16B16_Float;
-		}
-		else if (VK_FORMAT_R16G16B16A16_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR16G16B16A16_Float;
-		}
-		else if (VK_FORMAT_R32_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR32_Float;
-		}
-		else if (VK_FORMAT_R32G32_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR32G32_Float;
-		}
-		else if (VK_FORMAT_R32G32B32_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR32G32B32_Float;
-		}
-		else if (VK_FORMAT_R32G32B32A32_SFLOAT == pixel)
-		{
-			return ePixelFormat::eR32G32B32A32_Float;
-		}
-		else if (VK_FORMAT_D24_UNORM_S8_UINT == pixel)
-		{
-			return ePixelFormat::eD24_S8;
-		}
-		else if (VK_FORMAT_D32_SFLOAT == pixel)
-		{
-			return ePixelFormat::eD32;
-		}
-		else
-		{
-			return ePixelFormat::eNone;
-		}
-	}
-
-	eFilterMode VulkanSystem::GetFilterMode(const VkFilter filter) const
-	{
-		if (VK_FILTER_NEAREST == filter)
-		{
-			return eFilterMode::eNearest;
-		}
-		else if (VK_FILTER_LINEAR == filter)
-		{
-			return eFilterMode::eLinear;
-		}
-		else
-		{
-			return eFilterMode::eNone;
-		}
-	}
-
-	eWrapMode VulkanSystem::GetWrapMode(const VkSamplerAddressMode wrap) const
-	{
-		if (VK_SAMPLER_ADDRESS_MODE_REPEAT == wrap)
-		{
-			return eWrapMode::eRepeat;
-		}
-		else if (VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT == wrap)
-		{
-			return eWrapMode::eMirroedRepeat;
-		}
-		else if (VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE == wrap)
-		{
-			return eWrapMode::eClampToEdge;
-		}
-		else if (VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER == wrap)
-		{
-			return eWrapMode::eClampToBorder;
-		}
-		else
-		{
-			// Covers VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE too - no eWrapMode equivalent,
-			// same as the forward direction never producing it.
-			return eWrapMode::eNone;
-		}
-	}
-
-	eWrapBorderColor VulkanSystem::GetWrapBorderColor(const VkBorderColor wrapBorderColor) const
-	{
-		if (VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK == wrapBorderColor)
-		{
-			return eWrapBorderColor::eTransparentBlack;
-		}
-		else if (VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK == wrapBorderColor)
-		{
-			return eWrapBorderColor::eOpaqueBlack;
-		}
-		else if (VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE == wrapBorderColor)
-		{
-			return eWrapBorderColor::eOpaqueWhite;
-		}
-		else
-		{
-			return eWrapBorderColor::eNone;
-		}
-	}
-
-	eAttachment VulkanSystem::GetImageAspect(const VkImageAspectFlags aspect) const
-	{
-		if ((VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) == aspect)
-		{
-			return eAttachment::eDepthStencil;
-		}
-		else if (VK_IMAGE_ASPECT_DEPTH_BIT == aspect)
-		{
-			return eAttachment::eDepth;
-		}
-		else if (VK_IMAGE_ASPECT_STENCIL_BIT == aspect)
-		{
-			return eAttachment::eStencil;
-		}
-		else if (VK_IMAGE_ASPECT_COLOR_BIT == aspect)
-		{
-			return eAttachment::eColor;
-		}
-		else
-		{
-			return eAttachment::eNone;
-		}
-	}
-
-	VkBorderColor VulkanSystem::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
-	{
-		if (eWrapBorderColor::eTransparentBlack == wrapBorderColor)
-		{
-			return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-		}
-		else if (eWrapBorderColor::eOpaqueBlack == wrapBorderColor)
-		{
-			return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
-		}
-		else if (eWrapBorderColor::eOpaqueWhite == wrapBorderColor)
-		{
-			return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		}
-		else
-		{
-			return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-		}
-	}
-
-	VkImageAspectFlags VulkanSystem::GetImageAspect(const eAttachment attach) const
-	{
-		if (eAttachment::eColor == attach)
-		{
-			return VK_IMAGE_ASPECT_COLOR_BIT;
-		}
-		else if (eAttachment::eDepth == attach)
-		{
-			return VK_IMAGE_ASPECT_DEPTH_BIT;
-		}
-		else if (eAttachment::eStencil == attach)
-		{
-			return VK_IMAGE_ASPECT_STENCIL_BIT;
-		}
-		else if (eAttachment::eDepthStencil == attach)
-		{
-			return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		}
-		else
-		{
-			return 0;
-		}
+		// TODO: Flush the render target resources
 	}
 }

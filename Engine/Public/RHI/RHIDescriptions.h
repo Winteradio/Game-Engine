@@ -19,35 +19,48 @@ namespace wtr
 {
 	struct RHIVertexAttribute
 	{
-		uint16_t location			= 0; // vertex attribute binding location
-		uint16_t offset				= 0; // byte offset in stream
-		bool normalized				= 1; // normalize fixed-point data
-		bool integer				= 0; // treat as integer input
-		uint8_t divisor				= 0; // instancing divisor
-		uint8_t numComponents		= 0; // number of components (1-4)
-		eDataType componentType		= eDataType::eNone;			// enum: eDataType
-		eVertexSemantic semantic	= eVertexSemantic::eNone;	// bit value for the semantic (e.g. TEXCOORD)
-		uint8_t semanticIndex		= 0; // e.g. TEXCOORD0 -> 0, TEXCOORD1 -> 1
+		uint32_t location			= 0;
+		uint32_t offset				= 0;
+		uint8_t numComponents		= 0;
+		uint8_t semanticIndex		= 0;
+		eVertexSemantic semantic	= eVertexSemantic::eNone;
+		eDataType componentType		= eDataType::eNone;
+		bool normalized				= false;
+	};
+
+	struct RHIVertexBinding
+	{
+		uint32_t stride			= 0;
+		eDataDivisor divisor	= eDataDivisor::eNone;
 	};
 
 	struct RHIVertexStream
 	{
-		Memory::RefPtr<const RHIBuffer> buffer;
 		RHIVertexAttribute attribute;
+		RHIVertexBinding binding;
+
+		uint32_t bindingIndex = 0;
 	};
 
-	struct RHITextureMipMap
+	template<uint32_t N>
+	struct RHIDataRange
 	{
-		Memory::RefPtr<RawData> data;
-		uint32_t xOffset = 0;
-		uint32_t yOffset = 0;
-		uint32_t zOffset = 0;
+		Memory::RefPtr<const RawData> data;
+
+		wtr::StaticArray<uint32_t, N> offset = { 0 };
+
+		static constexpr uint32_t dimension = N;
+	};
+
+	struct RHITexturerMipMap : RHIDataRange<1>
+	{
 		uint32_t level = 0;
 	};
 
 	struct RHITextureFace
 	{
-		wtr::DynamicArray<RHITextureMipMap> mipMaps;
+		wtr::DynamicArray<RHITexturerMipMap> mipMaps;
+		uint32_t face = 0;
 	};
 
 	struct RHIShaderVariable
@@ -58,15 +71,13 @@ namespace wtr
 		eDataType type		= eDataType::eNone; // enum: eDataType
 	};
 
-	using RHIShaderVariables = wtr::HashMap<std::string, RHIShaderVariable>;
-
 	struct RHIShaderBinding
 	{
 		int32_t binding 	= -1;					// resource binding location
-		int32_t set			= 0;					// resource binding set
 		eBindingType type 	= eBindingType::eNone;	// type of the binding resource
 	};
 
+	using RHIShaderVariables = wtr::HashMap<std::string, RHIShaderVariable>;
 	using RHIShaderBindings = wtr::HashMap<std::string, RHIShaderBinding>;
 
 	template<enum class eResourceType Type>
@@ -75,36 +86,29 @@ namespace wtr
 		const eResourceType type = Type;
 	};
 
-	template<typename Desc>
-	struct RHICreateDesc
-	{
-		Desc desc;
-	};
-
 	struct RHIConstDesc : RHIDesc<eResourceType::eConst>
 	{
-		eDataType dataType = eDataType::eNone;
+		eDataType dataType	= eDataType::eNone;
 
-		uint32_t row = 1;
-		uint32_t column = 1;
-		uint32_t offset = 0;
+		uint32_t row		= 1;
+		uint32_t column		= 1;
+		uint32_t offset		= 0;
 
-		bool transpose = false;
+		bool transpose		= false;
 
 		Memory::RefPtr<const RawData> data;
 	};
 
 	struct RHIBufferDesc : RHIDesc<eResourceType::eBuffer>
 	{
-		eBufferType bufferType = eBufferType::eNone;
-		eBufferTransfer bufferTransfer = eBufferTransfer::eNone;
-		eDataAccess	accessType = eDataAccess::eNone;
-		eDataType	componentType = eDataType::eNone;
+		eBufferType	bufferType			= eBufferType::eNone;
+		eBufferTransfer bufferTransfer	= eBufferTransfer::eNone;
+		eDataAccess	accessType			= eDataAccess::eNone;
+		eDataType	componentType		= eDataType::eNone;
 
-		uint32_t	numComponents = 0;
-		uint32_t	count = 0;
-		uint32_t	size = 0;
-		uint32_t	stride = 0;
+		uint32_t	numComponents		= 0;
+		uint32_t	stride				= 0;
+		uint32_t	size				= 0;
 
 		RHIBufferDesc& operator=(const RHIBufferDesc& other)
 		{
@@ -113,9 +117,8 @@ namespace wtr
 			accessType = other.accessType;
 			componentType = other.componentType;
 			numComponents = other.numComponents;
-			count = other.count;
-			size = other.size;
 			stride = other.stride;
+			size = other.size;
 
 			return *this;
 		}
@@ -123,13 +126,14 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
-		struct DataRange
-		{
-			uint32_t offset = 0;
-			Memory::RefPtr<const RawData> data;
-		};
+		using DataRange = RHIDataRange<1>;
 
 		wtr::DynamicArray<DataRange> dataRanges;
+
+		RHIBufferCreateDesc() = default;
+		RHIBufferCreateDesc(const RHIBufferDesc& desc)
+			: RHIBufferDesc(desc)
+		{}
 
 		RHIBufferCreateDesc& operator=(const RHIBufferDesc& desc)
 		{
@@ -146,51 +150,30 @@ namespace wtr
 	{
 		eMapAccess mapAccess = eMapAccess::eNone;
 
-		RHIBufferUpdateDesc& operator=(const RHIBufferDesc& desc)
+		RHIBufferUpdateDesc() = default;
+		RHIBufferUpdateDesc(const RHIBufferDesc& desc)
+			: RHIBufferCreateDesc(desc)
+		{}
+
+		RHIBufferUpdateDesc(const RHIBufferCreateDesc& desc)
+			: RHIBufferCreateDesc(desc)
+		{}
+
+		RHIBufferUpdateDesc& operator=(const RHIBufferUpdateDesc& desc)
 		{
 			if (this != &desc)
 			{
-				RHIBufferDesc::operator=(desc);
+				RHIBufferCreateDesc::operator=(desc);
+				mapAccess = desc.mapAccess;
 			}
-
 			return *this;
 		}
-	};
 
-	struct RHIVertexLayoutDesc : RHIDesc<eResourceType::eLayout>
-	{
-		wtr::HashMap<VertexKey, RHIVertexStream> vertexStreams;
-		Memory::RefPtr<const RHIBuffer> indexBuffer;
-
-		RHIVertexLayoutDesc& operator=(const RHIVertexLayoutDesc& other)
-		{
-			vertexStreams = other.vertexStreams;
-			indexBuffer = other.indexBuffer;
-
-			return *this;
-		}
-	};
-
-	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
-	{
-		RHIVertexLayoutCreateDesc& operator=(const RHIVertexLayoutDesc& desc)
+		RHIBufferUpdateDesc& operator=(const RHIBufferCreateDesc& desc)
 		{
 			if (this != &desc)
 			{
-				RHIVertexLayoutDesc::operator=(desc);
-			}
-
-			return *this;
-		}
-	};
-
-	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
-	{
-		RHIVertexLayoutUpdateDesc& operator=(const RHIVertexLayoutDesc& desc)
-		{
-			if (this != &desc)
-			{
-				RHIVertexLayoutDesc::operator=(desc);
+				RHIBufferCreateDesc::operator=(desc);
 			}
 
 			return *this;
@@ -235,6 +218,11 @@ namespace wtr
 	{
 		wtr::DynamicArray<RHITextureFace> faces;
 
+		RHITextureCreateDesc() = default;
+		RHITextureCreateDesc(const RHITextureDesc& desc)
+			: RHITextureDesc(desc)
+		{}
+
 		RHITextureCreateDesc& operator=(const RHITextureDesc& desc)
 		{
 			if (this != &desc)
@@ -248,11 +236,64 @@ namespace wtr
 
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
+		RHITextureUpdateDesc() = default;
+		RHITextureUpdateDesc(const RHITextureDesc& desc)
+			: RHITextureCreateDesc(desc)
+		{}
+
 		RHITextureUpdateDesc& operator=(const RHITextureDesc& desc)
 		{
 			if (this != &desc)
 			{
 				RHITextureDesc::operator=(desc);
+			}
+
+			return *this;
+		}
+
+		RHITextureUpdateDesc& operator=(const RHITextureCreateDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHITextureCreateDesc::operator=(desc);
+			}
+
+			return *this;
+		}
+	};
+
+	struct RHIVertexLayoutDesc : RHIDesc<eResourceType::eLayout>
+	{
+		wtr::HashMap<VertexKey, RHIVertexStream> streams;
+
+		RHIVertexLayoutDesc& operator=(const RHIVertexLayoutDesc& other)
+		{
+			streams = other.streams;
+
+			return *this;
+		}
+	};
+
+	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
+	{
+		RHIVertexLayoutCreateDesc& operator=(const RHIVertexLayoutDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIVertexLayoutDesc::operator=(desc);
+			}
+
+			return *this;
+		}
+	};
+
+	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
+	{
+		RHIVertexLayoutUpdateDesc& operator=(const RHIVertexLayoutDesc& desc)
+		{
+			if (this != &desc)
+			{
+				RHIVertexLayoutDesc::operator=(desc);
 			}
 
 			return *this;
@@ -321,33 +362,50 @@ namespace wtr
 
 	struct RHIPipeLineDesc : RHIDesc<eResourceType::ePipeLine>
 	{
-		Memory::RefPtr<RHIClearState> clear;
-		Memory::RefPtr<RHIColorState> color;
-		Memory::RefPtr<RHIDepthState> depth;
-		Memory::RefPtr<RHIStencilState> stencil;
-		Memory::RefPtr<RHIBlendState> blend;
-		Memory::RefPtr<RHIRasterizerState> rasterizer;
+		RHIColorState color;
+		RHIDepthState depth;
+		RHIStencilState stencil;
+		RHIBlendState blend;
+		RHIRasterizerState rasterizer;
+
+		Memory::RefPtr<const RHIShader> vertexShader;
+		Memory::RefPtr<const RHIShader> geometryShader;
+		Memory::RefPtr<const RHIShader> hullShader;
+		Memory::RefPtr<const RHIShader> domainShader;
+		Memory::RefPtr<const RHIShader> pixelShader;
+		Memory::RefPtr<const RHIShader> computeShader;
 
 		RHIPipeLineDesc& operator=(const RHIPipeLineDesc& other)
 		{
-			clear = other.clear;
 			color = other.color;
 			depth = other.depth;
 			stencil = other.stencil;
 			blend = other.blend;
 			rasterizer = other.rasterizer;
 
+			vertexShader = other.vertexShader;
+			geometryShader = other.geometryShader;
+			hullShader = other.hullShader;
+			domainShader = other.domainShader;
+			pixelShader = other.pixelShader;
+			computeShader = other.computeShader;
+
 			return *this;
 		}
 
 		bool operator==(const RHIPipeLineDesc& other) const noexcept
 		{
-			if (clear != other.clear ||
-				color != other.color ||
+			if (color != other.color ||
 				depth != other.depth ||
 				stencil != other.stencil ||
 				blend != other.blend ||
-				rasterizer != other.rasterizer)
+				rasterizer != other.rasterizer ||
+				vertexShader != other.vertexShader ||
+				geometryShader != other.geometryShader ||
+				hullShader != other.hullShader ||
+				domainShader != other.domainShader ||
+				pixelShader != other.pixelShader ||
+				computeShader != other.computeShader)
 			{
 				return false;
 			}
@@ -358,12 +416,8 @@ namespace wtr
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
 	{
-		Memory::RefPtr<const RHIShader> vertexShader;
-		Memory::RefPtr<const RHIShader> geometryShader;
-		Memory::RefPtr<const RHIShader> hullShader;
-		Memory::RefPtr<const RHIShader> domainShader;
-		Memory::RefPtr<const RHIShader> computeShader;
-		Memory::RefPtr<const RHIShader> pixelShader;
+		Memory::RefPtr<const RHIVertexLayout> layout;
+		Memory::RefPtr<const RHIRenderTarget> target;
 
 		RHIPipeLineCreateDesc& operator=(const RHIPipeLineDesc& desc)
 		{
@@ -382,12 +436,7 @@ namespace wtr
 				return false;
 			}
 
-			if (vertexShader != other.vertexShader ||
-				geometryShader != other.geometryShader ||
-				hullShader != other.hullShader ||
-				domainShader != other.domainShader ||
-				computeShader != other.computeShader ||
-				pixelShader != other.pixelShader)
+			if (layout != other.layout || target != other.target)
 			{
 				return false;
 			}
@@ -452,37 +501,13 @@ namespace wtr
 
 	struct RHIRenderTargetCreateDesc : RHIRenderTargetDesc
 	{
+		Memory::RefPtr<const RHIVertexLayout> vertexLayout;
+
 		RHIRenderTargetCreateDesc& operator=(const RHIRenderTargetDesc& desc)
 		{
 			if (this != &desc)
 			{
 				RHIRenderTargetDesc::operator=(desc);
-			}
-
-			return *this;
-		}
-	};
-
-	struct RHIRenderPassDesc : RHIDesc<eResourceType::ePass>
-	{
-		RHIRenderPassDesc& operator=(const RHIRenderPassDesc& desc)
-		{
-			if (this != &desc)
-			{
-
-			}
-
-			return *this;
-		}
-	};
-
-	struct RHIRenderPassCreateDesc : RHIRenderPassDesc
-	{
-		RHIRenderPassCreateDesc& operator=(const RHIRenderPassDesc& desc)
-		{
-			if (this != &desc)
-			{
-				RHIRenderPassDesc::operator=(desc);
 			}
 
 			return *this;

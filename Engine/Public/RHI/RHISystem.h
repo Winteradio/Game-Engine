@@ -14,7 +14,6 @@ namespace wtr
 	class RHIShader;
 	class RHIPipeLine;
 	class RHIRenderTarget;
-	class RHIRenderPass;
 
 	struct RHIConstDesc;
 	struct RHIBufferDesc;
@@ -24,7 +23,6 @@ namespace wtr
 	struct RHIShaderDesc;
 	struct RHIPipeLineDesc;
 	struct RHIRenderTargetDesc;
-	struct RHIRenderPassDesc;
 	struct RHIDrawIndexDesc;
 	struct RHIDispatchDesc;
 
@@ -35,7 +33,6 @@ namespace wtr
 	struct RHIShaderCreateDesc;
 	struct RHIPipeLineCreateDesc;
 	struct RHIRenderTargetCreateDesc;
-	struct RHIRenderPassCreateDesc;
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
@@ -67,7 +64,6 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
 		void RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target);
-		void RemoveRenderPass(Memory::RefPtr<RHIRenderPass> pass);
 
 	public :
 		virtual bool Init(void* nativeHandle) = 0;
@@ -96,7 +92,6 @@ namespace wtr
 		virtual Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) = 0;
 		virtual Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) = 0;
 		virtual Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) = 0;
-		virtual Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc desc) = 0;
 
 		virtual void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
@@ -105,7 +100,6 @@ namespace wtr
 		virtual void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) = 0;
 		virtual void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 		virtual void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) = 0;
-		virtual void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) = 0;
 
 		virtual void UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
@@ -114,27 +108,30 @@ namespace wtr
 		virtual void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) = 0;
 
-		virtual void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& name) = 0;
-		virtual void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) = 0;
-		virtual void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) = 0;
-		virtual void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) = 0;
+		virtual void SetConstant(const RHIConstDesc info, const int32_t binding) = 0;
+		virtual void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding) = 0;
+		virtual void SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) = 0;
+		virtual void SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) = 0;
 
-		virtual void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& name) = 0;
-		virtual void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& name) = 0;
-		virtual void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& name) = 0;
-		virtual void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& name) = 0;
+		virtual void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bindingIndex, const uint32_t offset) = 0;
+		virtual void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset) = 0;
 
 		virtual void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
-		virtual void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) = 0;
-		virtual void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) = 0;
 
-		virtual void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) = 0;
+		virtual void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding) = 0;
+		virtual void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) = 0;
+		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) = 0;
+
+		virtual void UnsetVertexBuffer(const uint32_t bidingIndex) = 0;
+		virtual void UnsetIndexBuffer() = 0;
 
 		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetPipeLine() = 0;
-		virtual void UnsetRenderTarget() = 0;
-		virtual void UnsetRenderPass() = 0;
+
+		virtual void BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target) = 0;
+		virtual void EndRenderPass() = 0;
+		virtual void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state) = 0;
 
 		virtual void DispatchCompute(const RHIDispatchDesc info) = 0;
 		virtual void DrawIndexPrimitive(const RHIDrawIndexDesc info) = 0;
@@ -150,7 +147,6 @@ namespace wtr
 		wtr::HashSet<Memory::RefPtr<RHIShader>> m_pendingShaders;
 		wtr::HashSet<Memory::RefPtr<RHIPipeLine>> m_pendingPipeLines;
 		wtr::HashSet<Memory::RefPtr<RHIRenderTarget>> m_pendingRenderTargets;
-		wtr::HashSet<Memory::RefPtr<RHIRenderPass>> m_pendingRenderPasses;
 	};
 };
 

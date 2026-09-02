@@ -14,6 +14,7 @@
 namespace wtr
 {
 	class RHIBuffer;
+	class RHIVertexLayout;
 	class RHITexture;
 	class RHIShader;
 	enum class eResourceState : uint8_t;
@@ -157,8 +158,9 @@ namespace wtr
 		FormattedBuffer rawIndex;
 
 		wtr::HashMap<std::string, Memory::RefPtr<const MaterialAsset>> materials;
-		wtr::HashMap<VertexKey, Memory::RefPtr<RHIBuffer>> buffers;
-		Memory::RefPtr<RHIBuffer> index;
+		wtr::HashMap<VertexKey, Memory::RefPtr<const RHIBuffer>> buffers;
+		Memory::RefPtr<const RHIBuffer> index;
+		Memory::RefPtr<const RHIVertexLayout> layout;
 
 		wtr::DynamicArray<MeshSection> sections;
 		eDrawMode drawMode;

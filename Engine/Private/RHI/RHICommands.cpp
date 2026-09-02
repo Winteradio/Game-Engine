@@ -349,10 +349,10 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetConstant::RHICommandSetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_info(info)
-		, m_slotName(slotName)
+	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const uint32_t binding, const uint32_t set)
+		: m_info(info)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -360,14 +360,43 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetConstant(m_pipeline, m_info, m_slotName);
+			system->SetConstant(m_info, m_binding, m_set);
 		}
 	}
 
-	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_buffer(buffer)
-		, m_slotName(slotName)
+	RHICommandSetVertexBuffer::RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t offset)
+		: m_buffer(buffer)
+		, m_binding(binding)
+		, m_offset(offset)
+	{
+	}
+
+	void RHICommandSetVertexBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->SetVertexBuffer(m_buffer, m_binding, m_offset);
+		}
+	}
+
+	RHICommandSetIndexBuffer::RHICommandSetIndexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
+		: m_buffer(buffer)
+		, m_offset(offset)
+	{
+	}
+
+	void RHICommandSetIndexBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->SetIndexBuffer(m_buffer, m_offset);
+		}
+	}
+
+	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set)
+		: m_buffer(buffer)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -375,14 +404,14 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetBuffer(m_pipeline, m_buffer, m_slotName);
+			system->SetBuffer(m_buffer, m_binding, m_set);
 		}
 	}
 
-	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_texture(texture)
-		, m_slotName(slotName)
+	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set)
+		: m_texture(texture)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -390,14 +419,14 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetTexture(m_pipeline, m_texture, m_slotName);
+			system->SetTexture(m_texture, m_binding, m_set);
 		}
 	}
 
-	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_sampler(sampler)
-		, m_slotName(slotName)
+	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set)
+		: m_sampler(sampler)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -405,7 +434,7 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetSampler(m_pipeline, m_sampler, m_slotName);
+			system->SetSampler(m_sampler, m_binding, m_set);
 		}
 	}
 
@@ -462,9 +491,9 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetConstant::RHICommandUnsetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_slotName(slotName)
+	RHICommandUnsetConstant::RHICommandUnsetConstant(const uint32_t binding, const uint32_t set)
+		: m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -472,14 +501,14 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetConstant(m_pipeline, m_slotName);
+			system->UnsetConstant(m_binding, m_set);
 		}
 	}
 
-	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_buffer(buffer)
-		, m_slotName(slotName)
+	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set)
+		: m_buffer(buffer)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -487,14 +516,14 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetBuffer(m_pipeline, m_buffer, m_slotName);
+			system->UnsetBuffer(m_buffer, m_binding, m_set);
 		}
 	}
 
-	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_texture(texture)
-		, m_slotName(slotName)
+	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set)
+		: m_texture(texture)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -502,14 +531,14 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetTexture(m_pipeline, m_texture, m_slotName);
+			system->UnsetTexture(m_texture, m_binding, m_set);
 		}
 	}
 
-	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName)
-		: m_pipeline(pipeline)
-		, m_sampler(sampler)
-		, m_slotName(slotName)
+	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set)
+		: m_sampler(sampler)
+		, m_binding(binding)
+		, m_set(set)
 	{
 	}
 
@@ -517,7 +546,28 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetSampler(m_pipeline, m_sampler, m_slotName);
+			system->UnsetSampler(m_sampler, m_binding, m_set);
+		}
+	}
+
+	RHICommandUnsetVertexBuffer::RHICommandUnsetVertexBuffer(const uint32_t binding)
+		: m_binding(binding)
+	{
+	}
+
+	void RHICommandUnsetVertexBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->UnsetVertexBuffer(m_binding);
+		}
+	}
+
+	void RHICommandUnsetIndexBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->UnsetIndexBuffer();
 		}
 	}
 

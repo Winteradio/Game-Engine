@@ -1,6 +1,7 @@
 #include <RHI/RHIResources.h>
 
 #include <Renderer/GlobalRenderer.h>
+#include <Log/include/Log.h>
 #include <Memory/include/Core.h>
 
 namespace wtr
@@ -82,7 +83,7 @@ namespace wtr
 		return m_desc.accessType;
 	}
 
-	eDataType RHIBuffer::GetComponentType() const
+	eDataType RHIBuffer::GetDataType() const
 	{
 		return m_desc.componentType;
 	}
@@ -92,19 +93,14 @@ namespace wtr
 		return m_desc.numComponents;
 	}
 
-	uint32_t RHIBuffer::GetCount() const
+	uint32_t RHIBuffer::GetStride() const
 	{
-		return m_desc.count;
+		return m_desc.stride;
 	}
 
 	uint32_t RHIBuffer::GetSize() const
 	{
 		return m_desc.size;
-	}
-
-	uint32_t RHIBuffer::GetStride() const
-	{
-		return m_desc.stride;
 	}
 
 	const RHIBufferDesc& RHIBuffer::GetDesc() const
@@ -127,9 +123,9 @@ namespace wtr
 		m_desc.accessType = accessType;
 	}
 
-	void RHIBuffer::SetComponentType(const eDataType componentType)
+	void RHIBuffer::SetDataType(const eDataType dataType)
 	{
-		m_desc.componentType = componentType;
+		m_desc.componentType = dataType;
 	}
 
 	void RHIBuffer::SetNumComponents(const uint32_t numComponents)
@@ -137,19 +133,14 @@ namespace wtr
 		m_desc.numComponents = numComponents;
 	}
 
-	void RHIBuffer::SetCount(const uint32_t count)
+	void RHIBuffer::SetStride(const uint32_t stride)
 	{
-		m_desc.count = count;
+		m_desc.stride = stride;
 	}
 
 	void RHIBuffer::SetSize(const uint32_t size)
 	{
 		m_desc.size = size;
-	}
-
-	void RHIBuffer::SetStride(const uint32_t stride)
-	{
-		m_desc.stride = stride;
 	}
 
 	void RHIBuffer::SetDesc(const RHIBufferDesc& desc)
@@ -161,9 +152,35 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	size_t RHIVertexLayout::GetNumAttributes() const
+	size_t RHIVertexLayout::GetNumLayout() const
 	{
-		return m_desc.vertexStreams.Size();
+		return m_desc.streams.Size();
+	}
+
+	RHIVertexAttribute RHIVertexLayout::GetAttribute(const VertexKey& key) const
+	{
+		auto itr = m_desc.streams.Find(key);
+		if (itr != m_desc.streams.End())
+		{
+			return itr->second.attribute;
+		}
+		else
+		{
+			return {};
+		}
+	}
+
+	RHIVertexBinding RHIVertexLayout::GetBinding(const VertexKey& key) const
+	{
+		auto itr = m_desc.streams.Find(key);
+		if (itr != m_desc.streams.End())
+		{
+			return itr->second.binding;
+		}
+		else
+		{
+			return {};
+		}
 	}
 
 	const RHIVertexLayoutDesc& RHIVertexLayout::GetDesc() const
@@ -367,6 +384,11 @@ namespace wtr
 
 	void RHIShader::AddBinding(const std::string& name, const RHIShaderBinding& binding)
 	{
+		if (name.empty())
+		{
+			return;
+		}
+
 		m_bindings[name] = binding;
 	}
 
@@ -432,32 +454,27 @@ namespace wtr
 		, m_bindings()
 	{}
 
-	Memory::RefPtr<const RHIClearState> RHIPipeLine::GetClearState() const
-	{
-		return m_desc.clear;
-	}
-
-	Memory::RefPtr<const RHIColorState> RHIPipeLine::GetColorState() const
+	RHIColorState RHIPipeLine::GetColorState() const
 	{
 		return m_desc.color;
 	}
 
-	Memory::RefPtr<const RHIDepthState> RHIPipeLine::GetDepthState() const
+	RHIDepthState RHIPipeLine::GetDepthState() const
 	{
 		return m_desc.depth;
 	}
 
-	Memory::RefPtr<const RHIStencilState> RHIPipeLine::GetStencilState() const
+	RHIStencilState RHIPipeLine::GetStencilState() const
 	{
 		return m_desc.stencil;
 	}
 
-	Memory::RefPtr<const RHIBlendState> RHIPipeLine::GetBlendState() const
+	RHIBlendState RHIPipeLine::GetBlendState() const
 	{
 		return m_desc.blend;
 	}
 
-	Memory::RefPtr<const RHIRasterizerState> RHIPipeLine::GetRasterizerState() const
+	RHIRasterizerState RHIPipeLine::GetRasterizerState() const
 	{
 		return m_desc.rasterizer;
 	}
@@ -467,64 +484,29 @@ namespace wtr
 		return m_desc;
 	}
 
-	void RHIPipeLine::SetClearState(const RHIClearState clear)
+	void RHIPipeLine::SetColorState(const RHIColorState& color)
 	{
-		m_desc.clear = !m_desc.clear ? Memory::MakeRef<RHIClearState>(clear) : m_desc.clear;
-
-		if (m_desc.clear)
-		{
-			*m_desc.clear = clear;
-		}
+		m_desc.color = color;
 	}
 
-	void RHIPipeLine::SetColorState(const RHIColorState color)
+	void RHIPipeLine::SetDepthState(const RHIDepthState& depth)
 	{
-		m_desc.color = !m_desc.color ? Memory::MakeRef<RHIColorState>(color) : m_desc.color;
-
-		if (m_desc.color)
-		{
-			*m_desc.color = color;
-		}
+		m_desc.depth = depth;
 	}
 
-	void RHIPipeLine::SetDepthState(const RHIDepthState depth)
+	void RHIPipeLine::SetStencilState(const RHIStencilState& stencil)
 	{
-		m_desc.depth = !m_desc.depth ? Memory::MakeRef<RHIDepthState>(depth) : m_desc.depth;
-
-		if (m_desc.depth)
-		{
-			*m_desc.depth = depth;
-		}
+		m_desc.stencil = stencil;
 	}
 
-	void RHIPipeLine::SetStencilState(const RHIStencilState stencil)
+	void RHIPipeLine::SetBlendState(const RHIBlendState& blend)
 	{
-		m_desc.stencil = !m_desc.stencil ? Memory::MakeRef<RHIStencilState>(stencil) : m_desc.stencil;
-
-		if (m_desc.stencil)
-		{
-			*m_desc.stencil = stencil;
-		}
+		m_desc.blend = blend;
 	}
 
-	void RHIPipeLine::SetBlendState(const RHIBlendState blend)
+	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState& rasterizer)
 	{
-		m_desc.blend = !m_desc.blend ? Memory::MakeRef<RHIBlendState>(blend) : m_desc.blend;
-
-		if (m_desc.blend)
-		{
-			*m_desc.blend = blend;
-		}
-	}
-
-	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState rasterizer)
-	{
-		m_desc.rasterizer = !m_desc.rasterizer ? Memory::MakeRef<RHIRasterizerState>(rasterizer) : m_desc.rasterizer;
-		
-		if (m_desc.rasterizer)
-		{
-			*m_desc.rasterizer = rasterizer;
-		}
+		m_desc.rasterizer = rasterizer;
 	}
 
 	void RHIPipeLine::SetDesc(const RHIPipeLineDesc& desc)
@@ -537,6 +519,17 @@ namespace wtr
 		if (name.empty())
 		{
 			return;
+		}
+
+		auto itr = m_bindings.Find(name);
+		if (itr != m_bindings.End())
+		{
+			const auto& existingBinding = itr->second;
+			if (existingBinding.binding != binding.binding)
+			{
+				LOGWARN() << "[RHI] Binding location mismatch for '" << name << "' — existing: " << existingBinding.binding << ", new: " << binding.binding;
+				return;
+			}
 		}
 
 		m_bindings[name] = binding;
@@ -631,15 +624,5 @@ namespace wtr
 	size_t RHIRenderTarget::GetColorAttachCount() const
 	{
 		return m_desc.colors.Size();
-	}
-
-	RHIRenderPass::RHIRenderPass(const RHIRenderPassDesc& desc)
-		: m_desc(desc)
-	{
-	}
-
-	const RHIRenderPassDesc& RHIRenderPass::GetDesc() const
-	{
-		return m_desc;
 	}
 };
