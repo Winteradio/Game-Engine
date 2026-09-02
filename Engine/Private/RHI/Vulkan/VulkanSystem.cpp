@@ -795,10 +795,13 @@ namespace wtr
 			return;
 		}
 
-		const bool neededResize = (info.size > rhiBuffer->GetSize()) || (info.size < (rhiBuffer->GetSize() / 4));
+		RHIBufferUpdateDesc updateDesc = info;
+		updateDesc.mapAccess = eMapAccess::eWrite;
+
+		const bool neededResize = (updateDesc.size > rhiBuffer->GetSize()) || (updateDesc.size < (rhiBuffer->GetSize() / 4));
 		if (neededResize)
 		{
-			Memory::RefPtr<RHIBuffer> newBuffer = CreateBuffer(info);
+			Memory::RefPtr<RHIBuffer> newBuffer = CreateBuffer(updateDesc);
 			VulkanBuffer* rhiNewBuffer = static_cast<VulkanBuffer*>(newBuffer->GetRawBuffer());
 			if (!rhiNewBuffer)
 			{
@@ -806,10 +809,9 @@ namespace wtr
 				return;
 			}
 
-			if (AllocateBuffer(info, newBuffer))
+			if (AllocateBuffer(updateDesc, newBuffer))
 			{
-				UpdateBuffer(info, newBuffer);
-				CopyBuffer(buffer, info, newBuffer, info);
+				UpdateBuffer(updateDesc, newBuffer);
 
 				const VkBuffer oldVkBuffer = rhiBuffer->GetBuffer();
 				const VkBuffer newVkBuffer = rhiNewBuffer->GetBuffer();
@@ -837,9 +839,6 @@ namespace wtr
 		}
 		else
 		{
-			RHIBufferUpdateDesc updateDesc = info;
-			updateDesc.mapAccess = eMapAccess::eWrite;
-
 			UpdateBuffer(updateDesc, buffer);
 		}
 	}
@@ -868,17 +867,20 @@ namespace wtr
 	{
 		if (!buffer)
 		{
+			LOGWARN() << "[Vk] Buffer is null, failed to set the vertex buffer";
 			return;
 		}
 
 		const VulkanBuffer* vkBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
 		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
 		{
+			LOGWARN() << "[Vk] VulkanBuffer is null or invalid, failed to set the vertex buffer";
 			return;
 		}
 
 		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
+			LOGWARN() << "[Vk] Primary command buffer is invalid, failed to set the vertex buffer";
 			return;
 		}
 
@@ -894,17 +896,20 @@ namespace wtr
 	{
 		if (!buffer)
 		{
+			LOGWARN() << "[Vk] Buffer is null, failed to set the index buffer";
 			return;
 		}
 
 		const VulkanBuffer* vkBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
 		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
 		{
+			LOGWARN() << "[Vk] VulkanBuffer is null or invalid, failed to set the index buffer";
 			return;
 		}
 
 		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
+			LOGWARN() << "[Vk] Primary command buffer is invalid, failed to set the index buffer";
 			return;
 		}
 
@@ -1277,6 +1282,7 @@ namespace wtr
 	{
 		if (!staging)
 		{
+			LOGWARN() << "[Vk] Staging buffer is null, nothing to release";
 			return;
 		}
 
@@ -1293,11 +1299,13 @@ namespace wtr
 
 		if (!src || !dest)
 		{
+			LOGWARN() << "[Vk] Source or destination buffer is null, failed to copy the buffer";
 			return;
 		}
 
 		if (srcInfo.dataRanges.Empty() || destInfo.dataRanges.Empty() || srcInfo.dataRanges.Size() != destInfo.dataRanges.Size())
 		{
+			LOGWARN() << "[Vk] Source/destination data ranges are empty or mismatched in count, failed to copy the buffer";
 			return;
 		}
 
@@ -1306,6 +1314,7 @@ namespace wtr
 		if (!rhiSrc || rhiSrc->GetBuffer() == VK_NULL_HANDLE ||
 			!rhiDest || rhiDest->GetBuffer() == VK_NULL_HANDLE)
 		{
+			LOGWARN() << "[Vk] VulkanBuffer is null or invalid, failed to copy the buffer";
 			return;
 		}
 
