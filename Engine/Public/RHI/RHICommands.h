@@ -414,61 +414,89 @@ namespace wtr
 	class RHICommandSetConstant : public RHICommand<RHICommandSetConstant>
 	{
 	public :
-		RHICommandSetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName);
+		RHICommandSetConstant(const RHIConstDesc info, const uint32_t binding, const uint32_t set);
 		~RHICommandSetConstant() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const RHIConstDesc m_info;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
+	};
+
+	class RHICommandSetVertexBuffer : public RHICommand<RHICommandSetVertexBuffer>
+	{
+	public:
+		RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t offset);
+		~RHICommandSetVertexBuffer() = default;
+
+	public:
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private:
+		const Memory::RefPtr<const RHIBuffer> m_buffer;
+		const uint32_t m_binding;
+		const uint32_t m_offset;
+	};
+
+	class RHICommandSetIndexBuffer : public RHICommand<RHICommandSetIndexBuffer>
+	{
+	public :
+		RHICommandSetIndexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset);
+		~RHICommandSetIndexBuffer() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+	private :
+		const Memory::RefPtr<const RHIBuffer> m_buffer;
+		const uint32_t m_offset;
 	};
 
 	class RHICommandSetBuffer : public RHICommand<RHICommandSetBuffer>
 	{
 	public :
-		RHICommandSetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
+		RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set);
 		~RHICommandSetBuffer() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHIBuffer> m_buffer;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandSetTexture : public RHICommand<RHICommandSetTexture>
 	{
 	public :
-		RHICommandSetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set);
 		~RHICommandSetTexture() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHITexture> m_texture;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandSetSampler : public RHICommand<RHICommandSetSampler>
 	{
 	public :
-		RHICommandSetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+		RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set);
 		~RHICommandSetSampler() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHISampler> m_sampler;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandSetVertexLayout : public RHICommand<RHICommandSetVertexLayout>
@@ -527,60 +555,83 @@ namespace wtr
 	class RHICommandUnsetConstant : public RHICommand<RHICommandUnsetConstant>
 	{
 	public :
-		RHICommandUnsetConstant(const Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName);
+		RHICommandUnsetConstant(const uint32_t binding, const uint32_t set);
 		~RHICommandUnsetConstant() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandUnsetBuffer : public RHICommand<RHICommandUnsetBuffer>
 	{
 	public :
-		RHICommandUnsetBuffer(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName);
+		RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set);
 		~RHICommandUnsetBuffer() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHIBuffer> m_buffer;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandUnsetTexture : public RHICommand<RHICommandUnsetTexture>
 	{
 	public :
-		RHICommandUnsetTexture(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHITexture> texture, const std::string& slotName);
+		RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set);
 		~RHICommandUnsetTexture() = default;
 
 	public:
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private :
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHITexture> m_texture;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
 	};
 
 	class RHICommandUnsetSampler : public RHICommand<RHICommandUnsetSampler>
 	{
 	public :
-		RHICommandUnsetSampler(const Memory::RefPtr<const RHIPipeLine> pipeline, const Memory::RefPtr<const RHISampler> sampler, const std::string& slotName);
+		RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set);
 		~RHICommandUnsetSampler() = default;
 
 	public :
 		void Execute(Memory::RefPtr<RHISystem> system);
 
 	private:
-		const Memory::RefPtr<const RHIPipeLine> m_pipeline;
 		const Memory::RefPtr<const RHISampler> m_sampler;
-		const std::string m_slotName;
+		const uint32_t m_binding;
+		const uint32_t m_set;
+	};
+
+	class RHICommandUnsetVertexBuffer : public RHICommand<RHICommandUnsetVertexBuffer>
+	{
+	public :
+		RHICommandUnsetVertexBuffer(const uint32_t binding);
+		~RHICommandUnsetVertexBuffer() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
+
+	private :
+		const uint32_t m_binding;
+	};
+
+	class RHICommandUnsetIndexBuffer : public RHICommand<RHICommandUnsetIndexBuffer>
+	{
+	public :
+		RHICommandUnsetIndexBuffer() = default;
+		~RHICommandUnsetIndexBuffer() = default;
+
+	public :
+		void Execute(Memory::RefPtr<RHISystem> system);
 	};
 
 	class RHICommandUnsetVertexLayout : public RHICommand<RHICommandUnsetVertexLayout>

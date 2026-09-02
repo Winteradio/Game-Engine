@@ -455,14 +455,19 @@ namespace wtr
 		return UINT32_MAX;
 	}
 
+	bool VulkanDevice::IsValid() const
+	{
+		return (m_instance != VK_NULL_HANDLE && m_physicalDevice != VK_NULL_HANDLE && m_logicalDevice != VK_NULL_HANDLE);
+	}
+
 	VkInstance VulkanDevice::GetInstance() const
 	{
 		return m_instance;
 	}
 
-	const VkPhysicalDeviceLimits& VulkanDevice::GetPhysicalLimits() const
+	VkDevice VulkanDevice::GetLogicalDevice() const
 	{
-		return m_physicalLimits;
+		return m_logicalDevice;
 	}
 
 	VkPhysicalDevice VulkanDevice::GetPhysicalDevice() const
@@ -470,9 +475,9 @@ namespace wtr
 		return m_physicalDevice;
 	}
 
-	VkDevice VulkanDevice::GetLogicalDevice() const
+	const VkPhysicalDeviceLimits& VulkanDevice::GetPhysicalLimits() const
 	{
-		return m_logicalDevice;
+		return m_physicalLimits;
 	}
 
 	uint32_t VulkanDevice::GetApiVersion() const

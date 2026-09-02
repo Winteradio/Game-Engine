@@ -133,11 +133,4 @@ namespace wtr
 	{
 		return m_colorAttachments;
 	}
-
-	GLRenderPass::GLRenderPass(const RHIRenderPassDesc& desc)
-		: RHIRenderPass(desc)
-	{}
-
-	GLRenderPass::~GLRenderPass()
-	{}
 }

@@ -53,21 +53,19 @@ namespace wtr
 			eBufferType GetBufferType() const;
 			eBufferTransfer GetBufferTransfer() const;
 			eDataAccess GetAccessType() const;
-			eDataType GetComponentType() const;
+			eDataType GetDataType() const;
 			uint32_t GetNumComponents() const;
-			uint32_t GetCount() const;
-			uint32_t GetSize() const;
 			uint32_t GetStride() const;
+			uint32_t GetSize() const;
 			const RHIBufferDesc& GetDesc() const;
 
 			void SetBufferType(const eBufferType bufferType);
 			void SetBufferTransfer(const eBufferTransfer bufferTransfer);
 			void SetAccessType(const eDataAccess accessType);
-			void SetComponentType(const eDataType componentType);
+			void SetDataType(const eDataType dataType);
 			void SetNumComponents(const uint32_t numComponents);
-			void SetCount(const uint32_t count);
-			void SetSize(const uint32_t size);
 			void SetStride(const uint32_t stride);
+			void SetSize(const uint32_t size);
 
 			void SetDesc(const RHIBufferDesc& desc);
 
@@ -82,10 +80,14 @@ namespace wtr
 			virtual ~RHIVertexLayout() = default;
 
 		public :
-			size_t GetNumAttributes() const;
+			size_t GetNumLayout() const;
+			RHIVertexAttribute GetAttribute(const VertexKey& key) const;
+			RHIVertexBinding GetBinding(const VertexKey& key) const;
 			const RHIVertexLayoutDesc& GetDesc() const;
 
 			void SetDesc(const RHIVertexLayoutDesc& desc);
+			void SetAttribute(const VertexKey& key, const RHIVertexAttribute& attribute);
+			void SetBinding(const VertexKey& key, const RHIVertexBinding& binding);
 
 		protected :
 			RHIVertexLayoutDesc m_desc;
@@ -187,21 +189,19 @@ namespace wtr
 		virtual ~RHIPipeLine() = default;
 
 	public :
-		Memory::RefPtr<const RHIClearState> GetClearState() const;
-		Memory::RefPtr<const RHIColorState> GetColorState() const;
-		Memory::RefPtr<const RHIDepthState> GetDepthState() const;
-		Memory::RefPtr<const RHIStencilState> GetStencilState() const;
-		Memory::RefPtr<const RHIBlendState> GetBlendState() const;
-		Memory::RefPtr<const RHIRasterizerState> GetRasterizerState() const;
+		RHIColorState GetColorState() const;
+		RHIDepthState GetDepthState() const;
+		RHIStencilState GetStencilState() const;
+		RHIBlendState GetBlendState() const;
+		RHIRasterizerState GetRasterizerState() const;
 		const RHIPipeLineDesc& GetDesc() const;
 
 		void SetDesc(const RHIPipeLineDesc& desc);
-		void SetClearState(const RHIClearState clear);
-		void SetColorState(const RHIColorState color);
-		void SetDepthState(const RHIDepthState depth);
-		void SetStencilState(const RHIStencilState stencil);
-		void SetBlendState(const RHIBlendState blend);
-		void SetRasterizerState(const RHIRasterizerState rasterizer);
+		void SetColorState(const RHIColorState& color);
+		void SetDepthState(const RHIDepthState& depth);
+		void SetStencilState(const RHIStencilState& stencil);
+		void SetBlendState(const RHIBlendState& blend);
+		void SetRasterizerState(const RHIRasterizerState& rasterizer);
 
 		void AddBinding(const std::string& name, const RHIShaderBinding& binding);
 		bool HasBinding(const std::string& name) const;
@@ -244,16 +244,16 @@ namespace wtr
 		RHIRenderTargetDesc m_desc;
 	};
 
-	class RHIRenderPass : public RHIResource
+	template<typename T>
+	struct RHIPendingResource
 	{
-	public:
-		RHIRenderPass(const RHIRenderPassDesc& desc);
-		virtual ~RHIRenderPass() = default;
+		Memory::RefPtr<T> resource;
+		const size_t frame;
 
-	public :
-		const RHIRenderPassDesc& GetDesc() const;
-	private :
-		RHIRenderPassDesc m_desc;
+		RHIPendingResource(Memory::RefPtr<T> resource, const size_t frame)
+			: resource(resource)
+			, frame(frame)
+		{}
 	};
 };
 

@@ -54,7 +54,8 @@ namespace wtr
 
 		bool HasTransform(const ECS::UUID& id) const;
 
-		Memory::RefPtr<const MeshDrawCommand> GetDrawCommand() const;
+		Memory::RefPtr<const MeshAsset> GetMesh() const;
+		Memory::RefPtr<const MaterialProxy> GetMaterial() const;
 
 		MeshBatchKey GetKey() const;
 		bool IsEmpty() const;
@@ -70,7 +71,6 @@ namespace wtr
 	private :
 		wtr::HashMap<ECS::UUID, size_t> m_proxyIndices;
 		wtr::DynamicArray<ProxyInfo> m_proxyInfos;
-		Memory::RefPtr<MeshDrawCommand> m_drawCommand;
 
 		Memory::RefPtr<const MeshAsset> m_refMesh;
 		Memory::RefPtr<const MaterialProxy> m_refMaterial;

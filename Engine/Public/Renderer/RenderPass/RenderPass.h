@@ -38,6 +38,8 @@ namespace wtr
 	{
 		GENERATE(RenderPass);
 	public :
+		using PassState = RHIPipeLineDesc;
+
 		RenderPass() = default;
 		virtual ~RenderPass() = default;
 

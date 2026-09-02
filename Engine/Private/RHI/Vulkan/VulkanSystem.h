@@ -3,6 +3,7 @@
 
 #include <RHI/RHISystem.h>
 #include <RHI/RHIStates.h>
+#include <RHI/RHIDescriptions.h>
 
 #include <vulkan/vulkan.h>
 
@@ -49,16 +50,14 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc desc) override;
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc desc) override;
 		Memory::RefPtr<RHIRenderTarget> CreateRenderTarget(const RHIRenderTargetDesc desc) override;
-		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc desc) override;
 
 		void InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
-		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
 		void InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
+		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout) override;
 		void InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler) override;
 		void InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader) override;
 		void InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline) override;
 		void InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target) override;
-		void InitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass) override;
 
 		void InitializeTextureSwapChain(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 
@@ -69,45 +68,70 @@ namespace wtr
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
-		void SetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const RHIConstDesc info, const std::string& slotName) override;
-		void SetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
-		void SetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
-		void SetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+		void SetConstant(const RHIConstDesc info, const int32_t binding) override;
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding) override;
+		void SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) override;
+		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) override;
 
-		void UnsetConstant(Memory::RefPtr<const RHIPipeLine> pipeline, const std::string& slotName) override;
-		void UnsetBuffer(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHIBuffer> buffer, const std::string& slotName) override;
-		void UnsetTexture(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHITexture> texture, const std::string& slotName) override;
-		void UnsetSampler(Memory::RefPtr<const RHIPipeLine> pipeline, Memory::RefPtr<const RHISampler> sampler, const std::string& slotName) override;
+		void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset) override;
+		void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset) override;
 
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) override;
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) override;
-		void SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target) override;
-		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) override;
 
-		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state) override;
+		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding) override;
+		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) override;
+		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) override;
+
+		void UnsetVertexBuffer(const uint32_t bidingIndex) override;
+		void UnsetIndexBuffer() override;
 
 		void UnsetVertexLayout() override;
 		void UnsetPipeLine() override;
-		void UnsetRenderTarget() override;
-		void UnsetRenderPass() override;
+
+		void BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target) override;
+		void EndRenderPass() override;
+		void ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state) override;
 
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
 	public :
-		VkBufferUsageFlags GetBufferType(const eBufferType bufferType) const;
-		VkBufferUsageFlags GetBufferTransfer(const eBufferTransfer bufferTransfer) const;
-		VkMemoryPropertyFlags GetBufferProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const;
+		bool AllocateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		bool AllocateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 
-		VkFormat GetDataType(const eDataType data) const;
-		VkIndexType GetIndexType(const eDataType data) const;
+		const RHIBufferCreateDesc GetStagingDesc(const RHIBufferCreateDesc info);
+		const RHIBufferCreateDesc GetStagingDesc(const RHITextureCreateDesc info);
 
-		VkImageViewType GetTextureType(const eTextureType texture) const;
-		VkImageType GetTextureDimension(const eTextureType texture) const;
-		VkFormat GetPixelFormat(const ePixelFormat pixel) const;
+		Memory::RefPtr<RHIBuffer> AcquireStaging(const RHIBufferCreateDesc info);
+		void ReleaseStaging(Memory::RefPtr<RHIBuffer> staging);
+
+		void CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHIBuffer> dest, const RHIBufferCreateDesc destInfo);
+		void CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHITextureCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo);
+
+		VkBufferUsageFlags GetBufferUsage(const eBufferType bufferType) const;
+		VkBufferUsageFlags GetBufferUsage(const eBufferTransfer bufferTransfer) const;
+		VkMemoryPropertyFlags GetMemoryProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const;
+
+		VkFormat GetDataFormat(const eDataType data) const;
+
+		VkVertexInputRate GetVertexDivisor(const eDataDivisor divisor) const;
+		VkFormat GetVertexFormat(const eDataType data, const uint32_t count, const bool normalized) const;
+		VkIndexType GetIndexFormat(const eDataType data) const;
+
+		VkImageAspectFlags GetImageAspect(const ePixelFormat pixel) const;
+		VkImageAspectFlags GetImageAspect(const eAttachment attach) const;
+		VkImageUsageFlags GetImageUsage(const eTextureUsage usage, const bool mipmaps) const;
+		VkImageCreateFlags GetImageCreate(const eTextureType type) const;
+		VkImageViewType GetImageViewType(const eTextureType type) const;
+		VkImageType GetImageType(const eTextureType type) const;
+		VkFormat GetImageFormat(const ePixelFormat pixel) const;
+
+		VkSampleCountFlags GetSampleCount(const uint32_t count) const;
 
 		VkFilter GetFilterMode(const eFilterMode filter) const;
 		VkSamplerAddressMode GetWrapMode(const eWrapMode wrap) const;
+		VkBorderColor GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
 
 		VkCullModeFlags GetCullFace(const eCullFace face) const;
 		VkFrontFace GetFrontFace(const eFrontFace face) const;
@@ -118,32 +142,10 @@ namespace wtr
 		VkCompareOp GetCompareFunc(const eCompareFunc func) const;
 
 		VkStencilOp GetStencilOp(const eStencilOp op) const;
-
 		VkBlendFactor GetBlendFunc(const eBlendFunc func) const;
 		VkBlendOp GetBlendOp(const eBlendOp op) const;
 
 		VkShaderStageFlagBits GetShaderType(const eShaderType type) const;
-
-		VkBorderColor GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const;
-
-		VkImageAspectFlags GetImageAspect(const eAttachment attach) const;
-
-		eCompareFunc GetCompareFunc(const VkCompareOp func) const;
-		eStencilOp GetStencilOp(const VkStencilOp op) const;
-		eBlendFunc GetBlendFunc(const VkBlendFactor func) const;
-		eBlendOp GetBlendOp(const VkBlendOp op) const;
-		eCullFace GetCullFace(const VkCullModeFlags face) const;
-		eFrontFace GetFrontFace(const VkFrontFace face) const;
-		ePrimitiveMode GetPrimitiveMode(const VkPolygonMode mode) const;
-
-		eTextureType GetTextureType(const VkImageViewType texture) const;
-		ePixelFormat GetPixelFormat(const VkFormat pixel) const;
-
-		eFilterMode GetFilterMode(const VkFilter filter) const;
-		eWrapMode GetWrapMode(const VkSamplerAddressMode wrap) const;
-		eWrapBorderColor GetWrapBorderColor(const VkBorderColor wrapBorderColor) const;
-
-		eAttachment GetImageAspect(const VkImageAspectFlags aspect) const;
 
 	private :
 		void FlushBuffer();
@@ -153,114 +155,16 @@ namespace wtr
 		void FlushShader();
 		void FlushPipeline();
 		void FlushRenderTarget();
-		void FlushRenderPass();
 
 	private:
 		Memory::RefPtr<VulkanDevice> m_device;
 		Memory::RefPtr<VulkanSurface> m_surface;
 		Memory::RefPtr<VulkanMemory> m_memory;
-
-		// Vulkan Command Architecture (planned)
-		// The Vulkan System is the single
-		// 		- it must NOT be duplicated per thread
-		// 
-		// The shared owner of a fixed set of VulkanCommand instances 
-		//		- VkInstance/VkPhysicalDevice/VkDevice/VkQueue are process-wide singletons 
-		//		- only command recording needs per-thread separation
-		// 
-		//		- 1 Primary   : owned/recorded by the RHI Thread. 
-		//						Begins/ends the rendering scope and submits to the graphics queue 
-		//						(vkQueueSubmit -> vkQueuePresentKHR).
-		// 
-		//		- N Secondary : one per RHI Worker Thread, fixed count decided at Init time 
-		//						(pool creation is relatively expensive - not recreated per frame).
-		// 
-		// Worker threads never own a VulkanSystem/VulkanDevice 
-		//		- they only receive a handle to their assigned Secondary VulkanCommand from this VulkanSystem.
-		//
-		// Per-frame flow : 
-		//		-> Workers record their assigned draw items in parallel into their own Secondary
-		//		-> RHI Thread CPU-joins all workers (not a Vulkan sync primitive) 
-		//		-> reassembles the Secondary handles in the intended draw order (NOT finish order) 
-		//		-> vkCmdExecuteCommands into the Primary
-		//		-> vkCmdEndRenderPass
-		//		-> vkQueueSubmit
-		//		-> Present.
-
 		Memory::RefPtr<VulkanCommand> m_primary;
 
-		// TODO : The rendering multi-threading
-		//Memory::RefPtr<VulkanCommand> m_secondary;
+		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> m_staging;
+		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> m_releaseStaging;
 
-		// Frame Synchronization Objects (2 Semaphore + 1 Fence)
-		// 
-		// m_acquire -	signaled by WSI (vkAcquireNextImageKHR) once the swapchain image is free to write into. 
-		//				Waited on by vkQueueSubmit, at the COLOR_ATTACHMENT_OUTPUT stage, 
-		//				before rendering into that image begins.
-		// 
-		// m_present -	signaled by the GPU (vkQueueSubmit) once rendering into that image completes. 
-		//				Waited on by vkQueuePresentKHR before the image is shown.
-		//
-		//           -	Kept as 2 separate VkSemaphore objects, not 1: a binary semaphore holds
-		//              only 1 bit (signaled/unsignaled) and its signal/wait events must strictly
-		//              alternate (S,W,S,W,...)
-		// 
-		//			 -	two signals with no wait between them is UB.
-		//              The CPU cannot guarantee that ordering across the Acquire/Submit/Present loop 
-		//				(this frame's Present-wait and next frame's Acquire-signal are two independent async 
-		//				requests to WSI with no enforced ordering between them),
-		//              so funneling both directions of dependency through one semaphore risks
-		//              exactly that violation once the loop repeats. 
-		//				Two objects means each only ever carries one role's traffic, so they can never collide.
-		//
-		// m_fence   -	the only one of the three the CPU can directly wait on (vkWaitForFences) 
-		//			 -	binary semaphores have no host-observable wait function.
-		//           -	Attached to vkQueueSubmit, NOT vkAcquireNextImageKHR. 
-		//				It answers "is it safe to call m_primary->ResetPool() yet", 
-		//				which depends on whether the GPU finished reading the exact commandBuffer that was submitted
-		// 
-		//			 -	Acquire never touches that memory at all, 
-		//				so a fence there would answer a question nobody is asking.
-		// 
-		//           -	Created with VK_FENCE_CREATE_SIGNALED_BIT: 
-		//				on the very first frame there is no prior Submit to signal it, 
-		//				so vkWaitForFences would hang forever on frame 0 without this.
-		//
-		// ---------------------------------------------------------------------------------------
-		// Semaphore Signal/Wait Relationship (CPU / WSI / GPU)
-		// ---------------------------------------------------------------------------------------
-		//
-		// CPU::BeginFrame()
-		//   vkAcquireNextImageKHR
-		//		-> registers with WSI: "signal m_acquire once this image is free"
-		//
-		//		WSI (async, own schedule - not the CPU call above)
-		//			-> waits for the previous consumer (the display) to finish reading the image
-		//			-> signal m_acquire
-		//
-		// CPU::EndFrame()
-		//   vkQueueSubmit
-		//		-> wait:   m_acquire   (GPU checks this before the COLOR_ATTACHMENT_OUTPUT stage)
-		//		-> signal: m_present   (GPU signals this once rendering completes)
-		//
-		//		GPU (async, own schedule - not the CPU call above)
-		//			-> waits for m_acquire before writing to the image
-		//			-> renders
-		//			-> signal m_present
-		//
-		//   vkQueuePresentKHR
-		//		-> wait: m_present   (WSI checks this before handing the image to the display)
-		//
-		// None of the 3 CPU calls above ever block the CPU itself 
-		//	-	each just registers a wait/signal condition that WSI or the GPU Command Processor checks later, 
-		//		on its own schedule. 
-		//		That is exactly why 2 separate semaphores are required: the CPU races through 
-		//		Acquire -> Submit -> Present -> Acquire(next frame) without pausing, 
-		//		so the next frame's Acquire-signal can physically arrive 
-		//		before this frame's Present-wait has been consumed. 
-		//		One shared semaphore would risk 2 signals with no wait between them (UB for a binary semaphore)
-		// 
-		//	-	2 objects means each carries only one direction of dependency and can never collide with the other.
 		VkSemaphore m_acquire;
 		VkSemaphore m_present;
 		VkFence		m_fence;

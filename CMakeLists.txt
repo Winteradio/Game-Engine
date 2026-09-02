@@ -211,6 +211,8 @@ set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.h
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshBatch.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/MeshDrawCommand.h
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshProcessor.h
+	${ENGINE_PRIVATE_DIR}/Renderer/MeshProcessor.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/ShaderState.h
 	${ENGINE_PRIVATE_DIR}/Renderer/ShaderState.cpp
@@ -238,6 +240,8 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHIFrameExecutor.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHITaskExecutor.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHITaskExecutor.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.h
+	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
 

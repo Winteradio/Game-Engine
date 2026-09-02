@@ -25,10 +25,12 @@ namespace wtr
 		bool InitDevice(Memory::RefPtr<const VulkanSurface> surface);
 		void Release();
 
+		bool IsValid() const;
 		VkInstance GetInstance() const;
-		const VkPhysicalDeviceLimits& GetPhysicalLimits() const;
-		VkPhysicalDevice GetPhysicalDevice() const;
 		VkDevice GetLogicalDevice() const;
+		VkPhysicalDevice GetPhysicalDevice() const;
+
+		const VkPhysicalDeviceLimits& GetPhysicalLimits() const;
 
 		uint32_t GetApiVersion() const;
 		uint32_t GetAppVersion() const;

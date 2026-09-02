@@ -28,158 +28,40 @@ namespace wtr
 		Memory::RefPtr<const ShaderAsset> m_shaderAsset;
 	};
 
-	class GeometryVSState : public ShaderState
-	{
-		GENERATE(GeometryVSState);
-	public :
-		using ShaderState::ShaderState;
-
-		virtual ~GeometryVSState() = default;
-	};
-	
-	class GeometryGSState : public ShaderState
-	{
-		GENERATE(GeometryGSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~GeometryGSState() = default;
+#define SHADER_STATE(className, baseClassName) \
+	class className : public baseClassName \
+	{ \
+		GENERATE(className); \
+	public: \
+		using baseClassName::baseClassName; \
 	};
 
-	class GeometryHSState : public ShaderState
-	{
-		GENERATE(GeometryHSState);
-	public:
-		using ShaderState::ShaderState;
+	SHADER_STATE(VSState, ShaderState);
+	SHADER_STATE(PSState, ShaderState);
+	SHADER_STATE(GSState, ShaderState);
+	SHADER_STATE(HSState, ShaderState);
+	SHADER_STATE(DSState, ShaderState);
+	SHADER_STATE(CSState, ShaderState);
 
-		virtual ~GeometryHSState() = default;
-	};
+	SHADER_STATE(GeometryVSState, VSState);
+	SHADER_STATE(GeometryPSState, PSState);
+	SHADER_STATE(GeometryGSState, GSState);
+	SHADER_STATE(GeometryHSState, HSState);
+	SHADER_STATE(GeometryDSState, DSState);
+	SHADER_STATE(GeometryCSState, CSState);
 
-	class GeometryDSState : public ShaderState
-	{
-		GENERATE(GeometryDSState);
-	public:
-		using ShaderState::ShaderState;
+	SHADER_STATE(LightVSState, VSState);
+	SHADER_STATE(LightPSState, PSState);
 
-		virtual ~GeometryDSState() = default;
-	};
+	SHADER_STATE(ShadowVSState, VSState);
+	SHADER_STATE(ShadowPSState, PSState);
 
-	class GeometryPSState : public ShaderState
-	{
-		GENERATE(GeometryPSState);
-	public:
-		using ShaderState::ShaderState;
+	SHADER_STATE(ForwardVSState, VSState);
+	SHADER_STATE(ForwardPSState, PSState);
 
-		virtual ~GeometryPSState() = default;
-	};
-
-	class LightVSState : public ShaderState
-	{
-		GENERATE(LightVSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~LightVSState() = default;
-	};
-
-	class LightPSState : public ShaderState
-	{
-		GENERATE(LightPSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~LightPSState() = default;
-	};
-
-	class ShadowVSState : public ShaderState
-	{
-		GENERATE(ShadowVSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ShadowVSState() = default;
-	};
-
-	class ShadowGSState : public ShaderState
-	{
-		GENERATE(ShadowGSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ShadowGSState() = default;
-	};
-
-	class ShadowPSState : public ShaderState
-	{
-		GENERATE(ShadowPSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ShadowPSState() = default;
-	};
-
-	class ForwardVSState : public ShaderState
-	{
-		GENERATE(ForwardVSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ForwardVSState() = default;
-	};
-
-	class ForwardPSState : public ShaderState
-	{
-		GENERATE(ForwardPSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ForwardPSState() = default;
-	};
-
-	class PostProcessVSState : public ShaderState
-	{
-		GENERATE(PostProcessVSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~PostProcessVSState() = default;
-	};
-
-	class PostProcessPSState : public ShaderState
-	{
-		GENERATE(PostProcessPSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~PostProcessPSState() = default;
-	};
-
-	class ComputeCSState : public ShaderState
-	{
-		GENERATE(ComputeCSState);
-	public:
-		using ShaderState::ShaderState;
-
-		virtual ~ComputeCSState() = default;
-	};
-
-	class DebugVSState : public ShaderState
-	{
-		GENERATE(ShaderState);
-	public :
-		using ShaderState::ShaderState;
-
-		virtual ~DebugVSState() = default;
-	};
-
-	class DebugPSState : public ShaderState
-	{
-		GENERATE(DebugPSState);
-	public :
-		using ShaderState::ShaderState;
-
-		virtual ~DebugPSState() = default;
-	};
+	SHADER_STATE(ComputeCSState, CSState);
+	SHADER_STATE(DebugVSState, VSState);
+	SHADER_STATE(DebugPSState, PSState);
 };
 
 #endif // __WTR_SHADERSTATE_H__

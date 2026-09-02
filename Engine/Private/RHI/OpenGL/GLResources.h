@@ -115,15 +115,6 @@ namespace wtr
 	private :
 		wtr::DynamicArray<uint32_t> m_colorAttachments;
 	};
-
-	class GLRenderPass : public RHIRenderPass
-	{
-	public:
-		GLRenderPass(const RHIRenderPassDesc& desc);
-		virtual ~GLRenderPass();
-
-	public :
-	};
 };
 
 #endif // __WTR_GLRESOURCES_H__

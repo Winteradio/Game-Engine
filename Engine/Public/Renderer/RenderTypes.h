@@ -30,9 +30,8 @@ namespace wtr
 		eLayout		= 0x06,
 		eTarget		= 0x07,
 		eConst		= 0x08,
-		ePass		= 0x09,
-		eGraphics	= 0x0A,
-		eCompute	= 0x0B
+		eGraphics	= 0x09,
+		eCompute	= 0x0A
 	};
 
 	enum class eBufferType : uint8_t
@@ -104,6 +103,13 @@ namespace wtr
 		eGeneric	= 0x08
 	};
 
+	enum class eDataDivisor : uint8_t
+	{
+		eNone = 0x00,
+		ePerVertex = 0x01,
+		ePerInstance = 0x02
+	};
+
 	enum class eBindingType : uint8_t
 	{
 		eNone			= 0x00,
@@ -111,6 +117,16 @@ namespace wtr
 		eUniformBuffer	= 0x02,
 		eStorageBuffer 	= 0x03,
 		eSampler		= 0x04
+	};
+
+	enum class eTextureUsage : uint8_t
+	{
+		eNone = 0x00,
+		eSampled = 0x01 << 0,
+		eRenderTarget = 0x01 << 1,
+		eDepthStencil = 0x01 << 2,
+		eStorage = 0x01 << 3,
+		ePresent = 0x01 << 4
 	};
 
 	enum class eTextureType : uint8_t
@@ -171,16 +187,6 @@ namespace wtr
 		eD24_S8 = 0x1E,
 		eD32 = 0x1F,
 		// TODO : Not yet the compressed pixel format
-	};
-
-	enum class eTextureUsage : uint8_t
-	{
-		eNone			= 0x00,
-		eSampled		= 0x01 << 0,
-		eRenderTarget	= 0x01 << 1 ,
-		eDepthStencil	= 0x01 << 2,
-		eStorage		= 0x01 << 3,
-		ePresent		= 0x01 << 4
 	};
 
 	enum class eFilterMode : uint8_t
@@ -574,11 +580,6 @@ namespace wtr
 		uint32_t level;
 	};
 
-	struct TextureFaceBuffer
-	{
-		wtr::DynamicArray<TextureMipMapBuffer> mipMaps;
-	};
-
 	struct TextureBuffer
 	{
 		// The texture 2D : face 0 is the only face, and it contains all the mip levels
@@ -591,9 +592,8 @@ namespace wtr
 		// The face 4 : the positive Z face
 		// The face 5 : the negative Z face
 		// The texture 3D : face 0 is the only face, and it contains all the mip levels
-		wtr::DynamicArray<TextureFaceBuffer> faces;
-
-		eDataType componentType;
+		using Face = wtr::DynamicArray<TextureMipMapBuffer>;
+		wtr::DynamicArray<Face> faces;
 	};
 
 	struct VertexKey
