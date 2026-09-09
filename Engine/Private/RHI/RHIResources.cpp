@@ -68,19 +68,14 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	eBufferType RHIBuffer::GetBufferType() const
+	eBufferUsage RHIBuffer::GetBufferUsage() const
 	{
-		return m_desc.bufferType;
-	}
-
-	eBufferTransfer RHIBuffer::GetBufferTransfer() const
-	{
-		return m_desc.bufferTransfer;
+		return m_desc.usage;
 	}
 
 	eDataAccess RHIBuffer::GetAccessType() const
 	{
-		return m_desc.accessType;
+		return m_desc.access;
 	}
 
 	eDataType RHIBuffer::GetDataType() const
@@ -108,19 +103,14 @@ namespace wtr
 		return m_desc;
 	}
 
-	void RHIBuffer::SetBufferType(const eBufferType bufferType)
+	void RHIBuffer::SetBufferUsage(const eBufferUsage usage)
 	{
-		m_desc.bufferType = bufferType;
-	}
-
-	void RHIBuffer::SetBufferTransfer(const eBufferTransfer bufferTransfer)
-	{
-		m_desc.bufferTransfer = bufferTransfer;
+		m_desc.usage = usage;
 	}
 
 	void RHIBuffer::SetAccessType(const eDataAccess accessType)
 	{
-		m_desc.accessType = accessType;
+		m_desc.access = accessType;
 	}
 
 	void RHIBuffer::SetDataType(const eDataType dataType)
@@ -232,14 +222,14 @@ namespace wtr
 		return m_desc.usage;
 	}
 
-	eTextureType RHITexture::GetTextureType() const
+	eTextureDimension RHITexture::GetTextureDimension() const
 	{
-		return m_desc.textureType;
+		return m_desc.dimension;
 	}
 
 	eDataType RHITexture::GetDataType() const
 	{
-		return m_desc.dataType;
+		return m_desc.componentType;
 	}
 
 	const RHITextureDesc& RHITexture::GetDesc() const
@@ -282,14 +272,14 @@ namespace wtr
 		m_desc.usage = textureUsage;
 	}
 
-	void RHITexture::SetTextureType(const eTextureType textureType)
+	void RHITexture::SetTextureDimension(const eTextureDimension textureDimension)
 	{
-		m_desc.textureType = textureType;
+		m_desc.dimension = textureDimension;
 	}
 
 	void RHITexture::SetDataType(const eDataType dataType)
 	{
-		m_desc.dataType = dataType;
+		m_desc.componentType = dataType;
 	}
 
 	void RHITexture::SetDesc(const RHITextureDesc& desc)

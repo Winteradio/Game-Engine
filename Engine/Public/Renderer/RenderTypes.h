@@ -29,41 +29,14 @@ namespace wtr
 		ePipeLine	= 0x05,
 		eLayout		= 0x06,
 		eTarget		= 0x07,
-		eConst		= 0x08,
-		eGraphics	= 0x09,
-		eCompute	= 0x0A
 	};
 
-	enum class eBufferType : uint8_t
-	{
-		eNone		= 0x00,
-		eVertex		= 0x01,
-		eIndex		= 0x02,
-		eConst		= 0x03,
-		eStorage	= 0x04,
-		eIndirect	= 0x07,
-		eTexel		= 0x08
-	};
-
-	// Buffer Transfer Type
-	// eSource : Buffer is source of transfer (e.g. copy from this buffer to another buffer or texture)
-	// eDestination : Buffer is destination of transfer (e.g. copy from another buffer or texture to this buffer)
-	enum class eBufferTransfer : uint8_t
-	{
-		eNone			= 0x00,
-		eSource			= 0x01 << 1,
-		eDestination	= 0x01 << 2
-	};
-
-	// GPU Binding Datas : eStatic, eDynamic, eStream
-	// GPU Transfer Datas : eStaging
 	enum class eDataAccess : uint8_t
 	{
 		eNone		= 0x00,
 		eStatic		= 0x01,
 		eDynamic	= 0x02,
-		eStream		= 0x03,
-		eStaging	= 0x04
+		eStream		= 0x03
 	};
 
 	enum class eDataType : uint8_t
@@ -72,22 +45,27 @@ namespace wtr
 		eByte	= 0x01,
 		eUByte	= 0x02,
 		eShort	= 0x03,
-		eUShort = 0x04,
+		eUShort	= 0x04,
 		eInt	= 0x05,
 		eUInt	= 0x06,
 		eFloat	= 0x07,
-		eDouble = 0x08
+		eDouble	= 0x08
 	};
 
-	enum class eMapAccess : uint8_t
+	enum class eDataDivisor : uint8_t
 	{
-		eNone				= 0x00,
-		eRead				= 0x01 << 0,
-		eWrite				= 0x01 << 1,
-		eInvalidateRange	= 0x01 << 2,
-		eInvalidateBuffer	= 0x01 << 3,
-		eFlushExplicit		= 0x01 << 4,
-		eUnsynchronized		= 0x01 << 5,
+		eNone			= 0x00,
+		ePerVertex		= 0x01,
+		ePerInstance	= 0x02
+	};
+
+	enum class eBindingType : uint8_t
+	{
+		eNone			= 0x00,
+		eUniform		= 0x01,
+		eUniformBuffer	= 0x02,
+		eStorageBuffer	= 0x03,
+		eSampler		= 0x04
 	};
 
 	enum class eVertexSemantic : uint8_t
@@ -98,40 +76,37 @@ namespace wtr
 		eTangent	= 0x03,
 		eColor		= 0x04,
 		eTexCoord	= 0x05,
-		eJoint 		= 0x06,
+		eJoint		= 0x06,
 		eWeight		= 0x07,
 		eGeneric	= 0x08
 	};
 
-	enum class eDataDivisor : uint8_t
-	{
-		eNone = 0x00,
-		ePerVertex = 0x01,
-		ePerInstance = 0x02
-	};
-
-	enum class eBindingType : uint8_t
+	enum class eBufferUsage : uint8_t
 	{
 		eNone			= 0x00,
-		eUniform		= 0x01,
-		eUniformBuffer	= 0x02,
-		eStorageBuffer 	= 0x03,
-		eSampler		= 0x04
+		eTransferSrc	= 0x01 << 0,
+		eTransferDst	= 0x01 << 1,
+		eVertex			= 0x01 << 2,
+		eIndex			= 0x01 << 3,
+		eUniform		= 0x01 << 4,
+		eStorage		= 0x01 << 5,
+		eIndirect		= 0x01 << 6,
 	};
 
 	enum class eTextureUsage : uint8_t
 	{
-		eNone = 0x00,
-		eSampled = 0x01 << 0,
-		eRenderTarget = 0x01 << 1,
-		eDepthStencil = 0x01 << 2,
-		eStorage = 0x01 << 3,
-		ePresent = 0x01 << 4
+		eNone			= 0x00,
+		eTransferSrc	= 0x01 << 0,
+		eTransferDst	= 0x01 << 1,
+		eSampled		= 0x01 << 2,
+		eRenderTarget	= 0x01 << 3,
+		eDepthStencil	= 0x01 << 4,
+		ePresent		= 0x01 << 5,
 	};
 
-	enum class eTextureType : uint8_t
+	enum class eTextureDimension : uint8_t
 	{
-		eNone 						= 0x00,
+		eNone						= 0x00,
 		eTexture1D					= 0x01,
 		eTexture2D					= 0x02,
 		eTexture3D					= 0x03,
@@ -145,47 +120,47 @@ namespace wtr
 
 	enum class ePixelFormat : uint8_t
 	{
-		eNone = 0x00,
+		eNone				= 0x00,
 
-		eR8_UNorm = 0x01,
-		eR8G8_UNorm = 0x02,
-		eR8G8B8_UNorm = 0x03,
-		eR8G8B8A8_UNorm = 0x04,
+		eR8_UNorm			= 0x01,
+		eR8G8_UNorm			= 0x02,
+		eR8G8B8_UNorm		= 0x03,
+		eR8G8B8A8_UNorm		= 0x04,
 
-		eR16_UNorm = 0x05,
-		eR16G16_UNorm = 0x06,
-		eR16G16B16_UNorm = 0x07,
-		eR16G16B16A16_UNorm = 0x08,
+		eR16_UNorm			= 0x05,
+		eR16G16_UNorm		= 0x06,
+		eR16G16B16_UNorm	= 0x07,
+		eR16G16B16A16_UNorm	= 0x08,
 
-		eR8G8B8A8_sRGB = 0x09,
+		eR8G8B8A8_sRGB		= 0x09,
 
-		eR8_UInt = 0x0A,
-		eR8G8_UInt = 0x0B,
-		eR8G8B8_UInt = 0x0C,
-		eR8G8B8A8_UInt = 0x0D,
+		eR8_UInt			= 0x0A,
+		eR8G8_UInt			= 0x0B,
+		eR8G8B8_UInt		= 0x0C,
+		eR8G8B8A8_UInt		= 0x0D,
 		
-		eR16_UInt = 0x0E,
-		eR16G16_UInt = 0x0F,
-		eR16G16B16_UInt = 0x10,
-		eR16G16B16A16_UInt = 0x11,
+		eR16_UInt			= 0x0E,
+		eR16G16_UInt		= 0x0F,
+		eR16G16B16_UInt		= 0x10,
+		eR16G16B16A16_UInt	= 0x11,
 
-		eR32_UInt = 0x12,
-		eR32G32_UInt = 0x13,
-		eR32G32B32_UInt = 0x14,
-		eR32G32B32A32_UInt = 0x15,
+		eR32_UInt			= 0x12,
+		eR32G32_UInt		= 0x13,
+		eR32G32B32_UInt		= 0x14,
+		eR32G32B32A32_UInt	= 0x15,
 
-		eR16_Float = 0x16,
-		eR16G16_Float = 0x17,
-		eR16G16B16_Float = 0x18,
-		eR16G16B16A16_Float = 0x19,
+		eR16_Float			= 0x16,
+		eR16G16_Float		= 0x17,
+		eR16G16B16_Float	= 0x18,
+		eR16G16B16A16_Float	= 0x19,
 
-		eR32_Float = 0x1A,
-		eR32G32_Float = 0x1B,
-		eR32G32B32_Float = 0x1C,
-		eR32G32B32A32_Float = 0x1D,
+		eR32_Float			= 0x1A,
+		eR32G32_Float		= 0x1B,
+		eR32G32B32_Float	= 0x1C,
+		eR32G32B32A32_Float	= 0x1D,
 
-		eD24_S8 = 0x1E,
-		eD32 = 0x1F,
+		eD24_S8				= 0x1E,
+		eD32				= 0x1F,
 		// TODO : Not yet the compressed pixel format
 	};
 
@@ -200,7 +175,7 @@ namespace wtr
 	{
 		eNone			= 0x00,
 		eRepeat			= 0x01,
-		eMirroedRepeat	= 0x02,
+		eMirroredRepeat	= 0x02,
 		eClampToEdge	= 0x03,
 		eClampToBorder	= 0x04,
 	};
@@ -215,21 +190,21 @@ namespace wtr
 
 	enum class eShaderType : uint8_t
 	{
-		eNone			= 0x00,
-		eVertex			= 0x01,
-		eGeometry		= 0x02,
-		eHull			= 0x03,
-		eDomain			= 0x04,
-		ePixel			= 0x05,
-		eCompute		= 0x06,
+		eNone		= 0x00,
+		eVertex		= 0x01,
+		eGeometry	= 0x02,
+		eHull		= 0x03,
+		eDomain		= 0x04,
+		ePixel		= 0x05,
+		eCompute	= 0x06,
 	};
 
 	enum class eCullFace : uint8_t
 	{
 		eNone		= 0x00,
-		eFront 		= 0x01,
+		eFront		= 0x01,
 		eBack		= 0x02,
-		eFront_Back = 0x03,
+		eFront_Back	= 0x03,
 	};
 
 	enum class eFrontFace : uint8_t
@@ -239,19 +214,19 @@ namespace wtr
 		eCW		= 0x02,
 	};
 
+	// GL / Vulkan 양쪽에서 공통으로 표현 가능한 토폴로지만 유지한다.
+	// LineLoop/Quad/QuadStrip/Polygon : Vulkan에 대응 토폴로지가 없고 GL 코어에서도 제거됨
+	// PatchList                       : 테셀레이션(eHull/eDomain) 도입 시 추가
+	// Adjacency 4종                   : Geometry Shader 도입 시 추가
 	enum class eDrawMode : uint8_t
 	{
 		eNone			= 0x00,
-		ePoints			= 0x01,
-		eLines			= 0x02,
-		eLine_Loop		= 0x03,
-		eLine_Strip		= 0x04,
-		eTriangles		= 0x05,
-		eTriangle_Strip	= 0x06,
-		eTriangle_Fan	= 0x07,
-		eQuad			= 0x08,
-		eQuad_Strip		= 0x09,
-		ePolygon		= 0x0A,
+		ePointList		= 0x01,
+		eLineList		= 0x02,
+		eLineStrip		= 0x03,
+		eTriangleList	= 0x04,
+		eTriangleStrip	= 0x05,
+		eTriangleFan	= 0x06,
 	};
 
 	enum class ePrimitiveMode : uint8_t
@@ -279,21 +254,21 @@ namespace wtr
 		eLess			= 0x04,
 		eLessEqual		= 0x05,
 		eGreater		= 0x06,
-		eGreatorEqual	= 0x07,
+		eGreaterEqual	= 0x07,
 		eAlways			= 0x08,
 	};
 
 	enum class eStencilOp : uint8_t
 	{
-		eNone			= 0x00,
-		eZero			= 0x01,
-		eKeep			= 0x02,
-		eReplace		= 0x03,
-		eInc_Clamp		= 0x04,
-		eInc_Wrap 		= 0x05,
-		eDec_Clamp 		= 0x06,
-		eDec_Wrap 		= 0x07,
-		eInvert			= 0x08,
+		eNone		= 0x00,
+		eZero		= 0x01,
+		eKeep		= 0x02,
+		eReplace	= 0x03,
+		eInc_Clamp	= 0x04,
+		eInc_Wrap	= 0x05,
+		eDec_Clamp	= 0x06,
+		eDec_Wrap	= 0x07,
+		eInvert		= 0x08,
 	};
 
 	enum class eBlendFunc : uint8_t
@@ -304,14 +279,16 @@ namespace wtr
 		eSrc_Color				= 0x03,
 		eOne_Minus_Src_Color	= 0x04,
 		eDst_Color				= 0x05,
-		eOne_Minus_Dst_Color 	= 0x06,
+		eOne_Minus_Dst_Color	= 0x06,
 		eSrc_Alpha				= 0x07,
 		eOne_Minus_Src_Alpha	= 0x08,
 		eDst_Alpha				= 0x09,
 		eOne_Minus_Dst_Alpha	= 0x0A,
 		eConst_Color			= 0x0B,
-		eOne_Minus_Const_Alpha	= 0x0C,
-		eSrc_Alpha_Saturate		= 0x0D,
+		eOne_Minus_Const_Color	= 0x0C,
+		eConst_Alpha			= 0x0D,
+		eOne_Minus_Const_Alpha	= 0x0E,
+		eSrc_Alpha_Saturate		= 0x0F,
 	};
 
 	enum class eBlendOp : uint8_t
@@ -324,43 +301,29 @@ namespace wtr
 		eMax			= 0x05,
 	};
 
-	enum class eRenderTarget : uint8_t
+	enum class eRenderTarget : uint16_t
 	{
-		eNone			= 0x00,
-		eColor0			= 0x01 << 0,
-		eColor1			= 0x01 << 1,
-		eColor2			= 0x01 << 2,
-		eColor3			= 0x01 << 3,
-		eDepth			= 0x01 << 4,
-		eStencil		= 0x01 << 5,
-	};
-
-	enum class eBarrierFlag : uint16_t
-	{
-		eNone			= 0x00,
-		eVertexBuffer	= 0x01 << 0,
-		eIndexBuffer	= 0x01 << 1,
-		eConstBuffer	= 0x01 << 2,
-		eStorageBuffer	= 0x01 << 3,
-		eBufferUpdate	= 0x01 << 4,
-
-		eTextureFetch	= 0x01 << 5,
-		eTextureUpdate	= 0x01 << 6,
-
-		eImageRead		= 0x01 << 7,
-		eImageWrite		= 0x01 << 8,
-
-		eFrameBuffer	= 0x01 << 9,
+		eNone		= 0x00,
+		eColor0		= 0x01 << 0,
+		eColor1		= 0x01 << 1,
+		eColor2		= 0x01 << 2,
+		eColor3		= 0x01 << 3,
+		eColor4		= 0x01 << 4,
+		eColor5		= 0x01 << 5,
+		eColor6		= 0x01 << 6,
+		eColor7		= 0x01 << 7,
+		eDepth		= 0x01 << 8,
+		eStencil	= 0x01 << 9,
 	};
 
 	enum class eResourceSlot : uint8_t
 	{
-		eNone = 0,
+		eNone			= 0,
 
 		eBegin_Texture,
 
 		// Texture - Material
-		eAmbient = eBegin_Texture,
+		eAmbient		= eBegin_Texture,
 		eDiffuse,
 		eSpecular,
 		eEmissive,
@@ -380,9 +343,9 @@ namespace wtr
 		eGAlpha,
 		eGDepth,
 		eGShadow,
-		eEnd_Texture = eGShadow,
+		eEnd_Texture	= eGShadow,
 
-		eBegin_Uniform = eEnd_Texture,
+		eBegin_Uniform	= eEnd_Texture,
 		// Uniform - Material
 		eMaterial,
 
@@ -407,7 +370,7 @@ namespace wtr
 
 	enum class eVectorSlot : uint8_t
 	{
-		eNone = 0x00,
+		eNone	= 0x00,
 		eBaseColor,
 		eSpecularColor,
 		eEmissiveColor,
@@ -415,7 +378,7 @@ namespace wtr
 
 	enum class eScalarSlot : uint8_t
 	{
-		eNone = 0x00,
+		eNone	= 0x00,
 		eRoughness,
 		eMetallic,
 		eAmbientOcclusion,
@@ -450,33 +413,33 @@ namespace wtr
 
 	enum class eShadowType : uint8_t
 	{
-		eNone			= 0x00,
-		eHard			= 0x01,
-		eSoft			= 0x02,
+		eNone	= 0x00,
+		eHard	= 0x01,
+		eSoft	= 0x02,
 	};
 
 	enum class eRenderDirty : uint8_t
 	{
-		eNone = 0x00,
-		eTransform = 0x01 << 0,
-		eMesh = 0x01 << 1,
-		eMaterial = 0x01 << 2,
-		eLight = 0x01 << 3,
-		eAll = eTransform | eMesh | eMaterial | eLight
+		eNone		= 0x00,
+		eTransform	= 0x01 << 0,
+		eMesh		= 0x01 << 1,
+		eMaterial	= 0x01 << 2,
+		eLight		= 0x01 << 3,
+		eAll		= eTransform | eMesh | eMaterial | eLight
 	};
 
 	enum class eAttachment : uint8_t
 	{
-		eNone = 0x00,
-		eColor = 0x01,
-		eDepth = 0x02,
-		eStencil = 0x03,
-		eDepthStencil = 0x04,
+		eNone			= 0x00,
+		eColor			= 0x01,
+		eDepth			= 0x02,
+		eStencil		= 0x03,
+		eDepthStencil	= 0x04,
 	};
 
 	enum class eGBufferSlot : uint8_t
 	{
-		eNone = 0x00,
+		eNone	= 0x00,
 		eNormal,
 		eAlbedo,
 		ePhong,
@@ -504,7 +467,7 @@ namespace wtr
 	class ArrayData : public RawData
 	{
 	public:
-		wtr::DynamicArray<T> data;
+		wtr::DynamicArray<T>	data;
 
 		ArrayData() = default;
 		virtual ~ArrayData() = default;
@@ -530,7 +493,7 @@ namespace wtr
 	class ScalarData : public RawData
 	{
 	public :
-		T data;
+		T	data;
 
 		ScalarData()
 		{}
@@ -558,26 +521,26 @@ namespace wtr
 
 	struct RawBuffer
 	{
-		Memory::RefPtr<RawData> bulkData;
+		Memory::RefPtr<RawData>	bulkData;
 	};
 
 	struct FormattedBuffer : RawBuffer
 	{
-		eDataType componentType;
-		uint32_t numComponents;
-		uint32_t count;
+		eDataType	componentType;
+		uint32_t	numComponents;
+		uint32_t	count;
 	};
 
 	struct TextureMipMapBuffer : RawBuffer
 	{
-		uint32_t channels;
+		uint32_t	channels;
 
-		uint32_t width;
-		uint32_t height;
-		uint32_t depth;
-		uint32_t size;
+		uint32_t	width;
+		uint32_t	height;
+		uint32_t	depth;
+		uint32_t	size;
 		
-		uint32_t level;
+		uint32_t	level;
 	};
 
 	struct TextureBuffer
@@ -593,13 +556,13 @@ namespace wtr
 		// The face 5 : the negative Z face
 		// The texture 3D : face 0 is the only face, and it contains all the mip levels
 		using Face = wtr::DynamicArray<TextureMipMapBuffer>;
-		wtr::DynamicArray<Face> faces;
+		wtr::DynamicArray<Face>	faces;
 	};
 
 	struct VertexKey
 	{
-		eVertexSemantic semantic;
-		uint8_t semanticIndex;
+		eVertexSemantic	semantic;
+		uint8_t			semanticIndex;
 
 		bool operator==(const VertexKey& other) const
 		{
@@ -607,32 +570,22 @@ namespace wtr
 		}
 	};
 
-	inline eMapAccess operator|(eMapAccess a, eMapAccess b)
+	constexpr eBufferUsage operator|(eBufferUsage a, eBufferUsage b)
 	{
-		return static_cast<eMapAccess>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	inline eMapAccess operator&(eMapAccess a, eMapAccess b)
+	constexpr eBufferUsage operator&(eBufferUsage a, eBufferUsage b)
 	{
-		return static_cast<eMapAccess>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
-	inline eBufferTransfer operator|(eBufferTransfer a, eBufferTransfer b)
-	{
-		return static_cast<eBufferTransfer>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-	}
-
-	inline eBufferTransfer operator&(eBufferTransfer a, eBufferTransfer b)
-	{
-		return static_cast<eBufferTransfer>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
-	}
-
-	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
+	constexpr eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	inline eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
+	constexpr eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}

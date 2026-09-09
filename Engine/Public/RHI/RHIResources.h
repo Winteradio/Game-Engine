@@ -50,8 +50,7 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			eBufferType GetBufferType() const;
-			eBufferTransfer GetBufferTransfer() const;
+			eBufferUsage GetBufferUsage() const;
 			eDataAccess GetAccessType() const;
 			eDataType GetDataType() const;
 			uint32_t GetNumComponents() const;
@@ -59,8 +58,7 @@ namespace wtr
 			uint32_t GetSize() const;
 			const RHIBufferDesc& GetDesc() const;
 
-			void SetBufferType(const eBufferType bufferType);
-			void SetBufferTransfer(const eBufferTransfer bufferTransfer);
+			void SetBufferUsage(const eBufferUsage usage);
 			void SetAccessType(const eDataAccess accessType);
 			void SetDataType(const eDataType dataType);
 			void SetNumComponents(const uint32_t numComponents);
@@ -107,7 +105,7 @@ namespace wtr
 			uint32_t GetSampleCount() const;
 			ePixelFormat GetPixelFormat() const;
 			eTextureUsage GetTextureUsage() const;
-			eTextureType GetTextureType() const;
+			eTextureDimension GetTextureDimension() const;
 			eDataType GetDataType() const;
 			const RHITextureDesc& GetDesc() const;
 
@@ -118,7 +116,7 @@ namespace wtr
 			void SetSampleCount(const uint32_t sampleCount);
 			void SetPixelFormat(const ePixelFormat pixelFormat);
 			void SetTextureUsage(const eTextureUsage textureUsage);
-			void SetTextureType(const eTextureType textureType);
+			void SetTextureDimension(const eTextureDimension textureDimension);
 			void SetDataType(const eDataType dataType);
 
 			void SetDesc(const RHITextureDesc& desc);
