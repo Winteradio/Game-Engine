@@ -1,42 +1,70 @@
 #ifndef __WTR_RENDERTYPES_H__
 #define __WTR_RENDERTYPES_H__
 
-#include <Container/include/DynamicArray.h>
+#include <Container/include/StaticArray.h>
 #include <Memory/include/Pointer/RefPtr.h>
-#include <cstdint>
-#include <string>
 
 namespace wtr
 {
 	enum class eRenderType : uint8_t
 	{
-		eNone		= 0x00,
-		eOpenGL		= 0x01,
+		eNone = 0x00,
+		eOpenGL = 0x01,
 
 		// Not Implemented
-		eDirectX11	= 0x02,
-		eDirectX12	= 0x03,
-		eVulkan		= 0x04
+		eDirectX11 = 0x02,
+		eDirectX12 = 0x03,
+		eVulkan = 0x04
 	};
 
 	enum class eResourceType : uint8_t
 	{
 		eNone		= 0x00,
-		eBuffer		= 0x01,
-		eTexture	= 0x02,
-		eSampler	= 0x03,
-		eShader		= 0x04,
-		ePipeLine	= 0x05,
-		eLayout		= 0x06,
-		eTarget		= 0x07,
+		eConst		= 0x01,
+		eBuffer		= 0x02,
+		eTexture	= 0x03,
+		eSampler	= 0x04,
+		eShader		= 0x05,
+		ePipeLine	= 0x06,
+		eLayout		= 0x07,
+		ePass		= 0x08,
 	};
 
-	enum class eDataAccess : uint8_t
+	enum class eBindingType : uint8_t
+	{
+		eNone		= 0x00,
+		eConst		= 0x01,
+		eUniform	= 0x02,
+		eStorage	= 0x03,
+		eSampler	= 0x04
+	};
+
+	enum class eDataUsage : uint8_t
 	{
 		eNone		= 0x00,
 		eStatic		= 0x01,
 		eDynamic	= 0x02,
 		eStream		= 0x03
+	};
+
+	enum class eDataState : uint8_t
+	{
+		eNone	= 0x00,
+		eRead	= 0x01 << 0,
+		eWrite	= 0x01 << 1,
+	};
+
+	enum class eDataStage : uint8_t
+	{
+		eNone			= 0x00,
+		eTransfer		= 0x01 << 0,
+		eVertexInput	= 0x01 << 1,
+		eVertex			= 0x01 << 2,
+		eDomain			= 0x01 << 3,
+		eHull			= 0x01 << 4,
+		eGeometry		= 0x01 << 5,
+		ePixel			= 0x01 << 6,
+		eCompute		= 0x01 << 7
 	};
 
 	enum class eDataType : uint8_t
@@ -59,15 +87,6 @@ namespace wtr
 		ePerInstance	= 0x02
 	};
 
-	enum class eBindingType : uint8_t
-	{
-		eNone			= 0x00,
-		eUniform		= 0x01,
-		eUniformBuffer	= 0x02,
-		eStorageBuffer	= 0x03,
-		eSampler		= 0x04
-	};
-
 	enum class eVertexSemantic : uint8_t
 	{
 		eNone		= 0x00,
@@ -84,24 +103,22 @@ namespace wtr
 	enum class eBufferUsage : uint8_t
 	{
 		eNone			= 0x00,
-		eTransferSrc	= 0x01 << 0,
-		eTransferDst	= 0x01 << 1,
-		eVertex			= 0x01 << 2,
-		eIndex			= 0x01 << 3,
-		eUniform		= 0x01 << 4,
-		eStorage		= 0x01 << 5,
-		eIndirect		= 0x01 << 6,
+		eTransfer		= 0x01 << 0,
+		eVertex			= 0x01 << 1,
+		eIndex			= 0x01 << 2,
+		eUniform		= 0x01 << 3,
+		eStorage		= 0x01 << 4,
+		eIndirect		= 0x01 << 5
 	};
 
 	enum class eTextureUsage : uint8_t
 	{
-		eNone			= 0x00,
-		eTransferSrc	= 0x01 << 0,
-		eTransferDst	= 0x01 << 1,
-		eSampled		= 0x01 << 2,
-		eRenderTarget	= 0x01 << 3,
-		eDepthStencil	= 0x01 << 4,
-		ePresent		= 0x01 << 5,
+		eNone				= 0x00,
+		eTransfer			= 0x01 << 0,
+		eSampler			= 0x01 << 1,
+		eColorAttach		= 0x01 << 2,
+		eDepthStencilAttach	= 0x01 << 3,
+		ePresent			= 0x01 << 4
 	};
 
 	enum class eTextureDimension : uint8_t
@@ -161,6 +178,7 @@ namespace wtr
 
 		eD24_S8				= 0x1E,
 		eD32				= 0x1F,
+
 		// TODO : Not yet the compressed pixel format
 	};
 
@@ -214,10 +232,6 @@ namespace wtr
 		eCW		= 0x02,
 	};
 
-	// GL / Vulkan 양쪽에서 공통으로 표현 가능한 토폴로지만 유지한다.
-	// LineLoop/Quad/QuadStrip/Polygon : Vulkan에 대응 토폴로지가 없고 GL 코어에서도 제거됨
-	// PatchList                       : 테셀레이션(eHull/eDomain) 도입 시 추가
-	// Adjacency 4종                   : Geometry Shader 도입 시 추가
 	enum class eDrawMode : uint8_t
 	{
 		eNone			= 0x00,
@@ -301,19 +315,27 @@ namespace wtr
 		eMax			= 0x05,
 	};
 
-	enum class eRenderTarget : uint16_t
+	enum class eAttachmentType : uint8_t
+	{
+		eNone = 0x00,
+		eColor = 0x01 << 0,
+		eDepth = 0x01 << 1,
+		eStencil = 0x01 << 2
+	};
+
+	enum class eAttachmentLoadOp : uint8_t
 	{
 		eNone		= 0x00,
-		eColor0		= 0x01 << 0,
-		eColor1		= 0x01 << 1,
-		eColor2		= 0x01 << 2,
-		eColor3		= 0x01 << 3,
-		eColor4		= 0x01 << 4,
-		eColor5		= 0x01 << 5,
-		eColor6		= 0x01 << 6,
-		eColor7		= 0x01 << 7,
-		eDepth		= 0x01 << 8,
-		eStencil	= 0x01 << 9,
+		eLoad		= 0x01,
+		eClear		= 0x02,
+		eDontCare	= 0x03
+	};
+
+	enum class eAttachmentStoreOp : uint8_t
+	{
+		eNone		= 0x00,
+		eStore		= 0x01,
+		eDontCare	= 0x02
 	};
 
 	enum class eResourceSlot : uint8_t
@@ -368,32 +390,6 @@ namespace wtr
 		eEnd_Uniform
 	};
 
-	enum class eVectorSlot : uint8_t
-	{
-		eNone	= 0x00,
-		eBaseColor,
-		eSpecularColor,
-		eEmissiveColor,
-	};
-
-	enum class eScalarSlot : uint8_t
-	{
-		eNone	= 0x00,
-		eRoughness,
-		eMetallic,
-		eAmbientOcclusion,
-		eOpacity,
-		eShininess,
-	};
-
-	enum class eShadingModel : uint8_t
-	{
-		eNone		= 0x00,
-		eLit		= 0x01,
-		eUnlit		= 0x02,
-		eSubsurface	= 0x03,
-	};
-
 	enum class eBlendMode : uint8_t
 	{
 		eNone			= 0x00,
@@ -411,13 +407,6 @@ namespace wtr
 		eSpot			= 0x03,
 	};
 
-	enum class eShadowType : uint8_t
-	{
-		eNone	= 0x00,
-		eHard	= 0x01,
-		eSoft	= 0x02,
-	};
-
 	enum class eRenderDirty : uint8_t
 	{
 		eNone		= 0x00,
@@ -426,15 +415,6 @@ namespace wtr
 		eMaterial	= 0x01 << 2,
 		eLight		= 0x01 << 3,
 		eAll		= eTransform | eMesh | eMaterial | eLight
-	};
-
-	enum class eAttachment : uint8_t
-	{
-		eNone			= 0x00,
-		eColor			= 0x01,
-		eDepth			= 0x02,
-		eStencil		= 0x03,
-		eDepthStencil	= 0x04,
 	};
 
 	enum class eGBufferSlot : uint8_t
@@ -448,144 +428,67 @@ namespace wtr
 		eDepth,
 	};
 
-	class RawData
+	enum class eRenderPass : uint8_t
 	{
-	public :
-		RawData();
-		virtual ~RawData() = default;
-
-	public :
-		virtual const void* GetPointer() const = 0;
-		virtual size_t GetSize() const = 0;
-		virtual size_t GetCount() const = 0;
-		
-	public :
-		bool IsEmpty() const;
+		eNone			= 0x00,
+		eTransform		= 0x01 << 0,
+		eCulling		= 0x01 << 1,
+		eGeometry		= 0x01 << 2,
+		eLighting		= 0x01 << 3,
+		eDebug			= 0x01 << 4,
 	};
 
-	template<typename T>
-	class ArrayData : public RawData
+	constexpr uint8_t SEMANTIC_INDEX_COUNT = 3;
+	constexpr uint8_t SEMANTIC_INDEX_MAX = 16;
+	constexpr uint8_t SEMANTIC_TYPE_COUNT = static_cast<uint8_t>(eVertexSemantic::eGeneric);
+	constexpr wtr::StaticArray<const char*, static_cast<size_t>(SEMANTIC_TYPE_COUNT)> SEMANTIC_NAMES =
 	{
-	public:
-		wtr::DynamicArray<T>	data;
-
-		ArrayData() = default;
-		virtual ~ArrayData() = default;
-
-	public:
-		const void* GetPointer() const override
-		{
-			return data.Data();
-		}
-
-		size_t GetSize() const override
-		{
-			return data.Size() * sizeof(T);
-		}
-
-		size_t GetCount() const override
-		{
-			return data.Size();
-		}
+		"POSITION",
+		"NORMAL",
+		"TANGENT",
+		"COLOR",
+		"TEXCOORD",
+		"JOINT",
+		"WEIGHT",
+		"GENERIC"
 	};
 
-	template<typename T>
-	class ScalarData : public RawData
+	inline eDataState operator|(eDataState a, eDataState b)
 	{
-	public :
-		T	data;
-
-		ScalarData()
-		{}
-
-		virtual ~ScalarData()
-		{
-		}
-
-	public :
-		const void* GetPointer() const override
-		{
-			return reinterpret_cast<const void*>(&data);
-		}
-
-		size_t GetSize() const override
-		{
-			return sizeof(T);
-		}
-
-		size_t GetCount() const override
-		{
-			return 1;
-		}
-	};
-
-	struct RawBuffer
+		return static_cast<eDataState>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
+	
+	inline eDataState operator&(eDataState a, eDataState b)
 	{
-		Memory::RefPtr<RawData>	bulkData;
-	};
+		return static_cast<eDataState>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
 
-	struct FormattedBuffer : RawBuffer
+	inline eDataStage operator|(eDataStage a, eDataStage b)
 	{
-		eDataType	componentType;
-		uint32_t	numComponents;
-		uint32_t	count;
-	};
+		return static_cast<eDataStage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+	}
 
-	struct TextureMipMapBuffer : RawBuffer
+	inline eDataStage operator&(eDataStage a, eDataStage b)
 	{
-		uint32_t	channels;
+		return static_cast<eDataStage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
 
-		uint32_t	width;
-		uint32_t	height;
-		uint32_t	depth;
-		uint32_t	size;
-		
-		uint32_t	level;
-	};
-
-	struct TextureBuffer
-	{
-		// The texture 2D : face 0 is the only face, and it contains all the mip levels
-		// The texture cube : face 0-5 are the 6 faces of the cube, 
-		// and each face contains all the mip levels
-		// The face 0 : the positive X face
-		// The face 1 : the negative X face
-		// The face 2 : the positive Y face
-		// The face 3 : the negative Y face
-		// The face 4 : the positive Z face
-		// The face 5 : the negative Z face
-		// The texture 3D : face 0 is the only face, and it contains all the mip levels
-		using Face = wtr::DynamicArray<TextureMipMapBuffer>;
-		wtr::DynamicArray<Face>	faces;
-	};
-
-	struct VertexKey
-	{
-		eVertexSemantic	semantic;
-		uint8_t			semanticIndex;
-
-		bool operator==(const VertexKey& other) const
-		{
-			return semantic == other.semantic && semanticIndex == other.semanticIndex;
-		}
-	};
-
-	constexpr eBufferUsage operator|(eBufferUsage a, eBufferUsage b)
+	inline eBufferUsage operator|(eBufferUsage a, eBufferUsage b)
 	{
 		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	constexpr eBufferUsage operator&(eBufferUsage a, eBufferUsage b)
+	inline eBufferUsage operator&(eBufferUsage a, eBufferUsage b)
 	{
 		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
-	constexpr eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
+	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	constexpr eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
+	inline eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
@@ -600,14 +503,14 @@ namespace wtr
 		return static_cast<eClearBuffer>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
-	inline eRenderTarget operator|(eRenderTarget a, eRenderTarget b)
+	inline eAttachmentType operator|(eAttachmentType a, eAttachmentType b)
 	{
-		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+		return static_cast<eAttachmentType>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	inline eRenderTarget operator&(eRenderTarget a, eRenderTarget b)
+	inline eAttachmentType operator&(eAttachmentType a, eAttachmentType b)
 	{
-		return static_cast<eRenderTarget>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+		return static_cast<eAttachmentType>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
 	inline eRenderDirty operator|(eRenderDirty a, eRenderDirty b)
@@ -620,54 +523,15 @@ namespace wtr
 		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
 
-	inline eRenderDirty operator~(eRenderDirty a)
+	inline eRenderPass operator|(eRenderPass a, eRenderPass b)
 	{
-		return static_cast<eRenderDirty>(~static_cast<uint8_t>(a));
+		return static_cast<eRenderPass>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
-	inline eRenderDirty operator^(eRenderDirty a, eRenderDirty b)
+	inline eRenderPass operator&(eRenderPass a, eRenderPass b)
 	{
-		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) ^ static_cast<uint8_t>(b));
+		return static_cast<eRenderPass>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
 	}
-
-	inline eRenderDirty& operator|=(eRenderDirty& a, eRenderDirty b)
-	{
-		a = a | b;
-		return a;
-	}
-
-	inline eRenderDirty& operator&=(eRenderDirty& a, eRenderDirty b)
-	{
-		a = a & b;
-		return a;
-	}
-
-	inline eRenderDirty& operator^=(eRenderDirty& a, eRenderDirty b)
-	{
-		a = a ^ b;
-		return a;
-	}
-
-	bool IsIntegerDataType(const eDataType dataType);
-
-	size_t GetPixelSize(const ePixelFormat pixelFormat);
-	size_t GetDataTypeSize(const eDataType dataType);
-	int32_t GetVertexLocation(const VertexKey& vertexKey);
-	const VertexKey& GetVertexKey(const std::string& attributeName);
-	const std::string& GetSlotName(const eResourceSlot slot);
-	eResourceSlot GetResourceSlot(const std::string& name);
-};
-
-namespace std
-{
-	template<>
-	struct hash<wtr::VertexKey>
-	{
-		size_t operator()(const wtr::VertexKey& key) const
-		{
-			return static_cast<uint64_t>(key.semanticIndex) << 32 | static_cast<uint64_t>(key.semantic);
-		}
-	};
 };
 
 #endif // __WTR_RENDERTYPES_H__

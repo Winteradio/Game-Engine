@@ -9,6 +9,8 @@
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIResources.h>
 #include <RHI/RHIDescriptions.h>
+#include <Renderer/RenderUtils.h>
+#include <Renderer/RenderData.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -26,6 +28,8 @@ namespace wtr
 
 		eResourceState CameraResource::GetResourceState() const
 		{
+			RefBuffer refBuffer;
+
 			return m_buffer ? m_buffer->GetState() : eResourceState::eNone;
 		}
 
@@ -188,7 +192,7 @@ namespace wtr
 			desc.sampleCount = m_prevDesc->sampleCount;
 			desc.format = m_prevDesc->format;
 			desc.usage = m_prevDesc->usage;
-			desc.textureType = m_prevDesc->textureType;
+			desc.textureDimension = m_prevDesc->textureDimension;
 			desc.dataType = m_prevDesc->dataType;
 			desc.generateMips = m_prevDesc->generateMips;
 			desc.compressed = m_prevDesc->compressed;
@@ -242,7 +246,7 @@ namespace wtr
 			desc.sampleCount = m_prevDesc->sampleCount;
 			desc.format = m_prevDesc->format;
 			desc.usage = m_prevDesc->usage;
-			desc.textureType = m_prevDesc->textureType;
+			desc.textureDimension = m_prevDesc->textureDimension;
 			desc.dataType = m_prevDesc->dataType;
 			desc.generateMips = m_prevDesc->generateMips;
 			desc.compressed = m_prevDesc->compressed;
@@ -784,7 +788,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eR16G16B16A16_Float;
 					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eFloat;
 					desc.generateMips = false;
 					desc.compressed = false;
@@ -799,7 +803,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eR8G8B8A8_UNorm;
 					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eFloat;
 					desc.generateMips = false;
 					desc.compressed = false;
@@ -814,7 +818,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eR16G16B16A16_UInt;
 					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eUShort;
 					desc.generateMips = false;
 					desc.compressed = false;
@@ -829,7 +833,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eR8G8B8A8_UNorm;
 					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eFloat;
 					desc.generateMips = false;
 					desc.compressed = false;
@@ -844,7 +848,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eR8G8B8A8_UNorm;
 					desc.usage = eTextureUsage::eRenderTarget;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eUByte;
 					desc.generateMips = false;
 					desc.compressed = false;
@@ -859,7 +863,7 @@ namespace wtr
 					desc.sampleCount = 1;
 					desc.format = ePixelFormat::eD24_S8;
 					desc.usage = eTextureUsage::eDepthStencil;
-					desc.textureType = eTextureType::eTexture2D;
+					desc.textureDimension = eTextureDimension::eTexture2D;
 					desc.dataType = eDataType::eUInt;
 					desc.generateMips = false;
 					desc.compressed = false;

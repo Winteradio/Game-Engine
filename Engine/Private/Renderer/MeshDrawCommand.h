@@ -3,7 +3,7 @@
 
 #include <Memory/include/Pointer/RefPtr.h>
 #include <Framework/Math/MathTypes.h>
-#include <Renderer/RenderTypes.h>
+#include <Renderer/RenderType.h>
 
 namespace wtr
 {
@@ -48,7 +48,7 @@ namespace wtr
 		eDataType indexType		= eDataType::eNone;
 
 		bool indirectDraw		= true;
-		eDrawMode drawMode		= eDrawMode::eTriangles;
+		eDrawMode drawMode		= eDrawMode::eTriangleList;
 	};
 };
 

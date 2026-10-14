@@ -2,6 +2,7 @@
 #define __WTR_RENDERVIEW_H__
 
 #include <Framework/Math/MathTypes.h>
+#include <Renderer/RenderType.h>
 
 namespace wtr
 {
@@ -24,8 +25,9 @@ namespace wtr
 			fvec3 direction = fvec3(0.f, 0.f, -1.f);
 		};
 
-		Viewport viewport;
-		Camera camera;
+		Viewport	viewport;
+		Camera		camera;
+		eRenderPass pass = eRenderPass::eNone;
 	};
 };
 

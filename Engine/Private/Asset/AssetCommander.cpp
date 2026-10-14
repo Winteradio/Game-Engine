@@ -172,11 +172,11 @@ namespace wtr
 		// TODO : Determine the texture type based on the texture asset's properties
 		if (textureAsset->depth == 1)
 		{
-			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCube : eTextureType::eTexture2D;
+			textureDesc.textureDimension = (textureAsset->isCubemap) ? eTextureDimension::eTextureCube : eTextureDimension::eTexture2D;
 		}
 		else
 		{
-			textureDesc.textureType = (textureAsset->isCubemap) ? eTextureType::eTextureCubeArray : eTextureType::eTexture3D;
+			textureDesc.textureDimension = (textureAsset->isCubemap) ? eTextureDimension::eTextureCubeArray : eTextureDimension::eTexture3D;
 		}
 
 		textureDesc.usage = eTextureUsage::eSampled;

@@ -211,7 +211,7 @@ namespace wtr
 			desc.sampleCount = 1;
 			desc.format = ePixelFormat::eD32;
 			desc.usage = eTextureUsage::eDepthStencil;
-			desc.textureType = eTextureType::eTexture2D;
+			desc.textureDimension = eTextureDimension::eTexture2D;
 			desc.dataType = eDataType::eFloat;
 			desc.generateMips = false;
 			desc.compressed = false;

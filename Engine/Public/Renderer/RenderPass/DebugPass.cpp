@@ -129,7 +129,7 @@ namespace wtr
 		}
 
 		RHIDrawIndexDesc desc;
-		desc.drawMode = eDrawMode::eTriangles;
+		desc.drawMode = eDrawMode::eTriangleList;
 		desc.indexType = layoutDesc.indexBuffer->GetComponentType();
 		desc.indexCount = layoutDesc.indexBuffer->GetCount();
 		desc.indexOffset = 0;

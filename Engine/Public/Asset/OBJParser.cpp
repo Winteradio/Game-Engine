@@ -416,7 +416,7 @@ namespace wtr
 			indexBuffer.count = static_cast<uint32_t>(arrayData->data.Size());
 
 			mesh->rawIndex = indexBuffer;
-			mesh->drawMode = eDrawMode::eTriangles;
+			mesh->drawMode = eDrawMode::eTriangleList;
 		}
 
 		if (!objMesh.groups.Empty())

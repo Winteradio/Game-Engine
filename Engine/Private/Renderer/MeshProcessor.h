@@ -72,6 +72,13 @@ namespace wtr
 			auto csState = material->GetShaderState<CSType>();
 
 			RHIPipeLineCreateDesc desc = m_desc;
+			desc.vertexShader = vsState ? vsState->GetShader() : nullptr;
+			desc.pixelShader = psState ? psState->GetShader() : nullptr;
+			desc.geometryShader = gsState ? gsState->GetShader() : nullptr;
+			desc.hullShader = hsState ? hsState->GetShader() : nullptr;
+			desc.domainShader = dsState ? dsState->GetShader() : nullptr;
+			desc.computeShader = csState ? csState->GetShader() : nullptr;
+			desc.layout = mesh->GetVertexLayout();
 
 			MeshDrawCommand command;
 		}
