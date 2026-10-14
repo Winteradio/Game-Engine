@@ -30,8 +30,8 @@ namespace wtr
 		ePNG		= 0x03,
 		eJPG		= 0x04,
 		eBMP		= 0x05,
-		eGLSL		= 0x06,
-		eMTL		= 0x07,
+		eMTL		= 0x06,
+		eHLSL		= 0x07,
 		eEnd,
 	};
 

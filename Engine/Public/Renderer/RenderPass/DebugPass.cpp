@@ -44,8 +44,8 @@ namespace wtr
 		
 		if (!m_frustumShader)
 		{
-			Memory::RefPtr<ShaderAsset> frustumVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/debug_frustum.vs.glsl"));
-			Memory::RefPtr<ShaderAsset> frustumPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/debug_frustum.ps.glsl"));
+			Memory::RefPtr<ShaderAsset> frustumVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/debug_frustum.vs.hlsl"));
+			Memory::RefPtr<ShaderAsset> frustumPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/debug_frustum.ps.hlsl"));
 
 			m_frustumShader = Memory::MakeRef<ShaderProxy>();
 			if (m_frustumShader)
@@ -229,4 +229,4 @@ namespace wtr
 
 		return true;
 	}
-}
+}

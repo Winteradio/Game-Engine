@@ -277,5 +277,54 @@ namespace wtr
 			static const std::string emptyString = "";
 			return emptyString;
 		}
+
+		uint32_t GetResourceBinding(const std::string& name)
+		{
+			// Vk는 한 파이프라인(VS + PS ...) 안에서 binding이 겹치면 안 되므로, 종류와 상관없이 이름마다 번호를 하나씩 고정
+			static const wtr::HashMap<std::string, uint32_t> BINDING_MAP =
+			{
+				// Buffer
+				{ "uCamera", 0 },
+				{ "uTransform", 1 },
+				{ "uMaterial", 2 },
+				{ "uLight", 3 },
+				{ "uRawTransform", 4 },
+
+				// Texture - Material
+				{ "tDiffuse", 5 },
+
+				// Texture - GBuffer
+				{ "tGDepth", 6 },
+				{ "tGNormal", 7 },
+				{ "tGAlbedo", 8 },
+				{ "tGPhong", 9 },
+				{ "tGShadow", 10 },
+				{ "tGParam", 11 },
+			};
+
+			// Texture와 Sampler를 나눠 선언(Macro.hlsli의 TEXTURE2D + SAMPLER)하면 SamplerState는 "<텍스처 이름>Sampler"로 옴
+			// 표에는 텍스처 이름만 두고, Sampler는 그 텍스처 자리보다 SAMPLER_BINDING_OFFSET만큼 뒤에 고정해 텍스처와 1:1로 묶는다
+			constexpr uint32_t SAMPLER_BINDING_OFFSET = 100;
+			static const std::string SAMPLER_SUFFIX = "Sampler";
+
+			const auto itr = BINDING_MAP.Find(name);
+			if (itr != BINDING_MAP.End())
+			{
+				return itr->second;
+			}
+
+			if (name.size() > SAMPLER_SUFFIX.size() &&
+				name.compare(name.size() - SAMPLER_SUFFIX.size(), SAMPLER_SUFFIX.size(), SAMPLER_SUFFIX) == 0)
+			{
+				const std::string textureName = name.substr(0, name.size() - SAMPLER_SUFFIX.size());
+				const auto textureItr = BINDING_MAP.Find(textureName);
+				if (textureItr != BINDING_MAP.End())
+				{
+					return textureItr->second + SAMPLER_BINDING_OFFSET;
+				}
+			}
+
+			return UINT32_MAX;
+		}
 	}
-};
+};

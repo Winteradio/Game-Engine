@@ -19,8 +19,8 @@ namespace wtr
 		{ eExtension::ePNG, eAsset::eTexture },
 		{ eExtension::eJPG, eAsset::eTexture },
 		{ eExtension::eBMP, eAsset::eTexture },
-		{ eExtension::eGLSL, eAsset::eShader },
-		{ eExtension::eMTL, eAsset::eMaterial }
+		{ eExtension::eMTL, eAsset::eMaterial },
+		{ eExtension::eHLSL, eAsset::eShader }
 	};
 
 	Memory::RefPtr<Asset> AssetFactory::Create(const std::string& path)
@@ -134,13 +134,13 @@ namespace wtr
 		{
 			return eExtension::eBMP;
 		}
-		else if (extension == "glsl")
-		{
-			return eExtension::eGLSL;
-		}
 		else if (extension == "mtl")
 		{
 			return eExtension::eMTL;
+		}
+		else if (extension == "hlsl")
+		{
+			return eExtension::eHLSL;
 		}
 		else
 		{

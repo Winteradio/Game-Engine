@@ -49,7 +49,7 @@ namespace wtr
 			return;
 		}
 
-		Memory::RefPtr<const ShaderAsset> computeShader = Memory::Cast<const ShaderAsset>(AssetSystem::Load("asset/shader/transform.cs.glsl"));
+		Memory::RefPtr<const ShaderAsset> computeShader = Memory::Cast<const ShaderAsset>(AssetSystem::Load("asset/shader/transform.cs.hlsl"));
 		if (!computeShader)
 		{
 			LOGERROR() << "[TransformPass] Failed to load the compute shader";
@@ -138,4 +138,4 @@ namespace wtr
 			return;
 		}
 	}
-}
+}

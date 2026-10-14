@@ -4,7 +4,7 @@
 #include <Asset/AssetFactory.h>
 #include <Asset/OBJParser.h>
 #include <Asset/MTLParser.h>
-#include <Asset/GLSLParser.h>
+#include <Asset/HLSLParser.h>
 #include <Asset/PNGParser.h>
 
 #include <Memory/include/Core.h>
@@ -21,7 +21,7 @@ namespace wtr
 	{
 		m_parserMap[eExtension::eOBJ] = Memory::MakeRef<OBJParser>();
 		m_parserMap[eExtension::eMTL] = Memory::MakeRef<MTLParser>();
-		m_parserMap[eExtension::eGLSL] = Memory::MakeRef<GLSLParser>();
+		m_parserMap[eExtension::eHLSL] = Memory::MakeRef<HLSLParser>();
 
 		m_parserMap[eExtension::ePNG] = Memory::MakeRef<PNGParser>();
 	}

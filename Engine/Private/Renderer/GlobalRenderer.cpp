@@ -1218,20 +1218,20 @@ namespace wtr
 			{
 				if (materialDesc.hasDiffuseMap)
 				{
-					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.vs.glsl"));
-					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.ps.glsl"));
+					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.vs.hlsl"));
+					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_texture.ps.hlsl"));
 				}
 				else
 				{
-					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.vs.glsl"));
-					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.ps.glsl"));
+					geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.vs.hlsl"));
+					geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_color.ps.hlsl"));
 				}
 			}
 			else
 			{
 				// TODO
-				//geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.glsl"));
-				//geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.glsl"));
+				//geometryVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.vs.hlsl"));
+				//geometryPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/geometry_pbr.ps.hlsl"));
 			}
 
 			// TODO : Height Map
@@ -1242,7 +1242,7 @@ namespace wtr
 			if (geometryDS) material->AddShader(Memory::MakeRef<GeometryDSState>(geometryDS));
 			if (geometryPS) material->AddShader(Memory::MakeRef<GeometryPSState>(geometryPS));
 
-			//Memory::RefPtr<const ShaderAsset> computeCS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/culling.cs.glsl"));
+			//Memory::RefPtr<const ShaderAsset> computeCS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/culling.cs.hlsl"));
 			//if (computeCS) material->AddShader(Memory::MakeRef<ComputeCSState>(computeCS));
 
 		}
@@ -1256,11 +1256,11 @@ namespace wtr
 
 			if (auto directional = Memory::Cast<DirectionalLightProxy>(light))
 			{
-				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_directional.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.hlsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_directional.ps.hlsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
 				if (shadowPS) light->AddShader(Memory::MakeRef<ShadowPSState>(shadowPS));
@@ -1269,11 +1269,11 @@ namespace wtr
 			}
 			else if (auto spot = Memory::Cast<SpotLightProxy>(light))
 			{
-				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_spot.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.hlsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_spot.ps.hlsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
 				if (shadowPS) light->AddShader(Memory::MakeRef<ShadowPSState>(shadowPS));
@@ -1282,12 +1282,12 @@ namespace wtr
 			}
 			else if (auto point = Memory::Cast<PointLightProxy>(light))
 			{
-				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowGS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.gs.glsl"));
-				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> shadowVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> shadowGS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow_point.gs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> shadowPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/shadow.ps.hlsl"));
 
-				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.glsl"));
-				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.ps.glsl"));
+				Memory::RefPtr<const ShaderAsset> lightVS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting.vs.hlsl"));
+				Memory::RefPtr<const ShaderAsset> lightPS = Memory::Cast<ShaderAsset>(AssetSystem::Load("asset/shader/lighting_point.ps.hlsl"));
 
 				if (shadowVS) light->AddShader(Memory::MakeRef<ShadowVSState>(shadowVS));
 				if (shadowGS) light->AddShader(Memory::MakeRef<GeometryGSState>(shadowGS));
@@ -1301,4 +1301,4 @@ namespace wtr
 			}
 		}
 	}
-}
+}

@@ -22,6 +22,10 @@ namespace wtr
 		VertexKey GetVertexKey(const std::string& attributeName);
 
 		const std::string& GetSlotName(const eResourceSlot slot);
+
+		// 셰이더 리소스 이름 → 엔진 고정 binding 번호. 셰이더 소스에는 번호를 쓰지 않고 컴파일 직후 이 값으로 고쳐 씀
+		// 모르는 이름이면 UINT32_MAX
+		uint32_t GetResourceBinding(const std::string& name);
 	};
 
 	namespace RenderUtils
@@ -129,4 +133,4 @@ namespace wtr
 	};
 };
 
-#endif // __WTR_RENDERUTILS_H__
+#endif // __WTR_RENDERUTILS_H__
