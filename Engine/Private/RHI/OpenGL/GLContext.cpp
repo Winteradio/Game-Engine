@@ -1,4 +1,4 @@
-#include <RHI/OpenGL/GLSystem.h>
+#include <RHI/OpenGL/GLContext.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -28,8 +28,8 @@ namespace wtr
 	constexpr size_t MAX_GL_MESSAGE_LENGTH = 512;
 	thread_local char GL_MESSAGE[MAX_GL_MESSAGE_LENGTH];
 
-	GLSystem::GLSystem()
-		: RHISystem(eRenderType::eOpenGL)
+	GLContext::GLContext()
+		: RHIContext(eRenderType::eOpenGL)
 		, m_context()
 		, m_colorState()
 		, m_depthState()
@@ -39,11 +39,11 @@ namespace wtr
 	{
 	}
 
-	GLSystem::~GLSystem()
+	GLContext::~GLContext()
 	{
 	}
 
-	bool GLSystem::Init(void* nativeHandle)
+	bool GLContext::Init(void* nativeHandle)
 	{
 		if (!m_context.Init(nativeHandle))
 		{
@@ -74,7 +74,7 @@ namespace wtr
 		return true;
 	}
 
-	void GLSystem::FlushPending()
+	void GLContext::FlushPending()
 	{
 		FlushBuffer();
 		FlushVertexLayout();
@@ -85,7 +85,7 @@ namespace wtr
 		FlushRenderTarget();
 	}
 
-	void GLSystem::InitializeState()
+	void GLContext::InitializeState()
 	{
 		GLboolean bvals[4];
 		GLint     ivals[2];
@@ -140,7 +140,7 @@ namespace wtr
 		m_clearState.clearBuffer = eClearBuffer::eNone;
 	}
 
-	void GLSystem::Clear(const RHIClearState& state)
+	void GLContext::Clear(const RHIClearState& state)
 	{
 		GLbitfield clearMask = 0;
 
@@ -165,38 +165,38 @@ namespace wtr
 		glClear(clearMask);
 	}
 
-	void GLSystem::BeginContext()
+	void GLContext::BeginContext()
 	{
 		m_context.MakeCurrent();
 	}
 
-	void GLSystem::EndContext()
+	void GLContext::EndContext()
 	{
 		glFinish();
 		m_context.ReleaseCurrent();
 	}
 
-	void GLSystem::BeginFrame()
+	void GLContext::BeginFrame()
 	{
 		// nothing
 	}
 
-	void GLSystem::EndFrame()
+	void GLContext::EndFrame()
 	{
 		m_context.Present();
 	}
 
-	void GLSystem::Resize(const uint32_t width, const uint32_t height)
+	void GLContext::Resize(const uint32_t width, const uint32_t height)
 	{
 		glViewport(0, 0, width, height);
 	}
 
-	void GLSystem::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
+	void GLContext::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 	{
 		glViewport(posX, posY, width, height);
 	}
 
-	void GLSystem::SetColorState(const RHIColorState& state)
+	void GLContext::SetColorState(const RHIColorState& state)
 	{
 		if (m_colorState.red != state.red || m_colorState.green != state.green ||
 			m_colorState.blue != state.blue || m_colorState.alpha != state.alpha)
@@ -212,7 +212,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::SetDepthState(const RHIDepthState& state)
+	void GLContext::SetDepthState(const RHIDepthState& state)
 	{
 		if (m_depthState.enable != state.enable)
 		{
@@ -242,7 +242,7 @@ namespace wtr
 		m_depthState = state;
 	}
 
-	void GLSystem::SetStencilState(const RHIStencilState& state)
+	void GLContext::SetStencilState(const RHIStencilState& state)
 	{
 		if (m_stencilState.enable != state.enable)
 		{
@@ -283,7 +283,7 @@ namespace wtr
 		m_stencilState = state;
 	}
 
-	void GLSystem::SetBlendState(const RHIBlendState& state)
+	void GLContext::SetBlendState(const RHIBlendState& state)
 	{
 		if (m_blendState.enable != state.enable)
 		{
@@ -333,7 +333,7 @@ namespace wtr
 		m_blendState = state;
 	}
 
-	void GLSystem::SetRasterizerState(const RHIRasterizerState& state)
+	void GLContext::SetRasterizerState(const RHIRasterizerState& state)
 	{
 		if (m_rasterizerState.cullEnable != state.cullEnable)
 		{
@@ -371,91 +371,91 @@ namespace wtr
 		m_rasterizerState = state;
 	}
 
-	Memory::RefPtr<RHIBuffer> GLSystem::CreateBuffer(const RHIBufferDesc desc)
+	Memory::RefPtr<RHIBuffer> GLContext::CreateBuffer(const RHIBufferDesc desc)
 	{
 		Memory::RefPtr<RHIBuffer> refBuffer = Memory::MakeRef<GLBuffer>(desc);
 
 		return refBuffer;
 	}
 
-	Memory::RefPtr<RHIVertexLayout> GLSystem::CreateVertexLayout(const RHIVertexLayoutDesc desc)
+	Memory::RefPtr<RHIVertexLayout> GLContext::CreateVertexLayout(const RHIVertexLayoutDesc desc)
 	{
 		Memory::RefPtr<RHIVertexLayout> refVertexLayout = Memory::MakeRef<GLVertexLayout>(desc);
 	
 		return refVertexLayout;
 	}
 
-	Memory::RefPtr<RHITexture> GLSystem::CreateTexture(const RHITextureDesc desc)
+	Memory::RefPtr<RHITexture> GLContext::CreateTexture(const RHITextureDesc desc)
 	{
 		Memory::RefPtr<RHITexture> refTexture = Memory::MakeRef<GLTexture>(desc);
 
 		return refTexture;
 	}
 
-	Memory::RefPtr<RHISampler> GLSystem::CreateSampler(const RHISamplerDesc desc)
+	Memory::RefPtr<RHISampler> GLContext::CreateSampler(const RHISamplerDesc desc)
 	{
 		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<GLSampler>(desc);
 
 		return refSampler;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreateVertexShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreateVertexShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refVertexShader = Memory::MakeRef<GLVertexShader>(desc);
 
 		return refVertexShader;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreateGeometryShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreateGeometryShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refGeometryShader = Memory::MakeRef<GLGeometryShader>(desc);
 
 		return refGeometryShader;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreateHullShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreateHullShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refHullShader = Memory::MakeRef<GLHullShader>(desc);
 	
 		return refHullShader;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreateDomainShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreateDomainShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refDomainShader = Memory::MakeRef<GLDomainShader>(desc);
 
 		return refDomainShader;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreatePixelShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreatePixelShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refPixelShader = Memory::MakeRef<GLPixelShader>(desc);
 
 		return refPixelShader;
 	}
 
-	Memory::RefPtr<RHIShader> GLSystem::CreateComputeShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> GLContext::CreateComputeShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refComputeShader = Memory::MakeRef<GLComputeShader>(desc);
 
 		return refComputeShader;
 	}
 
-	Memory::RefPtr<RHIPipeLine> GLSystem::CreatePipeLine(const RHIPipeLineDesc desc)
+	Memory::RefPtr<RHIPipeLine> GLContext::CreatePipeLine(const RHIPipeLineDesc desc)
 	{
 		Memory::RefPtr<RHIPipeLine> refPipeLine = Memory::MakeRef<GLPipeLine>(desc);
 
 		return refPipeLine;
 	}
 
-	Memory::RefPtr<RHIRenderTarget> GLSystem::CreateRenderTarget(const RHIRenderTargetDesc desc)
+	Memory::RefPtr<RHIRenderTarget> GLContext::CreateRenderTarget(const RHIRenderTargetDesc desc)
 	{
 		Memory::RefPtr<RHIRenderTarget> refRenderTarget = Memory::MakeRef<GLRenderTarget>(desc);
 
 		return refRenderTarget;
 	}
 
-	void GLSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void GLContext::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer)
 		{
@@ -501,7 +501,7 @@ namespace wtr
 		glBuffer->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	void GLContext::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		if (info.streams.Empty() || !layout)
 		{
@@ -565,7 +565,7 @@ namespace wtr
 		glVertexLayout->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void GLContext::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!texture)
 		{
@@ -624,7 +624,7 @@ namespace wtr
 		glTexture->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
+	void GLContext::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
 	{
 		if (!sampler)
 		{
@@ -676,7 +676,7 @@ namespace wtr
 		glSampler->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
+	void GLContext::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
 	{
 		if (!shader || !info.data)
 		{
@@ -749,7 +749,7 @@ namespace wtr
 		glShader->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
+	void GLContext::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
 	{
 		if (!pipeline)
 		{
@@ -817,7 +817,7 @@ namespace wtr
 		glPipeLine->SetState(eResourceState::eReady);
 	}
 
-	void GLSystem::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
+	void GLContext::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
 	{
 		if (!target)
 		{
@@ -906,7 +906,7 @@ namespace wtr
 		glRenderTarget->SetState(eResourceState::eReady);
 	}
 
-	bool GLSystem::InitializeFrameBuffer(Memory::RefPtr<const RHITexture> texture, const eAttachment attach, const uint32_t slot)
+	bool GLContext::InitializeFrameBuffer(Memory::RefPtr<const RHITexture> texture, const eAttachment attach, const uint32_t slot)
 	{
 		if (!texture)
 		{
@@ -954,7 +954,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::InitializeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		RHITextureUpdateDesc update;
 		update.width = info.width;
@@ -984,7 +984,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::InitializeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		RHITextureUpdateDesc update;
 		update.width = info.width;
@@ -1014,7 +1014,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::InitializeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		RHITextureUpdateDesc update;
 		update.width = info.width;
@@ -1044,7 +1044,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	bool GLContext::UpdateTexture1D(const RHITextureUpdateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE || info.faces.Size() != 1)
 		{
@@ -1091,7 +1091,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	bool GLContext::UpdateTexture2D(const RHITextureUpdateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE)
 		{
@@ -1187,7 +1187,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID)
+	bool GLContext::UpdateTexture3D(const RHITextureUpdateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE)
 		{
@@ -1285,7 +1285,7 @@ namespace wtr
 		return true;
 	}
 
-	void GLSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void GLContext::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer || info.dataRanges.Empty())
 		{
@@ -1351,7 +1351,7 @@ namespace wtr
 		glBindBuffer(bufferType, GL_NONE);
 	}
 
-	void GLSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
+	void GLContext::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!texture || info.faces.Empty())
 		{
@@ -1397,14 +1397,14 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	void GLContext::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		// TODO
 
 		return;
 	}
 
-	void GLSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void GLContext::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer)
 		{
@@ -1446,7 +1446,7 @@ namespace wtr
 		buffer->SetDesc(info);
 	}
 
-	void GLSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void GLContext::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!texture)
 		{
@@ -1492,7 +1492,7 @@ namespace wtr
 		}
 	}
 
-	bool GLSystem::ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::ResizeTexture1D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE)
 		{
@@ -1517,7 +1517,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::ResizeTexture2D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE)
 		{
@@ -1554,7 +1554,7 @@ namespace wtr
 		return true;
 	}
 
-	bool GLSystem::ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
+	bool GLContext::ResizeTexture3D(const RHITextureCreateDesc info, const uint32_t textureID)
 	{
 		if (textureID == GL_NONE)
 		{
@@ -1592,260 +1592,7 @@ namespace wtr
 		return true;
 	}
 
-	void GLSystem::SetConstant(const RHIConstDesc info, const int32_t binding)
-	{
-		if (!info.data || info.data->IsEmpty() || binding < 0)
-		{
-			return;
-		}
-
-		const uint32_t dataRow = info.row;
-		const uint32_t dataColumn = info.column;
-		const uint32_t dataType = GetDataType(info.dataType);
-		const uint32_t dataCount = info.data->GetCount();
-		const uint32_t dataSize = info.data->GetSize();
-		const bool dataTranspose = info.transpose;
-		const void* data = info.data->GetPointer();
-
-		const uint32_t expectedSize = GetDataTypeSize(info.dataType) * dataRow * dataColumn * dataCount;
-		if (expectedSize != dataSize)
-		{
-			LOGWARN() << "[GL] The constant buffer size is same as the expected size";
-			return;
-		}
-
-		if (dataType == GL_INT)
-		{
-			if (dataColumn != 1)
-			{
-				LOGWARN() << "[GL] Not supported column count(" << dataColumn << ") for the integer const buffer";
-				return;
-			}
-
-			if (dataRow == 1)
-			{
-				glUniform1iv(binding, dataCount, static_cast<const GLint*>(data));
-			}
-			else if (dataRow == 2)
-			{
-				glUniform2iv(binding, dataCount, static_cast<const GLint*>(data));
-			}
-			else if (dataRow == 3)
-			{
-				glUniform3iv(binding, dataCount, static_cast<const GLint*>(data));
-			}
-			else if (dataRow == 4)
-			{
-				glUniform4iv(binding, dataCount, static_cast<const GLint*>(data));
-			}
-			else
-			{
-				// nothing
-			}
-		}
-		else if (dataType == GL_UNSIGNED_INT)
-		{
-			if (dataColumn != 1)
-			{
-				LOGWARN() << "[GL] Not supported column count(" << dataColumn << ") for the unsigned integer const buffer";
-				return;
-			}
-
-			if (dataRow == 1)
-			{
-				glUniform1uiv(binding, dataCount, static_cast<const GLuint*>(data));
-			}
-			else if (dataRow == 2)
-			{
-				glUniform2uiv(binding, dataCount, static_cast<const GLuint*>(data));
-			}
-			else if (dataRow == 3)
-			{
-				glUniform3uiv(binding, dataCount, static_cast<const GLuint*>(data));
-			}
-			else if (dataRow == 4)
-			{
-				glUniform4uiv(binding, dataCount, static_cast<const GLuint*>(data));
-			}
-			else
-			{
-				// nothing
-			}
-		}
-		else if (dataType == GL_FLOAT)
-		{
-			if (dataRow == 1)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform1fv(binding, dataCount, static_cast<const GLfloat*>(data));
-				}
-			}
-			else if (dataRow == 2)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform2fv(binding, dataCount, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix2fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix2x3fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix2x4fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else if (dataRow == 3)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform3fv(binding, dataCount, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix3x2fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix3fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix3x4fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else if (dataRow == 4)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform4fv(binding, dataCount, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix4x2fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix4x3fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix4fv(binding, dataCount, dataTranspose, static_cast<const GLfloat*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else
-			{
-				// nothing
-			}
-		}
-		else if (dataType == GL_DOUBLE)
-		{
-			if (dataRow == 1)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform1dv(binding, dataCount, static_cast<const GLdouble*>(data));
-				}
-			}
-			else if (dataRow == 2)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform2dv(binding, dataCount, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix2dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix2x3dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix2x4dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else if (dataRow == 3)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform3dv(binding, dataCount, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix3x2dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix3dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix3x4dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else if (dataRow == 4)
-			{
-				if (dataColumn == 1)
-				{
-					glUniform4dv(binding, dataCount, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 2)
-				{
-					glUniformMatrix4x2dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 3)
-				{
-					glUniformMatrix4x3dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else if (dataColumn == 4)
-				{
-					glUniformMatrix4dv(binding, dataCount, dataTranspose, static_cast<const GLdouble*>(data));
-				}
-				else
-				{
-					// nothing
-				}
-			}
-			else
-			{
-				// nothing
-			}
-		}
-		else
-		{
-			// GL_BYTE, GL_SHORT Data type must be converted to the GL_INT
-			// GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, Data type must be converted to the GL_UNSIGNED_INT
-		}
-	}
-
-	void GLSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	void GLContext::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding, const uint32_t offset, const uint32_t range)
 	{
 		if (!buffer || binding < 0)
 		{
@@ -1858,10 +1605,18 @@ namespace wtr
 		}
 
 		const uint32_t bufferType = GetBufferType(buffer->GetBufferType());
-		glBindBufferBase(bufferType, binding, glBuffer->GetID());
+		if (range == 0)
+		{
+			glBindBufferBase(bufferType, binding, glBuffer->GetID());
+		}
+		else
+		{
+			// 링 버퍼 슬라이스처럼 버퍼 일부만 바인딩. offset은 GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT의 배수여야 함
+			glBindBufferRange(bufferType, binding, glBuffer->GetID(), offset, range);
+		}
 	}
 
-	void GLSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
+	void GLContext::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
 		if (!texture || binding < 0)
 		{
@@ -1879,7 +1634,7 @@ namespace wtr
 		glBindTexture(textureType, glTexture->GetID());
 	}
 
-	void GLSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
+	void GLContext::SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
 		if (!sampler || binding < 0)
 		{
@@ -1895,7 +1650,7 @@ namespace wtr
 		glBindSampler(binding, glSampler->GetID());
 	}
 
-	void GLSystem::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bindingIndex, const uint32_t offset)
+	void GLContext::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bindingIndex, const uint32_t offset)
 	{
 		if (!buffer)
 		{
@@ -1912,7 +1667,7 @@ namespace wtr
 		glBindVertexBuffer(bindingIndex, glBuffer->GetID(), offset, desc.stride);
 	}
 
-	void GLSystem::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
+	void GLContext::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
 	{
 		if (!buffer)
 		{
@@ -1928,7 +1683,7 @@ namespace wtr
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer->GetID());
 	}
 
-	void GLSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
+	void GLContext::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
 		if (!layout)
 		{
@@ -1944,7 +1699,7 @@ namespace wtr
 		glBindVertexArray(glVertexLayout->GetID());
 	}
 
-	void GLSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
+	void GLContext::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 		if (!pipeline)
 		{
@@ -1960,7 +1715,7 @@ namespace wtr
 		glUseProgram(glPipeLine->GetID());
 	}
 
-	void GLSystem::BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target)
+	void GLContext::BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target)
 	{
 		if (!target)
 		{
@@ -1978,12 +1733,12 @@ namespace wtr
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderTarget->GetID());
 	}
 
-	void GLSystem::EndRenderPass()
+	void GLContext::EndRenderPass()
 	{
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GL_NONE);
 	}
 
-	void GLSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state)
+	void GLContext::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state)
 	{
 		if (!target)
 		{
@@ -2063,7 +1818,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	void GLContext::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
 		if (!buffer || binding < 0)
 		{
@@ -2074,7 +1829,7 @@ namespace wtr
 		glBindBufferBase(bufferType, binding, GL_NONE);
 	}
 
-	void GLSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
+	void GLContext::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
 		if (!texture || binding < 0)
 		{
@@ -2086,7 +1841,7 @@ namespace wtr
 		glBindTexture(textureType, GL_NONE);
 	}
 
-	void GLSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
+	void GLContext::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
 		if (!sampler || binding < 0)
 		{
@@ -2096,32 +1851,32 @@ namespace wtr
 		glBindSampler(binding, GL_NONE);
 	}
 
-	void GLSystem::UnsetVertexBuffer(const uint32_t bindingIndex)
+	void GLContext::UnsetVertexBuffer(const uint32_t bindingIndex)
 	{
 		glBindVertexBuffer(bindingIndex, GL_NONE, 0, 0);
 	}
 
-	void GLSystem::UnsetIndexBuffer()
+	void GLContext::UnsetIndexBuffer()
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
 	}
 
-	void GLSystem::UnsetVertexLayout()
+	void GLContext::UnsetVertexLayout()
 	{
 		glBindVertexArray(GL_NONE);
 	}
 
-	void GLSystem::UnsetPipeLine()
+	void GLContext::UnsetPipeLine()
 	{
 		glUseProgram(GL_NONE);
 	}
 
-	void GLSystem::DispatchCompute(const RHIDispatchDesc info)
+	void GLContext::DispatchCompute(const RHIDispatchDesc info)
 	{
 		glDispatchCompute(info.groupX, info.groupY, info.groupZ);
 	}
 
-	void GLSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
+	void GLContext::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
 		if (info.indexCount == 0 || info.instanceCount == 0)
 		{
@@ -2188,7 +1943,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetBufferType(const eBufferType buffer) const
+	uint32_t GLContext::GetBufferType(const eBufferType buffer) const
 	{
 		if (eBufferType::eVertex == buffer)
 		{
@@ -2216,7 +1971,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetDataAccess(const eDataAccess access) const
+	uint32_t GLContext::GetDataAccess(const eDataAccess access) const
 	{
 		if (eDataAccess::eStatic == access)
 		{
@@ -2236,7 +1991,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetDataType(const eDataType data) const
+	uint32_t GLContext::GetDataType(const eDataType data) const
 	{
 		if (eDataType::eByte == data)
 		{
@@ -2276,7 +2031,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetDataDivisor(const eDataDivisor divisor) const
+	uint32_t GLContext::GetDataDivisor(const eDataDivisor divisor) const
 	{
 		if (eDataDivisor::ePerVertex == divisor)
 		{
@@ -2292,7 +2047,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetMapAccess(const eMapAccess access) const
+	uint32_t GLContext::GetMapAccess(const eMapAccess access) const
 	{
 		GLbitfield accessFlags = GL_NONE;
 
@@ -2324,7 +2079,7 @@ namespace wtr
 		return accessFlags;
 	}
 
-	uint32_t GLSystem::GetTextureType(const eTextureDimension type) const
+	uint32_t GLContext::GetTextureType(const eTextureDimension type) const
 	{
 		if (eTextureDimension::eTexture1D == type)
 		{
@@ -2368,7 +2123,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetDimensionCount(const eTextureDimension texture) const
+	uint32_t GLContext::GetDimensionCount(const eTextureDimension texture) const
 	{
 		if (eTextureDimension::eNone == texture ||
 			eTextureDimension::eTextureMultisample == texture ||
@@ -2398,7 +2153,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetPixelFormat(const ePixelFormat pixel) const
+	uint32_t GLContext::GetPixelFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2534,7 +2289,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetBaseFormat(const ePixelFormat pixel) const
+	uint32_t GLContext::GetBaseFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2607,7 +2362,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetPixelDataType(const ePixelFormat pixel) const
+	uint32_t GLContext::GetPixelDataType(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eNone == pixel)
 		{
@@ -2671,7 +2426,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetFilterMode(const eFilterMode filter) const
+	uint32_t GLContext::GetFilterMode(const eFilterMode filter) const
 	{
 		if (eFilterMode::eNearest == filter)
 		{
@@ -2687,7 +2442,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetWrapMode(const eWrapMode wrap) const
+	uint32_t GLContext::GetWrapMode(const eWrapMode wrap) const
 	{
 		if (eWrapMode::eRepeat == wrap)
 		{
@@ -2711,7 +2466,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetCullFace(const eCullFace mode) const
+	uint32_t GLContext::GetCullFace(const eCullFace mode) const
 	{
 		if (eCullFace::eFront == mode)
 		{
@@ -2731,7 +2486,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetFrontFace(const eFrontFace face) const
+	uint32_t GLContext::GetFrontFace(const eFrontFace face) const
 	{
 		if (eFrontFace::eCCW == face)
 		{
@@ -2747,7 +2502,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetDrawMode(const eDrawMode mode) const
+	uint32_t GLContext::GetDrawMode(const eDrawMode mode) const
 	{
 		if (eDrawMode::ePointList == mode)
 		{
@@ -2779,7 +2534,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetPrimitiveMode(const ePrimitiveMode mode) const
+	uint32_t GLContext::GetPrimitiveMode(const ePrimitiveMode mode) const
 	{
 		if (ePrimitiveMode::ePoint == mode)
 		{
@@ -2799,7 +2554,7 @@ namespace wtr
 		}
 	}
 
-	fvec4 GLSystem::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
+	fvec4 GLContext::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
 	{
 		if (eWrapBorderColor::eTransparentBlack == wrapBorderColor)
 		{
@@ -2819,7 +2574,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetCompareFunc(const eCompareFunc func) const
+	uint32_t GLContext::GetCompareFunc(const eCompareFunc func) const
 	{
 		if (eCompareFunc::eNever == func)
 		{
@@ -2859,7 +2614,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetStencilOp(const eStencilOp op) const
+	uint32_t GLContext::GetStencilOp(const eStencilOp op) const
 	{
 		if (eStencilOp::eKeep == op)
 		{
@@ -2899,7 +2654,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetBlendFunc(const eBlendFunc func) const
+	uint32_t GLContext::GetBlendFunc(const eBlendFunc func) const
 	{
 		if (eBlendFunc::eZero == func)
 		{
@@ -2947,7 +2702,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetBlendOp(const eBlendOp op) const
+	uint32_t GLContext::GetBlendOp(const eBlendOp op) const
 	{
 		if (eBlendOp::eAdd == op)
 		{
@@ -2975,7 +2730,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetShaderType(const eShaderType type) const
+	uint32_t GLContext::GetShaderType(const eShaderType type) const
 	{
 		if (eShaderType::eVertex == type)
 		{
@@ -3003,7 +2758,7 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetColorAttachment(const uint32_t slot) const
+	uint32_t GLContext::GetColorAttachment(const uint32_t slot) const
 	{
 		uint32_t colorAttach = GL_COLOR_ATTACHMENT0;
 		colorAttach += slot;
@@ -3011,7 +2766,7 @@ namespace wtr
 		return colorAttach;
 	}
 
-	uint32_t GLSystem::GetDepthStencilAttachment(const eAttachment attach) const
+	uint32_t GLContext::GetDepthStencilAttachment(const eAttachment attach) const
 	{
 		if (attach == eAttachment::eDepth)
 		{
@@ -3031,7 +2786,7 @@ namespace wtr
 		}
 	}
 
-	eCompareFunc GLSystem::GetCompareFunc(const uint32_t func) const
+	eCompareFunc GLContext::GetCompareFunc(const uint32_t func) const
 	{
 		if (GL_NEVER == func)
 		{
@@ -3071,7 +2826,7 @@ namespace wtr
 		}
 	}
 
-	eStencilOp GLSystem::GetStencilOp(const uint32_t op) const
+	eStencilOp GLContext::GetStencilOp(const uint32_t op) const
 	{
 		if (GL_KEEP == op)
 		{
@@ -3111,7 +2866,7 @@ namespace wtr
 		}
 	}
 
-	eBlendFunc GLSystem::GetBlendFunc(const uint32_t func) const
+	eBlendFunc GLContext::GetBlendFunc(const uint32_t func) const
 	{
 		if (GL_ZERO == func)
 		{
@@ -3159,7 +2914,7 @@ namespace wtr
 		}
 	}
 
-	eBlendOp GLSystem::GetBlendOp(const uint32_t op) const
+	eBlendOp GLContext::GetBlendOp(const uint32_t op) const
 	{
 		if (GL_FUNC_ADD == op)
 		{
@@ -3187,7 +2942,7 @@ namespace wtr
 		}
 	}
 
-	eCullFace GLSystem::GetCullFace(const uint32_t mode) const
+	eCullFace GLContext::GetCullFace(const uint32_t mode) const
 	{
 		if (GL_FRONT == mode)
 		{
@@ -3207,7 +2962,7 @@ namespace wtr
 		}
 	}
 
-	eFrontFace GLSystem::GetFrontFace(const uint32_t face) const
+	eFrontFace GLContext::GetFrontFace(const uint32_t face) const
 	{
 		if (GL_CCW == face)
 		{
@@ -3223,7 +2978,7 @@ namespace wtr
 		}
 	}
 
-	ePrimitiveMode GLSystem::GetPrimitiveMode(const uint32_t mode) const
+	ePrimitiveMode GLContext::GetPrimitiveMode(const uint32_t mode) const
 	{
 		if (GL_POINT == mode)
 		{
@@ -3243,7 +2998,7 @@ namespace wtr
 		}
 	}
 
-	bool GLSystem::IsSampler(const int32_t type) const
+	bool GLContext::IsSampler(const int32_t type) const
 	{
 		return 
 			// sampler (Float)
@@ -3280,7 +3035,7 @@ namespace wtr
 			type == GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY;
 	}
 
-	void GLSystem::FlushBuffer()
+	void GLContext::FlushBuffer()
 	{
 		auto itr = m_pendingBuffers.begin();
 		while (itr != m_pendingBuffers.end())
@@ -3313,7 +3068,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushVertexLayout()
+	void GLContext::FlushVertexLayout()
 	{
 		auto itr = m_pendingVertexLayouts.begin();
 		while (itr != m_pendingVertexLayouts.end())
@@ -3345,7 +3100,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushTexture()
+	void GLContext::FlushTexture()
 	{
 		auto itr = m_pendingTextures.begin();
 		while (itr != m_pendingTextures.end())
@@ -3377,7 +3132,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushSampler()
+	void GLContext::FlushSampler()
 	{
 		auto itr = m_pendingSamplers.begin();
 		while (itr != m_pendingSamplers.end())
@@ -3409,7 +3164,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushRenderTarget()
+	void GLContext::FlushRenderTarget()
 	{
 		auto itr = m_pendingRenderTargets.begin();
 		while (itr != m_pendingRenderTargets.end())
@@ -3441,7 +3196,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushShader()
+	void GLContext::FlushShader()
 	{
 		auto itr = m_pendingShaders.begin();
 		while (itr != m_pendingShaders.end())
@@ -3473,7 +3228,7 @@ namespace wtr
 		}
 	}
 
-	void GLSystem::FlushPipeLine()
+	void GLContext::FlushPipeLine()
 	{
 		auto itr = m_pendingPipeLines.begin();
 		while (itr != m_pendingPipeLines.end())

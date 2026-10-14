@@ -12,7 +12,7 @@ namespace wtr
 	public :
 		using ListPool = wtr::DynamicArray<Memory::RefPtr<RHICommandList>>;
 
-		RHIFrameExecutor(Memory::RefPtr<RHISystem> system);
+		RHIFrameExecutor();
 		virtual ~RHIFrameExecutor();
 
 	public :

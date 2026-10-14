@@ -1,4 +1,4 @@
-#include <RHI/Vulkan/VulkanSystem.h>
+#include <RHI/Vulkan/VulkanContext.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -16,8 +16,8 @@
 
 namespace wtr
 {
-	VulkanSystem::VulkanSystem()
-		: RHISystem(eRenderType::eVulkan)
+	VulkanContext::VulkanContext()
+		: RHIContext(eRenderType::eVulkan)
 		, m_device()
 		, m_surface()
 		, m_memory()
@@ -31,7 +31,7 @@ namespace wtr
 	{
 	}
 
-	VulkanSystem::~VulkanSystem()
+	VulkanContext::~VulkanContext()
 	{
 		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -81,7 +81,7 @@ namespace wtr
 		}
 	}
 
-	bool VulkanSystem::Init(void* nativeHandle)
+	bool VulkanContext::Init(void* nativeHandle)
 	{
 		constexpr size_t MAX_SECONDARY = 2;
 
@@ -106,7 +106,7 @@ namespace wtr
 			return false;
 		}
 
-		if (!m_surface->InitSwapChain(nativeHandle, *this, m_device))
+		if (!m_surface->InitSwapChain(nativeHandle, m_device))
 		{
 			return false;
 		}
@@ -150,7 +150,7 @@ namespace wtr
 		return true;
 	}
 
-	void VulkanSystem::FlushPending()
+	void VulkanContext::FlushPending()
 	{
 		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -171,15 +171,15 @@ namespace wtr
 		FlushRenderTarget();
 	}
 
-	void VulkanSystem::Clear(const RHIClearState& state)
+	void VulkanContext::Clear(const RHIClearState& state)
 	{
 	}
 
-	void VulkanSystem::BeginContext()
+	void VulkanContext::BeginContext()
 	{
 	}
 
-	void VulkanSystem::EndContext()
+	void VulkanContext::EndContext()
 	{
 		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -190,7 +190,7 @@ namespace wtr
 		vkDeviceWaitIdle(logicalDevice);
 	}
 
-	void VulkanSystem::BeginFrame()
+	void VulkanContext::BeginFrame()
 	{
 		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE ||
 			!m_surface || m_surface->GetSwapChain() == VK_NULL_HANDLE ||
@@ -242,7 +242,7 @@ namespace wtr
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 	}
 
-	void VulkanSystem::EndFrame()
+	void VulkanContext::EndFrame()
 	{
 		if (!m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE ||
 			!m_surface || m_surface->GetSwapChain() == VK_NULL_HANDLE ||
@@ -290,7 +290,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::Resize(const uint32_t width, const uint32_t height)
+	void VulkanContext::Resize(const uint32_t width, const uint32_t height)
 	{
 		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
@@ -310,7 +310,7 @@ namespace wtr
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 	}
 
-	void VulkanSystem::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
+	void VulkanContext::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 	{
 		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
@@ -330,91 +330,91 @@ namespace wtr
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 	}
 
-	Memory::RefPtr<RHIBuffer> VulkanSystem::CreateBuffer(const RHIBufferDesc desc)
+	Memory::RefPtr<RHIBuffer> VulkanContext::CreateBuffer(const RHIBufferDesc desc)
 	{
 		Memory::RefPtr<RHIBuffer> refBuffer = Memory::MakeRef<VulkanBuffer>(desc);
 
 		return refBuffer;
 	}
 
-	Memory::RefPtr<RHIVertexLayout> VulkanSystem::CreateVertexLayout(const RHIVertexLayoutDesc desc)
+	Memory::RefPtr<RHIVertexLayout> VulkanContext::CreateVertexLayout(const RHIVertexLayoutDesc desc)
 	{
 		Memory::RefPtr<RHIVertexLayout> refLayout = Memory::MakeRef<VulkanVertexLayout>(desc);
 
 		return refLayout;
 	}
 
-	Memory::RefPtr<RHITexture> VulkanSystem::CreateTexture(const RHITextureDesc desc)
+	Memory::RefPtr<RHITexture> VulkanContext::CreateTexture(const RHITextureDesc desc)
 	{
 		Memory::RefPtr<RHITexture> refTexture = Memory::MakeRef<VulkanTexture>(desc);
 
 		return refTexture;
 	}
 
-	Memory::RefPtr<RHISampler> VulkanSystem::CreateSampler(const RHISamplerDesc desc)
+	Memory::RefPtr<RHISampler> VulkanContext::CreateSampler(const RHISamplerDesc desc)
 	{
 		Memory::RefPtr<RHISampler> refSampler = Memory::MakeRef<VulkanSampler>(desc);
 
 		return refSampler;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreateVertexShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreateVertexShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refVertexShader = Memory::MakeRef<VulkanVertexShader>(desc);
 
 		return refVertexShader;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreateGeometryShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreateGeometryShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refGeometryShader = Memory::MakeRef<VulkanGeometryShader>(desc);
 
 		return refGeometryShader;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreateHullShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreateHullShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refHullShader = Memory::MakeRef<VulkanHullShader>(desc);
 
 		return refHullShader;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreateDomainShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreateDomainShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refDomainShader = Memory::MakeRef<VulkanDomainShader>(desc);
 
 		return refDomainShader;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreatePixelShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreatePixelShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refPixelShader = Memory::MakeRef<VulkanPixelShader>(desc);
 
 		return refPixelShader;
 	}
 
-	Memory::RefPtr<RHIShader> VulkanSystem::CreateComputeShader(const RHIShaderDesc desc)
+	Memory::RefPtr<RHIShader> VulkanContext::CreateComputeShader(const RHIShaderDesc desc)
 	{
 		Memory::RefPtr<RHIShader> refComputeShader = Memory::MakeRef<VulkanComputeShader>(desc);
 
 		return refComputeShader;
 	}
 
-	Memory::RefPtr<RHIPipeLine> VulkanSystem::CreatePipeLine(const RHIPipeLineDesc desc)
+	Memory::RefPtr<RHIPipeLine> VulkanContext::CreatePipeLine(const RHIPipeLineDesc desc)
 	{
 		Memory::RefPtr<RHIPipeLine> refPipeLine = Memory::MakeRef<VulkanPipeLine>(desc);
 
 		return refPipeLine;
 	}
 
-	Memory::RefPtr<RHIRenderTarget> VulkanSystem::CreateRenderTarget(const RHIRenderTargetDesc desc)
+	Memory::RefPtr<RHIRenderTarget> VulkanContext::CreateRenderTarget(const RHIRenderTargetDesc desc)
 	{
 		Memory::RefPtr<RHIRenderTarget> refRenderTarget = Memory::MakeRef<VulkanRenderTarget>(desc);
 
 		return refRenderTarget;
 	}
 
-	void VulkanSystem::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void VulkanContext::InitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!buffer)
 		{
@@ -436,7 +436,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void VulkanContext::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!texture)
 		{
@@ -460,7 +460,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	void VulkanContext::InitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		if (!layout)
 		{
@@ -499,7 +499,7 @@ namespace wtr
 		rhiVertexLayout->SetState(eResourceState::eReady);
 	}
 
-	void VulkanSystem::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
+	void VulkanContext::InitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler)
 	{
 		if (!m_device || !m_device->IsValid())
 		{
@@ -556,7 +556,7 @@ namespace wtr
 		rhiSampler->SetState(eResourceState::eReady);
 	}
 
-	void VulkanSystem::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
+	void VulkanContext::InitializeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader)
 	{
 		if (!m_device || !m_device->IsValid())
 		{
@@ -620,7 +620,7 @@ namespace wtr
 		vkShader->SetState(eResourceState::eReady);
 	}
 
-	void VulkanSystem::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
+	void VulkanContext::InitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline)
 	{
 		if (!pipeline || !m_device)
 		{
@@ -636,11 +636,11 @@ namespace wtr
 		const bool compute = info.computeShader;
 	}
 
-	void VulkanSystem::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
+	void VulkanContext::InitializeRenderTarget(const RHIRenderTargetCreateDesc info, Memory::RefPtr<RHIRenderTarget> target)
 	{
 	}
 
-	void VulkanSystem::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void VulkanContext::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -736,7 +736,7 @@ namespace wtr
 		buffer->SetDesc(info);
 	}
 
-	void VulkanSystem::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
+	void VulkanContext::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -777,14 +777,14 @@ namespace wtr
 		texture->SetDesc(info);
 	}
 
-	void VulkanSystem::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
+	void VulkanContext::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
 	{
 		// TODO: Implement this function if needed
 
 		return;
 	}
 
-	void VulkanSystem::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	void VulkanContext::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -858,7 +858,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void VulkanContext::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -934,11 +934,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::SetConstant(const RHIConstDesc info, const int32_t binding)
-	{
-	}
-
-	void VulkanSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	void VulkanContext::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding, const uint32_t offset, const uint32_t range)
 	{
 		if (!buffer || !m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
@@ -961,15 +957,15 @@ namespace wtr
 
 	}
 
-	void VulkanSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
+	void VulkanContext::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
+	void VulkanContext::SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
 	}
 
-	void VulkanSystem::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset)
+	void VulkanContext::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset)
 	{
 		if (!buffer || !m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
@@ -991,7 +987,7 @@ namespace wtr
 		vkCmdBindVertexBuffers(commandBuffer, bidingIndex, 1, &vkBuffer, nullptr);
 	}
 
-	void VulkanSystem::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
+	void VulkanContext::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
 	{
 		if (!buffer)
 		{
@@ -1023,71 +1019,71 @@ namespace wtr
 		vkCmdBindIndexBuffer(commandBuffer, vkBuffer->GetBuffer(),	nativeOffset, indexType);
 	}
 
-	void VulkanSystem::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
+	void VulkanContext::SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 	{
 		// nothing
 	}
 
-	void VulkanSystem::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
+	void VulkanContext::SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 	{
 	}
 
-	void VulkanSystem::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	void VulkanContext::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
 		// No descriptor unbind in Vulkan - a slot just holds whatever was last written.
 	}
 
-	void VulkanSystem::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
+	void VulkanContext::UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 	{
 		// See UnsetBuffer.
 	}
 
-	void VulkanSystem::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
+	void VulkanContext::UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 	{
 		// See UnsetBuffer.
 	}
 
-	void VulkanSystem::UnsetVertexBuffer(const uint32_t bidingIndex)
+	void VulkanContext::UnsetVertexBuffer(const uint32_t bidingIndex)
 	{
 		// No vertex-buffer unbind in Vulkan - a slot just holds whatever was last bound.
 	}
 
-	void VulkanSystem::UnsetIndexBuffer()
+	void VulkanContext::UnsetIndexBuffer()
 	{
 		// See UnsetVertexBuffer.
 	}
 
-	void VulkanSystem::UnsetVertexLayout()
+	void VulkanContext::UnsetVertexLayout()
 	{
 		// VertexLayout is baked into the bound Pipeline, not a separate bind target.
 	}
 
-	void VulkanSystem::UnsetPipeLine()
+	void VulkanContext::UnsetPipeLine()
 	{
 		// No unbind - a draw can't run without some pipeline bound anyway.
 	}
 
-	void VulkanSystem::BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target)
+	void VulkanContext::BeginRenderPass(Memory::RefPtr<const RHIRenderTarget> target)
 	{
 	}
 
-	void VulkanSystem::EndRenderPass()
+	void VulkanContext::EndRenderPass()
 	{
 	}
 
-	void VulkanSystem::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state)
+	void VulkanContext::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState state)
 	{
 	}
 
-	void VulkanSystem::DispatchCompute(const RHIDispatchDesc info)
+	void VulkanContext::DispatchCompute(const RHIDispatchDesc info)
 	{
 	}
 
-	void VulkanSystem::DrawIndexPrimitive(const RHIDrawIndexDesc info)
+	void VulkanContext::DrawIndexPrimitive(const RHIDrawIndexDesc info)
 	{
 	}
 
-	bool VulkanSystem::AllocateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
+	bool VulkanContext::AllocateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -1167,7 +1163,7 @@ namespace wtr
 		return true;
 	}
 
-	bool VulkanSystem::AllocateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	bool VulkanContext::AllocateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -1289,7 +1285,7 @@ namespace wtr
 		return true;
 	}
 
-	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHIBufferCreateDesc info)
+	const RHIBufferCreateDesc VulkanContext::GetStagingDesc(const RHIBufferCreateDesc info)
 	{
 		RHIBufferCreateDesc stagingDesc{};
 		stagingDesc.access = eDataAccess::eStream;
@@ -1317,7 +1313,7 @@ namespace wtr
 		return stagingDesc;
 	}
 
-	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHITextureCreateDesc info)
+	const RHIBufferCreateDesc VulkanContext::GetStagingDesc(const RHITextureCreateDesc info)
 	{
 		RHIBufferCreateDesc stagingDesc{};
 		stagingDesc.access = eDataAccess::eStream;
@@ -1348,7 +1344,7 @@ namespace wtr
 		return stagingDesc;
 	}
 
-	Memory::RefPtr<RHIBuffer> VulkanSystem::AcquireStaging(const RHIBufferCreateDesc info)
+	Memory::RefPtr<RHIBuffer> VulkanContext::AcquireStaging(const RHIBufferCreateDesc info)
 	{
 		if (!m_device || !m_device->IsValid() || !m_memory)
 		{
@@ -1379,7 +1375,7 @@ namespace wtr
 		return stagingBuffer;
 	}
 
-	void VulkanSystem::ReleaseStaging(Memory::RefPtr<RHIBuffer> staging)
+	void VulkanContext::ReleaseStaging(Memory::RefPtr<RHIBuffer> staging)
 	{
 		if (!staging)
 		{
@@ -1390,7 +1386,7 @@ namespace wtr
 		m_releaseStaging.PushBack(staging);
 	}
 
-	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHIBuffer> dest, const RHIBufferCreateDesc destInfo)
+	void VulkanContext::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHIBuffer> dest, const RHIBufferCreateDesc destInfo)
 	{
 		if (!m_device || !m_device->IsValid() || !m_primary)
 		{
@@ -1445,7 +1441,7 @@ namespace wtr
 		vkCmdCopyBuffer(commandBuffer, vkSrc, vkDest, regions.Size(), regions.Data());
 	}
 
-	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo)
+	void VulkanContext::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo)
 	{
 		if (!m_device || !m_device->IsValid() || !m_primary)
 		{
@@ -1534,7 +1530,7 @@ namespace wtr
 		vkCmdCopyBufferToImage(commandBuffer, rhiSrc->GetBuffer(), rhiDest->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.Size(), regions.Data());
 	}
 
-	void VulkanSystem::SetBarrier(Memory::RefPtr<const RHIBuffer> buffer, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage)
+	void VulkanContext::SetBarrier(Memory::RefPtr<const RHIBuffer> buffer, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage)
 	{
 		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE || !buffer)
 		{
@@ -1572,7 +1568,7 @@ namespace wtr
 		rhiBuffer->SetStageFlag(dstStage);
 	}
 
-	void VulkanSystem::SetBarrier(Memory::RefPtr<const RHITexture> texture, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage, const VkImageLayout newLayout)
+	void VulkanContext::SetBarrier(Memory::RefPtr<const RHITexture> texture, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage, const VkImageLayout newLayout)
 	{
 		if (!texture)
 		{
@@ -1612,7 +1608,7 @@ namespace wtr
 		rhiTexture->SetImageLayout(newLayout);
 	}
 
-	VkAccessFlags VulkanSystem::GetAccessFlags(const eBindingType type, const eBindingUsage usage) const
+	VkAccessFlags VulkanContext::GetAccessFlags(const eBindingType type, const eBindingUsage usage) const
 	{
 		VkAccessFlags accessFlags = 0x00;
 
@@ -1638,7 +1634,7 @@ namespace wtr
 		return accessFlags;
 	}
 
-	VkPipelineStageFlags VulkanSystem::GetStageFlags(const eBindingType type, const eBindingUsage usage) const
+	VkPipelineStageFlags VulkanContext::GetStageFlags(const eBindingType type, const eBindingUsage usage) const
 	{
 		VkPipelineStageFlags stageFlags = 0x00;
 		if (eBindingUsage::eRead == usage)
@@ -1666,7 +1662,7 @@ namespace wtr
 		return stageFlags;
 	}
 
-	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferUsage usage) const
+	VkBufferUsageFlags VulkanContext::GetBufferUsage(const eBufferUsage usage) const
 	{
 		VkBufferUsageFlags usageFlags = 0x00;
 		if (eBufferUsage::eNone != (usage & eBufferUsage::eTransferSrc))
@@ -1707,7 +1703,7 @@ namespace wtr
 		return usageFlags;
 	}
 
-	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess access, const eBufferUsage usage) const
+	VkMemoryPropertyFlags VulkanContext::GetMemoryProperty(const eDataAccess access, const eBufferUsage usage) const
 	{
 		// 바인딩 비트(Vertex/Index/Uniform/Storage/Indirect)가 하나도 없고 전송 비트만 있는 버퍼는
 		// 파이프라인이 직접 읽지 않는 순수 중계용 버퍼 - 즉 staging / readback 이다.
@@ -1739,7 +1735,7 @@ namespace wtr
 		return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
 
-	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess access, const eTextureUsage usage) const
+	VkMemoryPropertyFlags VulkanContext::GetMemoryProperty(const eDataAccess access, const eTextureUsage usage) const
 	{
 		constexpr eTextureUsage bindingMask = eTextureUsage::eSampled | eTextureUsage::eRenderTarget
 			| eTextureUsage::eDepthStencil | eTextureUsage::ePresent;
@@ -1763,7 +1759,7 @@ namespace wtr
 		return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
 
-	VkFormat VulkanSystem::GetDataFormat(const eDataType data) const
+	VkFormat VulkanContext::GetDataFormat(const eDataType data) const
 	{
 		if (eDataType::eByte == data)
 		{
@@ -1803,7 +1799,7 @@ namespace wtr
 		}
 	}
 
-	VkFormat VulkanSystem::GetVertexFormat(const eDataType data, const uint32_t count, const bool normalized) const
+	VkFormat VulkanContext::GetVertexFormat(const eDataType data, const uint32_t count, const bool normalized) const
 	{
 		const VkFormat baseFormat = GetDataFormat(data);
 		if (VK_FORMAT_UNDEFINED == baseFormat || count < 1 || count > 4)
@@ -1929,7 +1925,7 @@ namespace wtr
 		}
 	}
 
-	VkVertexInputRate VulkanSystem::GetVertexDivisor(const eDataDivisor divisor) const
+	VkVertexInputRate VulkanContext::GetVertexDivisor(const eDataDivisor divisor) const
 	{
 		if (eDataDivisor::ePerVertex == divisor)
 		{
@@ -1945,7 +1941,7 @@ namespace wtr
 		}
 	}
 
-	VkIndexType VulkanSystem::GetIndexFormat(const eDataType data) const
+	VkIndexType VulkanContext::GetIndexFormat(const eDataType data) const
 	{
 		if (eDataType::eUShort == data)
 		{
@@ -1961,7 +1957,7 @@ namespace wtr
 		}
 	}
 
-	VkImageAspectFlags VulkanSystem::GetImageAspect(const ePixelFormat pixel) const
+	VkImageAspectFlags VulkanContext::GetImageAspect(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eD32 == pixel)
 		{
@@ -1977,7 +1973,7 @@ namespace wtr
 		}
 	}
 
-	VkImageAspectFlags VulkanSystem::GetImageAspect(const eAttachment attach) const
+	VkImageAspectFlags VulkanContext::GetImageAspect(const eAttachment attach) const
 	{
 		if (eAttachment::eColor == attach)
 		{
@@ -2001,7 +1997,7 @@ namespace wtr
 		}
 	}
 
-	VkImageUsageFlags VulkanSystem::GetImageUsage(const eTextureUsage usage, const bool mipmaps) const
+	VkImageUsageFlags VulkanContext::GetImageUsage(const eTextureUsage usage, const bool mipmaps) const
 	{
 		VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
@@ -2028,7 +2024,7 @@ namespace wtr
 		return usageFlags;
 	}
 
-	VkImageCreateFlags VulkanSystem::GetImageCreate(const eTextureDimension type) const
+	VkImageCreateFlags VulkanContext::GetImageCreate(const eTextureDimension type) const
 	{
 		if (type == eTextureDimension::eTextureCube || type == eTextureDimension::eTextureCubeArray)
 		{
@@ -2038,7 +2034,7 @@ namespace wtr
 		return VK_IMAGE_CREATE_FLAG_BITS_MAX_ENUM;
 	}
 
-	VkImageViewType VulkanSystem::GetImageViewType(const eTextureDimension texture) const
+	VkImageViewType VulkanContext::GetImageViewType(const eTextureDimension texture) const
 	{
 		if (eTextureDimension::eTexture1D == texture)
 		{
@@ -2084,7 +2080,7 @@ namespace wtr
 		}
 	}
 
-	VkImageType VulkanSystem::GetImageType(const eTextureDimension texture) const
+	VkImageType VulkanContext::GetImageType(const eTextureDimension texture) const
 	{
 		if (eTextureDimension::eTexture1D == texture || eTextureDimension::eTexture1DArray == texture)
 		{
@@ -2109,7 +2105,7 @@ namespace wtr
 		}
 	}
 
-	VkFormat VulkanSystem::GetImageFormat(const ePixelFormat pixel) const
+	VkFormat VulkanContext::GetImageFormat(const ePixelFormat pixel) const
 	{
 		if (ePixelFormat::eR8_UNorm == pixel)
 		{
@@ -2241,7 +2237,7 @@ namespace wtr
 		}
 	}
 
-	VkSampleCountFlags VulkanSystem::GetSampleCount(const uint32_t count) const
+	VkSampleCountFlags VulkanContext::GetSampleCount(const uint32_t count) const
 	{
 		if (count == 1)
 		{
@@ -2277,7 +2273,7 @@ namespace wtr
 		}
 	}
 
-	VkFilter VulkanSystem::GetFilterMode(const eFilterMode filter) const
+	VkFilter VulkanContext::GetFilterMode(const eFilterMode filter) const
 	{
 		if (eFilterMode::eNearest == filter)
 		{
@@ -2293,7 +2289,7 @@ namespace wtr
 		}
 	}
 
-	VkSamplerAddressMode VulkanSystem::GetWrapMode(const eWrapMode wrap) const
+	VkSamplerAddressMode VulkanContext::GetWrapMode(const eWrapMode wrap) const
 	{
 		if (eWrapMode::eRepeat == wrap)
 		{
@@ -2317,7 +2313,7 @@ namespace wtr
 		}
 	}
 
-	VkBorderColor VulkanSystem::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
+	VkBorderColor VulkanContext::GetWrapBorderColor(const eWrapBorderColor wrapBorderColor) const
 	{
 		if (eWrapBorderColor::eTransparentBlack == wrapBorderColor)
 		{
@@ -2337,7 +2333,7 @@ namespace wtr
 		}
 	}
 
-	VkCullModeFlags VulkanSystem::GetCullFace(const eCullFace face) const
+	VkCullModeFlags VulkanContext::GetCullFace(const eCullFace face) const
 	{
 		if (eCullFace::eFront == face)
 		{
@@ -2357,7 +2353,7 @@ namespace wtr
 		}
 	}
 
-	VkFrontFace VulkanSystem::GetFrontFace(const eFrontFace face) const
+	VkFrontFace VulkanContext::GetFrontFace(const eFrontFace face) const
 	{
 		if (eFrontFace::eCCW == face)
 		{
@@ -2373,7 +2369,7 @@ namespace wtr
 		}
 	}
 
-	VkPrimitiveTopology VulkanSystem::GetDrawMode(const eDrawMode mode) const
+	VkPrimitiveTopology VulkanContext::GetDrawMode(const eDrawMode mode) const
 	{
 		if (eDrawMode::ePointList == mode)
 		{
@@ -2405,7 +2401,7 @@ namespace wtr
 		}
 	}
 
-	VkPolygonMode VulkanSystem::GetPrimitiveMode(const ePrimitiveMode mode) const
+	VkPolygonMode VulkanContext::GetPrimitiveMode(const ePrimitiveMode mode) const
 	{
 		if (ePrimitiveMode::ePoint == mode)
 		{
@@ -2425,7 +2421,7 @@ namespace wtr
 		}
 	}
 
-	VkCompareOp VulkanSystem::GetCompareFunc(const eCompareFunc func) const
+	VkCompareOp VulkanContext::GetCompareFunc(const eCompareFunc func) const
 	{
 		if (eCompareFunc::eNever == func)
 		{
@@ -2465,7 +2461,7 @@ namespace wtr
 		}
 	}
 
-	VkStencilOp VulkanSystem::GetStencilOp(const eStencilOp op) const
+	VkStencilOp VulkanContext::GetStencilOp(const eStencilOp op) const
 	{
 		if (eStencilOp::eKeep == op)
 		{
@@ -2505,7 +2501,7 @@ namespace wtr
 		}
 	}
 
-	VkBlendFactor VulkanSystem::GetBlendFunc(const eBlendFunc func) const
+	VkBlendFactor VulkanContext::GetBlendFunc(const eBlendFunc func) const
 	{
 		if (eBlendFunc::eZero == func)
 		{
@@ -2553,7 +2549,7 @@ namespace wtr
 		}
 	}
 
-	VkBlendOp VulkanSystem::GetBlendOp(const eBlendOp op) const
+	VkBlendOp VulkanContext::GetBlendOp(const eBlendOp op) const
 	{
 		if (eBlendOp::eAdd == op)
 		{
@@ -2581,9 +2577,9 @@ namespace wtr
 		}
 	}
 
-	VkShaderStageFlagBits VulkanSystem::GetShaderType(const eShaderType type) const
+	VkShaderStageFlagBits VulkanContext::GetShaderType(const eShaderType type) const
 	{
-		// NOTE: GLSystem::GetShaderType() maps eHull -> GL_TESS_EVALUATION_SHADER and never
+		// NOTE: GLContext::GetShaderType() maps eHull -> GL_TESS_EVALUATION_SHADER and never
 		// handles eDomain at all. That looks backwards (Hull/TCS runs pre-tessellator, Domain/TES
 		// runs post-tessellator) and is worth a second look on the GL side - this function maps
 		// both correctly rather than mirroring that.
@@ -2617,7 +2613,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::FlushBuffer()
+	void VulkanContext::FlushBuffer()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2661,7 +2657,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::FlushVertexLayout()
+	void VulkanContext::FlushVertexLayout()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2697,7 +2693,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::FlushTexture()
+	void VulkanContext::FlushTexture()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2740,7 +2736,7 @@ namespace wtr
 		}
 	}
 
-	void VulkanSystem::FlushSampler()
+	void VulkanContext::FlushSampler()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2752,7 +2748,7 @@ namespace wtr
 		// TODO: Flush the sampler resources
 	}
 
-	void VulkanSystem::FlushShader()
+	void VulkanContext::FlushShader()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2764,7 +2760,7 @@ namespace wtr
 		// TODO: Flush the shader resources
 	}
 
-	void VulkanSystem::FlushPipeline()
+	void VulkanContext::FlushPipeline()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
@@ -2776,7 +2772,7 @@ namespace wtr
 		// TODO: Flush the pipeline resources
 	}
 
-	void VulkanSystem::FlushRenderTarget()
+	void VulkanContext::FlushRenderTarget()
 	{
 		if (!m_memory || !m_device || m_device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{

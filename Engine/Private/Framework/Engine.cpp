@@ -14,11 +14,12 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderWorker.h>
 
+#include <RHI/RHIContext.h>
 #include <RHI/RHISystem.h>
 #include <RHI/RHIFrameExecutor.h>
 #include <RHI/RHITaskExecutor.h>
-#include <RHI/OpenGL/GLSystem.h>
-#include <RHI/Vulkan/VulkanSystem.h>
+#include <RHI/OpenGL/GLContext.h>
+#include <RHI/Vulkan/VulkanContext.h>
 #include <RHI/RHIWorker.h>
 
 #include <Asset/AssetWorker.h>
@@ -42,7 +43,6 @@ namespace wtr
 		, m_worldWorker(nullptr)
 		, m_renderer(nullptr)
 		, m_renderWorker(nullptr)
-		, m_rhiSystem(nullptr)
 		, m_rhiFrameExecutor(nullptr)
 		, m_rhiTaskExecutor(nullptr)
 		, m_rhiWorker(nullptr)
@@ -170,13 +170,14 @@ namespace wtr
 				return false;
 			}
 
+			Memory::RefPtr<RHIContext> rhiContext;
 			if (eRenderType::eOpenGL == renderDesc.Type)
 			{
-				m_rhiSystem = Memory::MakeRef<GLSystem>();
+				rhiContext = Memory::MakeRef<GLContext>();
 			}
 			else if (eRenderType::eVulkan == renderDesc.Type)
 			{
-				m_rhiSystem = Memory::MakeRef<VulkanSystem>();
+				rhiContext = Memory::MakeRef<VulkanContext>();
 			}
 			else
 			{
@@ -184,16 +185,24 @@ namespace wtr
 				return false;
 			}
 
-			if (!m_rhiSystem->Init(nativeHandle))
+			// 컨텍스트 Init 안에서 RHISystem을 쓰는 부품(VulkanSurface 등)이 있어서 Init보다 먼저 등록함
+			if (!RHISystem::Init(rhiContext))
 			{
-				LOGERROR() << "[Engine] Failed to initialize the rhi system";
+				LOGERROR() << "[Engine] Failed to register the rhi context to the rhi system";
+				return false;
+			}
+
+			if (!rhiContext->Init(nativeHandle))
+			{
+				LOGERROR() << "[Engine] Failed to initialize the rhi context";
+				RHISystem::Shutdown();
 				return false;
 			}
 		}
 
 		// Initialize the RHI Command Executor
 		{
-			Memory::RefPtr<RHIFrameExecutor> frameExecutor = Memory::MakeRef<RHIFrameExecutor>(m_rhiSystem);
+			Memory::RefPtr<RHIFrameExecutor> frameExecutor = Memory::MakeRef<RHIFrameExecutor>();
 			if (!frameExecutor)
 			{
 				LOGERROR() << "[Engine] Failed to create the rhi frame executor";
@@ -208,7 +217,7 @@ namespace wtr
 
 			m_rhiFrameExecutor = frameExecutor;
 
-			Memory::RefPtr<RHITaskExecutor> taskExecutor = Memory::MakeRef<RHITaskExecutor>(m_rhiSystem);
+			Memory::RefPtr<RHITaskExecutor> taskExecutor = Memory::MakeRef<RHITaskExecutor>();
 			if (!taskExecutor)
 			{
 				LOGERROR() << "[Engine] Failed to create the rhi task executor";
@@ -299,7 +308,6 @@ namespace wtr
 
 			rhiWorker->SetFrameExecutor(m_rhiFrameExecutor);
 			rhiWorker->SetTaskExecutor(m_rhiTaskExecutor);
-			rhiWorker->SetSystem(m_rhiSystem);
 			rhiWorker->SetConsumer(m_renderGate);
 			
 			m_rhiWorker = rhiWorker;
@@ -364,6 +372,9 @@ namespace wtr
 			m_rhiWorker->Stop();
 			m_rhiWorker.Reset();
 		}
+
+		// RHICommandList를 쓰는 워커가 모두 멈춘 뒤에 전역 컨텍스트 참조를 놓는다
+		RHISystem::Shutdown();
 
 		if (m_window)
 		{

@@ -46,27 +46,48 @@ namespace wtr
 		uint32_t			bindingIndex	= UINT32_MAX;
 	};
 
-	struct RHIShaderAttribute
+	struct RHIShaderAttrib
 	{
-		uint32_t		location		= UINT32_MAX;
+		uint32_t	location		= UINT32_MAX;
 
 		uint32_t	componentCount	= 0;
 		eDataType	componentType	= eDataType::eNone;
 	};
 
-	struct RHIShaderBinding
+	struct RHIShaderConst
 	{
-		using eBindingState = eDataState;
+		uint32_t	binding			= UINT32_MAX;
 
-		uint32_t		binding			= UINT32_MAX;
-		
-		eBindingType	bindingType		= eBindingType::eNone;
-		eBindingState	bindingState	= eBindingState::eNone;
+		eDataStage	stage			= eDataStage::eNone;
 	};
+
+	struct RHIShaderBuffer : RHIBufferState
+	{
+		uint32_t	binding			= UINT32_MAX;
+	};
+
+	struct RHIShaderSampler : RHITextureState
+	{
+		uint32_t	binding			= UINT32_MAX;
+	};
+
+	struct RHIShaderAttach : RHITextureState
+	{
+		uint32_t	location		= UINT32_MAX;
+	};
+
+	using RHIShaderAttribs	= wtr::HashMap<VertexKey, RHIShaderAttrib>;
+	using RHIShaderConsts	= wtr::HashMap<std::string, RHIShaderConst>;
+	using RHIShaderBuffers	= wtr::HashMap<std::string, RHIShaderBuffer>;
+	using RHIShaderSamplers	= wtr::HashMap<std::string, RHIShaderSampler>;
+	using RHIShaderAttaches = wtr::HashMap<std::string, RHIShaderAttach>;
 
 	struct RHIConstDesc
 	{
 		DataBlob blob;
+
+		uint32_t offset		= 0;
+		uint32_t blockSize	= 0;
 
 		bool transpose = false;
 	};
@@ -100,8 +121,6 @@ namespace wtr
 	{
 		wtr::DynamicArray<DataBlob> blobs;
 
-		eBufferUsage bufferUsage = eBufferUsage::eNone;
-
 		RHIBufferCreateDesc() = default;
 		RHIBufferCreateDesc(const RHIDataDesc& desc)
 			: RHIBufferDesc(desc)
@@ -126,6 +145,8 @@ namespace wtr
 
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
+		uint32_t offset = 0;
+
 		RHIBufferUpdateDesc() = default;
 		RHIBufferUpdateDesc(const RHIDataDesc& desc)
 			: RHIBufferCreateDesc(desc)
@@ -425,7 +446,7 @@ namespace wtr
 		}
 	};
 
-	struct RHIDrawDesc
+	struct RHIDrawDirectDesc
 	{
 		eDrawMode	drawMode		= eDrawMode::eNone;
 		eDataType	indexType		= eDataType::eNone;
@@ -437,20 +458,18 @@ namespace wtr
 		uint32_t	instanceCount	= 1;
 	};
 
-	struct RHIDrawIndirectDesc : RHIDrawDesc
+	struct RHIDrawIndirectDesc
 	{
+		eDrawMode	drawMode = eDrawMode::eNone;
+		eDataType	indexType = eDataType::eNone;
+
+		uint32_t	indexCount = 0;
+		uint32_t	indexOffset = 0;
+
+		int32_t		baseVertex = 0;
+
 		uint32_t	baseInstance = 0;
-
-		RHIDrawIndirectDesc() = default;
-		RHIDrawIndirectDesc(const RHIDrawDesc& desc)
-			: RHIDrawDesc(desc)
-		{}
-
-		RHIDrawIndirectDesc& operator=(const RHIDrawDesc& desc)
-		{
-			RHIDrawDesc::operator=(desc);
-			return *this;
-		}
+		uint32_t	instanceCount = 1;
 	};
 
 	struct RHIDispatchDesc
@@ -517,6 +536,28 @@ namespace wtr
 			RHIRenderPassDesc::operator=(desc);
 			return *this;
 		}
+	};
+
+	struct RHIBufferTransition
+	{
+		Memory::RefPtr<const RHIBuffer>		buffer;
+
+		RHIBufferState						before;
+		RHIBufferState						after;
+	};
+
+	struct RHITextureTransition
+	{
+		Memory::RefPtr<const RHITexture>	texture;
+
+		RHITextureState						before;
+		RHITextureState						after;
+	};
+
+	struct RHITransitionDesc
+	{
+		wtr::DynamicArray<RHIBufferTransition>	buffers;
+		wtr::DynamicArray<RHITextureTransition>	textures;
 	};
 };
 

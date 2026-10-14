@@ -9,7 +9,7 @@
 #include <RHI/RHICommandList.h>
 #include <RHI/RHIDescriptions.h>
 #include <RHI/RHIResources.h>
-#include <RHI/RHISystem.h>
+#include <RHI/RHIContext.h>
 
 #include <Memory/include/Core.h>
 

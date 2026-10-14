@@ -5,7 +5,6 @@
 
 namespace wtr
 {
-	class RHISystem;
 	class RHICommandList;
 };
 
@@ -14,7 +13,7 @@ namespace wtr
 	class RHIExecutor
 	{
 	public :
-		RHIExecutor(Memory::RefPtr<RHISystem> system);
+		RHIExecutor();
 		virtual ~RHIExecutor() = default;
 
 	public :
@@ -22,8 +21,6 @@ namespace wtr
 		virtual void Submit(Memory::RefPtr<RHICommandList> cmdList) = 0;
 		virtual void Execute() = 0;
 
-	protected :
-		Memory::RefPtr<RHISystem> m_system;
 	};
 };
 

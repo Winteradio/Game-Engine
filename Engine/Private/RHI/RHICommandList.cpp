@@ -6,6 +6,7 @@
 #include <RHI/RHISystem.h>
 
 #include <Memory/include/Core.h>
+#include <Log/include/Log.h>
 
 namespace wtr
 {
@@ -19,13 +20,24 @@ namespace wtr
 		index = nullptr;
 		vertexLayout = nullptr;
 		pipeline = nullptr;
-		renderTarget = nullptr;
+		renderPass = nullptr;
 	}
 
-	RHICommandList::RHICommandList(Memory::RefPtr<RHISystem> system)
+	bool RHICommandList::RHIPending::Empty() const
+	{
+		return buffers.Empty() && textures.Empty();
+	}
+
+	void RHICommandList::RHIPending::Clear()
+	{
+		buffers.Clear();
+		textures.Clear();
+	}
+
+	RHICommandList::RHICommandList()
 		: CommandList<RHICommandBase>()
 		, m_cache()
-		, m_system(system)
+		, m_pending()
 		, m_commands()
 		, m_frame(0)
 	{}
@@ -35,7 +47,7 @@ namespace wtr
 
 	void RHICommandList::ExecuteAll()
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return;
 		}
@@ -46,7 +58,7 @@ namespace wtr
 		{
 			if (nullptr != cmd)
 			{
-				cmd->Execute(m_system);
+				cmd->Execute();
 			}
 		}
 
@@ -55,6 +67,13 @@ namespace wtr
 
 	void RHICommandList::Reset()
 	{
+		if (!m_pending.Empty())
+		{
+			// flush 지점(BeginRenderPass / DispatchCompute / Update*) 없이 기록이 끝남. 추적 상태는 flush에서만 바뀌므로 버려도 어긋나지 않음
+			LOGWARN() << "[RHICommandList] The pending transitions were dropped without flush";
+		}
+
+		m_pending.Clear();
 		m_commands.Clear();
 		Super::Reset();
 	}
@@ -69,11 +88,6 @@ namespace wtr
 		return m_frame;
 	}
 
-	void RHICommandList::Clear(const RHIClearState& state)
-	{
-		Enqueue<RHICommandClear>(state);
-	}
-
 	void RHICommandList::Resize(const uint32_t width, const uint32_t height)
 	{
 		Enqueue<RHICommandResize>(width, height);
@@ -86,26 +100,32 @@ namespace wtr
 
 	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIBuffer> refBuffer = m_system->CreateBuffer(info);
+		Memory::RefPtr<RHIBuffer> refBuffer = RHISystem::CreateBuffer(info);
 
 		Enqueue<RHICommandInitializeBuffer>(info, refBuffer);
+
+		// 백엔드가 업로드 배리어를 모든 읽기로 걸어두므로, 데이터가 있으면 바로 읽을 수 있는 상태에서 시작
+		if (refBuffer && !info.blobs.Empty())
+		{
+			refBuffer->SetBufferState(RHIBufferState::Readable());
+		}
 
 		return refBuffer;
 	}
 
 	Memory::RefPtr<RHIVertexLayout> RHICommandList::CreateVertexLayout(const RHIVertexLayoutCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIVertexLayout> refVertexLayout = m_system->CreateVertexLayout(info);
+		Memory::RefPtr<RHIVertexLayout> refVertexLayout = RHISystem::CreateVertexLayout(info);
 
 		Enqueue<RHICommandInitializeVertexLayout>(info, refVertexLayout);
 
@@ -114,26 +134,32 @@ namespace wtr
 
 	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHITexture> refTexture = m_system->CreateTexture(info);
+		Memory::RefPtr<RHITexture> refTexture = RHISystem::CreateTexture(info);
 
 		Enqueue<RHICommandInitializeTexture>(info, refTexture);
+
+		// 데이터가 있으면 업로드 후 샘플링 상태, 없으면(어태치먼트 등) 빈 상태에서 시작해 첫 전환이 UNDEFINED에서 출발
+		if (refTexture && !info.blobs.Empty())
+		{
+			refTexture->SetTextureState(RHITextureState::Readable());
+		}
 
 		return refTexture;
 	}
 
 	Memory::RefPtr<RHISampler> RHICommandList::CreateSampler(const RHISamplerCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHISampler> refSampler = m_system->CreateSampler(info);
+		Memory::RefPtr<RHISampler> refSampler = RHISystem::CreateSampler(info);
 
 		Enqueue<RHICommandInitializeSampler>(info, refSampler);
 
@@ -142,12 +168,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreateVertexShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreateVertexShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreateVertexShader(info);
 
 		Enqueue<RHICommandInitializeVertexShader>(info, refShader);
 
@@ -156,12 +182,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreateGeometryShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreateGeometryShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreateGeometryShader(info);
 
 		Enqueue<RHICommandInitializeGeometryShader>(info, refShader);
 
@@ -170,12 +196,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreateHullShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreateHullShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreateHullShader(info);
 
 		Enqueue<RHICommandInitializeHullShader>(info, refShader);
 
@@ -184,12 +210,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreateDomainShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreateDomainShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreateDomainShader(info);
 
 		Enqueue<RHICommandInitializeDomainShader>(info, refShader);
 
@@ -198,12 +224,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreatePixelShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreatePixelShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreatePixelShader(info);
 
 		Enqueue<RHICommandInitializePixelShader>(info, refShader);
 
@@ -212,12 +238,12 @@ namespace wtr
 
 	Memory::RefPtr<RHIShader> RHICommandList::CreateComputeShader(const RHIShaderCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIShader> refShader = m_system->CreateComputeShader(info);
+		Memory::RefPtr<RHIShader> refShader = RHISystem::CreateComputeShader(info);
 
 		Enqueue<RHICommandInitializeComputeShader>(info, refShader);
 
@@ -226,30 +252,30 @@ namespace wtr
 
 	Memory::RefPtr<RHIPipeLine> RHICommandList::CreatePipeLine(const RHIPipeLineCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIPipeLine> refPipeLine = m_system->CreatePipeLine(info);
+		Memory::RefPtr<RHIPipeLine> refPipeLine = RHISystem::CreatePipeLine(info);
 
 		Enqueue<RHICommandInitializePipeLine>(info, refPipeLine);
 
 		return refPipeLine;
 	}
 
-	Memory::RefPtr<RHIRenderTarget> RHICommandList::CreateRenderTarget(const RHIRenderTargetCreateDesc& info)
+	Memory::RefPtr<RHIRenderPass> RHICommandList::CreateRenderPass(const RHIRenderPassCreateDesc& info)
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return nullptr;
 		}
 
-		Memory::RefPtr<RHIRenderTarget> refRenderTarget = m_system->CreateRenderTarget(info);
+		Memory::RefPtr<RHIRenderPass> refRenderPass = RHISystem::CreateRenderPass(info);
 
-		Enqueue<RHICommandInitializeRenderTarget>(info, refRenderTarget);
+		Enqueue<RHICommandInitializeRenderPass>(info, refRenderPass);
 
-		return refRenderTarget;
+		return refRenderPass;
 	}
 
 	void RHICommandList::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
@@ -282,9 +308,9 @@ namespace wtr
 		Enqueue<RHICommandRemovePipeLine>(pipeline);
 	}
 
-	void RHICommandList::RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target)
+	void RHICommandList::RemoveRenderPass(Memory::RefPtr<RHIRenderPass> pass)
 	{
-		Enqueue<RHICommandRemoveRenderTarget>(target);
+		Enqueue<RHICommandRemoveRenderPass>(pass);
 	}
 
 	void RHICommandList::UpdateBuffer(const RHIBufferUpdateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
@@ -294,7 +320,15 @@ namespace wtr
 			buffer->SetDesc(info);
 		}
 
+		// 앞서 모인 전환이 업로드보다 먼저 나가야 추적 상태 순서가 맞음
+		FlushTransitions();
+
 		Enqueue<RHICommandUpdateBuffer>(info, buffer);
+
+		if (buffer && !info.blobs.Empty())
+		{
+			buffer->SetBufferState(RHIBufferState::Readable());
+		}
 	}
 
 	void RHICommandList::UpdateTexture(const RHITextureUpdateDesc& info, Memory::RefPtr<RHITexture> texture)
@@ -304,7 +338,15 @@ namespace wtr
 			texture->SetDesc(info);
 		}
 
+		// 앞서 모인 전환이 업로드보다 먼저 나가야 추적 상태 순서가 맞음
+		FlushTransitions();
+
 		Enqueue<RHICommandUpdateTexture>(info, texture);
+
+		if (texture && !info.blobs.Empty())
+		{
+			texture->SetTextureState(RHITextureState::Readable());
+		}
 	}
 
 	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc& info, Memory::RefPtr<RHIVertexLayout> layout)
@@ -312,41 +354,27 @@ namespace wtr
 		Enqueue<RHICommandUpdateVertexLayout>(info, layout);
 	}
 
-	void RHICommandList::ResizeBuffer(const RHIBufferCreateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
-	{
-		if (buffer)
-		{
-			buffer->SetDesc(info);
-		}
-
-		Enqueue<RHICommandResizeBuffer>(info, buffer);
-	}
-
-	void RHICommandList::ResizeTexture(const RHITextureCreateDesc& info, Memory::RefPtr<RHITexture> texture)
-	{
-		if (texture)
-		{
-			texture->SetDesc(info);
-		}
-
-		Enqueue<RHICommandResizeTexture>(info, texture);
-	}
-
 	void RHICommandList::SetConstant(const RHIConstDesc& info, const int32_t binding)
 	{
 		Enqueue<RHICommandSetConstant>(info, binding);
 	}
 
-	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	void RHICommandList::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding, const uint32_t offset, const uint32_t range)
 	{
-		if (m_cache.buffers[binding] == buffer)
+		// 같은 버퍼라도 offset / range가 다르면 다시 바인딩해야 함
+		RHICache::BufferBinding bound;
+		bound.buffer = buffer;
+		bound.offset = offset;
+		bound.range = range;
+
+		if (m_cache.buffers[binding] == bound)
 		{
 			return;
 		}
 
-		m_cache.buffers[binding] = buffer;
+		m_cache.buffers[binding] = bound;
 
-		Enqueue<RHICommandSetBuffer>(buffer, binding);
+		Enqueue<RHICommandSetBuffer>(buffer, binding, offset, range);
 	}
 
 	void RHICommandList::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
@@ -423,7 +451,7 @@ namespace wtr
 
 	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
-		m_cache.buffers[binding] = nullptr;
+		m_cache.buffers[binding] = RHICache::BufferBinding();
 
 		Enqueue<RHICommandUnsetBuffer>(buffer, binding);
 	}
@@ -470,38 +498,171 @@ namespace wtr
 		Enqueue<RHICommandUnsetPipeLine>();
 	}
 
-	void RHICommandList::BeginRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	void RHICommandList::TransitionBuffer(Memory::RefPtr<const RHIBuffer> buffer, const RHIBufferState& state)
 	{
-		if (m_cache.renderTarget == target)
+		if (!buffer || state.IsEmpty())
 		{
 			return;
 		}
 
-		m_cache.renderTarget = target;
+		if (m_cache.renderPass)
+		{
+			// 렌더 패스 안에서는 배리어를 넣을 수 없어 다음 flush 지점으로 밀림 → 이번 패스에는 적용 안 됨
+			LOGWARN() << "[RHICommandList] The buffer transition was requested inside the render pass, deferred to the next flush";
+		}
 
-		Enqueue<RHICommandBeginRenderTarget>(target);
+		// 같은 구간에서 이미 요구된 버퍼면 목표만 합친다
+		// 현재 상태로 덮이는 요구라도 합쳐야 배리어의 목표(dst)에서 빠지지 않음
+		auto itr = m_pending.buffers.Find(buffer);
+		if (itr != m_pending.buffers.End())
+		{
+			itr->second.Merge(state);
+			return;
+		}
+
+		// 현재 상태로 그대로 쓸 수 있으면 배리어 불필요 (대부분 여기서 끝남)
+		if (buffer->GetBufferState().Covers(state))
+		{
+			return;
+		}
+
+		m_pending.buffers[buffer] = state;
 	}
 
-	void RHICommandList::EndRenderTarget()
+	void RHICommandList::TransitionTexture(Memory::RefPtr<const RHITexture> texture, const RHITextureState& state)
 	{
-		m_cache.renderTarget = nullptr;
+		if (!texture || state.IsEmpty())
+		{
+			return;
+		}
 
-		Enqueue<RHICommandEndRenderTarget>();
+		if (m_cache.renderPass)
+		{
+			// 렌더 패스 안에서는 레이아웃을 바꿀 수 없어 다음 flush 지점으로 밀림 → 이번 패스에는 적용 안 됨
+			LOGWARN() << "[RHICommandList] The texture transition was requested inside the render pass, deferred to the next flush";
+		}
+
+		auto itr = m_pending.textures.Find(texture);
+		if (itr != m_pending.textures.End())
+		{
+			if (!itr->second.Merge(state))
+			{
+				// 한 구간에 레이아웃이 두 개 필요 (어태치먼트이면서 샘플링되는 피드백 루프 등). 나중 요구로 덮음
+				LOGWARN() << "[RHICommandList] Conflicting texture usages in one pass, usage : "
+					<< static_cast<uint32_t>(itr->second.usage) << " -> " << static_cast<uint32_t>(state.usage);
+
+				itr->second = state;
+			}
+
+			return;
+		}
+
+		if (texture->GetTextureState().Covers(state))
+		{
+			return;
+		}
+
+		m_pending.textures[texture] = state;
 	}
 
-	void RHICommandList::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+	void RHICommandList::FlushTransitions()
 	{
-		Enqueue<RHICommandClearRenderTarget>(target, state);
+		if (m_pending.Empty())
+		{
+			return;
+		}
+
+		if (m_cache.renderPass)
+		{
+			// VUID-vkCmdPipelineBarrier-bufferMemoryBarrierCount-01178 (버퍼 배리어 금지), oldLayout-01181 (레이아웃 변경 금지)
+			LOGWARN() << "[RHICommandList] Can't flush the pending transitions inside the render pass";
+			return;
+		}
+
+		RHITransitionDesc info;
+		info.buffers.Reserve(m_pending.buffers.Size());
+		info.textures.Reserve(m_pending.textures.Size());
+
+		for (const auto& [buffer, state] : m_pending.buffers)
+		{
+			const RHIBufferState before = buffer->GetBufferState();
+			info.buffers.PushBack({ buffer, before, state });
+
+			// 읽기 → 읽기면 앞선 읽기도 여전히 유효하니 합쳐서 기억 (같은 stage로 다시 읽을 때 배리어 생략)
+			RHIBufferState tracked = state;
+			if (!before.HasWrite() && !state.HasWrite())
+			{
+				tracked.Merge(before);
+			}
+
+			buffer->SetBufferState(tracked);
+		}
+
+		for (const auto& [texture, state] : m_pending.textures)
+		{
+			const RHITextureState before = texture->GetTextureState();
+			info.textures.PushBack({ texture, before, state });
+
+			// 텍스처는 usage(레이아웃)가 같을 때만 합쳐짐, 다르면 Merge가 실패하고 state 그대로
+			RHITextureState tracked = state;
+			if (!before.HasWrite() && !state.HasWrite())
+			{
+				tracked.Merge(before);
+			}
+
+			texture->SetTextureState(tracked);
+		}
+
+		m_pending.Clear();
+
+		Enqueue<RHICommandTransition>(info);
+	}
+
+	void RHICommandList::BeginRenderPass(Memory::RefPtr<const RHIRenderPass> pass, const RHIClearState& clear)
+	{
+		if (m_cache.renderPass == pass)
+		{
+			return;
+		}
+
+		// 어태치먼트는 패스가 정한다. load / blend로 읽을 수도 있어서 읽기 | 쓰기로 잡음
+		if (pass)
+		{
+			const RHIRenderPassDesc& desc = pass->GetDesc();
+			const eDataState attachState = eDataState::eRead | eDataState::eWrite;
+
+			for (const auto& color : desc.colors)
+			{
+				TransitionTexture(color.texture, RHITextureState(attachState, eDataStage::ePixel, eTextureUsage::eColorAttach));
+			}
+
+			TransitionTexture(desc.depthStencil.texture, RHITextureState(attachState, eDataStage::ePixel, eTextureUsage::eDepthStencilAttach));
+		}
+
+		FlushTransitions();
+
+		m_cache.renderPass = pass;
+
+		Enqueue<RHICommandBeginRenderPass>(pass, clear);
+	}
+
+	void RHICommandList::EndRenderPass()
+	{
+		m_cache.renderPass = nullptr;
+
+		Enqueue<RHICommandEndRenderPass>();
 	}
 
 	void RHICommandList::DispatchCompute(const RHIDispatchDesc& info)
 	{
+		FlushTransitions();
+
 		Enqueue<RHICommandDispatchCompute>(info);
 	}
 
-	void RHICommandList::DrawPrimitive(const RHIDrawDesc& info)
+	void RHICommandList::DrawDirectPrimitive(const RHIDrawDirectDesc& info)
 	{
-		Enqueue<RHICommandDrawPrimitive>(info);
+		Enqueue<RHICommandDrawDirectPrimitive>(info);
 	}
 
 	void RHICommandList::DrawIndirectPrimitive(const RHIDrawIndirectDesc& info)

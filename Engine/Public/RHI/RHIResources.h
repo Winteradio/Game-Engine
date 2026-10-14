@@ -46,7 +46,7 @@ namespace wtr
 			std::atomic<eResourceState> m_state = eResourceState::eNone;
 	};
 
-	class RHIBuffer : public RHIResource 
+	class RHIBuffer : public RHIResource
 	{
 		public :
 			RHIBuffer(const RHIBufferDesc& desc);
@@ -59,9 +59,9 @@ namespace wtr
 			uint32_t GetStride() const;
 			uint32_t GetSize() const;
 			const RHIBufferDesc& GetDesc() const;
+			const RHIBufferState& GetBufferState() const;
 
-			void SetBufferUsage(const eBufferUsage usage);
-			void SetAccessType(const eDataAccess accessType);
+			void SetDataUsage(const eDataUsage dataUsage);
 			void SetDataType(const eDataType dataType);
 			void SetNumComponents(const uint32_t numComponents);
 			void SetStride(const uint32_t stride);
@@ -69,8 +69,15 @@ namespace wtr
 
 			void SetDesc(const RHIBufferDesc& desc);
 
+		private :
+			friend class RHICommandList;
+			void SetBufferState(const RHIBufferState& state) const;
+
 		protected :
 			RHIBufferDesc m_desc;
+
+		private :
+			mutable RHIBufferState m_bufferState;
 	};
 
 	class RHIVertexLayout : public RHIResource
@@ -106,10 +113,10 @@ namespace wtr
 			uint32_t GetMipLevels() const;
 			uint32_t GetSampleCount() const;
 			ePixelFormat GetPixelFormat() const;
-			eTextureUsage GetTextureUsage() const;
 			eTextureDimension GetTextureDimension() const;
 			eDataType GetDataType() const;
 			const RHITextureDesc& GetDesc() const;
+			const RHITextureState& GetTextureState() const;
 
 			void SetWidth(const uint32_t width);
 			void SetHeight(const uint32_t height);
@@ -117,14 +124,21 @@ namespace wtr
 			void SetMipLevels(const uint32_t mipLevels);
 			void SetSampleCount(const uint32_t sampleCount);
 			void SetPixelFormat(const ePixelFormat pixelFormat);
-			void SetTextureUsage(const eTextureUsage textureUsage);
 			void SetTextureDimension(const eTextureDimension textureDimension);
 			void SetDataType(const eDataType dataType);
 
 			void SetDesc(const RHITextureDesc& desc);
 
+		private :
+			// 배리어 상태는 기록 시점에 RHICommandList만 갱신 (UE FRHIViewableResource::TrackedAccess)
+			friend class RHICommandList;
+			void SetTextureState(const RHITextureState& state) const;
+
 		protected :
 			RHITextureDesc m_desc;
+
+		private :
+			mutable RHITextureState m_textureState;
 	};
 
 	class RHISampler : public RHIResource
@@ -163,23 +177,25 @@ namespace wtr
 		eShaderType GetShaderType() const;
 		const RHIShaderDesc& GetDesc() const;
 
-		void AddInput(const std::string& name, const RHIShaderVariable& input);
-		void AddOutput(const std::string& name, const RHIShaderVariable& output);
-		void AddBinding(const std::string& name, const RHIShaderBinding& binding);
+		void AddInput(const std::string& name, const RHIShaderAttrib& input);
+		void AddOutput(const std::string& name, const RHIShaderAttrib& output);
+		void AddConst(const std::string& name, const RHIShaderConst& constant);
+		void AddBuffer(const std::string& name, const RHIShaderBuffer& buffer);
+		void AddSampler(const std::string& name, const RHIShaderSampler& sampler);
 
-		const RHIShaderVariable& GetInput(const std::string& name) const;
-		const RHIShaderVariable& GetOutput(const std::string& name) const;
-		const RHIShaderBinding& GetBinding(const std::string& name) const;
-		
-		const RHIShaderVariables& GetInputs() const;
-		const RHIShaderVariables& GetOutputs() const;
-		const RHIShaderBindings& GetBindings() const;
+		const RHIShaderAttribs& GetInputs() const;
+		const RHIShaderAttribs& GetOutputs() const;
+		const RHIShaderConsts& GetConsts() const;
+		const RHIShaderBuffers& GetBuffers() const;
+		const RHIShaderSamplers& GetSamplers() const;
 
 	private :
 		RHIShaderDesc m_desc;
-		RHIShaderVariables m_inputs;
-		RHIShaderVariables m_outputs;
-		RHIShaderBindings m_bindings;
+		RHIShaderAttribs m_inputs;
+		RHIShaderAttribs m_outputs;
+		RHIShaderConsts m_consts;
+		RHIShaderBuffers m_buffers;
+		RHIShaderSamplers m_samplers;
 	};
 
 	class RHIPipeLine : public RHIResource
@@ -203,17 +219,50 @@ namespace wtr
 		void SetBlendState(const RHIBlendState& blend);
 		void SetRasterizerState(const RHIRasterizerState& rasterizer);
 
-		void AddBinding(const std::string& name, const RHIShaderBinding& binding);
-		bool HasBinding(const std::string& name) const;
-		bool HasBinding(const eResourceSlot slot) const;
+		// 셰이더 단계별 리플렉션을 파이프라인 하나로 합친다 (백엔드의 InitializePipeLine에서 셰이더마다 호출)
+		void AddShader(const RHIShader& shader);
 
-		size_t GetBindingCount() const;
-		const RHIShaderBinding& GetBinding(const std::string& name) const;
-		const RHIShaderBinding& GetBinding(const eResourceSlot slot) const;
+		void AddInput(const VertexKey& key, const RHIShaderAttrib& input);
+		void AddOutput(const std::string& name, const RHIShaderAttrib& output);
+		void AddConst(const std::string& name, const RHIShaderConst& constant);
+		void AddBuffer(const std::string& name, const RHIShaderBuffer& buffer);
+		void AddSampler(const std::string& name, const RHIShaderSampler& sampler);
+
+		bool HasInput(const VertexKey& key) const;
+		bool HasOutput(const std::string& name) const;
+		bool HasConst(const std::string& name) const;
+		bool HasConst(const eResourceSlot slot) const;
+		bool HasBuffer(const std::string& name) const;
+		bool HasBuffer(const eResourceSlot slot) const;
+		bool HasSampler(const std::string& name) const;
+		bool HasSampler(const eResourceSlot slot) const;
+
+		const RHIShaderAttrib& GetInput(const VertexKey& key) const;
+		const RHIShaderAttrib& GetOutput(const std::string& name) const;
+		const RHIShaderConst& GetConst(const std::string& name) const;
+		const RHIShaderConst& GetConst(const eResourceSlot slot) const;
+		const RHIShaderBuffer& GetBuffer(const std::string& name) const;
+		const RHIShaderBuffer& GetBuffer(const eResourceSlot slot) const;
+		const RHIShaderSampler& GetSampler(const std::string& name) const;
+		const RHIShaderSampler& GetSampler(const eResourceSlot slot) const;
+
+		const RHIShaderInputs& GetInputs() const;
+		const RHIShaderAttribs& GetOutputs() const;
+		const RHIShaderConsts& GetConsts() const;
+		const RHIShaderBuffers& GetBuffers() const;
+		const RHIShaderSamplers& GetSamplers() const;
+
+		// 전환 목표 : 없는 입력이면 빈 상태를 돌려주고, RHICommandList는 빈 상태를 무시한다
+		RHIBufferState GetInputState(const VertexKey& key) const;
+		RHIBufferState GetIndexState() const;
 
 	private :
 		RHIPipeLineDesc m_desc;
-		RHIShaderBindings m_bindings;
+		RHIShaderInputs m_inputs;
+		RHIShaderAttribs m_outputs;
+		RHIShaderConsts m_consts;
+		RHIShaderBuffers m_buffers;
+		RHIShaderSamplers m_samplers;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine

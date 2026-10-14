@@ -1,21 +1,20 @@
-#ifndef __WTR_GLSYSTEM_H__
-#define __WTR_GLSYSTEM_H__
+#ifndef __WTR_GLCONTEXT_H__
+#define __WTR_GLCONTEXT_H__
 
-#include <RHI/RHISystem.h>
+#include <RHI/RHIContext.h>
 #include <RHI/RHIStates.h>
 #include <RHI/OpenGL/WGL/WGLContext.h>
 
 namespace wtr
 {
-	class GLSystem : public RHISystem
+	class GLContext : public RHIContext
 	{
 	public :
-		GLSystem();
-		~GLSystem();
+		GLContext();
+		~GLContext();
 
 	public :
 		bool Init(void* nativeHandle) override;
-		void FlushPending() override;
 
 	public :
 		void Clear(const RHIClearState& state) override;
@@ -54,8 +53,7 @@ namespace wtr
 		void ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer) override;
 		void ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture) override;
 
-		void SetConstant(const RHIConstDesc info, const int32_t binding);
-		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding);
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding, const uint32_t offset, const uint32_t range);
 		void SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding);
 		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding);
 
@@ -171,4 +169,4 @@ namespace wtr
 	};
 };
 
-#endif // __WTR_GLSYSTEM_H__
+#endif // __WTR_GLCONTEXT_H__

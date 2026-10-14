@@ -10,23 +10,11 @@ namespace wtr
 		: m_func(func)
 	{}
 
-	void RHICommandBase::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandBase::Execute()
 	{
 		if (m_func)
 		{
-			m_func(system, this);
-		}
-	}
-
-	RHICommandClear::RHICommandClear(const RHIClearState& state)
-		: m_state(state)
-	{}
-
-	void RHICommandClear::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->Clear(m_state);
+			m_func(this);
 		}
 	}
 
@@ -44,12 +32,9 @@ namespace wtr
 		, m_posY(posY)
 	{}
 
-	void RHICommandResize::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandResize::Execute()
 	{
-		if (system)
-		{
-			system->Resize(m_posX, m_posY, m_width, m_height);
-		}
+		RHISystem::Resize(m_posX, m_posY, m_width, m_height);
 	}
 
 	RHICommandInitializeBuffer::RHICommandInitializeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
@@ -57,11 +42,11 @@ namespace wtr
 		, m_buffer(buffer)
 	{}
 
-	void RHICommandInitializeBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeBuffer::Execute()
 	{
-		if (system && m_buffer)
+		if (m_buffer)
 		{
-			system->InitializeBuffer(m_info, m_buffer);
+			RHISystem::InitializeBuffer(m_info, m_buffer);
 		}
 	}
 
@@ -70,11 +55,11 @@ namespace wtr
 		, m_layout(layout)
 	{}
 
-	void RHICommandInitializeVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeVertexLayout::Execute()
 	{
-		if (system && m_layout)
+		if (m_layout)
 		{
-			system->InitializeVertexLayout(m_info, m_layout);
+			RHISystem::InitializeVertexLayout(m_info, m_layout);
 		}
 	}
 
@@ -83,11 +68,11 @@ namespace wtr
 		, m_texture(texture)
 	{}
 
-	void RHICommandInitializeTexture::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeTexture::Execute()
 	{
-		if (system && m_texture)
+		if (m_texture)
 		{
-			system->InitializeTexture(m_info, m_texture);
+			RHISystem::InitializeTexture(m_info, m_texture);
 		}
 	}
 
@@ -96,11 +81,11 @@ namespace wtr
 		, m_sampler(sampler)
 	{}
 
-	void RHICommandInitializeSampler::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeSampler::Execute()
 	{
-		if (system && m_sampler)
+		if (m_sampler)
 		{
-			system->InitializeSampler(m_info, m_sampler);		
+			RHISystem::InitializeSampler(m_info, m_sampler);
 		}
 	}
 
@@ -109,11 +94,11 @@ namespace wtr
 		, m_shader(shader)
 	{}
 
-	void RHICommandInitializeVertexShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeVertexShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -122,25 +107,24 @@ namespace wtr
 		, m_shader(shader)
 	{}
 
-	void RHICommandInitializeGeometryShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeGeometryShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
 	RHICommandInitializeHullShader::RHICommandInitializeHullShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
-	{
-	}
+	{}
 
-	void RHICommandInitializeHullShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeHullShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -149,11 +133,11 @@ namespace wtr
 		, m_shader(shader)
 	{}
 
-	void RHICommandInitializeDomainShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeDomainShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -162,11 +146,11 @@ namespace wtr
 		, m_shader(shader)
 	{}
 
-	void RHICommandInitializePixelShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializePixelShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -175,11 +159,11 @@ namespace wtr
 		, m_shader(shader)
 	{}
 
-	void RHICommandInitializeComputeShader::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeComputeShader::Execute()
 	{
-		if (system && m_shader)
+		if (m_shader)
 		{
-			system->InitializeShader(m_info, m_shader);
+			RHISystem::InitializeShader(m_info, m_shader);
 		}
 	}
 
@@ -188,24 +172,108 @@ namespace wtr
 		, m_pipeline(pipeline)
 	{}
 
-	void RHICommandInitializePipeLine::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializePipeLine::Execute()
 	{
-		if (system && m_pipeline)
+		if (m_pipeline)
 		{
-			system->InitializePipeLine(m_info, m_pipeline);
+			RHISystem::InitializePipeLine(m_info, m_pipeline);
 		}
 	}
 
-	RHICommandInitializeRenderTarget::RHICommandInitializeRenderTarget(const RHIRenderTargetCreateDesc info, const Memory::RefPtr<RHIRenderTarget> target)
+	RHICommandInitializeRenderPass::RHICommandInitializeRenderPass(const RHIRenderPassCreateDesc info, const Memory::RefPtr<RHIRenderPass> pass)
 		: m_info(info)
-		, m_target(target)
+		, m_pass(pass)
 	{}
 
-	void RHICommandInitializeRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandInitializeRenderPass::Execute()
 	{
-		if (system && m_target)
+		if (m_pass)
 		{
-			system->InitializeRenderTarget(m_info, m_target);
+			RHISystem::InitializeRenderPass(m_info, m_pass);
+		}
+	}
+
+	RHICommandRemoveVertexLayout::RHICommandRemoveVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout)
+		: m_layout(layout)
+	{}
+
+	void RHICommandRemoveVertexLayout::Execute()
+	{
+		if (m_layout)
+		{
+			RHISystem::RemoveVertexLayout(m_layout);
+		}
+	}
+
+	RHICommandRemoveBuffer::RHICommandRemoveBuffer(const Memory::RefPtr<RHIBuffer> buffer)
+		: m_buffer(buffer)
+	{}
+
+	void RHICommandRemoveBuffer::Execute()
+	{
+		if (m_buffer)
+		{
+			RHISystem::RemoveBuffer(m_buffer);
+		}
+	}
+
+	RHICommandRemoveTexture::RHICommandRemoveTexture(const Memory::RefPtr<RHITexture> texture)
+		: m_texture(texture)
+	{}
+
+	void RHICommandRemoveTexture::Execute()
+	{
+		if (m_texture)
+		{
+			RHISystem::RemoveTexture(m_texture);
+		}
+	}
+
+	RHICommandRemoveSampler::RHICommandRemoveSampler(const Memory::RefPtr<RHISampler> sampler)
+		: m_sampler(sampler)
+	{}
+
+	void RHICommandRemoveSampler::Execute()
+	{
+		if (m_sampler)
+		{
+			RHISystem::RemoveSampler(m_sampler);
+		}
+	}
+
+	RHICommandRemoveShader::RHICommandRemoveShader(const Memory::RefPtr<RHIShader> shader)
+		: m_shader(shader)
+	{}
+
+	void RHICommandRemoveShader::Execute()
+	{
+		if (m_shader)
+		{
+			RHISystem::RemoveShader(m_shader);
+		}
+	}
+
+	RHICommandRemovePipeLine::RHICommandRemovePipeLine(const Memory::RefPtr<RHIPipeLine> pipeline)
+		: m_pipeline(pipeline)
+	{}
+
+	void RHICommandRemovePipeLine::Execute()
+	{
+		if (m_pipeline)
+		{
+			RHISystem::RemovePipeLine(m_pipeline);
+		}
+	}
+
+	RHICommandRemoveRenderPass::RHICommandRemoveRenderPass(const Memory::RefPtr<RHIRenderPass> pass)
+		: m_pass(pass)
+	{}
+
+	void RHICommandRemoveRenderPass::Execute()
+	{
+		if (m_pass)
+		{
+			RHISystem::RemoveRenderPass(m_pass);
 		}
 	}
 
@@ -214,11 +282,11 @@ namespace wtr
 		, m_buffer(buffer)
 	{}
 
-	void RHICommandUpdateBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandUpdateBuffer::Execute()
 	{
-		if (system && m_buffer)
+		if (m_buffer)
 		{
-			system->UpdateBuffer(m_info, m_buffer);
+			RHISystem::UpdateBuffer(m_info, m_buffer);
 		}
 	}
 
@@ -227,413 +295,244 @@ namespace wtr
 		, m_texture(texture)
 	{}
 
-	void RHICommandUpdateTexture::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandUpdateTexture::Execute()
 	{
-		if (system && m_texture)
+		if (m_texture)
 		{
-			system->UpdateTexture(m_info, m_texture);
+			RHISystem::UpdateTexture(m_info, m_texture);
 		}
 	}
 
 	RHICommandUpdateVertexLayout::RHICommandUpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, const Memory::RefPtr<RHIVertexLayout> layout)
 		: m_info(info)
 		, m_layout(layout)
-	{
-	}
-
-	void RHICommandUpdateVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_layout)
-		{
-			system->UpdateVertexLayout(m_info, m_layout);
-		}
-	}
-
-	RHICommandResizeBuffer::RHICommandResizeBuffer(const RHIBufferCreateDesc info, const Memory::RefPtr<RHIBuffer> buffer)
-		: m_info(info)
-		, m_buffer(buffer)
-	{
-	}
-
-	void RHICommandResizeBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_buffer)
-		{
-			system->ResizeBuffer(m_info, m_buffer);
-		}
-	}
-
-	RHICommandResizeTexture::RHICommandResizeTexture(const RHITextureCreateDesc info, const Memory::RefPtr<RHITexture> texture)
-		: m_info(info)
-		, m_texture(texture)
-	{
-	}
-
-	void RHICommandResizeTexture::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_texture)
-		{
-			system->ResizeTexture(m_info, m_texture);
-		}
-	}
-
-	RHICommandRemoveBuffer::RHICommandRemoveBuffer(const Memory::RefPtr<RHIBuffer> buffer)
-		: m_buffer(buffer)
 	{}
 
-	void RHICommandRemoveBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandUpdateVertexLayout::Execute()
 	{
-		if (system && m_buffer)
+		if (m_layout)
 		{
-			system->RemoveBuffer(m_buffer);
+			RHISystem::UpdateVertexLayout(m_info, m_layout);
 		}
 	}
 
-	RHICommandRemoveVertexLayout::RHICommandRemoveVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout)
+	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const Name& binding)
+		: m_info(info)
+		, m_binding(binding)
+	{}
+
+	void RHICommandSetConstant::Execute()
+	{
+		RHISystem::SetConstant(m_info, m_binding);
+	}
+
+	RHICommandSetVertexLayout::RHICommandSetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout)
 		: m_layout(layout)
 	{}
 
-	void RHICommandRemoveVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandSetVertexLayout::Execute()
 	{
-		if (system && m_layout)
+		if (m_layout)
 		{
-			system->RemoveVertexLayout(m_layout);
+			RHISystem::SetVertexLayout(m_layout);
 		}
 	}
 
-	RHICommandRemoveTexture::RHICommandRemoveTexture(const Memory::RefPtr<RHITexture> texture)
-		: m_texture(texture)
-	{}
-
-	void RHICommandRemoveTexture::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_texture)
-		{
-			system->RemoveTexture(m_texture);
-		}
-	}
-
-	RHICommandRemoveSampler::RHICommandRemoveSampler(const Memory::RefPtr<RHISampler> sampler)
-		: m_sampler(sampler)
-	{}
-
-	void RHICommandRemoveSampler::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_sampler)
-		{
-			system->RemoveSampler(m_sampler);
-		}
-	}
-
-	RHICommandRemoveShader::RHICommandRemoveShader(const Memory::RefPtr<RHIShader> shader)
-		: m_shader(shader)
-	{}
-
-	void RHICommandRemoveShader::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_shader)
-		{
-			system->RemoveShader(m_shader);
-		}
-	}
-
-	RHICommandRemovePipeLine::RHICommandRemovePipeLine(const Memory::RefPtr<RHIPipeLine> pipeline)
-		: m_pipeline(pipeline)
-	{}
-
-	void RHICommandRemovePipeLine::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_pipeline)
-		{
-			system->RemovePipeLine(m_pipeline);
-		}
-	}
-
-	RHICommandRemoveRenderTarget::RHICommandRemoveRenderTarget(const Memory::RefPtr<RHIRenderTarget> target)
-		: m_target(target)
-	{
-	}
-
-	void RHICommandRemoveRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_target)
-		{
-			system->RemoveRenderTarget(m_target);
-		}
-	}
-
-	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const int32_t binding)
-		: m_info(info)
-		, m_binding(binding)
-	{
-	}
-
-	void RHICommandSetConstant::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetConstant(m_info, m_binding);
-		}
-	}
-
-	RHICommandSetVertexBuffer::RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bindingIndex, const uint32_t offset)
+	RHICommandSetVertexBuffer::RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset)
 		: m_buffer(buffer)
-		, m_bindingIndex(bindingIndex)
+		, m_binding(binding)
 		, m_offset(offset)
-	{
-	}
+	{}
 
-	void RHICommandSetVertexBuffer::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandSetVertexBuffer::Execute()
 	{
-		if (system)
-		{
-			system->SetVertexBuffer(m_buffer, m_bindingIndex, m_offset);
-		}
+		RHISystem::SetVertexBuffer(m_buffer, m_binding, m_offset);
 	}
 
 	RHICommandSetIndexBuffer::RHICommandSetIndexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
 		: m_buffer(buffer)
 		, m_offset(offset)
+	{}
+
+	void RHICommandSetIndexBuffer::Execute()
 	{
+		RHISystem::SetIndexBuffer(m_buffer, m_offset);
 	}
 
-	void RHICommandSetIndexBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetIndexBuffer(m_buffer, m_offset);
-		}
-	}
-
-	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
+	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset, const uint32_t range)
 		: m_buffer(buffer)
 		, m_binding(binding)
+		, m_offset(offset)
+		, m_range(range)
+	{}
+
+	void RHICommandSetBuffer::Execute()
 	{
+		RHISystem::SetBuffer(m_buffer, m_binding, m_offset, m_range);
 	}
 
-	void RHICommandSetBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetBuffer(m_buffer, m_binding);
-		}
-	}
-
-	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const int32_t binding)
+	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const Name& binding)
 		: m_texture(texture)
 		, m_binding(binding)
+	{}
+
+	void RHICommandSetTexture::Execute()
 	{
+		RHISystem::SetTexture(m_texture, m_binding);
 	}
 
-	void RHICommandSetTexture::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->SetTexture(m_texture, m_binding);
-		}
-	}
-
-	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
+	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const Name& binding)
 		: m_sampler(sampler)
 		, m_binding(binding)
-	{
-	}
+	{}
 
-	void RHICommandSetSampler::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandSetSampler::Execute()
 	{
-		if (system)
-		{
-			system->SetSampler(m_sampler, m_binding);
-		}
-	}
-
-	RHICommandSetVertexLayout::RHICommandSetVertexLayout(const Memory::RefPtr<const RHIVertexLayout> layout)
-		: m_layout(layout)
-	{
-	}
-
-	void RHICommandSetVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_layout)
-		{
-			system->SetVertexLayout(m_layout);
-		}
+		RHISystem::SetSampler(m_sampler, m_binding);
 	}
 
 	RHICommandSetPipeLine::RHICommandSetPipeLine(const Memory::RefPtr<const RHIPipeLine> pipeline)
 		: m_pipeline(pipeline)
-	{
-	}
+	{}
 
-	void RHICommandSetPipeLine::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandSetPipeLine::Execute()
 	{
-		if (system && m_pipeline)
+		if (m_pipeline)
 		{
-			system->SetPipeLine(m_pipeline);
+			RHISystem::SetPipeLine(m_pipeline);
 		}
 	}
 
-	RHICommandBeginRenderTarget::RHICommandBeginRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
-		: m_target(target)
-	{
-	}
+	RHICommandSetRenderPass::RHICommandSetRenderPass(const Memory::RefPtr<const RHIRenderPass> pass)
+		: m_pass(pass)
+	{}
 
-	void RHICommandBeginRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandSetRenderPass::Execute()
 	{
-		if (system && m_target)
+		if (m_pass)
 		{
-			system->BeginRenderTarget(m_target);
-		}
-	}
-
-	RHICommandClearRenderTarget::RHICommandClearRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
-		: m_target(target)
-		, m_state(state)
-	{
-	}
-
-	void RHICommandClearRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system && m_target)
-		{
-			system->ClearRenderTarget(m_target, m_state);
-		}
-	}
-
-	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
-		: m_buffer(buffer)
-		, m_binding(binding)
-	{
-	}
-
-	void RHICommandUnsetBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetBuffer(m_buffer, m_binding);
-		}
-	}
-
-	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const int32_t binding)
-		: m_texture(texture)
-		, m_binding(binding)
-	{
-	}
-
-	void RHICommandUnsetTexture::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetTexture(m_texture, m_binding);
-		}
-	}
-
-	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
-		: m_sampler(sampler)
-		, m_binding(binding)
-	{
-	}
-
-	void RHICommandUnsetSampler::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetSampler(m_sampler, m_binding);
-		}
-	}
-
-	RHICommandUnsetVertexBuffer::RHICommandUnsetVertexBuffer(const uint32_t bindingIndex)
-		: m_bindingIndex(bindingIndex)
-	{
-	}
-
-	void RHICommandUnsetVertexBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetVertexBuffer(m_bindingIndex);
-		}
-	}
-
-	void RHICommandUnsetIndexBuffer::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetIndexBuffer();
+			RHISystem::SetRenderPass(m_pass);
 		}
 	}
 
 	RHICommandUnsetVertexLayout::RHICommandUnsetVertexLayout()
+	{}
+
+	void RHICommandUnsetVertexLayout::Execute()
 	{
+		RHISystem::UnsetVertexLayout();
 	}
 
-	void RHICommandUnsetVertexLayout::Execute(Memory::RefPtr<RHISystem> system)
+	RHICommandUnsetVertexBuffer::RHICommandUnsetVertexBuffer(const Name& binding)
+		: m_binding(binding)
+	{}
+
+	void RHICommandUnsetVertexBuffer::Execute()
 	{
-		if (system)
-		{
-			system->UnsetVertexLayout();
-		}
+		RHISystem::UnsetVertexBuffer(m_binding);
+	}
+
+	void RHICommandUnsetIndexBuffer::Execute()
+	{
+		RHISystem::UnsetIndexBuffer();
+	}
+
+	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const Name& binding)
+		: m_buffer(buffer)
+		, m_binding(binding)
+	{}
+
+	void RHICommandUnsetBuffer::Execute()
+	{
+		RHISystem::UnsetBuffer(m_buffer, m_binding);
+	}
+
+	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const Name& binding)
+		: m_texture(texture)
+		, m_binding(binding)
+	{}
+
+	void RHICommandUnsetTexture::Execute()
+	{
+		RHISystem::UnsetTexture(m_texture, m_binding);
+	}
+
+	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const Name& binding)
+		: m_sampler(sampler)
+		, m_binding(binding)
+	{}
+
+	void RHICommandUnsetSampler::Execute()
+	{
+		RHISystem::UnsetSampler(m_sampler, m_binding);
 	}
 
 	RHICommandUnsetPipeLine::RHICommandUnsetPipeLine()
+	{}
+
+	void RHICommandUnsetPipeLine::Execute()
 	{
+		RHISystem::UnsetPipeLine();
 	}
 
-	void RHICommandUnsetPipeLine::Execute(Memory::RefPtr<RHISystem> system)
+	RHICommandUnsetRenderPass::RHICommandUnsetRenderPass()
+	{}
+
+	void RHICommandUnsetRenderPass::Execute()
 	{
-		if (system)
+		RHISystem::UnsetRenderPass();
+	}
+
+	RHICommandTransitionBuffer::RHICommandTransitionBuffer(const Memory::RefPtr<RHIBuffer> buffer, const RHIBufferState& next)
+		: m_buffer(buffer)
+		, m_next(next)
+	{}
+
+	void RHICommandTransitionBuffer::Execute()
+	{
+		if (m_buffer)
 		{
-			system->UnsetPipeLine();
+			RHISystem::Transition(m_buffer, m_next);
 		}
 	}
 
-	RHICommandEndRenderTarget::RHICommandEndRenderTarget()
-	{
-	}
+	RHICommandTransitionTexture::RHICommandTransitionTexture(const Memory::RefPtr<RHITexture> texture, const RHITextureState& next)
+		: m_texture(texture)
+		, m_next(next)
+	{}
 
-	void RHICommandEndRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandTransitionTexture::Execute()
 	{
-		if (system)
+		if (m_texture)
 		{
-			system->EndRenderTarget();
+			RHISystem::Transition(m_texture, m_next);
 		}
 	}
 
 	RHICommandDispatchCompute::RHICommandDispatchCompute(const RHIDispatchDesc info)
 		: m_info(info)
+	{}
+
+	void RHICommandDispatchCompute::Execute()
 	{
+		RHISystem::DispatchCompute(m_info);
 	}
 
-	void RHICommandDispatchCompute::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->DispatchCompute(m_info);
-		}
-	}
-
-	RHICommandDrawPrimitive::RHICommandDrawPrimitive(const RHIDrawDesc info)
+	RHICommandDrawDirect::RHICommandDrawDirect(const RHIDrawDirectDesc info)
 		: m_info(info)
 	{}
 
-	void RHICommandDrawPrimitive::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandDrawDirect::Execute()
 	{
-		if (system)
-		{
-			system->DrawPrimitive(m_info);
-		}
+		RHISystem::DrawDirect(m_info);
 	}
 
-	RHICommandDrawIndirectPrimitive::RHICommandDrawIndirectPrimitive(const RHIDrawIndirectDesc info)
+	RHICommandDrawIndirect::RHICommandDrawIndirect(const RHIDrawIndirectDesc info)
 		: m_info(info)
 	{}
 
-	void RHICommandDrawIndirectPrimitive::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandDrawIndirect::Execute()
 	{
-		if (system)
-		{
-			system->DrawIndirectPrimitive(m_info);
-		}
+		RHISystem::DrawIndirect(m_info);
 	}
-
 }

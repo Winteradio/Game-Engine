@@ -66,16 +66,12 @@ namespace wtr
 
 	RHIBuffer::RHIBuffer(const RHIBufferDesc& desc)
 		: m_desc(desc)
+		, m_bufferState()
 	{}
 
-	eBufferUsage RHIBuffer::GetBufferUsage() const
+	eDataUsage RHIBuffer::GetDataUsage() const
 	{
-		return m_desc.usage;
-	}
-
-	eDataAccess RHIBuffer::GetAccessType() const
-	{
-		return m_desc.access;
+		return m_desc.dataUsage;
 	}
 
 	eDataType RHIBuffer::GetDataType() const
@@ -85,7 +81,7 @@ namespace wtr
 
 	uint32_t RHIBuffer::GetNumComponents() const
 	{
-		return m_desc.numComponents;
+		return m_desc.componentCount;
 	}
 
 	uint32_t RHIBuffer::GetStride() const
@@ -103,14 +99,14 @@ namespace wtr
 		return m_desc;
 	}
 
-	void RHIBuffer::SetBufferUsage(const eBufferUsage usage)
+	const RHIBufferState& RHIBuffer::GetBufferState() const
 	{
-		m_desc.usage = usage;
+		return m_bufferState;
 	}
 
-	void RHIBuffer::SetAccessType(const eDataAccess accessType)
+	void RHIBuffer::SetDataUsage(const eDataUsage dataUsage)
 	{
-		m_desc.access = accessType;
+		m_desc.dataUsage = dataUsage;
 	}
 
 	void RHIBuffer::SetDataType(const eDataType dataType)
@@ -120,7 +116,7 @@ namespace wtr
 
 	void RHIBuffer::SetNumComponents(const uint32_t numComponents)
 	{
-		m_desc.numComponents = numComponents;
+		m_desc.componentCount = numComponents;
 	}
 
 	void RHIBuffer::SetStride(const uint32_t stride)
@@ -136,6 +132,11 @@ namespace wtr
 	void RHIBuffer::SetDesc(const RHIBufferDesc& desc)
 	{
 		m_desc = desc;
+	}
+
+	void RHIBuffer::SetBufferState(const RHIBufferState& state) const
+	{
+		m_bufferState = state;
 	}
 
 	RHIVertexLayout::RHIVertexLayout(const RHIVertexLayoutDesc& desc)
@@ -185,6 +186,7 @@ namespace wtr
 
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
+		, m_textureState()
 	{}
 
 	uint32_t RHITexture::GetWidth() const
@@ -204,27 +206,22 @@ namespace wtr
 
 	uint32_t RHITexture::GetMipLevels() const
 	{
-		return m_desc.mipLevels;
+		return m_desc.level;
 	}
 
 	uint32_t RHITexture::GetSampleCount() const
 	{
-		return m_desc.sampleCount;
+		return m_desc.sample;
 	}
 
 	ePixelFormat RHITexture::GetPixelFormat() const
 	{
-		return m_desc.format;
-	}
-
-	eTextureUsage RHITexture::GetTextureUsage() const
-	{
-		return m_desc.usage;
+		return m_desc.pixelFormat;
 	}
 
 	eTextureDimension RHITexture::GetTextureDimension() const
 	{
-		return m_desc.dimension;
+		return m_desc.textureDimension;
 	}
 
 	eDataType RHITexture::GetDataType() const
@@ -235,6 +232,11 @@ namespace wtr
 	const RHITextureDesc& RHITexture::GetDesc() const
 	{
 		return m_desc;
+	}
+
+	const RHITextureState& RHITexture::GetTextureState() const
+	{
+		return m_textureState;
 	}
 
 	void RHITexture::SetWidth(const uint32_t width)
@@ -254,27 +256,22 @@ namespace wtr
 
 	void RHITexture::SetMipLevels(const uint32_t mipLevels)
 	{
-		m_desc.mipLevels = mipLevels;
+		m_desc.level = mipLevels;
 	}
 
 	void RHITexture::SetSampleCount(const uint32_t sampleCount)
 	{
-		m_desc.sampleCount = sampleCount;
+		m_desc.sample = sampleCount;
 	}
 
 	void RHITexture::SetPixelFormat(const ePixelFormat pixelFormat)
 	{
-		m_desc.format = pixelFormat;
-	}
-
-	void RHITexture::SetTextureUsage(const eTextureUsage textureUsage)
-	{
-		m_desc.usage = textureUsage;
+		m_desc.pixelFormat = pixelFormat;
 	}
 
 	void RHITexture::SetTextureDimension(const eTextureDimension textureDimension)
 	{
-		m_desc.dimension = textureDimension;
+		m_desc.textureDimension = textureDimension;
 	}
 
 	void RHITexture::SetDataType(const eDataType dataType)
@@ -285,6 +282,11 @@ namespace wtr
 	void RHITexture::SetDesc(const RHITextureDesc& desc)
 	{
 		m_desc = desc;
+	}
+
+	void RHITexture::SetTextureState(const RHITextureState& state) const
+	{
+		m_textureState = state;
 	}
 
 	RHISampler::RHISampler(const RHISamplerDesc& desc)
@@ -353,7 +355,11 @@ namespace wtr
 
 	RHIShader::RHIShader(const RHIShaderDesc& desc)
 		: m_desc(desc)
-		, m_bindings()
+		, m_inputs()
+		, m_outputs()
+		, m_consts()
+		, m_buffers()
+		, m_samplers()
 	{
 	}
 
@@ -362,86 +368,111 @@ namespace wtr
 		return m_desc.shaderType;
 	}
 
-	void RHIShader::AddInput(const std::string& name, const RHIShaderVariable& input)
+	const RHIShaderDesc& RHIShader::GetDesc() const
 	{
-		m_inputs[name] = input;
+		return m_desc;
 	}
 
-	void RHIShader::AddOutput(const std::string& name, const RHIShaderVariable& output)
-	{
-		m_outputs[name] = output;
-	}
-
-	void RHIShader::AddBinding(const std::string& name, const RHIShaderBinding& binding)
+	void RHIShader::AddInput(const std::string& name, const RHIShaderAttrib& input)
 	{
 		if (name.empty())
 		{
 			return;
 		}
 
-		m_bindings[name] = binding;
+		m_inputs[name] = input;
 	}
 
-	const RHIShaderVariable& RHIShader::GetInput(const std::string& name) const
+	void RHIShader::AddOutput(const std::string& name, const RHIShaderAttrib& output)
 	{
-		auto itr = m_inputs.Find(name);
-		if (itr != m_inputs.End())
+		if (name.empty())
 		{
-			return itr->second;
+			return;
 		}
-		else
-		{
-			static const RHIShaderVariable emptyInput = {};
-			return emptyInput;
-		}
+
+		m_outputs[name] = output;
 	}
 
-	const RHIShaderVariable& RHIShader::GetOutput(const std::string& name) const
+	void RHIShader::AddConst(const std::string& name, const RHIShaderConst& constant)
 	{
-		auto itr = m_outputs.Find(name);
-		if (itr != m_outputs.End())
+		if (name.empty())
 		{
-			return itr->second;
+			return;
 		}
-		else
-		{
-			static const RHIShaderVariable emptyOutput = {};
-			return emptyOutput;
-		}
+
+		m_consts[name] = constant;
 	}
 
-	const RHIShaderBinding& RHIShader::GetBinding(const std::string& name) const
+	void RHIShader::AddBuffer(const std::string& name, const RHIShaderBuffer& buffer)
 	{
-		auto itr = m_bindings.Find(name);
-		if (itr != m_bindings.End())
+		if (name.empty())
 		{
-			return itr->second;
+			return;
 		}
-		else
-		{
-			static const RHIShaderBinding emptyBinding = {};
-			return emptyBinding;
-		}
+
+		m_buffers[name] = buffer;
 	}
 
-	const RHIShaderVariables& RHIShader::GetInputs() const
+	void RHIShader::AddSampler(const std::string& name, const RHIShaderSampler& sampler)
+	{
+		if (name.empty())
+		{
+			return;
+		}
+
+		m_samplers[name] = sampler;
+	}
+
+	const RHIShaderAttribs& RHIShader::GetInputs() const
 	{
 		return m_inputs;
 	}
 
-	const RHIShaderVariables& RHIShader::GetOutputs() const
+	const RHIShaderAttribs& RHIShader::GetOutputs() const
 	{
 		return m_outputs;
 	}
 
-	const RHIShaderBindings& RHIShader::GetBindings() const
+	const RHIShaderConsts& RHIShader::GetConsts() const
 	{
-		return m_bindings;
+		return m_consts;
 	}
+
+	const RHIShaderBuffers& RHIShader::GetBuffers() const
+	{
+		return m_buffers;
+	}
+
+	const RHIShaderSamplers& RHIShader::GetSamplers() const
+	{
+		return m_samplers;
+	}
+
+	namespace
+	{
+		template<typename Map>
+		const typename Map::MappedType& FindOrEmpty(const Map& map, const typename Map::KeyType& key)
+		{
+			auto itr = map.Find(key);
+			if (itr != map.End())
+			{
+				return itr->second;
+			}
+			else
+			{
+				static const typename Map::MappedType empty = {};
+				return empty;
+			}
+		}
+	};
 
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
 		: m_desc(desc)
-		, m_bindings()
+		, m_inputs()
+		, m_outputs()
+		, m_consts()
+		, m_buffers()
+		, m_samplers()
 	{}
 
 	RHIColorState RHIPipeLine::GetColorState() const
@@ -504,89 +535,290 @@ namespace wtr
 		m_desc = desc;
 	}
 
-	void RHIPipeLine::AddBinding(const std::string& name, const RHIShaderBinding& binding)
+	void RHIPipeLine::AddShader(const RHIShader& shader)
+	{
+		const eShaderType shaderType = shader.GetShaderType();
+
+		// 정점 입력은 정점 셰이더의 입력만, 어태치먼트 출력은 픽셀 셰이더의 출력만 본다 (나머지는 단계 사이 varying)
+		if (shaderType == eShaderType::eVertex)
+		{
+			for (const auto& [name, input] : shader.GetInputs())
+			{
+				// gl_VertexID 같은 내장 변수는 VertexKey가 없음
+				const VertexKey key = RenderUtils::GetVertexKey(name);
+				if (key.semantic == eVertexSemantic::eNone)
+				{
+					continue;
+				}
+
+				AddInput(key, input);
+			}
+		}
+		else if (shaderType == eShaderType::ePixel)
+		{
+			for (const auto& [name, output] : shader.GetOutputs())
+			{
+				AddOutput(name, output);
+			}
+		}
+
+		for (const auto& [name, constant] : shader.GetConsts())
+		{
+			AddConst(name, constant);
+		}
+
+		for (const auto& [name, buffer] : shader.GetBuffers())
+		{
+			AddBuffer(name, buffer);
+		}
+
+		for (const auto& [name, sampler] : shader.GetSamplers())
+		{
+			AddSampler(name, sampler);
+		}
+	}
+
+	void RHIPipeLine::AddInput(const VertexKey& key, const RHIShaderAttrib& input)
+	{
+		auto itr = m_inputs.Find(key);
+		if (itr != m_inputs.End() && itr->second.location != input.location)
+		{
+			LOGWARN() << "[RHI] Input location mismatch — existing : " << itr->second.location << ", new : " << input.location;
+			return;
+		}
+
+		m_inputs[key] = input;
+	}
+
+	void RHIPipeLine::AddOutput(const std::string& name, const RHIShaderAttrib& output)
 	{
 		if (name.empty())
 		{
 			return;
 		}
 
-		auto itr = m_bindings.Find(name);
-		if (itr != m_bindings.End())
+		auto itr = m_outputs.Find(name);
+		if (itr != m_outputs.End() && itr->second.location != output.location)
 		{
-			const auto& existingBinding = itr->second;
-			if (existingBinding.binding != binding.binding)
-			{
-				LOGWARN() << "[RHI] Binding location mismatch for '" << name << "' — existing: " << existingBinding.binding << ", new: " << binding.binding;
-				return;
-			}
+			LOGWARN() << "[RHI] Output location mismatch for '" << name << "' — existing : " << itr->second.location << ", new : " << output.location;
+			return;
 		}
 
-		m_bindings[name] = binding;
+		m_outputs[name] = output;
 	}
 
-	bool RHIPipeLine::HasBinding(const std::string& name) const
+	void RHIPipeLine::AddConst(const std::string& name, const RHIShaderConst& constant)
 	{
-		const eResourceSlot slot = GetResourceSlot(name);
-		if (slot != eResourceSlot::eNone)
+		if (name.empty())
 		{
-			return HasBinding(slot);
-		}
-		
-		return false;
-	}
-
-	bool RHIPipeLine::HasBinding(const eResourceSlot slot) const
-	{
-		const std::string slotName = GetSlotName(slot);
-
-		return m_bindings.Find(slotName) != m_bindings.End();
-	}
-
-	size_t RHIPipeLine::GetBindingCount() const
-	{
-		return m_bindings.Size();
-	}
-
-	const RHIShaderBinding& RHIPipeLine::GetBinding(const std::string& name) const
-	{
-		const eResourceSlot slot = GetResourceSlot(name);
-		if (slot != eResourceSlot::eNone)
-		{
-			return GetBinding(slot);
+			return;
 		}
 
-		static const RHIShaderBinding emptyBinding = {};
-		return emptyBinding;
+		auto itr = m_consts.Find(name);
+		if (itr == m_consts.End())
+		{
+			m_consts[name] = constant;
+			return;
+		}
+
+		RHIShaderConst& existing = itr->second;
+		if (existing.location != constant.location || existing.offset != constant.offset)
+		{
+			LOGWARN() << "[RHI] Const location mismatch for '" << name << "' — existing : " << existing.location << ", new : " << constant.location;
+			return;
+		}
+
+		// 여러 셰이더 단계에서 같은 상수를 쓰면 stage만 합친다
+		existing.stage = existing.stage | constant.stage;
 	}
 
-	const RHIShaderBinding& RHIPipeLine::GetBinding(const eResourceSlot slot) const
+	void RHIPipeLine::AddBuffer(const std::string& name, const RHIShaderBuffer& buffer)
 	{
-		const std::string slotName = GetSlotName(slot);
+		if (name.empty())
+		{
+			return;
+		}
 
-		auto itr = m_bindings.Find(slotName);
-		if (itr != m_bindings.End())
+		auto itr = m_buffers.Find(name);
+		if (itr == m_buffers.End())
 		{
-			return itr->second;
+			m_buffers[name] = buffer;
+			return;
 		}
-		else
+
+		RHIShaderBuffer& existing = itr->second;
+		if (existing.binding != buffer.binding || existing.usage != buffer.usage)
 		{
-			static const RHIShaderBinding emptyBinding = {};
-			return emptyBinding;
+			LOGWARN() << "[RHI] Buffer binding mismatch for '" << name << "' — existing : " << existing.binding << ", new : " << buffer.binding;
+			return;
 		}
+
+		// 여러 셰이더 단계에서 같은 버퍼를 쓰면 state / stage를 합친다
+		existing.Merge(buffer);
 	}
 
-	RHIRenderTarget::RHIRenderTarget(const RHIRenderTargetDesc& desc)
+	void RHIPipeLine::AddSampler(const std::string& name, const RHIShaderSampler& sampler)
+	{
+		if (name.empty())
+		{
+			return;
+		}
+
+		auto itr = m_samplers.Find(name);
+		if (itr == m_samplers.End())
+		{
+			m_samplers[name] = sampler;
+			return;
+		}
+
+		RHIShaderSampler& existing = itr->second;
+		if (existing.binding != sampler.binding || existing.usage != sampler.usage)
+		{
+			LOGWARN() << "[RHI] Sampler binding mismatch for '" << name << "' — existing : " << existing.binding << ", new : " << sampler.binding;
+			return;
+		}
+
+		// 여러 셰이더 단계에서 같은 텍스처를 쓰면 state / stage를 합친다
+		existing.Merge(sampler);
+	}
+
+	bool RHIPipeLine::HasInput(const VertexKey& key) const
+	{
+		return m_inputs.Find(key) != m_inputs.End();
+	}
+
+	bool RHIPipeLine::HasOutput(const std::string& name) const
+	{
+		return m_outputs.Find(name) != m_outputs.End();
+	}
+
+	bool RHIPipeLine::HasConst(const std::string& name) const
+	{
+		return m_consts.Find(name) != m_consts.End();
+	}
+
+	bool RHIPipeLine::HasConst(const eResourceSlot slot) const
+	{
+		return HasConst(RenderUtils::GetSlotName(slot));
+	}
+
+	bool RHIPipeLine::HasBuffer(const std::string& name) const
+	{
+		return m_buffers.Find(name) != m_buffers.End();
+	}
+
+	bool RHIPipeLine::HasBuffer(const eResourceSlot slot) const
+	{
+		return HasBuffer(RenderUtils::GetSlotName(slot));
+	}
+
+	bool RHIPipeLine::HasSampler(const std::string& name) const
+	{
+		return m_samplers.Find(name) != m_samplers.End();
+	}
+
+	bool RHIPipeLine::HasSampler(const eResourceSlot slot) const
+	{
+		return HasSampler(RenderUtils::GetSlotName(slot));
+	}
+
+	const RHIShaderAttrib& RHIPipeLine::GetInput(const VertexKey& key) const
+	{
+		return FindOrEmpty(m_inputs, key);
+	}
+
+	const RHIShaderAttrib& RHIPipeLine::GetOutput(const std::string& name) const
+	{
+		return FindOrEmpty(m_outputs, name);
+	}
+
+	const RHIShaderConst& RHIPipeLine::GetConst(const std::string& name) const
+	{
+		return FindOrEmpty(m_consts, name);
+	}
+
+	const RHIShaderConst& RHIPipeLine::GetConst(const eResourceSlot slot) const
+	{
+		return GetConst(RenderUtils::GetSlotName(slot));
+	}
+
+	const RHIShaderBuffer& RHIPipeLine::GetBuffer(const std::string& name) const
+	{
+		return FindOrEmpty(m_buffers, name);
+	}
+
+	const RHIShaderBuffer& RHIPipeLine::GetBuffer(const eResourceSlot slot) const
+	{
+		return GetBuffer(RenderUtils::GetSlotName(slot));
+	}
+
+	const RHIShaderSampler& RHIPipeLine::GetSampler(const std::string& name) const
+	{
+		return FindOrEmpty(m_samplers, name);
+	}
+
+	const RHIShaderSampler& RHIPipeLine::GetSampler(const eResourceSlot slot) const
+	{
+		return GetSampler(RenderUtils::GetSlotName(slot));
+	}
+
+	const RHIShaderInputs& RHIPipeLine::GetInputs() const
+	{
+		return m_inputs;
+	}
+
+	const RHIShaderAttribs& RHIPipeLine::GetOutputs() const
+	{
+		return m_outputs;
+	}
+
+	const RHIShaderConsts& RHIPipeLine::GetConsts() const
+	{
+		return m_consts;
+	}
+
+	const RHIShaderBuffers& RHIPipeLine::GetBuffers() const
+	{
+		return m_buffers;
+	}
+
+	const RHIShaderSamplers& RHIPipeLine::GetSamplers() const
+	{
+		return m_samplers;
+	}
+
+	RHIBufferState RHIPipeLine::GetInputState(const VertexKey& key) const
+	{
+		if (!HasInput(key))
+		{
+			return {};
+		}
+
+		return RHIBufferState(eDataState::eRead, eDataStage::eVertexInput, eBufferUsage::eVertex);
+	}
+
+	RHIBufferState RHIPipeLine::GetIndexState() const
+	{
+		// 컴퓨트 파이프라인은 인덱스 버퍼를 쓰지 않음
+		if (!m_desc.vertexShader)
+		{
+			return {};
+		}
+
+		return RHIBufferState(eDataState::eRead, eDataStage::eVertexInput, eBufferUsage::eIndex);
+	}
+
+	RHIRenderPass::RHIRenderPass(const RHIRenderPassDesc& desc)
 		: m_desc(desc)
 	{
 	}
 
-	const RHIRenderTargetDesc& RHIRenderTarget::GetDesc() const
+	const RHIRenderPassDesc& RHIRenderPass::GetDesc() const
 	{
 		return m_desc;
 	}
 
-	bool RHIRenderTarget::HasColorAttach(const uint32_t slot) const
+	bool RHIRenderPass::HasColorAttach(const uint32_t slot) const
 	{
 		for (const auto& color : m_desc.colors)
 		{
@@ -599,7 +831,7 @@ namespace wtr
 		return false;
 	}
 
-	bool RHIRenderTarget::HasDepthStencilAttach() const
+	bool RHIRenderPass::HasDepthStencilAttach() const
 	{
 		if (m_desc.depthStencil.texture)
 		{
@@ -611,7 +843,7 @@ namespace wtr
 		}
 	}
 
-	size_t RHIRenderTarget::GetColorAttachCount() const
+	size_t RHIRenderPass::GetColorAttachCount() const
 	{
 		return m_desc.colors.Size();
 	}

@@ -13,7 +13,7 @@ namespace wtr
 	class RHITaskExecutor : public RHIExecutor
 	{
 	public :
-		RHITaskExecutor(Memory::RefPtr<RHISystem> system);
+		RHITaskExecutor();
 		virtual ~RHITaskExecutor();
 
 	public :

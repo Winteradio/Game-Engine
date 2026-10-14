@@ -9,7 +9,6 @@
 namespace wtr
 {
 	class VulkanDevice;
-	class VulkanSystem;
 };
 
 namespace wtr
@@ -22,7 +21,7 @@ namespace wtr
 
 	public :
 		bool InitSurface(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device);
-		bool InitSwapChain(void* nativeHandle, VulkanSystem& system,Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChain(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device);
 		void Release(Memory::RefPtr<const VulkanDevice> device);
 
 		VkSurfaceKHR	GetSurface() const;
@@ -33,8 +32,8 @@ namespace wtr
 		Memory::RefPtr<const VulkanRenderTarget> GetSwapChainRenderTarget(const size_t index) const;
 
 	private :
-		bool InitSwapChainImages(VulkanSystem& system,Memory::RefPtr<const VulkanDevice> device);
-		bool InitSwapChainRenderTargets(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChainImages(Memory::RefPtr<const VulkanDevice> device);
+		bool InitSwapChainRenderTargets(Memory::RefPtr<const VulkanDevice> device);
 
 		VkSurfaceFormatKHR	ChooseSurfaceFormat(const DynamicArray<VkSurfaceFormatKHR>& formats);
 		VkPresentModeKHR	ChoosePresentMode(const DynamicArray<VkPresentModeKHR>& modes);

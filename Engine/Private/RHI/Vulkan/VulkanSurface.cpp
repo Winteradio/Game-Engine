@@ -9,7 +9,8 @@
 #endif
 
 #include <RHI/Vulkan/VulkanDevice.h>
-#include <RHI/Vulkan/VulkanSystem.h>
+#include <RHI/RHISystem.h>
+#include <RHI/Vulkan/VulkanContext.h>
 
 #include <Memory/include/Core.h>
 #include <Log/include/Log.h>
@@ -59,7 +60,7 @@ namespace wtr
 #endif
 	}
 
-	bool VulkanSurface::InitSwapChain(void* nativeHandle, VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
+	bool VulkanSurface::InitSwapChain(void* nativeHandle, Memory::RefPtr<const VulkanDevice> device)
 	{
 		if (nativeHandle == nullptr)
 		{ 
@@ -143,13 +144,13 @@ namespace wtr
 		m_swapChainFormat = surfaceFormat.format;
 		m_swapChainExtent = extent;
 
-		if (!InitSwapChainImages(system, device))
+		if (!InitSwapChainImages(device))
 		{
 			LOGERROR() << "[Vk][Surface] Failed to initialize the images for the swap chain";
 			return false;
 		}
 
-		if (!InitSwapChainRenderTargets(system, device))
+		if (!InitSwapChainRenderTargets(device))
 		{
 			LOGERROR() << "[Vk][Surface] Failed to initialize the render targets for the swap chain";
 			return false;
@@ -158,8 +159,16 @@ namespace wtr
 		return true;
 	}
 
-	bool VulkanSurface::InitSwapChainImages(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
+	bool VulkanSurface::InitSwapChainImages(Memory::RefPtr<const VulkanDevice> device)
 	{
+		// 스왑체인 리소스는 RHISystem이 들고 있는 컨텍스트로 만든다 (Vulkan 전용 함수를 쓰므로 VulkanContext로 캐스팅)
+		Memory::RefPtr<VulkanContext> context = Memory::Cast<VulkanContext>(RHISystem::GetContext());
+		if (!context)
+		{
+			LOGERROR() << "[Vk] Failed to init the swap chain images, the vulkan context of the RHISystem is invalid";
+			return false;
+		}
+
 		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
 			LOGERROR() << "[Vk][Surface] The vulkan device is invalid, failed to initialize the swap chain's image";
@@ -195,7 +204,7 @@ namespace wtr
 		colorDesc.face = 1;
 		colorDesc.mipLevels = 1;
 		colorDesc.sampleCount = 1;
-		colorDesc.format = system.GetPixelFormat(m_swapChainFormat);
+		colorDesc.format = context->GetPixelFormat(m_swapChainFormat);
 		colorDesc.usage = eTextureUsage::eRenderTarget;
 		colorDesc.textureDimension = eTextureDimension::eTexture2D;
 		colorDesc.dataType = eDataType::eUByte;
@@ -211,7 +220,7 @@ namespace wtr
 				return false;
 			}
 
-			Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(system.CreateTexture(colorDesc));
+			Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(context->CreateTexture(colorDesc));
 			if (!texture)
 			{
 				LOGERROR() << "[Vk] Failed to create the texture for the swap chain's image";
@@ -220,7 +229,7 @@ namespace wtr
 
 			texture->SetImage(image);
 
-			system.InitializeTextureSwapChain(colorDesc, texture);
+			context->InitializeTextureSwapChain(colorDesc, texture);
 			if (texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE || texture->GetState() != eResourceState::eReady)
 			{
 				LOGERROR() << "[Vk] The texture's image or image view is invalid, failed to initialize the swap chain's image";
@@ -244,14 +253,14 @@ namespace wtr
 		depthStencilDesc.generateMips = false;
 		depthStencilDesc.compressed = false;
 
-		Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(system.CreateTexture(depthStencilDesc));
+		Memory::RefPtr<VulkanTexture> texture = Memory::Cast<VulkanTexture>(context->CreateTexture(depthStencilDesc));
 		if (!texture)
 		{
 			LOGERROR() << "[Vk] Failed to create the depth stencil texture for the swap chain";
 			return false;
 		}
 
-		system.InitializeTexture(depthStencilDesc, texture);
+		context->InitializeTexture(depthStencilDesc, texture);
 		if (texture->GetImage() == VK_NULL_HANDLE || texture->GetImageView() == VK_NULL_HANDLE || texture->GetState() != eResourceState::eReady)
 		{
 			LOGERROR() << "[Vk] The depth stencil texture's image or image view is invalid, failed to initialize the swap chain's depth stencil texture";
@@ -265,8 +274,16 @@ namespace wtr
 		return true;
 	}
 
-	bool VulkanSurface::InitSwapChainRenderTargets(VulkanSystem& system, Memory::RefPtr<const VulkanDevice> device)
+	bool VulkanSurface::InitSwapChainRenderTargets(Memory::RefPtr<const VulkanDevice> device)
 	{
+		// 스왑체인 리소스는 RHISystem이 들고 있는 컨텍스트로 만든다 (Vulkan 전용 함수를 쓰므로 VulkanContext로 캐스팅)
+		Memory::RefPtr<VulkanContext> context = Memory::Cast<VulkanContext>(RHISystem::GetContext());
+		if (!context)
+		{
+			LOGERROR() << "[Vk] Failed to init the swap chain render targets, the vulkan context of the RHISystem is invalid";
+			return false;
+		}
+
 		if (!device || device->GetLogicalDevice() == VK_NULL_HANDLE)
 		{
 			LOGERROR() << "[Vk][Surface] The vulkan device is invalid, failed to initialize the swap chain's render targets";
@@ -292,14 +309,14 @@ namespace wtr
 			targetDesc.depthStencil.texture = m_depthStencilTexture;
 			targetDesc.depthStencil.type = eAttachment::eDepthStencil;
 
-			Memory::RefPtr<VulkanRenderTarget> renderTarget = Memory::Cast<VulkanRenderTarget>(system.CreateRenderTarget(targetDesc));
+			Memory::RefPtr<VulkanRenderTarget> renderTarget = Memory::Cast<VulkanRenderTarget>(context->CreateRenderTarget(targetDesc));
 			if (!renderTarget)
 			{
 				LOGERROR() << "[Vk][Surface] Failed to create the render target for the swap chain";
 				return false;
 			}
 
-			system.InitializeRenderTarget(targetDesc, renderTarget);
+			context->InitializeRenderTarget(targetDesc, renderTarget);
 			if (renderTarget->GetRenderTarget() == VK_NULL_HANDLE || renderTarget->GetState() != eResourceState::eReady)
 			{
 				LOGERROR() << "[Vk][Surface] The render target is not ready, failed to initialize the swap chain's render targets";

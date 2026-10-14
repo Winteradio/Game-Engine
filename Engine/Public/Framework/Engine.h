@@ -13,7 +13,6 @@ namespace wtr
 	
 	class Renderer;
 
-	class RHISystem;
 	class RHIExecutor;
 
 	class Worker;
@@ -61,7 +60,6 @@ namespace wtr
 
 			Memory::RefPtr<Renderer>		m_renderer;
 
-			Memory::RefPtr<RHISystem>		m_rhiSystem;
 			Memory::RefPtr<RHIExecutor>		m_rhiFrameExecutor;
 			Memory::RefPtr<RHIExecutor>		m_rhiTaskExecutor;
 

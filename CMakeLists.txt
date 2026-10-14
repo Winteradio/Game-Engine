@@ -52,8 +52,6 @@ if (NOT Vulkan_FOUND)
 	message(FATAL_ERROR "Not Found the Vulkan SD")
 endif()
 
-find_program(GLSLC glslc HINTS $ENV{VULKAN_SDK}/bin)
-
 # ------ Set the properties the executable program ------ #
 set(MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
@@ -227,6 +225,10 @@ set(ENGINE_RHI_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/RHI/RHIResources.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHIStates.h
 	${ENGINE_PUBLIC_DIR}/RHI/RHISystem.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIContext.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIRingBuffer.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIPendingPool.h
+	${ENGINE_PUBLIC_DIR}/RHI/RHIConstantPool.h
 )
 
 set(ENGINE_RHI_PRIVATE_FILES
@@ -244,23 +246,25 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHITaskExecutor.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.cpp
-	${ENGINE_PRIVATE_DIR}/RHI/RHIStateTracker.h
-	${ENGINE_PRIVATE_DIR}/RHI/RHIStateTracker.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIContext.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIRingBuffer.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIPendingPool.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIConstantPool.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/RHIWorker.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHIWorker.cpp
 
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.h
-	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLSystem.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLContext.h
+	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLContext.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/GLResources.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.h
 	${ENGINE_PRIVATE_DIR}/RHI/OpenGL/WGL/WGLContext.cpp
 
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSystem.h
-	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanSystem.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanContext.h
+	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanContext.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanResources.h
 	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanResources.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/Vulkan/VulkanDevice.h

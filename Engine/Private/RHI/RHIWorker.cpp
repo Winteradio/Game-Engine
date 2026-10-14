@@ -7,8 +7,7 @@
 namespace wtr
 {
 	RHIWorker::RHIWorker()
-		: m_refSystem(nullptr)
-		, m_refFrameExecutor(nullptr)
+		: m_refFrameExecutor(nullptr)
 		, m_refTaskExecutor(nullptr)
 		, m_refConsumer(nullptr)
 	{
@@ -16,14 +15,6 @@ namespace wtr
 
 	RHIWorker::~RHIWorker()
 	{
-	}
-
-	void RHIWorker::SetSystem(const Memory::RefPtr<RHISystem> rhiSystem)
-	{
-		if (rhiSystem)
-		{
-			m_refSystem = rhiSystem;
-		}
 	}
 
 	void RHIWorker::SetFrameExecutor(const Memory::RefPtr<RHIExecutor> executor)
@@ -52,9 +43,9 @@ namespace wtr
 
 	bool RHIWorker::onStart()
 	{
-		if (m_refSystem)
+		if (RHISystem::IsValid())
 		{
-			m_refSystem->BeginContext();
+			RHISystem::BeginContext();
 
 			return true;
 		}
@@ -81,18 +72,12 @@ namespace wtr
 			m_refFrameExecutor->Execute();
 		}
 
-		if (m_refSystem)
-		{
-			m_refSystem->FlushPending();
-		}
+		RHISystem::FlushPending();
 	}
 
 	void RHIWorker::onDestroy()
 	{
-		if (m_refSystem)
-		{
-			m_refSystem->EndContext();
-		}
+		RHISystem::EndContext();
 	}
 
 	void RHIWorker::onNotify()

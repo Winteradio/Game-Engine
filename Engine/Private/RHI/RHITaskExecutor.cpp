@@ -10,8 +10,8 @@
 
 namespace wtr
 {
-	RHITaskExecutor::RHITaskExecutor(Memory::RefPtr<RHISystem> system)
-		: RHIExecutor(system)
+	RHITaskExecutor::RHITaskExecutor()
+		: RHIExecutor()
 		, m_listMutex()
 		, m_freeMutex()
 		, m_listPool()
@@ -41,7 +41,7 @@ namespace wtr
 		}
 		else
 		{
-			cmdList = Memory::MakeRef<RHICommandList>(m_system);
+			cmdList = Memory::MakeRef<RHICommandList>();
 		}
 
 		return cmdList;
@@ -56,7 +56,7 @@ namespace wtr
 
 	void RHITaskExecutor::Execute()
 	{
-		if (!m_system)
+		if (!RHISystem::IsValid())
 		{
 			return;
 		}
@@ -72,7 +72,7 @@ namespace wtr
 			std::swap(m_listPool, listPool);
 		}
 
-		m_system->BeginFrame();
+		RHISystem::BeginFrame();
 
 		while (!listPool.Empty())
 		{
@@ -86,7 +86,7 @@ namespace wtr
 			}
 		}
 
-		m_system->EndFrame();
+		RHISystem::EndFrame();
 
 		{
 			std::lock_guard<std::mutex> lock(m_freeMutex);
