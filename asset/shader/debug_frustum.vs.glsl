@@ -1,24 +1,14 @@
-#version 450 core
+#version 460 core
+
+#include "Common.glsl"
+
+DECLARE_CAMERA
+DECLARE_LIGHT_PASS
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 
-uniform mat4 uLightView;
-uniform mat4 uLightProj;
-
-layout(std140, binding = 0) uniform uCamera
-{
-	mat4 view;
-	mat4 proj;
-
-	mat4 invView;
-	mat4 invProj;
-
-	vec3 camPosition;
-	vec3 camDirection;
-} camera;
-
-out vec3 outNormal;
+layout(location = 0) out vec3 outNormal;
 
 void main()
 {

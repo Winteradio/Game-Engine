@@ -1,10 +1,9 @@
-#version 450 core
+#version 460 core
 
 layout(location = 0) in vec2 position;
-layout(location = 5) in vec2 texcoord;
+layout(location = 6) in vec2 texcoord;
 
-out vec2 outTexCoord;
-out vec2 outLightPos;
+layout(location = 1) out vec2 outTexCoord;
 
 void main()
 {

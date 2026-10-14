@@ -1,34 +1,23 @@
-#version 450 core
+#version 460 core
+
+#include "Common.glsl"
+
+DECLARE_CAMERA
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 
-layout(std140, binding = 0) uniform uCamera
-{
-	mat4 view;
-	mat4 proj;
+DECLARE_TRANSFORM
 
-	mat4 invView;
-	mat4 invProj;
-
-	vec3 camPosition;
-	vec3 camDirection;
-} camera;
-
-layout(std430, binding = 1) readonly buffer uTransform
-{
-	mat4 datas[];
-} transform;
-
-out vec3 outNormal;
+layout(location = 0) out vec3 outNormal;
 
 void main()
 {
-	mat4 transform = transform.datas[max(gl_InstanceID, 0)];
+	mat4 model = transform.datas[RHI_InstanceIndex];
 
-	gl_Position = camera.proj * camera.view * transform * vec4(position, 1.0);
+	gl_Position = camera.proj * camera.view * model * vec4(position, 1.0);
 
-	mat3 affin = mat3(transform);
+	mat3 affin = mat3(model);
 	float affinDet = determinant(affin);
 	float valid = step(1e-6, abs(affinDet));
 

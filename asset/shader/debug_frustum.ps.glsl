@@ -1,10 +1,10 @@
-#version 450 core
+#version 460 core
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
-in vec3 outNormal;
+layout(location = 0) in vec3 outNormal;
 
 void main()
 {
-    FragColor = vec4(outNormal, 0.1);
+	FragColor = vec4(outNormal, 0.1);
 }

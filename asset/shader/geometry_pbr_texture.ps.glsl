@@ -1,22 +1,17 @@
-#version 450 core
+#version 460 core
+
+#include "Common.glsl"
 
 layout(location = 0) out vec4 tGNormal;
 layout(location = 1) out vec4 tGAlbedo;
 layout(location = 2) out vec4 tGParam;
 
-layout(binding = 0) uniform sampler2D tDiffuse;
+layout(binding = BINDING_DIFFUSE) uniform sampler2D tDiffuse;
 
-layout(std430, binding = 3) readonly buffer uMaterial
-{
-	vec3 baseColor;
-	float roughness;
-	float metallic;
-	float ambientOcclusion;
-	float opacity;
-} material;
+DECLARE_MATERIAL_PBR
 
-in vec2 outTexCoord;
-in vec3 outNormal;
+layout(location = 0) in vec3 outNormal;
+layout(location = 1) in vec2 outTexCoord;
 
 void main()
 {

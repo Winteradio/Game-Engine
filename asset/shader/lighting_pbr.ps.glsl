@@ -1,3 +1,21 @@
+#version 460 core
+
+#include "Common.glsl"
+
+DECLARE_CAMERA
+// 작성 중인 PBR 라이팅 : 리소스는 lighting_directional과 같은 규칙으로 선언, 최종 출력 합성은 TODO
+
+layout(location = 0) out vec4 FragColor;
+
+layout(binding = BINDING_G_DEPTH) uniform sampler2D tGDepth;
+layout(binding = BINDING_G_NORMAL) uniform sampler2D tGNormal;
+layout(binding = BINDING_G_ALBEDO) uniform sampler2D tGAlbedo;
+layout(binding = BINDING_G_PARAM) uniform sampler2D tGParam;
+
+DECLARE_LIGHT_DIRECTIONAL
+
+layout(location = 1) in vec2 outTexCoord;
+
 const float PI = 3.14159265359;
 
 float D_GGX(float NdotH, float roughness)
@@ -74,4 +92,7 @@ void main()
     vec3 lightColor = light.color * light.intensity;
     vec3 Lo         = (diffuse + specular) * lightColor * NdotL;
     vec3 ambient    = albedo * 0.03 * ambientOcclusion;
+
+    // TODO : 원본에 출력이 없음. 합성 방식이 정해지면 교체
+    FragColor = vec4(Lo + ambient, 1.0);
 }

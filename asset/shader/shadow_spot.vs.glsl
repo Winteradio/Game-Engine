@@ -1,17 +1,15 @@
-#version 450 core
+#version 460 core
+
+#include "Common.glsl"
+
+DECLARE_LIGHT_PASS
 
 layout(location = 0) in vec3 position;
 
-layout(std430, binding = 0) readonly buffer uTransform
-{
-	mat4 datas[];
-} transform;
-
-uniform mat4 uLightView;
-uniform mat4 uLightProj;
+DECLARE_TRANSFORM
 
 void main()
 {
-    mat4 transform = transform.datas[max(gl_InstanceID, 0)];
-    gl_Position = uLightProj * uLightView * transform * vec4(position, 1.0);
+	mat4 model = transform.datas[RHI_InstanceIndex];
+	gl_Position = uLightProj * uLightView * model * vec4(position, 1.0);
 }

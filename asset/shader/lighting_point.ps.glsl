@@ -1,31 +1,19 @@
-#version 450 core
+#version 460 core
 
-out vec4 FragColor;
+#include "Common.glsl"
 
-layout(binding = 0) uniform sampler2D tGDepth;
-layout(binding = 1) uniform sampler2D tGNormal;
-layout(binding = 2) uniform sampler2D tGAlbedo;
-layout(binding = 3) uniform usampler2D tGPhong;
+DECLARE_CAMERA
 
-layout(std430, binding = 0) readonly buffer uLight
-{
-	vec3 color;
-	vec3 position;
-	float intensity;
-    float range;
-} light;
+layout(location = 0) out vec4 FragColor;
 
-layout(std140, binding = 1) uniform uCamera
-{
-	mat4 view;
-	mat4 proj;
-	mat4 invView;
-	mat4 invProj;
-	vec3 position;
-	vec3 direction;
-} camera;
+layout(binding = BINDING_G_DEPTH) uniform sampler2D tGDepth;
+layout(binding = BINDING_G_NORMAL) uniform sampler2D tGNormal;
+layout(binding = BINDING_G_ALBEDO) uniform sampler2D tGAlbedo;
+layout(binding = BINDING_G_PHONG) uniform usampler2D tGPhong;
 
-in vec2 outTexCoord;
+DECLARE_LIGHT_POINT
+
+layout(location = 1) in vec2 outTexCoord;
 
 const float PI = 3.14159265359;
 

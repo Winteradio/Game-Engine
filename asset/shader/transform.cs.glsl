@@ -1,4 +1,6 @@
-#version 450 core
+#version 460 core
+
+#include "Common.glsl"
 
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
@@ -9,17 +11,15 @@ struct RawTransform
 	vec3 scale;
 };
 
-layout(std430, binding = 0) readonly buffer uRawTransform
+layout(std430, binding = BINDING_RAW_TRANSFORM) readonly buffer uRawTransform
 {
 	RawTransform datas[];
 } rawTransform;
 
-layout(std430, binding = 1) buffer uTransform
+layout(std430, binding = BINDING_TRANSFORM) buffer uTransform
 {
 	mat4 datas[];
 } transform;
-
-uniform uint uInstanceCount;
 
 mat4 GetTransform(RawTransform rawTransform)
 {
@@ -59,12 +59,14 @@ mat4 GetTransform(RawTransform rawTransform)
 
 void main()
 {
+	// rawTransform 버퍼 크기가 곧 인스턴스 수 (MeshBatch가 인스턴스 수만큼만 할당함)
+	uint uInstanceCount = uint(rawTransform.datas.length());
+
 	uint uThread = gl_GlobalInvocationID.x;
 	if (uThread >= uInstanceCount)
 	{
 		return;
 	}
 
-	RawTransform rawTransform = rawTransform.datas[uThread];
-	transform.datas[uThread] = GetTransform(rawTransform);
+	transform.datas[uThread] = GetTransform(rawTransform.datas[uThread]);
 }
