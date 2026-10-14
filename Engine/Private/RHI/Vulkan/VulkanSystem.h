@@ -96,7 +96,7 @@ namespace wtr
 		void DispatchCompute(const RHIDispatchDesc info) override;
 		void DrawIndexPrimitive(const RHIDrawIndexDesc info) override;
 
-	public :
+	private:
 		bool AllocateBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
 		bool AllocateTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
 
@@ -107,11 +107,17 @@ namespace wtr
 		void ReleaseStaging(Memory::RefPtr<RHIBuffer> staging);
 
 		void CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHIBuffer> dest, const RHIBufferCreateDesc destInfo);
-		void CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHITextureCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo);
+		void CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo);
 
-		VkBufferUsageFlags GetBufferUsage(const eBufferType bufferType) const;
-		VkBufferUsageFlags GetBufferUsage(const eBufferTransfer bufferTransfer) const;
-		VkMemoryPropertyFlags GetMemoryProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const;
+		void SetBarrier(Memory::RefPtr<const RHIBuffer> buffer, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage);
+		void SetBarrier(Memory::RefPtr<const RHITexture> texture, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage, const VkImageLayout newLayout);
+
+		VkAccessFlags GetAccessFlags(const eBindingType type, const eBindingUsage usage) const;
+		VkPipelineStageFlags GetStageFlags(const eBindingType type, const eBindingUsage usage) const;
+
+		VkBufferUsageFlags GetBufferUsage(const eBufferUsage usage) const;
+		VkMemoryPropertyFlags GetMemoryProperty(const eDataAccess access, const eBufferUsage usage) const;
+		VkMemoryPropertyFlags GetMemoryProperty(const eDataAccess access, const eTextureUsage usage) const;
 
 		VkFormat GetDataFormat(const eDataType data) const;
 
@@ -122,9 +128,9 @@ namespace wtr
 		VkImageAspectFlags GetImageAspect(const ePixelFormat pixel) const;
 		VkImageAspectFlags GetImageAspect(const eAttachment attach) const;
 		VkImageUsageFlags GetImageUsage(const eTextureUsage usage, const bool mipmaps) const;
-		VkImageCreateFlags GetImageCreate(const eTextureType type) const;
-		VkImageViewType GetImageViewType(const eTextureType type) const;
-		VkImageType GetImageType(const eTextureType type) const;
+		VkImageCreateFlags GetImageCreate(const eTextureDimension type) const;
+		VkImageViewType GetImageViewType(const eTextureDimension type) const;
+		VkImageType GetImageType(const eTextureDimension type) const;
 		VkFormat GetImageFormat(const ePixelFormat pixel) const;
 
 		VkSampleCountFlags GetSampleCount(const uint32_t count) const;
@@ -161,6 +167,8 @@ namespace wtr
 		Memory::RefPtr<VulkanSurface> m_surface;
 		Memory::RefPtr<VulkanMemory> m_memory;
 		Memory::RefPtr<VulkanCommand> m_primary;
+
+		Memory::RefPtr<const VulkanPipeLine> m_curPipeline;
 
 		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> m_staging;
 		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> m_releaseStaging;

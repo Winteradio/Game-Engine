@@ -22,10 +22,17 @@ namespace wtr
 		virtual ~VulkanMemoryResource();
 
 	public :
+		void SetAccessFlag(const VkAccessFlags accessFlags) const;
+		void SetStageFlag(const VkPipelineStageFlags pipelineStage) const;
 		void SetAllocation(const VulkanAllocation& allocation);
+
+		const VkAccessFlags GetAccessFlag() const;
+		const VkPipelineStageFlags GetStageFlag() const;
 		const VulkanAllocation& GetAllocation() const;
 
 	private :
+		mutable VkAccessFlags m_accessFlags;
+		mutable VkPipelineStageFlags m_pipelineStage;
 		VulkanAllocation m_allocation;
 	};
 
@@ -84,13 +91,16 @@ namespace wtr
 	public :
 		void SetImage(const VkImage image);
 		void SetImageView(const VkImageView imageView);
+		void SetImageLayout(const VkImageLayout imageLayout) const;
 
 		const VkImage     GetImage()     const;
 		const VkImageView GetImageView() const;
+		const VkImageLayout GetImageLayout() const;
 
 	private :
 		VkImage     m_image;
 		VkImageView m_imageView;
+		mutable VkImageLayout m_imageLayout;
 	};
 
 	class VulkanSampler : public RHISampler, public VulkanResource

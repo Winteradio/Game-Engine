@@ -429,17 +429,14 @@ namespace wtr
 			buffer->SetState(eResourceState::eError);
 		}
 		else
-		{
-			RHIBufferUpdateDesc updateInfo = info;
-			updateInfo.mapAccess = eMapAccess::eWrite;
-
-			UpdateBuffer(updateInfo, buffer);
+		{			
+			UpdateBuffer(info, buffer);
 
 			buffer->SetState(eResourceState::eReady);
 		}
 	}
 
-		void VulkanSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
+	void VulkanSystem::InitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
 		if (!texture)
 		{
@@ -667,9 +664,11 @@ namespace wtr
 		VkDevice logicalDevice = m_device->GetLogicalDevice();
 		const VulkanAllocation& allocation = rhiBuffer->GetAllocation();
 
-		const bool useMapBuffer = (info.mapAccess != eMapAccess::eNone) && ((allocation.memoryFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0);
+		const bool useMapBuffer = (allocation.memoryFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 		if (useMapBuffer)
 		{
+			SetBarrier(buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
 			const bool useFlush = ((allocation.memoryFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0);
 
 			uint8_t* mappedBuffer = nullptr;
@@ -758,6 +757,23 @@ namespace wtr
 			return;
 		}
 
+		VkDevice logicalDevice = m_device->GetLogicalDevice();
+		const VulkanAllocation& allocation = rhiTexture->GetAllocation();
+
+		const bool useMapBuffer = (allocation.memoryFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
+		if (useMapBuffer)
+		{
+			// TODO
+			LOGWARN() << "[Vk] The texture is using map buffer, but the implementation is not done yet";
+		}
+		else
+		{
+			const RHIBufferCreateDesc stagingInfo = GetStagingDesc(info);
+			Memory::RefPtr<RHIBuffer> stagingBuffer = AcquireStaging(stagingInfo);
+			CopyBuffer(stagingBuffer, stagingInfo, texture, info);
+			ReleaseStaging(stagingBuffer);
+		}
+
 		texture->SetDesc(info);
 	}
 
@@ -796,7 +812,6 @@ namespace wtr
 		}
 
 		RHIBufferUpdateDesc updateDesc = info;
-		updateDesc.mapAccess = eMapAccess::eWrite;
 
 		const bool neededResize = (updateDesc.size > rhiBuffer->GetSize()) || (updateDesc.size < (rhiBuffer->GetSize() / 4));
 		if (neededResize)
@@ -845,6 +860,78 @@ namespace wtr
 
 	void VulkanSystem::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
 	{
+		if (!m_device || !m_device->IsValid() || !m_memory)
+		{
+			LOGERROR() << "[Vk] Device or memory is not valid, failed to resize buffer";
+			return;
+		}
+
+		if (!texture || info.size == 0)
+		{
+			LOGERROR() << "[Vk] Texture is null or size is zero, failed to resize texture";
+			return;
+		}
+
+		VulkanTexture* rhiTexture = static_cast<VulkanTexture*>(texture->GetRawBuffer());
+		if (!rhiTexture)
+		{
+			LOGERROR() << "[Vk] VulkanTexture is null, failed to resize texture";
+			return;
+		}
+
+		if (rhiTexture->GetImage() == VK_NULL_HANDLE || rhiTexture->GetImageView() == VK_NULL_HANDLE)
+		{
+			LOGERROR() << "[Vk] VulkanTexture is not created, failed to resize texture";
+			return;
+		}
+
+		const bool neededResize = (info.width != rhiTexture->GetWidth()) || (info.height != rhiTexture->GetHeight()) || (info.depth != rhiTexture->GetDepth());
+		if (neededResize)
+		{
+			Memory::RefPtr<RHITexture> newTexture = CreateTexture(info);
+			VulkanTexture* rhiNewTexture = static_cast<VulkanTexture*>(newTexture->GetRawBuffer());
+			if (!rhiNewTexture)
+			{
+				LOGERROR() << "[Vk] Failed to create the new texture for resizing";
+				return;
+			}
+
+			if (AllocateTexture(info, newTexture))
+			{
+				UpdateTexture(info, newTexture);
+
+				const VkImage oldVkImage = rhiTexture->GetImage();
+				const VkImageView oldVkImageView = rhiTexture->GetImageView();
+				const VkImage newVkImage = rhiNewTexture->GetImage();
+				const VkImageView newVkImageView = rhiNewTexture->GetImageView();
+
+				const RHITextureDesc oldDesc = rhiTexture->GetDesc();
+				const RHITextureDesc newDesc = rhiNewTexture->GetDesc();
+
+				const VulkanAllocation oldAllocation = rhiTexture->GetAllocation();
+				const VulkanAllocation newAllocation = rhiNewTexture->GetAllocation();
+
+				rhiTexture->SetDesc(newDesc);
+				rhiTexture->SetImage(newVkImage);
+				rhiTexture->SetImageView(newVkImageView);
+				rhiTexture->SetAllocation(newAllocation);
+
+				rhiNewTexture->SetDesc(oldDesc);
+				rhiNewTexture->SetImage(oldVkImage);
+				rhiNewTexture->SetImageView(oldVkImageView);
+				rhiNewTexture->SetAllocation(oldAllocation);
+			}
+			else
+			{
+				LOGERROR() << "[Vk] Failed to allocate the new texture for resizing";
+			}
+
+			RemoveTexture(newTexture);
+		}
+		else
+		{
+			UpdateTexture(info, texture);
+		}
 	}
 
 	void VulkanSystem::SetConstant(const RHIConstDesc info, const int32_t binding)
@@ -853,6 +940,25 @@ namespace wtr
 
 	void VulkanSystem::SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 	{
+		if (!buffer || !m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] Buffer or primary command buffer is null, failed to set the buffer";
+			return;
+		}
+		if (!buffer)
+		{
+			LOGWARN() << "[Vk] Buffer is null, failed to set the buffer";
+			return;
+		}
+
+		const VulkanBuffer* rhiBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer || rhiBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] VulkanBuffer is null or invalid, failed to set the buffer";
+			return;
+		}
+
+
 	}
 
 	void VulkanSystem::SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding)
@@ -865,31 +971,24 @@ namespace wtr
 
 	void VulkanSystem::SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bidingIndex, const uint32_t offset)
 	{
-		if (!buffer)
+		if (!buffer || !m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
 		{
-			LOGWARN() << "[Vk] Buffer is null, failed to set the vertex buffer";
+			LOGWARN() << "[Vk] Buffer or primary command buffer is null, failed to set the vertex buffer";
 			return;
 		}
 
-		const VulkanBuffer* vkBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
-		if (!vkBuffer || vkBuffer->GetBuffer() == VK_NULL_HANDLE)
+		const VulkanBuffer* rhiBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer || rhiBuffer->GetBuffer() == VK_NULL_HANDLE)
 		{
 			LOGWARN() << "[Vk] VulkanBuffer is null or invalid, failed to set the vertex buffer";
 			return;
 		}
 
-		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE)
-		{
-			LOGWARN() << "[Vk] Primary command buffer is invalid, failed to set the vertex buffer";
-			return;
-		}
+		SetBarrier(buffer, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
+		const VkBuffer vkBuffer = rhiBuffer->GetBuffer();
 		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
-
-		const VkBuffer nativeBuffer = vkBuffer->GetBuffer();
-		const VkDeviceSize nativeOffset = static_cast<VkDeviceSize>(offset);
-
-		vkCmdBindVertexBuffers(commandBuffer, bidingIndex, 1, &nativeBuffer, &nativeOffset);
+		vkCmdBindVertexBuffers(commandBuffer, bidingIndex, 1, &vkBuffer, nullptr);
 	}
 
 	void VulkanSystem::SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
@@ -916,8 +1015,10 @@ namespace wtr
 		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
 		const RHIBufferDesc& desc = buffer->GetDesc();
-		const VkIndexType indexType = GetIndexFormat(desc.componentType);
+		const VkIndexType indexType = GetIndexFormat(desc.type);
 		const VkDeviceSize nativeOffset = static_cast<VkDeviceSize>(offset);
+
+		SetBarrier(buffer, VK_ACCESS_INDEX_READ_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
 		vkCmdBindIndexBuffer(commandBuffer, vkBuffer->GetBuffer(),	nativeOffset, indexType);
 	}
@@ -1013,7 +1114,7 @@ namespace wtr
 			return true;
 		}
 
-		const VkBufferUsageFlags usageFlags = GetBufferUsage(info.bufferType) | GetBufferUsage(info.bufferTransfer);
+		const VkBufferUsageFlags usageFlags = GetBufferUsage(info.usage);
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1037,7 +1138,7 @@ namespace wtr
 		VkMemoryRequirements requirements;
 		vkGetBufferMemoryRequirements(logicalDevice, vkBuffer, &requirements);
 
-		const VkMemoryPropertyFlags properties = GetMemoryProperty(info.accessType, info.bufferTransfer);
+		const VkMemoryPropertyFlags properties = GetMemoryProperty(info.access, info.usage);
 
 		VulkanAllocation allocation = m_memory->Allocate(m_device, requirements, properties);
 		if (!allocation.IsValid())
@@ -1094,11 +1195,14 @@ namespace wtr
 		}
 
 		const VkImageUsageFlags imageUsage = GetImageUsage(info.usage, info.generateMips);
-		const VkImageCreateFlags imageCreate = GetImageCreate(info.textureType);
-		const VkImageType imageType = GetImageType(info.textureType);
+		const VkImageCreateFlags imageCreate = GetImageCreate(info.dimension);
+		const VkImageType imageType = GetImageType(info.dimension);
 		const VkFormat imageFormat = GetImageFormat(info.format);
 		const VkSampleCountFlags sampleCount = GetSampleCount(info.sampleCount);
 
+		const VkMemoryPropertyFlags properties = GetMemoryProperty(info.access, info.usage);
+
+		const bool hasVisible = (properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 		const bool hasHeight = (imageType == VK_IMAGE_TYPE_2D) || (imageType == VK_IMAGE_TYPE_3D);
 		const bool hasDepth = (imageType == VK_IMAGE_TYPE_3D);
 		const bool hasArray = (imageType != VK_IMAGE_TYPE_3D); // TODO : Texture Array
@@ -1115,9 +1219,9 @@ namespace wtr
 		imageInfo.arrayLayers = hasArray ? info.face : 1;
 		imageInfo.mipLevels = info.mipLevels;
 		imageInfo.samples = static_cast<VkSampleCountFlagBits>(sampleCount);
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.tiling = hasVisible ? VK_IMAGE_TILING_LINEAR : VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = hasVisible ? VK_IMAGE_LAYOUT_PREINITIALIZED : VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		VkDevice logicalDevice = m_device->GetLogicalDevice();
 
@@ -1132,7 +1236,7 @@ namespace wtr
 		VkMemoryRequirements requirements;
 		vkGetImageMemoryRequirements(logicalDevice, vkImage, &requirements);
 
-		VulkanAllocation allocation = m_memory->Allocate(m_device, requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VulkanAllocation allocation = m_memory->Allocate(m_device, requirements, properties);
 		if (!allocation.IsValid())
 		{
 			LOGERROR() << "[Vk] Failed to allocate the image memory";
@@ -1152,7 +1256,7 @@ namespace wtr
 			return false;
 		}
 
-		const VkImageViewType imageViewType = GetImageViewType(info.textureType);
+		const VkImageViewType imageViewType = GetImageViewType(info.dimension);
 		const VkImageAspectFlags imageAspect = GetImageAspect(info.format);
 
 		VkImageViewCreateInfo viewInfo{};
@@ -1188,8 +1292,8 @@ namespace wtr
 	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHIBufferCreateDesc info)
 	{
 		RHIBufferCreateDesc stagingDesc{};
-		stagingDesc.accessType = eDataAccess::eStaging;
-		stagingDesc.bufferTransfer = eBufferTransfer::eSource;
+		stagingDesc.access = eDataAccess::eStream;
+		stagingDesc.usage = eBufferUsage::eTransferSrc;
 		stagingDesc.dataRanges.Reserve(info.dataRanges.Size());
 
 		uint32_t offset = 0;
@@ -1216,8 +1320,8 @@ namespace wtr
 	const RHIBufferCreateDesc VulkanSystem::GetStagingDesc(const RHITextureCreateDesc info)
 	{
 		RHIBufferCreateDesc stagingDesc{};
-		stagingDesc.accessType = eDataAccess::eStaging;
-		stagingDesc.bufferTransfer = eBufferTransfer::eSource;
+		stagingDesc.access = eDataAccess::eStream;
+		stagingDesc.usage = eBufferUsage::eTransferSrc;
 
 		uint32_t offset = 0;
 		for (const auto& face : info.faces)
@@ -1264,16 +1368,13 @@ namespace wtr
 			}
 		}
 
-		RHIBufferUpdateDesc updateDesc = info;
-		updateDesc.mapAccess = eMapAccess::eWrite;
-
 		if (!stagingBuffer)
 		{
 			stagingBuffer = CreateBuffer(info);
 			AllocateBuffer(info, stagingBuffer);
 		}
 		
-		UpdateBuffer(updateDesc, stagingBuffer);
+		UpdateBuffer(info, stagingBuffer);
 
 		return stagingBuffer;
 	}
@@ -1338,107 +1439,332 @@ namespace wtr
 		VkBuffer vkDest = rhiDest->GetBuffer();
 		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 
+		SetBarrier(src, VK_ACCESS_TRANSFER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+		SetBarrier(dest, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
 		vkCmdCopyBuffer(commandBuffer, vkSrc, vkDest, regions.Size(), regions.Data());
 	}
 
-	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHITextureCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo)
+	void VulkanSystem::CopyBuffer(Memory::RefPtr<const RHIBuffer> src, const RHIBufferCreateDesc srcInfo, Memory::RefPtr<RHITexture> dest, const RHITextureCreateDesc destInfo)
 	{
-		//VkBufferImageCopy region{};
-		//region.bufferImageHeight = 0;
-		//vkCmdCopyBufferToImage(m_primary->GetCommandBuffer(), static_cast<const VulkanBuffer*>(src->GetRawBuffer())->GetBuffer(),
-		//	static_cast<VulkanTexture*>(dest->GetRawBuffer())->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, nullptr);
+		if (!m_device || !m_device->IsValid() || !m_primary)
+		{
+			LOGERROR() << "[Vk] Device or primary command is not valid, failed to copy the texture";
+			return;
+		}
+
+		if (!src || !dest)
+		{
+			LOGWARN() << "[Vk] Source or destination buffer is null, failed to copy the texture";
+			return;
+		}
+
+		if (srcInfo.dataRanges.Empty() || destInfo.faces.Empty())
+		{
+			LOGWARN() << "[Vk] Source data ranges or destination faces are empty, failed to copy the texture";
+			return;
+		}
+
+		const VulkanBuffer* rhiSrc = static_cast<const VulkanBuffer*>(src->GetRawBuffer());
+		VulkanTexture* rhiDest = static_cast<VulkanTexture*>(dest->GetRawBuffer());
+		if (!rhiSrc || rhiSrc->GetBuffer() == VK_NULL_HANDLE ||
+			!rhiDest || rhiDest->GetImage() == VK_NULL_HANDLE || rhiDest->GetImageView() == VK_NULL_HANDLE)
+		{
+			LOGWARN() << "[Vk] VulkanBuffer or VulkanTexture is null or invalid, failed to copy the texture";
+			return;
+		}
+
+		const VkImageAspectFlags aspectMask = GetImageAspect(destInfo.format);
+
+		wtr::DynamicArray<VkBufferImageCopy> regions;
+		size_t rangeIndex = 0;
+		for (const auto& face : destInfo.faces)
+		{
+			for (const auto& mipmap : face.mipMaps)
+			{
+				if (!mipmap.data)
+				{
+					continue;
+				}
+
+				if (rangeIndex >= srcInfo.dataRanges.Size())
+				{
+					LOGWARN() << "[Vk] Source data ranges ran out before all destination mipmaps were matched, failed to copy the texture";
+					return;
+				}
+
+				const auto& stagingRange = srcInfo.dataRanges[rangeIndex];
+				rangeIndex++;
+
+				if (!stagingRange.data)
+				{
+					continue;
+				}
+
+				const uint32_t mipWidth = (destInfo.width >> mipmap.level) > 0 ? (destInfo.width >> mipmap.level) : 1;
+				const uint32_t mipHeight = (destInfo.height >> mipmap.level) > 0 ? (destInfo.height >> mipmap.level) : 1;
+				const uint32_t mipDepth = (destInfo.depth >> mipmap.level) > 0 ? (destInfo.depth >> mipmap.level) : 1;
+
+				VkBufferImageCopy region{};
+				region.bufferOffset = stagingRange.offset[0];
+				region.bufferRowLength = 0;
+				region.bufferImageHeight = 0;
+				region.imageSubresource.aspectMask = aspectMask;
+				region.imageSubresource.mipLevel = mipmap.level;
+				region.imageSubresource.baseArrayLayer = face.index;
+				region.imageSubresource.layerCount = 1;
+				region.imageOffset = { 0, 0, 0 };
+				region.imageExtent = { mipWidth, mipHeight, mipDepth };
+
+				regions.PushBack(region);
+			}
+		}
+
+		if (regions.Empty())
+		{
+			LOGWARN() << "[Vk] No valid regions to copy, failed to copy the texture";
+			return;
+		}
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+
+		SetBarrier(src, VK_ACCESS_TRANSFER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+		SetBarrier(dest, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		vkCmdCopyBufferToImage(commandBuffer, rhiSrc->GetBuffer(), rhiDest->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.Size(), regions.Data());
 	}
 
-	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferType bufferType) const
+	void VulkanSystem::SetBarrier(Memory::RefPtr<const RHIBuffer> buffer, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage)
 	{
-		VkBufferUsageFlags usageFlags = 0x00;
-		if (eBufferType::eVertex == bufferType)
+		if (!m_primary || m_primary->GetCommandBuffer() == VK_NULL_HANDLE || !buffer)
 		{
-			usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		}
-		else if (eBufferType::eIndex == bufferType)
-		{
-			usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-		}
-		else if (eBufferType::eConst == bufferType)
-		{
-			usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		}
-		else if (eBufferType::eStorage == bufferType)
-		{
-			usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		}
-		else if (eBufferType::eIndirect == bufferType)
-		{
-			usageFlags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-		}
-		else if (eBufferType::eTexel == bufferType)
-		{
-			// A texel buffer can back either a uniform texel view or a storage texel view -
-			// eBufferType alone doesn't say which, so both usage bits are set and the actual
-			// VkBufferView's usage is decided at view-creation time.
-			usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-		}
-		else
-		{
-			// nothing
+			return;
 		}
 
-		return usageFlags;
+		const VulkanBuffer* rhiBuffer = static_cast<const VulkanBuffer*>(buffer->GetRawBuffer());
+		if (!rhiBuffer || rhiBuffer->GetBuffer() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		const VkAccessFlags srcAccess = rhiBuffer->GetAccessFlag();
+		const VkPipelineStageFlags srcStage = rhiBuffer->GetStageFlag();
+		if (srcAccess == dstAccess && srcStage == dstStage)
+		{
+			return;
+		}
+
+		VkBufferMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.buffer = rhiBuffer->GetBuffer();
+		barrier.srcAccessMask = srcAccess;
+		barrier.dstAccessMask = dstAccess;
+		barrier.size = VK_WHOLE_SIZE;
+		barrier.offset = 0;
+		barrier.pNext = nullptr;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+
+		rhiBuffer->SetAccessFlag(dstAccess);
+		rhiBuffer->SetStageFlag(dstStage);
 	}
 
-	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferTransfer bufferTransfer) const
+	void VulkanSystem::SetBarrier(Memory::RefPtr<const RHITexture> texture, const VkAccessFlags dstAccess, const VkPipelineStageFlags dstStage, const VkImageLayout newLayout)
+	{
+		if (!texture)
+		{
+			return;
+		}
+
+		const VulkanTexture* rhiTexture = static_cast<const VulkanTexture*>(texture->GetRawBuffer());
+		if (!rhiTexture || rhiTexture->GetImage() == VK_NULL_HANDLE || rhiTexture->GetImageView() == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		const VkAccessFlags srcAccess = rhiTexture->GetAccessFlag();
+		const VkPipelineStageFlags srcStage = rhiTexture->GetStageFlag();
+		const VkImageLayout oldLayout = rhiTexture->GetImageLayout();
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.image = rhiTexture->GetImage();
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.srcAccessMask = srcAccess;
+		barrier.dstAccessMask = dstAccess;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = 1;
+
+		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
+		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		rhiTexture->SetAccessFlag(dstAccess);
+		rhiTexture->SetStageFlag(dstStage);
+		rhiTexture->SetImageLayout(newLayout);
+	}
+
+	VkAccessFlags VulkanSystem::GetAccessFlags(const eBindingType type, const eBindingUsage usage) const
+	{
+		VkAccessFlags accessFlags = 0x00;
+
+		if (eBindingUsage::eRead == usage)
+		{
+			if (eBindingType::eUniform == type ||
+				eBindingType::eStorage == type ||
+				eBindingType::eSampler == type)
+			{
+				accessFlags |= VK_ACCESS_UNIFORM_READ_BIT;
+			}
+		}
+
+		if (eBindingUsage::eWrite == usage)
+		{
+			if (eBindingType::eStorage == type || 
+				eBindingType::eSampler == type)
+			{
+				accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
+			}
+		}
+
+		return accessFlags;
+	}
+
+	VkPipelineStageFlags VulkanSystem::GetStageFlags(const eBindingType type, const eBindingUsage usage) const
+	{
+		VkPipelineStageFlags stageFlags = 0x00;
+		if (eBindingUsage::eRead == usage)
+		{
+			if (eBindingType::eUniform == type ||
+				eBindingType::eStorage == type ||
+				eBindingType::eSampler == type)
+			{
+				stageFlags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | 
+					VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+					VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+					VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | 
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			}
+		}
+		if (eBindingUsage::eWrite == usage)
+		{
+			if (eBindingType::eStorage == type ||
+				eBindingType::eSampler == type)
+			{
+				stageFlags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			}
+		}
+		return stageFlags;
+	}
+
+	VkBufferUsageFlags VulkanSystem::GetBufferUsage(const eBufferUsage usage) const
 	{
 		VkBufferUsageFlags usageFlags = 0x00;
-		if (eBufferTransfer::eSource == bufferTransfer)
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eTransferSrc))
 		{
 			usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		}
-		
-		if (eBufferTransfer::eDestination == bufferTransfer)
+
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eTransferDst))
 		{
 			usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		}
 
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eVertex))
+		{
+			usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		}
+
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eIndex))
+		{
+			usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		}
+
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eUniform))
+		{
+			usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		}
+
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eStorage))
+		{
+			usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		}
+
+		if (eBufferUsage::eNone != (usage & eBufferUsage::eIndirect))
+		{
+			usageFlags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+		}
+
 		return usageFlags;
 	}
 
-	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess dataAccess,const eBufferTransfer bufferTransfer) const
+	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess access, const eBufferUsage usage) const
 	{
-		if (eDataAccess::eStatic == dataAccess)
+		// 바인딩 비트(Vertex/Index/Uniform/Storage/Indirect)가 하나도 없고 전송 비트만 있는 버퍼는
+		// 파이프라인이 직접 읽지 않는 순수 중계용 버퍼 - 즉 staging / readback 이다.
+		// 방향(Src/Dst)에 따라 CPU 쪽 캐시 정책을 다르게 잡아준다.
+		constexpr eBufferUsage bindingMask = eBufferUsage::eVertex | eBufferUsage::eIndex
+			| eBufferUsage::eUniform | eBufferUsage::eStorage | eBufferUsage::eIndirect;
+
+		const bool isBound = eBufferUsage::eNone != (usage & bindingMask);
+		if (!isBound)
 		{
-			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			// staging : CPU 가 쓰고 GPU 가 읽어감 -> write-combine 이 유리하므로 COHERENT
+			if (eBufferUsage::eNone != (usage & eBufferUsage::eTransferSrc))
+			{
+				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			}
+
+			// readback : GPU 가 쓰고 CPU 가 읽어감 -> 캐시된 읽기가 유리하므로 CACHED
+			if (eBufferUsage::eNone != (usage & eBufferUsage::eTransferDst))
+			{
+				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+			}
 		}
-		else if (eDataAccess::eDynamic == dataAccess || eDataAccess::eStream == dataAccess)
+
+		if (eDataAccess::eDynamic == access || eDataAccess::eStream == access)
 		{
 			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		}
-		else if (eDataAccess::eStaging == dataAccess)
-		{
-			const bool isSource = (bufferTransfer & eBufferTransfer::eSource) != eBufferTransfer::eNone;
-			const bool isDestination = (bufferTransfer & eBufferTransfer::eDestination) != eBufferTransfer::eNone;
-
-			VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-			flags = isSource ? (flags | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : flags;
-			flags = isDestination ? (flags | VK_MEMORY_PROPERTY_HOST_CACHED_BIT) : flags;
-
-			return flags;
-		}
-		else
-		{
-			// nothing
 		}
 
 		return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
 
+	VkMemoryPropertyFlags VulkanSystem::GetMemoryProperty(const eDataAccess access, const eTextureUsage usage) const
+	{
+		constexpr eTextureUsage bindingMask = eTextureUsage::eSampled | eTextureUsage::eRenderTarget
+			| eTextureUsage::eDepthStencil | eTextureUsage::ePresent;
+
+		const bool isBound = eTextureUsage::eNone != (usage & bindingMask);
+		if (!isBound)
+		{
+			if (eTextureUsage::eNone != (usage & eTextureUsage::eTransferSrc))
+			{
+				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			}
+
+			if (eTextureUsage::eNone != (usage & eTextureUsage::eTransferDst))
+			{
+				return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+			}
+		}
+
+		// 샘플링/렌더타겟으로 쓰이는 이미지는 갱신 빈도와 무관하게 OPTIMAL 타일링이어야 하므로
+		// 항상 DEVICE_LOCAL 로 두고, 갱신은 staging 버퍼 경유 복사로 처리한다.
+		return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	}
+
 	VkFormat VulkanSystem::GetDataFormat(const eDataType data) const
 	{
-		// Single-component scalar format - the building block a vertex attribute's real
-		// VkFormat (e.g. VK_FORMAT_R32G32B32_SFLOAT) is chosen from once component count is
-		// also known, mirroring how GLSystem::GetDataType() returns a bare GL_FLOAT/GL_UNSIGNED_BYTE
-		// token rather than a fully-formed vertex attribute descriptor.
 		if (eDataType::eByte == data)
 		{
 			return VK_FORMAT_R8_SINT;
@@ -1694,11 +2020,6 @@ namespace wtr
 			usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
 
-		if ((usage & eTextureUsage::eStorage) != eTextureUsage::eNone)
-		{
-			usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
-		}
-
 		if (mipmaps)
 		{
 			usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
@@ -1707,9 +2028,9 @@ namespace wtr
 		return usageFlags;
 	}
 
-	VkImageCreateFlags VulkanSystem::GetImageCreate(const eTextureType type) const
+	VkImageCreateFlags VulkanSystem::GetImageCreate(const eTextureDimension type) const
 	{
-		if (type == eTextureType::eTextureCube || type == eTextureType::eTextureCubeArray)
+		if (type == eTextureDimension::eTextureCube || type == eTextureDimension::eTextureCubeArray)
 		{
 			return VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		}
@@ -1717,43 +2038,43 @@ namespace wtr
 		return VK_IMAGE_CREATE_FLAG_BITS_MAX_ENUM;
 	}
 
-	VkImageViewType VulkanSystem::GetImageViewType(const eTextureType texture) const
+	VkImageViewType VulkanSystem::GetImageViewType(const eTextureDimension texture) const
 	{
-		if (eTextureType::eTexture1D == texture)
+		if (eTextureDimension::eTexture1D == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_1D;
 		}
-		else if (eTextureType::eTexture2D == texture)
+		else if (eTextureDimension::eTexture2D == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_2D;
 		}
-		else if (eTextureType::eTexture3D == texture)
+		else if (eTextureDimension::eTexture3D == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_3D;
 		}
-		else if (eTextureType::eTextureCube == texture)
+		else if (eTextureDimension::eTextureCube == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_CUBE;
 		}
-		else if (eTextureType::eTexture1DArray == texture)
+		else if (eTextureDimension::eTexture1DArray == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 		}
-		else if (eTextureType::eTexture2DArray == texture)
+		else if (eTextureDimension::eTexture2DArray == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 		}
-		else if (eTextureType::eTextureCubeArray == texture)
+		else if (eTextureDimension::eTextureCubeArray == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 		}
-		else if (eTextureType::eTextureMultisample == texture)
+		else if (eTextureDimension::eTextureMultisample == texture)
 		{
 			// Vulkan has no dedicated multisample view type - sample count lives on
 			// VkImageCreateInfo::samples instead, the view type is still plain 2D/2D_ARRAY.
 			return VK_IMAGE_VIEW_TYPE_2D;
 		}
-		else if (eTextureType::eTextureMultisampleArray == texture)
+		else if (eTextureDimension::eTextureMultisampleArray == texture)
 		{
 			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 		}
@@ -1763,22 +2084,22 @@ namespace wtr
 		}
 	}
 
-	VkImageType VulkanSystem::GetImageType(const eTextureType texture) const
+	VkImageType VulkanSystem::GetImageType(const eTextureDimension texture) const
 	{
-		if (eTextureType::eTexture1D == texture || eTextureType::eTexture1DArray == texture)
+		if (eTextureDimension::eTexture1D == texture || eTextureDimension::eTexture1DArray == texture)
 		{
 			return VK_IMAGE_TYPE_1D;
 		}
-		else if (eTextureType::eTexture2D == texture ||
-			eTextureType::eTextureCube == texture ||
-			eTextureType::eTexture2DArray == texture ||
-			eTextureType::eTextureCubeArray == texture ||
-			eTextureType::eTextureMultisample == texture ||
-			eTextureType::eTextureMultisampleArray == texture)
+		else if (eTextureDimension::eTexture2D == texture ||
+			eTextureDimension::eTextureCube == texture ||
+			eTextureDimension::eTexture2DArray == texture ||
+			eTextureDimension::eTextureCubeArray == texture ||
+			eTextureDimension::eTextureMultisample == texture ||
+			eTextureDimension::eTextureMultisampleArray == texture)
 		{
 			return VK_IMAGE_TYPE_2D;
 		}
-		else if (eTextureType::eTexture3D == texture)
+		else if (eTextureDimension::eTexture3D == texture)
 		{
 			return VK_IMAGE_TYPE_3D;
 		}
@@ -1978,7 +2299,7 @@ namespace wtr
 		{
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		}
-		else if (eWrapMode::eMirroedRepeat == wrap)
+		else if (eWrapMode::eMirroredRepeat == wrap)
 		{
 			return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		}
@@ -2054,34 +2375,27 @@ namespace wtr
 
 	VkPrimitiveTopology VulkanSystem::GetDrawMode(const eDrawMode mode) const
 	{
-		if (eDrawMode::ePoints == mode)
+		if (eDrawMode::ePointList == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 		}
-		else if (eDrawMode::eLines == mode)
+		else if (eDrawMode::eLineList == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 		}
-		else if (eDrawMode::eLine_Strip == mode)
+		else if (eDrawMode::eLineStrip == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 		}
-		else if (eDrawMode::eLine_Loop == mode)
-		{
-			// Vulkan has no line-loop topology at all - closest approximation is a line strip;
-			// closing the loop (last vertex back to first) has to be done by duplicating the
-			// first vertex at the end of the vertex/index stream instead.
-			return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-		}
-		else if (eDrawMode::eTriangles == mode)
+		else if (eDrawMode::eTriangleList == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		}
-		else if (eDrawMode::eTriangle_Strip == mode)
+		else if (eDrawMode::eTriangleStrip == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 		}
-		else if (eDrawMode::eTriangle_Fan == mode)
+		else if (eDrawMode::eTriangleFan == mode)
 		{
 			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 		}
@@ -2137,7 +2451,7 @@ namespace wtr
 		{
 			return VK_COMPARE_OP_GREATER;
 		}
-		else if (eCompareFunc::eGreatorEqual == func)
+		else if (eCompareFunc::eGreaterEqual == func)
 		{
 			return VK_COMPARE_OP_GREATER_OR_EQUAL;
 		}

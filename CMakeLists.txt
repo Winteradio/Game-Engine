@@ -136,10 +136,12 @@ set(ENGINE_PLATFORM_FILES
 
 set(ENGINE_RENDERER_PUBLIC_FILES
 	${ENGINE_PUBLIC_DIR}/Renderer/Renderer.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderData.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderView.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderGraph.h
-	${ENGINE_PUBLIC_DIR}/Renderer/RenderTypes.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderType.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderTask.h
+	${ENGINE_PUBLIC_DIR}/Renderer/RenderUtils.h
 
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.h
 	${ENGINE_PUBLIC_DIR}/Renderer/RenderPass/RenderPass.cpp
@@ -166,7 +168,7 @@ set(ENGINE_RENDERER_PUBLIC_FILES
 set(ENGINE_RENDERER_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/Renderer/Renderer.cpp
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderGraph.cpp
-	${ENGINE_PRIVATE_DIR}/Renderer/RenderTypes.cpp
+	${ENGINE_PRIVATE_DIR}/Renderer/RenderUtils.cpp
 
 	${ENGINE_PRIVATE_DIR}/Renderer/RenderResource.h
 
@@ -242,6 +244,8 @@ set(ENGINE_RHI_PRIVATE_FILES
 	${ENGINE_PRIVATE_DIR}/RHI/RHITaskExecutor.cpp
 	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.h
 	${ENGINE_PRIVATE_DIR}/RHI/RHIGlobalCache.cpp
+	${ENGINE_PRIVATE_DIR}/RHI/RHIStateTracker.h
+	${ENGINE_PRIVATE_DIR}/RHI/RHIStateTracker.cpp
 
 	${ENGINE_PRIVATE_DIR}/RHI/RHISystem.cpp
 

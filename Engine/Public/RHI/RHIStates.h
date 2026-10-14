@@ -1,7 +1,7 @@
 #ifndef __WTR_RHISTATES_H__
 #define __WTR_RHISTATES_H__
 
-#include <Renderer/RenderTypes.h>
+#include <Renderer/RenderType.h>
 #include <Framework/Math/MathTypes.h>
 
 namespace wtr
@@ -142,6 +142,86 @@ namespace wtr
 		}
 
 		bool operator!=(const RHIClearState& other) const noexcept
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct RHIResourceState
+	{
+		eDataState state	= eDataState::eNone;
+		eDataStage stage	= eDataStage::eNone;
+
+		bool operator==(const RHIResourceState& other) const noexcept
+		{
+			return state == other.state &&
+				stage == other.stage;
+		}
+
+		bool operator!=(const RHIResourceState& other) const noexcept
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct RHIBufferState : RHIResourceState
+	{
+		eBufferUsage usage = eBufferUsage::eNone;
+
+		RHIBufferState() = default;
+		RHIBufferState(const RHIResourceState& state)
+			: RHIResourceState(state)
+		{}
+
+		RHIBufferState& operator=(const RHIResourceState& state)
+		{
+			if (this != &state)
+			{
+				RHIResourceState::operator=(state);
+			}
+
+			return *this;
+		}
+
+		bool operator==(const RHIBufferState& other) const noexcept
+		{
+			return RHIResourceState::operator==(other) &&
+				usage == other.usage;
+		}
+
+		bool operator!=(const RHIBufferState& other) const noexcept
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct RHITextureState : RHIResourceState
+	{
+		eTextureUsage usage = eTextureUsage::eNone;
+
+		RHITextureState() = default;
+		RHITextureState(const RHIResourceState& state)
+			: RHIResourceState(state)
+		{
+		}
+
+		RHITextureState& operator=(const RHIResourceState& state)
+		{
+			if (this != &state)
+			{
+				RHIResourceState::operator=(state);
+			}
+
+			return *this;
+		}
+
+		bool operator==(const RHITextureState& other) const noexcept
+		{
+			return RHIResourceState::operator==(other) &&
+				usage == other.usage;
+		}
+
+		bool operator!=(const RHITextureState& other) const noexcept
 		{
 			return !(*this == other);
 		}

@@ -2,19 +2,13 @@
 
 #include <RHI/RHIUtils.h>
 #include <RHI/RHIResources.h>
-
-#include <Log/include/Log.h>
+#include <Memory/include/Core.h>
 
 namespace wtr
 {
 	RHISystem::RHISystem(const eRenderType type)
-		: m_pendingBuffers()
-		, m_pendingVertexLayouts()
-		, m_pendingTextures()
-		, m_pendingSamplers()
-		, m_pendingShaders()
-		, m_pendingPipeLines()
-		, m_pendingRenderTargets()
+		: m_pendingResources()
+		, m_stateTracker()
 	{
 		RHIUtils::SetRenderType(type);
 	}
@@ -26,7 +20,7 @@ namespace wtr
 	{
 		if (buffer)
 		{
-			m_pendingBuffers.Insert(buffer);
+			m_pendingResources.Insert(buffer);
 		}
 	}
 
@@ -34,7 +28,7 @@ namespace wtr
 	{
 		if (layout)
 		{
-			m_pendingVertexLayouts.Insert(layout);
+			m_pendingResources.Insert(layout);
 		}
 	}
 
@@ -42,7 +36,7 @@ namespace wtr
 	{
 		if (texture)
 		{
-			m_pendingTextures.Insert(texture);
+			m_pendingResources.Insert(texture);
 		}
 	}
 
@@ -50,7 +44,7 @@ namespace wtr
 	{
 		if (sampler)
 		{
-			m_pendingSamplers.Insert(sampler);
+			m_pendingResources.Insert(sampler);
 		}
 	}
 
@@ -58,7 +52,7 @@ namespace wtr
 	{
 		if (shader)
 		{
-			m_pendingShaders.Insert(shader);
+			m_pendingResources.Insert(shader);
 		}
 	}
 
@@ -66,53 +60,101 @@ namespace wtr
 	{
 		if (pipeline)
 		{
-			m_pendingPipeLines.Insert(pipeline);
+			m_pendingResources.Insert(pipeline);
 		}
 	}
 
-	void RHISystem::RemoveRenderTarget(Memory::RefPtr<RHIRenderTarget> target)
+	void RHISystem::RemoveRenderPass(Memory::RefPtr<RHIRenderPass> pass)
 	{
-		if (target)
+		if (pass)
 		{
-			m_pendingRenderTargets.Insert(target);
+			m_pendingResources.Insert(pass);
 		}
 	}
 
-	bool RHISystem::CheckShaderVariable(Memory::RefPtr<RHIShader> shader)
+	void RHISystem::FlushPending()
 	{
-		if (!shader)
+		auto itr = m_pendingResources.Begin();
+		while (itr != m_pendingResources.End())
 		{
-			return false;
-		}
-
-		const auto& inputs = shader->GetInputs();
-		for (const auto& [name, attribute] : inputs)
-		{
-			if (name.substr(0, 3) == "gl_")
+			auto& resource = *itr;
+			if (!resource)
 			{
+				itr = m_pendingResources.Erase(itr);
 				continue;
 			}
 
-			const VertexKey vertexKey = GetVertexKey(name);
-			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
+			Memory::RefCounted* refCounted = resource.GetRefData();
+			if (nullptr == refCounted)
 			{
-				LOGWARN() << "[RHI] Unrecognized vertex attribute: " << name;
+				itr = m_pendingResources.Erase(itr);
+
+				assert("[RHISystem] The resource hasn't ref counted, the memory leak occurred!" && false);
+
 				continue;
 			}
 
-			const int32_t expectedLocation = GetVertexLocation(vertexKey);
-			const int32_t actualLocation = attribute.location;
-
-			if (actualLocation != expectedLocation)
+			if (refCounted->GetRefCount() > 1)
 			{
-				LOGWARN() << "[RHI] Vertex attribute location mismatch: " << name
-					<< ", expected location : " << expectedLocation
-					<< ", actual location : " << actualLocation;
+				itr++;
+				continue;
+			}
 
-				return false;
+			bool released = false;
+			const eResourceType type = resource->GetResourceType();
+			if (type == eResourceType::eBuffer)
+			{
+				Memory::RefPtr<RHIBuffer> buffer = Memory::Cast<RHIBuffer>(resource);
+				released = ReleaseBuffer(buffer);
+			}
+			else if (type == eResourceType::eLayout)
+			{
+				Memory::RefPtr<RHIVertexLayout> layout = Memory::Cast<RHIVertexLayout>(resource);
+				released = ReleaseVertexLayout(layout);
+			}
+			else if (type == eResourceType::eTexture)
+			{
+				Memory::RefPtr<RHITexture> texture = Memory::Cast<RHITexture>(resource);
+				released = ReleaseTexture(texture);
+			}
+			else if (type == eResourceType::eSampler)
+			{
+				Memory::RefPtr<RHISampler> sampler = Memory::Cast<RHISampler>(resource);
+				released = ReleaseSampler(sampler);
+			}
+			else if (type == eResourceType::eShader)
+			{
+				Memory::RefPtr<RHIShader> shader = Memory::Cast<RHIShader>(resource);
+				released = ReleaseShader(shader);
+			}
+			else if (type == eResourceType::ePipeLine)
+			{
+				Memory::RefPtr<RHIPipeLine> pipeline = Memory::Cast<RHIPipeLine>(resource);
+				released = ReleasePipeLine(pipeline);
+			}
+			else if (type == eResourceType::ePass)
+			{
+				Memory::RefPtr<RHIRenderPass> pass = Memory::Cast<RHIRenderPass>(resource);
+				released = ReleaseRenderPass(pass);
+			}
+			else
+			{
+				assert("[RHISystem] Unknown resource type!" && false);
+				itr++;
+
+				continue;
+			}
+
+			if (released)
+			{
+				itr = m_pendingResources.Erase(itr);
+			}
+			else
+			{
+				assert("[RHISystem] Failed to release the resource!" && false);
+
+				itr++;
 			}
 		}
-
-		return true;
 	}
 }

@@ -33,6 +33,9 @@ namespace wtr
 			virtual ~RHIResource() = default;
 
 		public :
+			virtual eResourceType GetResourceType() const = 0;
+
+		public :
 			void* GetRawBuffer();
 			const void* GetRawBuffer() const;
 
@@ -50,8 +53,7 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			eBufferUsage GetBufferUsage() const;
-			eDataAccess GetAccessType() const;
+			eDataUsage GetDataUsage() const;
 			eDataType GetDataType() const;
 			uint32_t GetNumComponents() const;
 			uint32_t GetStride() const;
@@ -224,14 +226,14 @@ namespace wtr
 
 	};
 
-	class RHIRenderTarget : public RHIResource
+	class RHIRenderPass : public RHIResource
 	{
 	public :
-		RHIRenderTarget(const RHIRenderTargetDesc& desc);
-		virtual ~RHIRenderTarget() = default;
+		RHIRenderPass(const RHIRenderPassDesc& desc);
+		virtual ~RHIRenderPass() = default;
 
 	public :
-		const RHIRenderTargetDesc& GetDesc() const;
+		const RHIRenderPassDesc& GetDesc() const;
 
 		bool HasColorAttach(const uint32_t slot) const;
 		bool HasDepthStencilAttach() const;
@@ -239,19 +241,7 @@ namespace wtr
 		size_t GetColorAttachCount() const;
 
 	private :
-		RHIRenderTargetDesc m_desc;
-	};
-
-	template<typename T>
-	struct RHIPendingResource
-	{
-		Memory::RefPtr<T> resource;
-		const size_t frame;
-
-		RHIPendingResource(Memory::RefPtr<T> resource, const size_t frame)
-			: resource(resource)
-			, frame(frame)
-		{}
+		RHIRenderPassDesc m_desc;
 	};
 };
 

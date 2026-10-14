@@ -9,6 +9,19 @@
 
 namespace wtr
 {
+	void RHICommandList::RHICache::Clear()
+	{
+		buffers.Clear();
+		textures.Clear();
+		samplers.Clear();
+		vertices.Clear();
+
+		index = nullptr;
+		vertexLayout = nullptr;
+		pipeline = nullptr;
+		renderTarget = nullptr;
+	}
+
 	RHICommandList::RHICommandList(Memory::RefPtr<RHISystem> system)
 		: CommandList<RHICommandBase>()
 		, m_cache()
@@ -26,6 +39,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		m_cache.Clear();
 
 		for (auto* cmd : m_commands)
 		{
@@ -59,12 +74,17 @@ namespace wtr
 		Enqueue<RHICommandClear>(state);
 	}
 
+	void RHICommandList::Resize(const uint32_t width, const uint32_t height)
+	{
+		Enqueue<RHICommandResize>(width, height);
+	}
+
 	void RHICommandList::Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 	{
 		Enqueue<RHICommandResize>(posX, posY, width, height);
 	}
 
-	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateDesc info)
+	Memory::RefPtr<RHIBuffer> RHICommandList::CreateBuffer(const RHIBufferCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -78,21 +98,21 @@ namespace wtr
 		return refBuffer;
 	}
 
-	Memory::RefPtr<RHIVertexLayout> RHICommandList::CreateVertexLayout(const RHIVertexLayoutCreateDesc info)
+	Memory::RefPtr<RHIVertexLayout> RHICommandList::CreateVertexLayout(const RHIVertexLayoutCreateDesc& info)
 	{
 		if (!m_system)
 		{
 			return nullptr;
 		}
-		
+
 		Memory::RefPtr<RHIVertexLayout> refVertexLayout = m_system->CreateVertexLayout(info);
-	
+
 		Enqueue<RHICommandInitializeVertexLayout>(info, refVertexLayout);
-		
+
 		return refVertexLayout;
 	}
 
-	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateDesc info)
+	Memory::RefPtr<RHITexture> RHICommandList::CreateTexture(const RHITextureCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -106,7 +126,7 @@ namespace wtr
 		return refTexture;
 	}
 
-	Memory::RefPtr<RHISampler> RHICommandList::CreateSampler(const RHISamplerCreateDesc info)
+	Memory::RefPtr<RHISampler> RHICommandList::CreateSampler(const RHISamplerCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -120,7 +140,7 @@ namespace wtr
 		return refSampler;
 	}
 
-	Memory::RefPtr<RHIShader> RHICommandList::CreateVertexShader(const RHIShaderCreateDesc info)
+	Memory::RefPtr<RHIShader> RHICommandList::CreateVertexShader(const RHIShaderCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -134,7 +154,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIShader> RHICommandList::CreateGeometryShader(const RHIShaderCreateDesc info)
+	Memory::RefPtr<RHIShader> RHICommandList::CreateGeometryShader(const RHIShaderCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -148,7 +168,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIShader> RHICommandList::CreateHullShader(const RHIShaderCreateDesc info)
+	Memory::RefPtr<RHIShader> RHICommandList::CreateHullShader(const RHIShaderCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -156,13 +176,27 @@ namespace wtr
 		}
 
 		Memory::RefPtr<RHIShader> refShader = m_system->CreateHullShader(info);
-		
+
 		Enqueue<RHICommandInitializeHullShader>(info, refShader);
-		
+
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIShader> RHICommandList::CreatePixelShader(const RHIShaderCreateDesc info)
+	Memory::RefPtr<RHIShader> RHICommandList::CreateDomainShader(const RHIShaderCreateDesc& info)
+	{
+		if (!m_system)
+		{
+			return nullptr;
+		}
+
+		Memory::RefPtr<RHIShader> refShader = m_system->CreateDomainShader(info);
+
+		Enqueue<RHICommandInitializeDomainShader>(info, refShader);
+
+		return refShader;
+	}
+
+	Memory::RefPtr<RHIShader> RHICommandList::CreatePixelShader(const RHIShaderCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -176,7 +210,7 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIShader> RHICommandList::CreateComputeShader(const RHIShaderCreateDesc info)
+	Memory::RefPtr<RHIShader> RHICommandList::CreateComputeShader(const RHIShaderCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -190,13 +224,13 @@ namespace wtr
 		return refShader;
 	}
 
-	Memory::RefPtr<RHIPipeLine> RHICommandList::CreatePipeLine(const RHIPipeLineCreateDesc info)
+	Memory::RefPtr<RHIPipeLine> RHICommandList::CreatePipeLine(const RHIPipeLineCreateDesc& info)
 	{
 		if (!m_system)
 		{
 			return nullptr;
 		}
-		
+
 		Memory::RefPtr<RHIPipeLine> refPipeLine = m_system->CreatePipeLine(info);
 
 		Enqueue<RHICommandInitializePipeLine>(info, refPipeLine);
@@ -204,7 +238,7 @@ namespace wtr
 		return refPipeLine;
 	}
 
-	Memory::RefPtr<RHIRenderTarget> RHICommandList::CreateRenderTarget(const RHIRenderTargetCreateDesc info)
+	Memory::RefPtr<RHIRenderTarget> RHICommandList::CreateRenderTarget(const RHIRenderTargetCreateDesc& info)
 	{
 		if (!m_system)
 		{
@@ -216,51 +250,6 @@ namespace wtr
 		Enqueue<RHICommandInitializeRenderTarget>(info, refRenderTarget);
 
 		return refRenderTarget;
-	}
-
-	void RHICommandList::UpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer)
-	{
-		if (buffer)
-		{
-			buffer->SetDesc(info);
-		}
-
-		Enqueue<RHICommandUpdateBuffer>(info, buffer);
-	}
-
-	void RHICommandList::UpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture)
-	{
-		if (texture)
-		{
-			texture->SetDesc(info);
-		}
-
-		Enqueue<RHICommandUpdateTexture>(info, texture);
-	}
-
-	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout)
-	{
-		Enqueue<RHICommandUpdateVertexLayout>(info, layout);
-	}
-
-	void RHICommandList::ResizeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer)
-	{
-		if (buffer)
-		{
-			buffer->SetDesc(info);
-		}
-
-		Enqueue<RHICommandResizeBuffer>(info, buffer);
-	}
-
-	void RHICommandList::ResizeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture)
-	{
-		if (texture)
-		{
-			texture->SetDesc(info);
-		}
-
-		Enqueue<RHICommandResizeTexture>(info, texture);
 	}
 
 	void RHICommandList::RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
@@ -298,7 +287,52 @@ namespace wtr
 		Enqueue<RHICommandRemoveRenderTarget>(target);
 	}
 
-	void RHICommandList::SetConstant(const RHIConstDesc info, const int32_t binding)
+	void RHICommandList::UpdateBuffer(const RHIBufferUpdateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (buffer)
+		{
+			buffer->SetDesc(info);
+		}
+
+		Enqueue<RHICommandUpdateBuffer>(info, buffer);
+	}
+
+	void RHICommandList::UpdateTexture(const RHITextureUpdateDesc& info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (texture)
+		{
+			texture->SetDesc(info);
+		}
+
+		Enqueue<RHICommandUpdateTexture>(info, texture);
+	}
+
+	void RHICommandList::UpdateVertexLayout(const RHIVertexLayoutUpdateDesc& info, Memory::RefPtr<RHIVertexLayout> layout)
+	{
+		Enqueue<RHICommandUpdateVertexLayout>(info, layout);
+	}
+
+	void RHICommandList::ResizeBuffer(const RHIBufferCreateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
+	{
+		if (buffer)
+		{
+			buffer->SetDesc(info);
+		}
+
+		Enqueue<RHICommandResizeBuffer>(info, buffer);
+	}
+
+	void RHICommandList::ResizeTexture(const RHITextureCreateDesc& info, Memory::RefPtr<RHITexture> texture)
+	{
+		if (texture)
+		{
+			texture->SetDesc(info);
+		}
+
+		Enqueue<RHICommandResizeTexture>(info, texture);
+	}
+
+	void RHICommandList::SetConstant(const RHIConstDesc& info, const int32_t binding)
 	{
 		Enqueue<RHICommandSetConstant>(info, binding);
 	}
@@ -310,6 +344,8 @@ namespace wtr
 			return;
 		}
 
+		m_cache.buffers[binding] = buffer;
+
 		Enqueue<RHICommandSetBuffer>(buffer, binding);
 	}
 
@@ -319,6 +355,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		m_cache.textures[binding] = texture;
 
 		Enqueue<RHICommandSetTexture>(texture, binding);
 	}
@@ -330,6 +368,8 @@ namespace wtr
 			return;
 		}
 
+		m_cache.samplers[binding] = sampler;
+
 		Enqueue<RHICommandSetSampler>(sampler, binding);
 	}
 
@@ -339,6 +379,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		m_cache.vertices[bindingIndex] = buffer;
 
 		Enqueue<RHICommandSetVertexBuffer>(buffer, bindingIndex, offset);
 	}
@@ -350,6 +392,8 @@ namespace wtr
 			return;
 		}
 
+		m_cache.index = buffer;
+
 		Enqueue<RHICommandSetIndexBuffer>(buffer, offset);
 	}
 
@@ -359,6 +403,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		m_cache.vertexLayout = layout;
 
 		Enqueue<RHICommandSetVertexLayout>(layout);
 	}
@@ -370,22 +416,9 @@ namespace wtr
 			return;
 		}
 
+		m_cache.pipeline = pipeline;
+
 		Enqueue<RHICommandSetPipeLine>(pipeline);
-	}
-
-	void RHICommandList::SetRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
-	{
-		if (m_cache.renderTarget == target)
-		{
-			return;
-		}
-
-		Enqueue<RHICommandSetRenderTarget>(target);
-	}
-
-	void RHICommandList::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
-	{
-		Enqueue<RHICommandClearRenderTarget>(target, state);
 	}
 
 	void RHICommandList::UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
@@ -409,11 +442,11 @@ namespace wtr
 		Enqueue<RHICommandUnsetSampler>(sampler, binding);
 	}
 
-	void RHICommandList::UnsetVertexBuffer(const uint32_t binding)
+	void RHICommandList::UnsetVertexBuffer(const uint32_t bindingIndex)
 	{
-		m_cache.vertices[binding] = nullptr;
+		m_cache.vertices[bindingIndex] = nullptr;
 
-		Enqueue<RHICommandUnsetVertexBuffer>(binding);
+		Enqueue<RHICommandUnsetVertexBuffer>(bindingIndex);
 	}
 
 	void RHICommandList::UnsetIndexBuffer()
@@ -437,20 +470,42 @@ namespace wtr
 		Enqueue<RHICommandUnsetPipeLine>();
 	}
 
-	void RHICommandList::UnsetRenderTarget()
+	void RHICommandList::BeginRenderTarget(Memory::RefPtr<const RHIRenderTarget> target)
+	{
+		if (m_cache.renderTarget == target)
+		{
+			return;
+		}
+
+		m_cache.renderTarget = target;
+
+		Enqueue<RHICommandBeginRenderTarget>(target);
+	}
+
+	void RHICommandList::EndRenderTarget()
 	{
 		m_cache.renderTarget = nullptr;
 
-		Enqueue<RHICommandUnsetRenderTarget>();
+		Enqueue<RHICommandEndRenderTarget>();
 	}
 
-	void RHICommandList::DispatchCompute(const RHIDispatchDesc info)
+	void RHICommandList::ClearRenderTarget(Memory::RefPtr<const RHIRenderTarget> target, const RHIClearState& state)
+	{
+		Enqueue<RHICommandClearRenderTarget>(target, state);
+	}
+
+	void RHICommandList::DispatchCompute(const RHIDispatchDesc& info)
 	{
 		Enqueue<RHICommandDispatchCompute>(info);
 	}
 
-	void RHICommandList::DrawIndexPrimitive(const RHIDrawIndexDesc info)
+	void RHICommandList::DrawPrimitive(const RHIDrawDesc& info)
 	{
-		Enqueue<RHICommandDrawIndexPrimitive>(info);
+		Enqueue<RHICommandDrawPrimitive>(info);
+	}
+
+	void RHICommandList::DrawIndirectPrimitive(const RHIDrawIndirectDesc& info)
+	{
+		Enqueue<RHICommandDrawIndirectPrimitive>(info);
 	}
 }

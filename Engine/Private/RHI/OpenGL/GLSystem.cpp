@@ -589,25 +589,25 @@ namespace wtr
 			return;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
+		const uint32_t dimensionCount = GetDimensionCount(info.textureDimension);
 
 		bool Initialized = false;
-		if (textureDimension == 1)
+		if (dimensionCount == 1)
 		{
 			Initialized = InitializeTexture1D(info, textureID);
 		}
-		else if (textureDimension == 2)
+		else if (dimensionCount == 2)
 		{
 			Initialized = InitializeTexture2D(info, textureID);
 		}
-		else if (textureDimension == 3)
+		else if (dimensionCount == 3)
 		{
 			Initialized = InitializeTexture3D(info, textureID);
 		}
 		else
 		{
-			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << dimensionCount;
 		}
 		
 		if (!Initialized)
@@ -921,18 +921,18 @@ namespace wtr
 
 		const bool isColor = (attach == eAttachment::eColor);
 
-		const eTextureType textureType = glTexture->GetTextureType();
+		const eTextureDimension textureDimension = glTexture->GetTextureDimension();
 		const GLenum glAttach = isColor ? GetColorAttachment(slot) : GetDepthStencilAttachment(attach);
-		const uint32_t glTextureType = GetTextureType(textureType);
+		const uint32_t glTextureType = GetTextureType(textureDimension);
 		const uint32_t glTextureID = glTexture->GetID();
 		const uint32_t level = GL_ZERO; // Default for the frame buffer;
 		const uint32_t zOffset = GL_ZERO; // TODO
 
-		if (textureType == eTextureType::eTexture1D)
+		if (textureDimension == eTextureDimension::eTexture1D)
 		{
 			glFramebufferTexture1D(GL_FRAMEBUFFER, glAttach, glTextureType, glTextureID, level);
 		}
-		else if (textureType == eTextureType::eTexture2D)
+		else if (textureDimension == eTextureDimension::eTexture2D)
 		{
 			glFramebufferTexture2D(GL_FRAMEBUFFER, glAttach, glTextureType, glTextureID, level);
 		}
@@ -965,7 +965,7 @@ namespace wtr
 		update.sampleCount = info.sampleCount;
 		update.format = info.format;
 		update.usage = info.usage;
-		update.textureType = info.textureType;
+		update.textureDimension = info.textureDimension;
 		update.dataType = info.dataType;
 		update.generateMips = info.generateMips;
 		update.compressed = info.compressed;
@@ -995,7 +995,7 @@ namespace wtr
 		update.sampleCount = info.sampleCount;
 		update.format = info.format;
 		update.usage = info.usage;
-		update.textureType = info.textureType;
+		update.textureDimension = info.textureDimension;
 		update.dataType = info.dataType;
 		update.generateMips = info.generateMips;
 		update.compressed = info.compressed;
@@ -1025,7 +1025,7 @@ namespace wtr
 		update.sampleCount = info.sampleCount;
 		update.format = info.format;
 		update.usage = info.usage;
-		update.textureType = info.textureType;
+		update.textureDimension = info.textureDimension;
 		update.dataType = info.dataType;
 		update.generateMips = info.generateMips;
 		update.compressed = info.compressed;
@@ -1051,7 +1051,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1098,7 +1098,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1194,7 +1194,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1365,25 +1365,25 @@ namespace wtr
 		}
 
 		const uint32_t textureID = glTexture->GetID();
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
+		const uint32_t dimensionCount = GetDimensionCount(info.textureDimension);
 
 		bool initialized = false;
-		if (textureDimension == 1)
+		if (dimensionCount == 1)
 		{
 			initialized = UpdateTexture1D(info, textureID);
 		}
-		else if (textureDimension == 2)
+		else if (dimensionCount == 2)
 		{
 			initialized = UpdateTexture2D(info, textureID);
 		}
-		else if (textureDimension == 3)
+		else if (dimensionCount == 3)
 		{
 			initialized = UpdateTexture3D(info, textureID);
 		}
 		else
 		{
-			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << dimensionCount;
 		}
 
 		if (!initialized)
@@ -1460,25 +1460,25 @@ namespace wtr
 		}
 
 		const uint32_t textureID = glTexture->GetID();
-		const uint32_t textureType = GetTextureType(info.textureType);
-		const uint32_t textureDimension = GetTextureDimension(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
+		const uint32_t dimensionCount = GetDimensionCount(info.textureDimension);
 
 		bool initialized = false;
-		if (textureDimension == 1)
+		if (dimensionCount == 1)
 		{
 			initialized = ResizeTexture1D(info, textureID);
 		}
-		else if (textureDimension == 2)
+		else if (dimensionCount == 2)
 		{
 			initialized = ResizeTexture2D(info, textureID);
 		}
-		else if (textureDimension == 3)
+		else if (dimensionCount == 3)
 		{
 			initialized = ResizeTexture3D(info, textureID);
 		}
 		else
 		{
-			LOGERROR() << "[GL] Unrecognized texture dimension: " << textureDimension;
+			LOGERROR() << "[GL] Unrecognized texture dimension: " << dimensionCount;
 		}
 
 		if (!initialized)
@@ -1499,7 +1499,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1524,7 +1524,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1561,7 +1561,7 @@ namespace wtr
 			return false;
 		}
 
-		const uint32_t textureType = GetTextureType(info.textureType);
+		const uint32_t textureType = GetTextureType(info.textureDimension);
 		const uint32_t internalFormat = GetPixelFormat(info.format);
 		const uint32_t baseFormat = GetBaseFormat(info.format);
 		const uint32_t pixelDataType = GetPixelDataType(info.format);
@@ -1874,7 +1874,7 @@ namespace wtr
 			return;
 		}
 
-		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		const uint32_t textureType = GetTextureType(texture->GetTextureDimension());
 		glActiveTexture(GL_TEXTURE0 + binding);
 		glBindTexture(textureType, glTexture->GetID());
 	}
@@ -1966,6 +1966,8 @@ namespace wtr
 		{
 			return;
 		}
+
+		glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
 
 		const GLRenderTarget* glRenderTarget = reinterpret_cast<const GLRenderTarget*>(target->GetRawBuffer());
 		if (glRenderTarget == nullptr || glRenderTarget->GetID() == GL_NONE)
@@ -2079,7 +2081,7 @@ namespace wtr
 			return;
 		}
 
-		const uint32_t textureType = GetTextureType(texture->GetTextureType());
+		const uint32_t textureType = GetTextureType(texture->GetTextureDimension());
 		glActiveTexture(GL_TEXTURE0 + binding);
 		glBindTexture(textureType, GL_NONE);
 	}
@@ -2322,41 +2324,41 @@ namespace wtr
 		return accessFlags;
 	}
 
-	uint32_t GLSystem::GetTextureType(const eTextureType type) const
+	uint32_t GLSystem::GetTextureType(const eTextureDimension type) const
 	{
-		if (eTextureType::eTexture1D == type)
+		if (eTextureDimension::eTexture1D == type)
 		{
 			return GL_TEXTURE_1D;
 		}
-		else if (eTextureType::eTexture2D == type)
+		else if (eTextureDimension::eTexture2D == type)
 		{
 			return GL_TEXTURE_2D;
 		}
-		else if (eTextureType::eTexture3D == type)
+		else if (eTextureDimension::eTexture3D == type)
 		{
 			return GL_TEXTURE_3D;
 		}
-		else if (eTextureType::eTextureCube == type)
+		else if (eTextureDimension::eTextureCube == type)
 		{
 			return GL_TEXTURE_CUBE_MAP;
 		}
-		else if (eTextureType::eTexture1DArray == type)
+		else if (eTextureDimension::eTexture1DArray == type)
 		{
 			return GL_TEXTURE_1D_ARRAY;
 		}
-		else if (eTextureType::eTexture2DArray == type)
+		else if (eTextureDimension::eTexture2DArray == type)
 		{
 			return GL_TEXTURE_2D_ARRAY;
 		}
-		else if (eTextureType::eTextureCubeArray == type)
+		else if (eTextureDimension::eTextureCubeArray == type)
 		{
 			return GL_TEXTURE_CUBE_MAP_ARRAY;
 		}
-		else if (eTextureType::eTextureMultisample == type)
+		else if (eTextureDimension::eTextureMultisample == type)
 		{
 			return GL_TEXTURE_2D_MULTISAMPLE;
 		}
-		else if (eTextureType::eTextureMultisampleArray == type)
+		else if (eTextureDimension::eTextureMultisampleArray == type)
 		{
 			return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 		}
@@ -2366,27 +2368,27 @@ namespace wtr
 		}
 	}
 
-	uint32_t GLSystem::GetTextureDimension(const eTextureType texture) const
+	uint32_t GLSystem::GetDimensionCount(const eTextureDimension texture) const
 	{
-		if (eTextureType::eNone == texture ||
-			eTextureType::eTextureMultisample == texture ||
-			eTextureType::eTextureMultisampleArray == texture)
+		if (eTextureDimension::eNone == texture ||
+			eTextureDimension::eTextureMultisample == texture ||
+			eTextureDimension::eTextureMultisampleArray == texture)
 		{
 			return 0;
 		}
-		else if (eTextureType::eTexture1D == texture)
+		else if (eTextureDimension::eTexture1D == texture)
 		{
 			return 1;
 		}
-		else if (eTextureType::eTexture1DArray == texture ||
-			eTextureType::eTexture2D == texture ||
-			eTextureType::eTextureCube == texture)
+		else if (eTextureDimension::eTexture1DArray == texture ||
+			eTextureDimension::eTexture2D == texture ||
+			eTextureDimension::eTextureCube == texture)
 		{
 			return 2;
 		}
-		else if (eTextureType::eTexture2DArray == texture ||
-			eTextureType::eTexture3D == texture ||
-			eTextureType::eTextureCubeArray == texture)
+		else if (eTextureDimension::eTexture2DArray == texture ||
+			eTextureDimension::eTexture3D == texture ||
+			eTextureDimension::eTextureCubeArray == texture)
 		{
 			return 3;
 		}
@@ -2747,31 +2749,27 @@ namespace wtr
 
 	uint32_t GLSystem::GetDrawMode(const eDrawMode mode) const
 	{
-		if (eDrawMode::ePoints == mode)
+		if (eDrawMode::ePointList == mode)
 		{
 			return GL_POINTS;
 		}
-		else if (eDrawMode::eLines == mode)
+		else if (eDrawMode::eLineList == mode)
 		{
 			return GL_LINES;
 		}
-		else if (eDrawMode::eLine_Loop == mode)
-		{
-			return GL_LINE_LOOP;
-		}
-		else if (eDrawMode::eLine_Strip == mode)
+		else if (eDrawMode::eLineStrip == mode)
 		{
 			return GL_LINE_STRIP;
 		}
-		else if (eDrawMode::eTriangles == mode)
+		else if (eDrawMode::eTriangleList == mode)
 		{
 			return GL_TRIANGLES;
 		}
-		else if (eDrawMode::eTriangle_Strip == mode)
+		else if (eDrawMode::eTriangleStrip == mode)
 		{
 			return GL_TRIANGLE_STRIP;
 		}
-		else if (eDrawMode::eTriangle_Fan == mode)
+		else if (eDrawMode::eTriangleFan == mode)
 		{
 			return GL_TRIANGLE_FAN;
 		}

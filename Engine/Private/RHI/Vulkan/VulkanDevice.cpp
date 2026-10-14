@@ -87,7 +87,7 @@ namespace wtr
 		, m_physicalDevice(VK_NULL_HANDLE)
 		, m_logicalDevice(VK_NULL_HANDLE)
 		, m_queue(VK_NULL_HANDLE)
-		, m_apiVersion(VK_MAKE_API_VERSION(0, 1, 4, 0))
+		, m_apiVersion(VK_MAKE_API_VERSION(0, 1, 2, 0))
 		, m_appVersion(VK_MAKE_VERSION(1, 0, 0))
 		, m_engineVersion(VK_MAKE_VERSION(1, 0, 0))
 		, m_queueFamily(UINT32_MAX)

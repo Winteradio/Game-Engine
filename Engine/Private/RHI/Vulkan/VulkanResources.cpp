@@ -44,6 +44,7 @@ namespace wtr
 		, VulkanMemoryResource()
 		, m_image(VK_NULL_HANDLE)
 		, m_imageView(VK_NULL_HANDLE)
+		, m_imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
 	{}
 
 	VulkanTexture::~VulkanTexture()
@@ -59,6 +60,11 @@ namespace wtr
 		m_imageView = imageView;
 	}
 
+	void  VulkanTexture::SetImageLayout(const VkImageLayout imageLayout)
+	{
+		m_imageLayout = imageLayout;
+	}
+
 	const VkImage VulkanTexture::GetImage() const
 	{
 		return m_image;
@@ -67,6 +73,11 @@ namespace wtr
 	const VkImageView VulkanTexture::GetImageView() const
 	{
 		return m_imageView;
+	}
+
+	const  VkImageLayout VulkanTexture::GetImageLayout() const
+	{
+		return m_imageLayout;
 	}
 
 	VulkanSampler::VulkanSampler(const RHISamplerDesc& desc)

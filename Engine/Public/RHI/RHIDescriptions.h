@@ -1,30 +1,34 @@
 #ifndef __WTR_RHIDESCRIPTIONS_H__
 #define __WTR_RHIDESCRIPTIONS_H__
 
-#include <Memory/include/Pointer/RefPtr.h>
+#include <RHI/RHIStates.h>
+#include <Renderer/RenderData.h>
+
 #include <Container/include/DynamicArray.h>
 #include <Container/include/HashMap.h>
-#include <Renderer/RenderTypes.h>
-#include <RHI/RHIStates.h>
-#include <cstdint>
 
 namespace wtr
 {
 	class RHIBuffer;
 	class RHITexture;
 	class RHIShader;
-}
+	class RHIVertexLayout;
+	class RHIRenderPass;
+};
 
 namespace wtr
 {
 	struct RHIVertexAttribute
 	{
-		uint32_t		location		= 0;
-		uint32_t		offset			= 0;
-		uint8_t			numComponents	= 0;
+		uint32_t		location		= UINT32_MAX;
+
+		uint32_t		componentOffset = 0;
+		uint32_t		componentCount	= 0;
+		eDataType		componentType	= eDataType::eNone;
+
 		uint8_t			semanticIndex	= 0;
 		eVertexSemantic	semantic		= eVertexSemantic::eNone;
-		eDataType		componentType	= eDataType::eNone;
+		
 		bool			normalized		= false;
 	};
 
@@ -39,65 +43,37 @@ namespace wtr
 		RHIVertexAttribute	attribute;
 		RHIVertexBinding	binding;
 
-		uint32_t			bindingIndex	= 0;
+		uint32_t			bindingIndex	= UINT32_MAX;
 	};
 
-	template<uint32_t N>
-	struct RHIDataRange
+	struct RHIShaderAttribute
 	{
-		Memory::RefPtr<const RawData>	data;
+		uint32_t		location		= UINT32_MAX;
 
-		wtr::StaticArray<uint32_t, N>	offset		= { 0 };
-
-		static constexpr uint32_t		dimension	= N;
-	};
-
-	struct RHITexturerMipMap : RHIDataRange<1>
-	{
-		uint32_t	level	= 0;
-	};
-
-	struct RHITextureFace
-	{
-		wtr::DynamicArray<RHITexturerMipMap>	mipMaps;
-		uint32_t								index	= 0;
-	};
-
-	struct RHIShaderVariable
-	{
-		int32_t		location	= -1;				// attribute location
-		uint32_t	row			= 1;				// number of rows in the variable (for matrices)
-		uint32_t	column		= 1;				// number of columns in the variable (for matrices)
-		eDataType	type		= eDataType::eNone;	// enum: eDataType
+		uint32_t	componentCount	= 0;
+		eDataType	componentType	= eDataType::eNone;
 	};
 
 	struct RHIShaderBinding
 	{
-		int32_t			binding	= -1;					// resource binding location
-		eBindingType	type	= eBindingType::eNone;	// type of the binding resource
-	};
+		using eBindingState = eDataState;
 
-	using RHIShaderVariables = wtr::HashMap<std::string, RHIShaderVariable>;
-	using RHIShaderBindings = wtr::HashMap<std::string, RHIShaderBinding>;
+		uint32_t		binding			= UINT32_MAX;
+		
+		eBindingType	bindingType		= eBindingType::eNone;
+		eBindingState	bindingState	= eBindingState::eNone;
+	};
 
 	struct RHIConstDesc
 	{
-		eDataType						dataType	= eDataType::eNone;
+		DataBlob blob;
 
-		uint32_t						row			= 1;
-		uint32_t						column		= 1;
-		uint32_t						offset		= 0;
-
-		bool							transpose	= false;
-
-		Memory::RefPtr<const RawData>	data;
+		bool transpose = false;
 	};
 
 	struct RHIDataDesc
 	{
-		// 갱신 빈도 — 어느 메모리 힙에 올릴지를 결정한다 (Static/Dynamic/Stream).
-		// "이 리소스로 무엇을 할 수 있는가"는 eBufferUsage / eTextureUsage 쪽 책임.
-		eDataAccess	access			= eDataAccess::eNone;
+		eDataUsage	dataUsage		= eDataUsage::eNone;
 		eDataType	componentType	= eDataType::eNone;
 
 		uint32_t	size			= 0;
@@ -105,30 +81,45 @@ namespace wtr
 
 	struct RHIBufferDesc : RHIDataDesc
 	{
-		eBufferUsage	usage			= eBufferUsage::eNone;
+		uint32_t componentCount		= 0;
+		uint32_t stride				= 0;
 
-		uint32_t		numComponents	= 0;
-		uint32_t		stride			= 0;
+		RHIBufferDesc() = default;
+		RHIBufferDesc(const RHIDataDesc& desc)
+			: RHIDataDesc(desc)
+		{}
+
+		RHIBufferDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
 	};
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
-		using DataRange = RHIDataRange<1>;
+		wtr::DynamicArray<DataBlob> blobs;
 
-		wtr::DynamicArray<DataRange>	dataRanges;
+		eBufferUsage bufferUsage = eBufferUsage::eNone;
 
 		RHIBufferCreateDesc() = default;
+		RHIBufferCreateDesc(const RHIDataDesc& desc)
+			: RHIBufferDesc(desc)
+		{}
+
 		RHIBufferCreateDesc(const RHIBufferDesc& desc)
 			: RHIBufferDesc(desc)
 		{}
 
+		RHIBufferCreateDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
+
 		RHIBufferCreateDesc& operator=(const RHIBufferDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHIBufferDesc::operator=(desc);
-			}
-
+			RHIBufferDesc::operator=(desc);
 			return *this;
 		}
 	};
@@ -136,6 +127,10 @@ namespace wtr
 	struct RHIBufferUpdateDesc : RHIBufferCreateDesc
 	{
 		RHIBufferUpdateDesc() = default;
+		RHIBufferUpdateDesc(const RHIDataDesc& desc)
+			: RHIBufferCreateDesc(desc)
+		{}
+
 		RHIBufferUpdateDesc(const RHIBufferDesc& desc)
 			: RHIBufferCreateDesc(desc)
 		{}
@@ -144,48 +139,78 @@ namespace wtr
 			: RHIBufferCreateDesc(desc)
 		{}
 
+		RHIBufferUpdateDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
+
+		RHIBufferUpdateDesc& operator=(const RHIBufferDesc& desc)
+		{
+			RHIBufferDesc::operator=(desc);
+			return *this;
+		}
+
 		RHIBufferUpdateDesc& operator=(const RHIBufferCreateDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHIBufferCreateDesc::operator=(desc);
-			}
-
+			RHIBufferCreateDesc::operator=(desc);
 			return *this;
 		}
 	};
 
 	struct RHITextureDesc : RHIDataDesc
 	{
-		uint32_t			width			= 0;
-		uint32_t			height			= 0;
-		uint32_t			depth			= 0;
+		uint32_t			width			= 1;
+		uint32_t			height			= 1;
+		uint32_t			depth			= 1;
+
+		uint32_t			level			= 1;
+		uint32_t			layer			= 1;
 		uint32_t			face			= 1;
-		uint32_t			mipLevels		= 1;
-		uint32_t			sampleCount		= 1;
-		ePixelFormat		format			= ePixelFormat::eNone;
-		eTextureUsage		usage			= eTextureUsage::eNone;
-		eTextureDimension	dimension		= eTextureDimension::eNone;
+		uint32_t			sample			= 1;
+		
+		ePixelFormat		pixelFormat		= ePixelFormat::eNone;
+		eTextureDimension	textureDimension= eTextureDimension::eNone;
+
 		bool				generateMips	= false;
 		bool				compressed		= false;
+
+		RHITextureDesc() = default;
+		RHITextureDesc(const RHIDataDesc& desc)
+			: RHIDataDesc(desc)
+		{}
+
+		RHITextureDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
 	};
 
 	struct RHITextureCreateDesc : RHITextureDesc
 	{
-		wtr::DynamicArray<RHITextureFace>	faces;
+		wtr::DynamicArray<TextureBlob> blobs;
+
+		eTextureUsage textureUsage = eTextureUsage::eNone;
 
 		RHITextureCreateDesc() = default;
+		RHITextureCreateDesc(const RHIDataDesc& desc)
+			: RHITextureDesc(desc)
+		{}
+
 		RHITextureCreateDesc(const RHITextureDesc& desc)
 			: RHITextureDesc(desc)
 		{}
 
+		RHITextureCreateDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
+
 		RHITextureCreateDesc& operator=(const RHITextureDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHITextureDesc::operator=(desc);
-			}
-
+			RHITextureDesc::operator=(desc);
 			return *this;
 		}
 	};
@@ -193,58 +218,66 @@ namespace wtr
 	struct RHITextureUpdateDesc : RHITextureCreateDesc
 	{
 		RHITextureUpdateDesc() = default;
+		RHITextureUpdateDesc(const RHIDataDesc& desc)
+			: RHITextureCreateDesc(desc)
+		{}
+
 		RHITextureUpdateDesc(const RHITextureDesc& desc)
 			: RHITextureCreateDesc(desc)
 		{}
 
+		RHITextureUpdateDesc(const RHITextureCreateDesc& desc)
+			: RHITextureCreateDesc(desc)
+		{}
+
+		RHITextureUpdateDesc& operator=(const RHIDataDesc& desc)
+		{
+			RHIDataDesc::operator=(desc);
+			return *this;
+		}
+
 		RHITextureUpdateDesc& operator=(const RHITextureDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHITextureDesc::operator=(desc);
-			}
-
+			RHITextureDesc::operator=(desc);
 			return *this;
 		}
 
 		RHITextureUpdateDesc& operator=(const RHITextureCreateDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHITextureCreateDesc::operator=(desc);
-			}
-
+			RHITextureCreateDesc::operator=(desc);
 			return *this;
 		}
 	};
 
 	struct RHIVertexLayoutDesc
 	{
-		wtr::HashMap<VertexKey, RHIVertexStream>	streams;
+		wtr::HashMap<VertexKey, RHIVertexStream> streams;
 	};
 
 	struct RHIVertexLayoutCreateDesc : RHIVertexLayoutDesc
 	{
+		RHIVertexLayoutCreateDesc() = default;
+		RHIVertexLayoutCreateDesc(const RHIVertexLayoutDesc& desc)
+			: RHIVertexLayoutDesc(desc)
+		{}
+
 		RHIVertexLayoutCreateDesc& operator=(const RHIVertexLayoutDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHIVertexLayoutDesc::operator=(desc);
-			}
-
+			RHIVertexLayoutDesc::operator=(desc);
 			return *this;
 		}
 	};
 
 	struct RHIVertexLayoutUpdateDesc : RHIVertexLayoutDesc
 	{
+		RHIVertexLayoutUpdateDesc() = default;
+		RHIVertexLayoutUpdateDesc(const RHIVertexLayoutDesc& desc)
+			: RHIVertexLayoutDesc(desc)
+		{}
+
 		RHIVertexLayoutUpdateDesc& operator=(const RHIVertexLayoutDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHIVertexLayoutDesc::operator=(desc);
-			}
-
+			RHIVertexLayoutDesc::operator=(desc);
 			return *this;
 		}
 	};
@@ -272,17 +305,23 @@ namespace wtr
 
 			return true;
 		}
+
+		bool operator!=(const RHISamplerDesc& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHISamplerCreateDesc : RHISamplerDesc
 	{
+		RHISamplerCreateDesc() = default;
+		RHISamplerCreateDesc(const RHISamplerDesc& desc)
+			: RHISamplerDesc(desc)
+		{}
+
 		RHISamplerCreateDesc& operator=(const RHISamplerDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHISamplerDesc::operator=(desc);
-			}
-
+			RHISamplerDesc::operator=(desc);
 			return *this;
 		}
 	};
@@ -294,7 +333,18 @@ namespace wtr
 
 	struct RHIShaderCreateDesc : RHIShaderDesc
 	{
-		Memory::RefPtr<RawData>	data;
+		DataBlob blob;
+
+		RHIShaderCreateDesc() = default;
+		RHIShaderCreateDesc(const RHIShaderDesc& desc)
+			: RHIShaderDesc(desc)
+		{}
+
+		RHIShaderCreateDesc& operator=(const RHIShaderDesc& desc)
+		{
+			RHIShaderDesc::operator=(desc);
+			return *this;
+		}
 	};
 
 	struct RHIPipeLineDesc
@@ -331,20 +381,26 @@ namespace wtr
 
 			return true;
 		}
+
+		bool operator!=(const RHIPipeLineDesc& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
 	{
-		Memory::RefPtr<const RHIVertexLayout>	layout;
-		Memory::RefPtr<const RHIRenderTarget>	target;
+		Memory::RefPtr<const RHIVertexLayout> layout;
+		Memory::RefPtr<const RHIRenderPass> target;
+
+		RHIPipeLineCreateDesc() = default;
+		RHIPipeLineCreateDesc(const RHIPipeLineDesc& desc)
+			: RHIPipeLineDesc(desc)
+		{}
 
 		RHIPipeLineCreateDesc& operator=(const RHIPipeLineDesc& desc)
 		{
-			if (this != &desc)
-			{
-				RHIPipeLineDesc::operator=(desc);
-			}
-
+			RHIPipeLineDesc::operator=(desc);
 			return *this;
 		}
 
@@ -362,19 +418,39 @@ namespace wtr
 
 			return true;
 		}
+
+		bool operator!=(const RHIPipeLineCreateDesc& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
-	struct RHIDrawIndexDesc
+	struct RHIDrawDesc
 	{
 		eDrawMode	drawMode		= eDrawMode::eNone;
 		eDataType	indexType		= eDataType::eNone;
 
 		uint32_t	indexCount		= 0;
 		uint32_t	indexOffset		= 0;
-		uint32_t	baseVertex		= 0;
-		uint32_t	instanceCount	= 1;
 
-		bool		indirectDraw	= false;
+		int32_t		baseVertex		= 0;
+		uint32_t	instanceCount	= 1;
+	};
+
+	struct RHIDrawIndirectDesc : RHIDrawDesc
+	{
+		uint32_t	baseInstance = 0;
+
+		RHIDrawIndirectDesc() = default;
+		RHIDrawIndirectDesc(const RHIDrawDesc& desc)
+			: RHIDrawDesc(desc)
+		{}
+
+		RHIDrawIndirectDesc& operator=(const RHIDrawDesc& desc)
+		{
+			RHIDrawDesc::operator=(desc);
+			return *this;
+		}
 	};
 
 	struct RHIDispatchDesc
@@ -386,38 +462,59 @@ namespace wtr
 
 	struct RHIAttachment
 	{
-		eAttachment							type	= eAttachment::eNone;
+		eAttachmentType		type	= eAttachmentType::eNone;
+		eAttachmentLoadOp	loadOp	= eAttachmentLoadOp::eDontCare;
+		eAttachmentStoreOp	storeOp	= eAttachmentStoreOp::eStore;
 
 		Memory::RefPtr<const RHITexture>	texture;
 	};
 
 	struct RHIColorAttachment : RHIAttachment
 	{
-		uint32_t	slot	= 0;
+		uint32_t slot = UINT32_MAX;
+
+		RHIColorAttachment() = default;
+		RHIColorAttachment(const RHIAttachment& desc)
+			: RHIAttachment(desc)
+		{}
+
+		RHIColorAttachment& operator=(const RHIAttachment& desc)
+		{
+			RHIAttachment::operator=(desc);
+			return *this;
+		}
 	};
 
 	struct RHIDepthStencilAttachment : RHIAttachment
 	{
+		RHIDepthStencilAttachment() = default;
+		RHIDepthStencilAttachment(const RHIAttachment& desc)
+			: RHIAttachment(desc)
+		{}
 
-	};
-
-	struct RHIRenderTargetDesc
-	{
-		wtr::DynamicArray<RHIColorAttachment>	colors;
-		RHIDepthStencilAttachment				depthStencil;
-	};
-
-	struct RHIRenderTargetCreateDesc : RHIRenderTargetDesc
-	{
-		Memory::RefPtr<const RHIVertexLayout>	vertexLayout;
-
-		RHIRenderTargetCreateDesc& operator=(const RHIRenderTargetDesc& desc)
+		RHIDepthStencilAttachment& operator=(const RHIAttachment& desc)
 		{
-			if (this != &desc)
-			{
-				RHIRenderTargetDesc::operator=(desc);
-			}
+			RHIAttachment::operator=(desc);
+			return *this;
+		}
+	};
 
+	struct RHIRenderPassDesc
+	{
+		wtr::DynamicArray<RHIColorAttachment> colors;
+		RHIDepthStencilAttachment depthStencil;
+	};
+
+	struct RHIRenderPassCreateDesc : RHIRenderPassDesc
+	{
+		RHIRenderPassCreateDesc() = default;
+		RHIRenderPassCreateDesc(const RHIRenderPassDesc& desc)
+			: RHIRenderPassDesc(desc)
+		{}
+
+		RHIRenderPassCreateDesc& operator=(const RHIRenderPassDesc& desc)
+		{
+			RHIRenderPassDesc::operator=(desc);
 			return *this;
 		}
 	};

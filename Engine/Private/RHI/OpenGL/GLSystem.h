@@ -89,8 +89,8 @@ namespace wtr
 		uint32_t GetDataDivisor(const eDataDivisor divisor) const;
 		uint32_t GetMapAccess(const eMapAccess access) const;
 
-		uint32_t GetTextureType(const eTextureType texture) const;
-		uint32_t GetTextureDimension(const eTextureType texture) const;
+		uint32_t GetTextureType(const eTextureDimension texture) const;
+		uint32_t GetDimensionCount(const eTextureDimension texture) const;
 		uint32_t GetPixelFormat(const ePixelFormat pixel) const;
 		uint32_t GetBaseFormat(const ePixelFormat pixel) const;
 		uint32_t GetPixelDataType(const ePixelFormat pixel) const;

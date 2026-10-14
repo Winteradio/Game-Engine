@@ -144,6 +144,19 @@ namespace wtr
 		}
 	}
 
+	RHICommandInitializeDomainShader::RHICommandInitializeDomainShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
+		: m_info(info)
+		, m_shader(shader)
+	{}
+
+	void RHICommandInitializeDomainShader::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system && m_shader)
+		{
+			system->InitializeShader(m_info, m_shader);
+		}
+	}
+
 	RHICommandInitializePixelShader::RHICommandInitializePixelShader(const RHIShaderCreateDesc info, const Memory::RefPtr<RHIShader> shader)
 		: m_info(info)
 		, m_shader(shader)
@@ -349,10 +362,9 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const uint32_t binding, const uint32_t set)
+	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const int32_t binding)
 		: m_info(info)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -360,13 +372,13 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetConstant(m_info, m_binding, m_set);
+			system->SetConstant(m_info, m_binding);
 		}
 	}
 
-	RHICommandSetVertexBuffer::RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t offset)
+	RHICommandSetVertexBuffer::RHICommandSetVertexBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t bindingIndex, const uint32_t offset)
 		: m_buffer(buffer)
-		, m_binding(binding)
+		, m_bindingIndex(bindingIndex)
 		, m_offset(offset)
 	{
 	}
@@ -375,7 +387,7 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetVertexBuffer(m_buffer, m_binding, m_offset);
+			system->SetVertexBuffer(m_buffer, m_bindingIndex, m_offset);
 		}
 	}
 
@@ -393,10 +405,9 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set)
+	RHICommandSetBuffer::RHICommandSetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 		: m_buffer(buffer)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -404,14 +415,13 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetBuffer(m_buffer, m_binding, m_set);
+			system->SetBuffer(m_buffer, m_binding);
 		}
 	}
 
-	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set)
+	RHICommandSetTexture::RHICommandSetTexture(const Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 		: m_texture(texture)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -419,14 +429,13 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetTexture(m_texture, m_binding, m_set);
+			system->SetTexture(m_texture, m_binding);
 		}
 	}
 
-	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set)
+	RHICommandSetSampler::RHICommandSetSampler(const Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 		: m_sampler(sampler)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -434,7 +443,7 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->SetSampler(m_sampler, m_binding, m_set);
+			system->SetSampler(m_sampler, m_binding);
 		}
 	}
 
@@ -464,16 +473,16 @@ namespace wtr
 		}
 	}
 
-	RHICommandSetRenderTarget::RHICommandSetRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
+	RHICommandBeginRenderTarget::RHICommandBeginRenderTarget(const Memory::RefPtr<const RHIRenderTarget> target)
 		: m_target(target)
 	{
 	}
 
-	void RHICommandSetRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandBeginRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
 	{
 		if (system && m_target)
 		{
-			system->SetRenderTarget(m_target);
+			system->BeginRenderTarget(m_target);
 		}
 	}
 
@@ -491,24 +500,9 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetConstant::RHICommandUnsetConstant(const uint32_t binding, const uint32_t set)
-		: m_binding(binding)
-		, m_set(set)
-	{
-	}
-
-	void RHICommandUnsetConstant::Execute(Memory::RefPtr<RHISystem> system)
-	{
-		if (system)
-		{
-			system->UnsetConstant(m_binding, m_set);
-		}
-	}
-
-	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t set)
+	RHICommandUnsetBuffer::RHICommandUnsetBuffer(const Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding)
 		: m_buffer(buffer)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -516,14 +510,13 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetBuffer(m_buffer, m_binding, m_set);
+			system->UnsetBuffer(m_buffer, m_binding);
 		}
 	}
 
-	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const uint32_t binding, const uint32_t set)
+	RHICommandUnsetTexture::RHICommandUnsetTexture(const Memory::RefPtr<const RHITexture> texture, const int32_t binding)
 		: m_texture(texture)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -531,14 +524,13 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetTexture(m_texture, m_binding, m_set);
+			system->UnsetTexture(m_texture, m_binding);
 		}
 	}
 
-	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const uint32_t binding, const uint32_t set)
+	RHICommandUnsetSampler::RHICommandUnsetSampler(const Memory::RefPtr<const RHISampler> sampler, const int32_t binding)
 		: m_sampler(sampler)
 		, m_binding(binding)
-		, m_set(set)
 	{
 	}
 
@@ -546,12 +538,12 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetSampler(m_sampler, m_binding, m_set);
+			system->UnsetSampler(m_sampler, m_binding);
 		}
 	}
 
-	RHICommandUnsetVertexBuffer::RHICommandUnsetVertexBuffer(const uint32_t binding)
-		: m_binding(binding)
+	RHICommandUnsetVertexBuffer::RHICommandUnsetVertexBuffer(const uint32_t bindingIndex)
+		: m_bindingIndex(bindingIndex)
 	{
 	}
 
@@ -559,7 +551,7 @@ namespace wtr
 	{
 		if (system)
 		{
-			system->UnsetVertexBuffer(m_binding);
+			system->UnsetVertexBuffer(m_bindingIndex);
 		}
 	}
 
@@ -595,15 +587,15 @@ namespace wtr
 		}
 	}
 
-	RHICommandUnsetRenderTarget::RHICommandUnsetRenderTarget()
+	RHICommandEndRenderTarget::RHICommandEndRenderTarget()
 	{
 	}
 
-	void RHICommandUnsetRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandEndRenderTarget::Execute(Memory::RefPtr<RHISystem> system)
 	{
 		if (system)
 		{
-			system->UnsetRenderTarget();
+			system->EndRenderTarget();
 		}
 	}
 
@@ -620,15 +612,27 @@ namespace wtr
 		}
 	}
 
-	RHICommandDrawIndexPrimitive::RHICommandDrawIndexPrimitive(const RHIDrawIndexDesc info)
+	RHICommandDrawPrimitive::RHICommandDrawPrimitive(const RHIDrawDesc info)
 		: m_info(info)
 	{}
 
-	void RHICommandDrawIndexPrimitive::Execute(Memory::RefPtr<RHISystem> system)
+	void RHICommandDrawPrimitive::Execute(Memory::RefPtr<RHISystem> system)
 	{
 		if (system)
 		{
-			system->DrawIndexPrimitive(m_info);
+			system->DrawPrimitive(m_info);
+		}
+	}
+
+	RHICommandDrawIndirectPrimitive::RHICommandDrawIndirectPrimitive(const RHIDrawIndirectDesc info)
+		: m_info(info)
+	{}
+
+	void RHICommandDrawIndirectPrimitive::Execute(Memory::RefPtr<RHISystem> system)
+	{
+		if (system)
+		{
+			system->DrawIndirectPrimitive(m_info);
 		}
 	}
 

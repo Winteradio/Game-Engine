@@ -197,7 +197,7 @@ namespace wtr
 		colorDesc.sampleCount = 1;
 		colorDesc.format = system.GetPixelFormat(m_swapChainFormat);
 		colorDesc.usage = eTextureUsage::eRenderTarget;
-		colorDesc.textureType = eTextureType::eTexture2D;
+		colorDesc.textureDimension = eTextureDimension::eTexture2D;
 		colorDesc.dataType = eDataType::eUByte;
 		colorDesc.generateMips = false;
 		colorDesc.compressed = false;
@@ -239,7 +239,7 @@ namespace wtr
 		depthStencilDesc.sampleCount = 1;
 		depthStencilDesc.format = ePixelFormat::eD24_S8;
 		depthStencilDesc.usage = eTextureUsage::eDepthStencil;
-		depthStencilDesc.textureType = eTextureType::eTexture2D;
+		depthStencilDesc.textureDimension = eTextureDimension::eTexture2D;
 		depthStencilDesc.dataType = eDataType::eFloat;
 		depthStencilDesc.generateMips = false;
 		depthStencilDesc.compressed = false;

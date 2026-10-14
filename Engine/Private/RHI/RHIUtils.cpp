@@ -9,6 +9,44 @@
 
 namespace wtr
 {
+	bool RHISystem::CheckShaderVariable(Memory::RefPtr<RHIShader> shader)
+	{
+		if (!shader)
+		{
+			return false;
+		}
+
+		const auto& inputs = shader->GetInputs();
+		for (const auto& [name, attribute] : inputs)
+		{
+			if (name.substr(0, 3) == "gl_")
+			{
+				continue;
+			}
+
+			const VertexKey vertexKey = GetVertexKey(name);
+			if (vertexKey.semantic == eVertexSemantic::eNone || vertexKey.semanticIndex == 0xFF)
+			{
+				LOGWARN() << "[RHI] Unrecognized vertex attribute: " << name;
+				continue;
+			}
+
+			const int32_t expectedLocation = GetVertexLocation(vertexKey);
+			const int32_t actualLocation = attribute.location;
+
+			if (actualLocation != expectedLocation)
+			{
+				LOGWARN() << "[RHI] Vertex attribute location mismatch: " << name
+					<< ", expected location : " << expectedLocation
+					<< ", actual location : " << actualLocation;
+
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	namespace RHIUtils
 	{
 		eRenderType RENDER_TYPE = eRenderType::eNone;
