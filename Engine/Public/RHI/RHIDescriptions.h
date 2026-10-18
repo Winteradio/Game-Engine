@@ -3,6 +3,7 @@
 
 #include <RHI/RHIStates.h>
 #include <Renderer/RenderData.h>
+#include <Framework/Name.h>
 
 #include <Container/include/DynamicArray.h>
 #include <Container/include/HashMap.h>
@@ -46,12 +47,24 @@ namespace wtr
 		uint32_t			bindingIndex	= UINT32_MAX;
 	};
 
-	struct RHIShaderAttrib
+	struct RHIShaderLayout
 	{
 		uint32_t	location		= UINT32_MAX;
 
 		uint32_t	componentCount	= 0;
 		eDataType	componentType	= eDataType::eNone;
+
+		bool operator==(const RHIShaderLayout& other) const noexcept
+		{
+			return (location == other.location) &&
+				(componentCount == other.componentCount) &&
+				(componentType == other.componentType);
+		}
+
+		bool operator!=(const RHIShaderLayout& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHIShaderConst
@@ -59,28 +72,73 @@ namespace wtr
 		uint32_t	binding			= UINT32_MAX;
 
 		eDataStage	stage			= eDataStage::eNone;
+
+		bool operator==(const RHIShaderConst& other) const noexcept
+		{
+			return (binding == other.binding) &&
+				(stage == other.stage);
+		}
+
+		bool operator!=(const RHIShaderConst& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHIShaderBuffer : RHIBufferState
 	{
 		uint32_t	binding			= UINT32_MAX;
+
+		bool operator==(const RHIShaderBuffer& other) const noexcept
+		{
+			return RHIBufferState::operator==(other) &&
+				(binding == other.binding);
+		}
+
+		bool operator!=(const RHIShaderBuffer& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHIShaderSampler : RHITextureState
 	{
 		uint32_t	binding			= UINT32_MAX;
+
+		bool operator==(const RHIShaderSampler& other) const noexcept
+		{
+			return RHITextureState::operator==(other) &&
+				(binding == other.binding);
+		}
+		
+		bool operator!=(const RHIShaderSampler& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
-	struct RHIShaderAttach : RHITextureState
+	struct RHIShaderTexture : RHITextureState
 	{
 		uint32_t	location		= UINT32_MAX;
+
+		bool operator==(const RHIShaderTexture& other) const noexcept
+		{
+			return RHITextureState::operator==(other) &&
+				(location == other.location);
+		}
+
+		bool operator!=(const RHIShaderTexture& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
-	using RHIShaderAttribs	= wtr::HashMap<VertexKey, RHIShaderAttrib>;
-	using RHIShaderConsts	= wtr::HashMap<std::string, RHIShaderConst>;
-	using RHIShaderBuffers	= wtr::HashMap<std::string, RHIShaderBuffer>;
-	using RHIShaderSamplers	= wtr::HashMap<std::string, RHIShaderSampler>;
-	using RHIShaderAttaches = wtr::HashMap<std::string, RHIShaderAttach>;
+	using RHIShaderAttribs	= wtr::HashMap<VertexKey, RHIShaderLayout>;
+	using RHIShaderAttaches = wtr::HashMap<Name, RHIShaderLayout>;
+	using RHIShaderConsts	= wtr::HashMap<Name, RHIShaderConst>;
+	using RHIShaderBuffers	= wtr::HashMap<Name, RHIShaderBuffer>;
+	using RHIShaderSamplers	= wtr::HashMap<Name, RHIShaderSampler>;
+	using RHIShaderTextures	= wtr::HashMap<Name, RHIShaderTexture>;
 
 	struct RHIConstDesc
 	{
@@ -383,6 +441,8 @@ namespace wtr
 		Memory::RefPtr<const RHIShader>	pixelShader;
 		Memory::RefPtr<const RHIShader>	computeShader;
 
+		Memory::RefPtr<const RHIVertexLayout> layout;
+
 		bool operator==(const RHIPipeLineDesc& other) const noexcept
 		{
 			if (color != other.color ||
@@ -395,7 +455,8 @@ namespace wtr
 				hullShader != other.hullShader ||
 				domainShader != other.domainShader ||
 				pixelShader != other.pixelShader ||
-				computeShader != other.computeShader)
+				computeShader != other.computeShader ||
+				layout != other.layout)
 			{
 				return false;
 			}
@@ -411,7 +472,6 @@ namespace wtr
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
 	{
-		Memory::RefPtr<const RHIVertexLayout> layout;
 		Memory::RefPtr<const RHIRenderPass> target;
 
 		RHIPipeLineCreateDesc() = default;
@@ -558,6 +618,18 @@ namespace wtr
 	{
 		wtr::DynamicArray<RHIBufferTransition>	buffers;
 		wtr::DynamicArray<RHITextureTransition>	textures;
+	};
+
+	struct RHIBufferView
+	{
+		Memory::RefPtr<const RHIBuffer>		buffer;
+		size_t offset = 0;
+		size_t range = 0;
+	};
+
+	struct RHITextureView
+	{
+		// TODO
 	};
 };
 

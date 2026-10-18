@@ -130,7 +130,6 @@ namespace wtr
 			void SetDesc(const RHITextureDesc& desc);
 
 		private :
-			// 배리어 상태는 기록 시점에 RHICommandList만 갱신 (UE FRHIViewableResource::TrackedAccess)
 			friend class RHICommandList;
 			void SetTextureState(const RHITextureState& state) const;
 
@@ -167,7 +166,54 @@ namespace wtr
 			RHISamplerDesc m_desc;
 	};
 
-	class RHIShader : public RHIResource
+	class RHIStage : public RHIResource
+	{
+	public :
+		RHIStage() = default;
+		virtual ~RHIStage() = default;
+
+	public :
+		void Clear();
+
+		void AddAttrib(const VertexKey& key, const RHIShaderLayout& attrib);
+		void AddAttach(const Name& name, const RHIShaderLayout& attach);
+
+		void AddConst(const Name& name, const RHIShaderConst& constant);
+		void AddBuffer(const Name& name, const RHIShaderBuffer& buffer);
+		void AddSampler(const Name& name, const RHIShaderSampler& sampler);
+		void AddTexture(const Name& name, const RHIShaderTexture& texture);
+
+		bool HasAttrib(const VertexKey& key) const;
+		bool HasAttach(const Name& name) const;
+		bool HasConst(const Name& name) const;
+		bool HasBuffer(const Name& name) const;
+		bool HasSampler(const Name& name) const;
+		bool HasTexture(const Name& name) const;
+
+		const RHIShaderLayout& GetAttrib(const VertexKey& key) const;
+		const RHIShaderLayout& GetAttach(const Name& name) const;
+		const RHIShaderConst& GetConst(const Name& name) const;
+		const RHIShaderBuffer& GetBuffer(const Name& name) const;
+		const RHIShaderSampler& GetSampler(const Name& name) const;
+		const RHIShaderTexture& GetTexture(const Name& name) const;
+
+		const RHIShaderAttribs& GetAttribs() const;
+		const RHIShaderAttaches& GetAttaches() const;
+		const RHIShaderConsts& GetConsts() const;
+		const RHIShaderBuffers& GetBuffers() const;
+		const RHIShaderSamplers& GetSamplers() const;
+		const RHIShaderTextures& GetTextures() const;
+
+	protected :
+		RHIShaderAttribs m_attribs;
+		RHIShaderAttaches m_attaches;
+		RHIShaderConsts m_consts;
+		RHIShaderBuffers m_buffers;
+		RHIShaderSamplers m_samplers;
+		RHIShaderTextures m_textures;
+	};
+
+	class RHIShader : public RHIStage
 	{
 	public :
 		RHIShader(const RHIShaderDesc& desc);
@@ -177,28 +223,11 @@ namespace wtr
 		eShaderType GetShaderType() const;
 		const RHIShaderDesc& GetDesc() const;
 
-		void AddInput(const std::string& name, const RHIShaderAttrib& input);
-		void AddOutput(const std::string& name, const RHIShaderAttrib& output);
-		void AddConst(const std::string& name, const RHIShaderConst& constant);
-		void AddBuffer(const std::string& name, const RHIShaderBuffer& buffer);
-		void AddSampler(const std::string& name, const RHIShaderSampler& sampler);
-
-		const RHIShaderAttribs& GetInputs() const;
-		const RHIShaderAttribs& GetOutputs() const;
-		const RHIShaderConsts& GetConsts() const;
-		const RHIShaderBuffers& GetBuffers() const;
-		const RHIShaderSamplers& GetSamplers() const;
-
 	private :
 		RHIShaderDesc m_desc;
-		RHIShaderAttribs m_inputs;
-		RHIShaderAttribs m_outputs;
-		RHIShaderConsts m_consts;
-		RHIShaderBuffers m_buffers;
-		RHIShaderSamplers m_samplers;
 	};
 
-	class RHIPipeLine : public RHIResource
+	class RHIPipeLine : public RHIStage
 	{
 	public :
 		RHIPipeLine(const RHIPipeLineDesc& desc);
@@ -212,67 +241,28 @@ namespace wtr
 		RHIRasterizerState GetRasterizerState() const;
 		const RHIPipeLineDesc& GetDesc() const;
 
-		void SetDesc(const RHIPipeLineDesc& desc);
-		void SetColorState(const RHIColorState& color);
-		void SetDepthState(const RHIDepthState& depth);
-		void SetStencilState(const RHIStencilState& stencil);
-		void SetBlendState(const RHIBlendState& blend);
-		void SetRasterizerState(const RHIRasterizerState& rasterizer);
-
-		// 셰이더 단계별 리플렉션을 파이프라인 하나로 합친다 (백엔드의 InitializePipeLine에서 셰이더마다 호출)
-		void AddShader(const RHIShader& shader);
-
-		void AddInput(const VertexKey& key, const RHIShaderAttrib& input);
-		void AddOutput(const std::string& name, const RHIShaderAttrib& output);
-		void AddConst(const std::string& name, const RHIShaderConst& constant);
-		void AddBuffer(const std::string& name, const RHIShaderBuffer& buffer);
-		void AddSampler(const std::string& name, const RHIShaderSampler& sampler);
-
-		bool HasInput(const VertexKey& key) const;
-		bool HasOutput(const std::string& name) const;
-		bool HasConst(const std::string& name) const;
-		bool HasConst(const eResourceSlot slot) const;
-		bool HasBuffer(const std::string& name) const;
-		bool HasBuffer(const eResourceSlot slot) const;
-		bool HasSampler(const std::string& name) const;
-		bool HasSampler(const eResourceSlot slot) const;
-
-		const RHIShaderAttrib& GetInput(const VertexKey& key) const;
-		const RHIShaderAttrib& GetOutput(const std::string& name) const;
-		const RHIShaderConst& GetConst(const std::string& name) const;
-		const RHIShaderConst& GetConst(const eResourceSlot slot) const;
-		const RHIShaderBuffer& GetBuffer(const std::string& name) const;
-		const RHIShaderBuffer& GetBuffer(const eResourceSlot slot) const;
-		const RHIShaderSampler& GetSampler(const std::string& name) const;
-		const RHIShaderSampler& GetSampler(const eResourceSlot slot) const;
-
-		const RHIShaderInputs& GetInputs() const;
-		const RHIShaderAttribs& GetOutputs() const;
-		const RHIShaderConsts& GetConsts() const;
-		const RHIShaderBuffers& GetBuffers() const;
-		const RHIShaderSamplers& GetSamplers() const;
-
-		// 전환 목표 : 없는 입력이면 빈 상태를 돌려주고, RHICommandList는 빈 상태를 무시한다
-		RHIBufferState GetInputState(const VertexKey& key) const;
-		RHIBufferState GetIndexState() const;
+		void Clear();
+		bool AddShader(const Memory::RefPtr<const RHIShader>& shader);
+		bool HasShader(const eShaderType shaderType) const;
 
 	private :
 		RHIPipeLineDesc m_desc;
-		RHIShaderInputs m_inputs;
-		RHIShaderAttribs m_outputs;
-		RHIShaderConsts m_consts;
-		RHIShaderBuffers m_buffers;
-		RHIShaderSamplers m_samplers;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine
 	{
-
+	public :
+		RHIGraphicsPipeLine(const RHIPipeLineDesc& desc)
+			: RHIPipeLine(desc)
+		{}
 	};
 
 	class RHIComputePipeLine : public RHIPipeLine
 	{
-
+	public :
+		RHIComputePipeLine(const RHIPipeLineDesc& desc)
+			: RHIPipeLine(desc)
+		{}
 	};
 
 	class RHIRenderPass : public RHIResource

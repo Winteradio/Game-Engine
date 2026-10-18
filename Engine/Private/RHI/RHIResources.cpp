@@ -184,6 +184,16 @@ namespace wtr
 		m_desc = desc;
 	}
 
+	void RHIVertexLayout::SetAttribute(const VertexKey& key, const RHIVertexAttribute& attribute)
+	{
+		m_desc.streams[key].attribute = attribute;
+	}
+
+	void RHIVertexLayout::SetBinding(const VertexKey& key, const RHIVertexBinding& binding)
+	{
+		m_desc.streams[key].binding = binding;
+	}
+
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
 		, m_textureState()
@@ -353,13 +363,235 @@ namespace wtr
 		m_desc = desc;
 	}
 
+	void RHIStage::Clear()
+	{
+		m_attribs.Clear();
+		m_attaches.Clear();
+		m_consts.Clear();
+		m_buffers.Clear();
+		m_samplers.Clear();
+		m_textures.Clear();
+	}
+
+	void RHIStage::AddAttrib(const VertexKey& key, const RHIShaderLayout& attrib)
+	{
+		auto itr = m_attribs.Find(key);
+		if (itr != m_attribs.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddAttrib - Already exists attrib for key: " << static_cast<int>(key.semantic) << ", " << static_cast<int>(key.semanticIndex);
+			return;
+		}
+
+		m_attribs[key] = attrib;
+	}
+
+	void RHIStage::AddAttach(const Name& name, const RHIShaderLayout& attach)
+	{
+		auto itr = m_attaches.Find(name);
+		if (itr != m_attaches.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddAttach - Already exists attach for name: " << name;
+			return;
+		}
+
+		m_attaches[name] = attach;
+	}
+
+	void RHIStage::AddConst(const Name& name, const RHIShaderConst& constant)
+	{
+		auto itr = m_consts.Find(name);
+		if (itr != m_consts.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddConst - Already exists constant for name: " << name;
+			return;
+		}
+
+		m_consts[name] = constant;
+	}
+
+	void RHIStage::AddBuffer(const Name& name, const RHIShaderBuffer& buffer)
+	{
+		auto itr = m_buffers.Find(name);
+		if (itr != m_buffers.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddBuffer - Already exists buffer for name: " << name;
+			return;
+		}
+
+		m_buffers[name] = buffer;
+	}
+
+	void RHIStage::AddSampler(const Name& name, const RHIShaderSampler& sampler)
+	{
+		auto itr = m_samplers.Find(name);
+		if (itr != m_samplers.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddSampler - Already exists sampler for name: " << name;
+			return;
+		}
+
+		m_samplers[name] = sampler;
+	}
+
+	void RHIStage::AddTexture(const Name& name, const RHIShaderTexture& texture)
+	{
+		auto itr = m_textures.Find(name);
+		if (itr != m_textures.End())
+		{
+			LOGWARN() << "[RHI] RHIStage::AddTexture - Already exists texture for name: " << name;
+			return;
+		}
+
+		m_textures[name] = texture;
+	}
+
+	bool RHIStage::HasAttrib(const VertexKey& key) const
+	{
+		return m_attribs.Find(key) != m_attribs.End();
+	}
+
+	bool RHIStage::HasAttach(const Name& name) const
+	{
+		return m_attaches.Find(name) != m_attaches.End();
+	}
+
+	bool RHIStage::HasConst(const Name& name) const
+	{
+		return m_consts.Find(name) != m_consts.End();
+	}
+
+	bool RHIStage::HasBuffer(const Name& name) const
+	{
+		return m_buffers.Find(name) != m_buffers.End();
+	}
+
+	bool RHIStage::HasSampler(const Name& name) const
+	{
+		return m_samplers.Find(name) != m_samplers.End();
+	}
+
+	bool RHIStage::HasTexture(const Name& name) const
+	{
+		return m_textures.Find(name) != m_textures.End();
+	}
+
+	const RHIShaderLayout& RHIStage::GetAttrib(const VertexKey& key) const
+	{
+		auto itr = m_attribs.Find(key);
+		if (itr != m_attribs.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderLayout empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderLayout& RHIStage::GetAttach(const Name& name) const
+	{
+		auto itr = m_attaches.Find(name);
+		if (itr != m_attaches.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderLayout empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderConst& RHIStage::GetConst(const Name& name) const
+	{
+		auto itr = m_consts.Find(name);
+		if (itr != m_consts.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderConst empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderBuffer& RHIStage::GetBuffer(const Name& name) const
+	{
+		auto itr = m_buffers.Find(name);
+		if (itr != m_buffers.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderBuffer empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderSampler& RHIStage::GetSampler(const Name& name) const
+	{
+		auto itr = m_samplers.Find(name);
+		if (itr != m_samplers.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderSampler empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderTexture& RHIStage::GetTexture(const Name& name) const
+	{
+		auto itr = m_textures.Find(name);
+		if (itr != m_textures.End())
+		{
+			return itr->second;
+		}
+		else
+		{
+			static const RHIShaderTexture empty = {};
+			return empty;
+		}
+	}
+
+	const RHIShaderAttribs& RHIStage::GetAttribs() const
+	{
+		return m_attribs;
+	}
+	
+	const RHIShaderAttaches& RHIStage::GetAttaches() const
+	{
+		return m_attaches;
+	}
+
+	const RHIShaderConsts& RHIStage::GetConsts() const
+	{
+		return m_consts;
+	}
+
+	const RHIShaderBuffers& RHIStage::GetBuffers() const
+	{
+		return m_buffers;
+	}
+
+	const RHIShaderSamplers& RHIStage::GetSamplers() const
+	{
+		return m_samplers;
+	}
+
+	const RHIShaderTextures& RHIStage::GetTextures() const
+	{
+		return m_textures;
+	}
+
 	RHIShader::RHIShader(const RHIShaderDesc& desc)
-		: m_desc(desc)
-		, m_inputs()
-		, m_outputs()
-		, m_consts()
-		, m_buffers()
-		, m_samplers()
+		: RHIStage()
+		, m_desc(desc)
 	{
 	}
 
@@ -373,106 +605,9 @@ namespace wtr
 		return m_desc;
 	}
 
-	void RHIShader::AddInput(const std::string& name, const RHIShaderAttrib& input)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		m_inputs[name] = input;
-	}
-
-	void RHIShader::AddOutput(const std::string& name, const RHIShaderAttrib& output)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		m_outputs[name] = output;
-	}
-
-	void RHIShader::AddConst(const std::string& name, const RHIShaderConst& constant)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		m_consts[name] = constant;
-	}
-
-	void RHIShader::AddBuffer(const std::string& name, const RHIShaderBuffer& buffer)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		m_buffers[name] = buffer;
-	}
-
-	void RHIShader::AddSampler(const std::string& name, const RHIShaderSampler& sampler)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		m_samplers[name] = sampler;
-	}
-
-	const RHIShaderAttribs& RHIShader::GetInputs() const
-	{
-		return m_inputs;
-	}
-
-	const RHIShaderAttribs& RHIShader::GetOutputs() const
-	{
-		return m_outputs;
-	}
-
-	const RHIShaderConsts& RHIShader::GetConsts() const
-	{
-		return m_consts;
-	}
-
-	const RHIShaderBuffers& RHIShader::GetBuffers() const
-	{
-		return m_buffers;
-	}
-
-	const RHIShaderSamplers& RHIShader::GetSamplers() const
-	{
-		return m_samplers;
-	}
-
-	namespace
-	{
-		template<typename Map>
-		const typename Map::MappedType& FindOrEmpty(const Map& map, const typename Map::KeyType& key)
-		{
-			auto itr = map.Find(key);
-			if (itr != map.End())
-			{
-				return itr->second;
-			}
-			else
-			{
-				static const typename Map::MappedType empty = {};
-				return empty;
-			}
-		}
-	};
-
 	RHIPipeLine::RHIPipeLine(const RHIPipeLineDesc& desc)
-		: m_desc(desc)
-		, m_inputs()
-		, m_outputs()
-		, m_consts()
-		, m_buffers()
-		, m_samplers()
+		: RHIStage()
+		, m_desc(desc)
 	{}
 
 	RHIColorState RHIPipeLine::GetColorState() const
@@ -505,307 +640,156 @@ namespace wtr
 		return m_desc;
 	}
 
-	void RHIPipeLine::SetColorState(const RHIColorState& color)
+	void RHIPipeLine::Clear()
 	{
-		m_desc.color = color;
+		RHIStage::Clear();
+
+		m_desc.vertexShader = nullptr;
+		m_desc.geometryShader = nullptr;
+		m_desc.hullShader = nullptr;
+		m_desc.domainShader = nullptr;
+		m_desc.pixelShader = nullptr;
+		m_desc.computeShader = nullptr;
 	}
 
-	void RHIPipeLine::SetDepthState(const RHIDepthState& depth)
+	bool RHIPipeLine::HasShader(const eShaderType shaderType) const
 	{
-		m_desc.depth = depth;
-	}
-
-	void RHIPipeLine::SetStencilState(const RHIStencilState& stencil)
-	{
-		m_desc.stencil = stencil;
-	}
-
-	void RHIPipeLine::SetBlendState(const RHIBlendState& blend)
-	{
-		m_desc.blend = blend;
-	}
-
-	void RHIPipeLine::SetRasterizerState(const RHIRasterizerState& rasterizer)
-	{
-		m_desc.rasterizer = rasterizer;
-	}
-
-	void RHIPipeLine::SetDesc(const RHIPipeLineDesc& desc)
-	{
-		m_desc = desc;
-	}
-
-	void RHIPipeLine::AddShader(const RHIShader& shader)
-	{
-		const eShaderType shaderType = shader.GetShaderType();
-
-		// 정점 입력은 정점 셰이더의 입력만, 어태치먼트 출력은 픽셀 셰이더의 출력만 본다 (나머지는 단계 사이 varying)
-		if (shaderType == eShaderType::eVertex)
+		switch (shaderType)
 		{
-			for (const auto& [name, input] : shader.GetInputs())
+		case eShaderType::eVertex:		return m_desc.vertexShader != nullptr;
+		case eShaderType::eGeometry:	return m_desc.geometryShader != nullptr;
+		case eShaderType::eHull:		return m_desc.hullShader != nullptr;
+		case eShaderType::eDomain:		return m_desc.domainShader != nullptr;
+		case eShaderType::ePixel:		return m_desc.pixelShader != nullptr;
+		case eShaderType::eCompute:		return m_desc.computeShader != nullptr;
+		default:						return false;
+		}
+	}
+
+	namespace
+	{
+		template<typename Key, typename Value, typename MergeFunc>
+		bool MergeInto(wtr::HashMap<Key, Value>& dst, const wtr::HashMap<Key, Value>& src, MergeFunc merge)
+		{
+			for (const auto& [key, value] : src)
 			{
-				// gl_VertexID 같은 내장 변수는 VertexKey가 없음
-				const VertexKey key = RenderUtils::GetVertexKey(name);
-				if (key.semantic == eVertexSemantic::eNone)
+				auto itr = dst.Find(key);
+				if (itr == dst.End())
 				{
-					continue;
+					dst[key] = value;
 				}
-
-				AddInput(key, input);
+				else if (!merge(itr->second, value))
+				{
+					return false;
+				}
 			}
+
+			return true;
 		}
-		else if (shaderType == eShaderType::ePixel)
+	}
+
+	bool RHIPipeLine::AddShader(const Memory::RefPtr<const RHIShader>& shader)
+	{
+		if (!shader || shader->GetState() != eResourceState::eReady)
 		{
-			for (const auto& [name, output] : shader.GetOutputs())
-			{
-				AddOutput(name, output);
-			}
+			LOGWARN() << "[RHI][PipeLine] AddShader - Invalid shader resource.";
+			return false;
 		}
 
-		for (const auto& [name, constant] : shader.GetConsts())
+		if (HasShader(shader->GetShaderType()))
 		{
-			AddConst(name, constant);
+			LOGWARN() << "[RHI][PipeLine] AddShader - The shader type already exists.";
+			return false;
 		}
 
-		for (const auto& [name, buffer] : shader.GetBuffers())
+		RHIShaderAttribs attribs = m_attribs;
+		RHIShaderAttaches attaches = m_attaches;
+		RHIShaderConsts consts = m_consts;
+		RHIShaderBuffers buffers = m_buffers;
+		RHIShaderSamplers samplers = m_samplers;
+		RHIShaderTextures textures = m_textures;
+
+		const bool merged =
+			MergeInto(attribs, shader->GetAttribs(),
+				[](RHIShaderLayout& prev, const RHIShaderLayout& next)
+				{
+					return prev == next;
+				}) &&
+			MergeInto(attaches, shader->GetAttaches(),
+				[](RHIShaderLayout& prev, const RHIShaderLayout& next)
+				{
+					return prev == next;
+				}) &&
+			MergeInto(consts, shader->GetConsts(),
+				[](RHIShaderConst& prev, const RHIShaderConst& next)
+				{
+					if (prev.binding != next.binding)
+					{
+						return false;
+					}
+
+					prev.stage = prev.stage | next.stage;
+					return true;
+				}) &&
+			MergeInto(buffers, shader->GetBuffers(),
+				[](RHIShaderBuffer& prev, const RHIShaderBuffer& next)
+				{
+					if (prev.binding != next.binding || prev.state != next.state || prev.usage != next.usage)
+					{
+						return false;
+					}
+
+					prev.stage = prev.stage | next.stage;
+					return true;
+				}) &&
+			MergeInto(samplers, shader->GetSamplers(),
+				[](RHIShaderSampler& prev, const RHIShaderSampler& next)
+				{
+					if (prev.binding != next.binding || prev.state != next.state || prev.usage != next.usage)
+					{
+						return false;
+					}
+
+					prev.stage = prev.stage | next.stage;
+					return true;
+				}) &&
+			MergeInto(textures, shader->GetTextures(),
+				[](RHIShaderTexture& prev, const RHIShaderTexture& next)
+				{
+					if (prev.location != next.location || prev.state != next.state || prev.usage != next.usage)
+					{
+						return false;
+					}
+
+					prev.stage = prev.stage | next.stage;
+					return true;
+				});
+
+		if (!merged)
 		{
-			AddBuffer(name, buffer);
+			LOGWARN() << "[RHI][PipeLine] AddShader - Conflicting shader interface.";
+			return false;
 		}
 
-		for (const auto& [name, sampler] : shader.GetSamplers())
+		m_attribs = std::move(attribs);
+		m_attaches = std::move(attaches);
+		m_consts = std::move(consts);
+		m_buffers = std::move(buffers);
+		m_samplers = std::move(samplers);
+		m_textures = std::move(textures);
+
+		switch (shader->GetShaderType())
 		{
-			AddSampler(name, sampler);
-		}
-	}
-
-	void RHIPipeLine::AddInput(const VertexKey& key, const RHIShaderAttrib& input)
-	{
-		auto itr = m_inputs.Find(key);
-		if (itr != m_inputs.End() && itr->second.location != input.location)
-		{
-			LOGWARN() << "[RHI] Input location mismatch — existing : " << itr->second.location << ", new : " << input.location;
-			return;
+		case eShaderType::eVertex:		m_desc.vertexShader = shader;	break;
+		case eShaderType::eGeometry:	m_desc.geometryShader = shader;	break;
+		case eShaderType::eHull:		m_desc.hullShader = shader;		break;
+		case eShaderType::eDomain:		m_desc.domainShader = shader;	break;
+		case eShaderType::ePixel:		m_desc.pixelShader = shader;	break;
+		case eShaderType::eCompute:		m_desc.computeShader = shader;	break;
+		default:						break;
 		}
 
-		m_inputs[key] = input;
-	}
-
-	void RHIPipeLine::AddOutput(const std::string& name, const RHIShaderAttrib& output)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		auto itr = m_outputs.Find(name);
-		if (itr != m_outputs.End() && itr->second.location != output.location)
-		{
-			LOGWARN() << "[RHI] Output location mismatch for '" << name << "' — existing : " << itr->second.location << ", new : " << output.location;
-			return;
-		}
-
-		m_outputs[name] = output;
-	}
-
-	void RHIPipeLine::AddConst(const std::string& name, const RHIShaderConst& constant)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		auto itr = m_consts.Find(name);
-		if (itr == m_consts.End())
-		{
-			m_consts[name] = constant;
-			return;
-		}
-
-		RHIShaderConst& existing = itr->second;
-		if (existing.location != constant.location || existing.offset != constant.offset)
-		{
-			LOGWARN() << "[RHI] Const location mismatch for '" << name << "' — existing : " << existing.location << ", new : " << constant.location;
-			return;
-		}
-
-		// 여러 셰이더 단계에서 같은 상수를 쓰면 stage만 합친다
-		existing.stage = existing.stage | constant.stage;
-	}
-
-	void RHIPipeLine::AddBuffer(const std::string& name, const RHIShaderBuffer& buffer)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		auto itr = m_buffers.Find(name);
-		if (itr == m_buffers.End())
-		{
-			m_buffers[name] = buffer;
-			return;
-		}
-
-		RHIShaderBuffer& existing = itr->second;
-		if (existing.binding != buffer.binding || existing.usage != buffer.usage)
-		{
-			LOGWARN() << "[RHI] Buffer binding mismatch for '" << name << "' — existing : " << existing.binding << ", new : " << buffer.binding;
-			return;
-		}
-
-		// 여러 셰이더 단계에서 같은 버퍼를 쓰면 state / stage를 합친다
-		existing.Merge(buffer);
-	}
-
-	void RHIPipeLine::AddSampler(const std::string& name, const RHIShaderSampler& sampler)
-	{
-		if (name.empty())
-		{
-			return;
-		}
-
-		auto itr = m_samplers.Find(name);
-		if (itr == m_samplers.End())
-		{
-			m_samplers[name] = sampler;
-			return;
-		}
-
-		RHIShaderSampler& existing = itr->second;
-		if (existing.binding != sampler.binding || existing.usage != sampler.usage)
-		{
-			LOGWARN() << "[RHI] Sampler binding mismatch for '" << name << "' — existing : " << existing.binding << ", new : " << sampler.binding;
-			return;
-		}
-
-		// 여러 셰이더 단계에서 같은 텍스처를 쓰면 state / stage를 합친다
-		existing.Merge(sampler);
-	}
-
-	bool RHIPipeLine::HasInput(const VertexKey& key) const
-	{
-		return m_inputs.Find(key) != m_inputs.End();
-	}
-
-	bool RHIPipeLine::HasOutput(const std::string& name) const
-	{
-		return m_outputs.Find(name) != m_outputs.End();
-	}
-
-	bool RHIPipeLine::HasConst(const std::string& name) const
-	{
-		return m_consts.Find(name) != m_consts.End();
-	}
-
-	bool RHIPipeLine::HasConst(const eResourceSlot slot) const
-	{
-		return HasConst(RenderUtils::GetSlotName(slot));
-	}
-
-	bool RHIPipeLine::HasBuffer(const std::string& name) const
-	{
-		return m_buffers.Find(name) != m_buffers.End();
-	}
-
-	bool RHIPipeLine::HasBuffer(const eResourceSlot slot) const
-	{
-		return HasBuffer(RenderUtils::GetSlotName(slot));
-	}
-
-	bool RHIPipeLine::HasSampler(const std::string& name) const
-	{
-		return m_samplers.Find(name) != m_samplers.End();
-	}
-
-	bool RHIPipeLine::HasSampler(const eResourceSlot slot) const
-	{
-		return HasSampler(RenderUtils::GetSlotName(slot));
-	}
-
-	const RHIShaderAttrib& RHIPipeLine::GetInput(const VertexKey& key) const
-	{
-		return FindOrEmpty(m_inputs, key);
-	}
-
-	const RHIShaderAttrib& RHIPipeLine::GetOutput(const std::string& name) const
-	{
-		return FindOrEmpty(m_outputs, name);
-	}
-
-	const RHIShaderConst& RHIPipeLine::GetConst(const std::string& name) const
-	{
-		return FindOrEmpty(m_consts, name);
-	}
-
-	const RHIShaderConst& RHIPipeLine::GetConst(const eResourceSlot slot) const
-	{
-		return GetConst(RenderUtils::GetSlotName(slot));
-	}
-
-	const RHIShaderBuffer& RHIPipeLine::GetBuffer(const std::string& name) const
-	{
-		return FindOrEmpty(m_buffers, name);
-	}
-
-	const RHIShaderBuffer& RHIPipeLine::GetBuffer(const eResourceSlot slot) const
-	{
-		return GetBuffer(RenderUtils::GetSlotName(slot));
-	}
-
-	const RHIShaderSampler& RHIPipeLine::GetSampler(const std::string& name) const
-	{
-		return FindOrEmpty(m_samplers, name);
-	}
-
-	const RHIShaderSampler& RHIPipeLine::GetSampler(const eResourceSlot slot) const
-	{
-		return GetSampler(RenderUtils::GetSlotName(slot));
-	}
-
-	const RHIShaderInputs& RHIPipeLine::GetInputs() const
-	{
-		return m_inputs;
-	}
-
-	const RHIShaderAttribs& RHIPipeLine::GetOutputs() const
-	{
-		return m_outputs;
-	}
-
-	const RHIShaderConsts& RHIPipeLine::GetConsts() const
-	{
-		return m_consts;
-	}
-
-	const RHIShaderBuffers& RHIPipeLine::GetBuffers() const
-	{
-		return m_buffers;
-	}
-
-	const RHIShaderSamplers& RHIPipeLine::GetSamplers() const
-	{
-		return m_samplers;
-	}
-
-	RHIBufferState RHIPipeLine::GetInputState(const VertexKey& key) const
-	{
-		if (!HasInput(key))
-		{
-			return {};
-		}
-
-		return RHIBufferState(eDataState::eRead, eDataStage::eVertexInput, eBufferUsage::eVertex);
-	}
-
-	RHIBufferState RHIPipeLine::GetIndexState() const
-	{
-		// 컴퓨트 파이프라인은 인덱스 버퍼를 쓰지 않음
-		if (!m_desc.vertexShader)
-		{
-			return {};
-		}
-
-		return RHIBufferState(eDataState::eRead, eDataStage::eVertexInput, eBufferUsage::eIndex);
+		return true;
 	}
 
 	RHIRenderPass::RHIRenderPass(const RHIRenderPassDesc& desc)
