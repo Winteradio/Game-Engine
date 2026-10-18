@@ -3,6 +3,8 @@
 
 #include <Memory/include/Pointer/RefPtr.h>
 
+#include <RHI/RHIRingBuffer.h>
+
 namespace wtr
 {
 	class RHIVertexLayout;
@@ -39,6 +41,9 @@ namespace wtr
 	struct RHIDrawIndirectDesc;
 
 	struct RHITransitionDesc;
+
+	struct RHIBufferView;
+	struct RHITextureView;
 };
 
 namespace wtr
@@ -46,12 +51,16 @@ namespace wtr
 	class RHIContext
 	{
 	public :
-		RHIContext() = default;
+		RHIContext();
 		virtual ~RHIContext() = default;
 
 	public :
+		RHIBufferView GetRingBuffer(const size_t size, const size_t align);
+		void ResetRingBuffer(const size_t frame);
+
+	public :
 		virtual bool Init(void* nativeHandle) = 0;
-		virtual bool InitResources() = 0;
+		virtual bool InitResources(const size_t frameDiff);
 
 	public :
 		virtual void BeginContext() = 0;
@@ -118,6 +127,9 @@ namespace wtr
 		virtual void DispatchCompute(const RHIDispatchDesc& info) = 0;
 		virtual void DrawDirect(const RHIDrawDirectDesc& info) = 0;
 		virtual void DrawIndirect(const RHIDrawIndirectDesc& info) = 0;
+
+	private :
+		RHIRingBuffer m_ringBuffer;
 	};
 };
 

@@ -1,170 +1,149 @@
 #include <RHI/RHIRingBuffer.h>
 
-#include <RHI/RHIContext.h>
+#include <RHI/RHISystem.h>
 #include <RHI/RHIResources.h>
 #include <Log/include/Log.h>
 
+#include <algorithm>
+
+#define ALIGNSIZE(offset, align) ((align != 0) ? ((offset + align - 1) / align) * align : offset)
+
 namespace wtr
 {
-	namespace
+	RHIRingBuffer::RHIRingBuffer()
+		: m_blockSize(0)
+		, m_frameDiff(0)
+		, m_frame(0)
+	{}
+
+	void RHIRingBuffer::Init(const size_t blockSize, const size_t frameDiff)
 	{
-		uint32_t AlignUp(const uint32_t value, const uint32_t alignment)
+		m_blockSize = blockSize;
+		m_frameDiff = frameDiff;
+	}
+
+	void RHIRingBuffer::Reset(const size_t frame)
+	{
+		m_frame = frame;
+		
+		auto itr = m_blocks.begin();
+		while (itr != m_blocks.end())
 		{
-			return (value + alignment - 1) / alignment * alignment;
+			auto& block = *itr;
+			const bool needRemoved = (frame - itr->frame) > m_frameDiff;
+			if (needRemoved)
+			{
+				RHISystem::RemoveBuffer(block.buffer);
+				itr = m_blocks.Erase(itr);
+			}
+			else
+			{
+				block.offset = 0;
+				itr++;
+			}
 		}
 	}
 
-	void RHIRingBuffer::Init(RHIContext* context, const uint32_t chunkSize, const uint32_t alignment)
-	{
-		m_context = context;
-		m_chunkSize = chunkSize;
-		m_alignment = alignment == 0 ? 1 : alignment;
-	}
-
-	void RHIRingBuffer::SetAlignment(const uint32_t alignment)
-	{
-		if (m_chunks.Empty())
+	RHIBufferView RHIRingBuffer::GetBuffer(const size_t size, const size_t align)
+	{ 
+		if (size == 0)
 		{
-			m_alignment = alignment == 0 ? 1 : alignment;
+			return {};
 		}
+
+		size_t blockIndex = -1;
+		for (size_t index = 0; index < m_blocks.Size(); index++)
+		{
+			if (IsValid(index, size, align))
+			{
+				blockIndex = index;
+				break;
+			}
+		}
+
+		if (blockIndex >= m_blocks.Size())
+		{
+			if (!Create(size))
+			{
+				LOGERROR() << "[RHI][RingBuffer] Failed to create buffer of size " << size << ".";
+				return {};
+			}
+
+			blockIndex = m_blocks.Size() - 1;
+		}
+
+		auto& block = m_blocks[blockIndex];
+		const size_t alignedOffset = ALIGNSIZE(block.offset, align);
+
+		RHIBufferView view;
+		view.buffer = block.buffer;
+		view.offset = alignedOffset;
+		view.range = size;
+
+		block.offset = alignedOffset + size;
+		block.frame = m_frame;
+
+		return view;
 	}
 
-	bool RHIRingBuffer::Allocate(const uint32_t size, Slice& slice)
+	bool RHIRingBuffer::IsValid(const size_t blockIndex, const size_t size, const size_t align) const
 	{
-		if (!m_context || size == 0 || m_chunkSize == 0)
+		if (blockIndex >= m_blocks.Size())
 		{
 			return false;
 		}
 
-		// 정렬한 크기가 청크보다 크면 청크를 아무리 추가해도 받을 수 없음
-		const uint32_t alignedSize = AlignUp(size, m_alignment);
-		if (alignedSize > m_chunkSize)
+		const auto& block = m_blocks[blockIndex];
+		if (!block.buffer)
 		{
 			return false;
 		}
 
-		if (Find(alignedSize, size, slice))
+		const size_t offset = ALIGNSIZE(block.offset, align);
+		if ((offset + size) > block.buffer->GetSize())
+		{
+			return false;
+		}
+		else
 		{
 			return true;
 		}
+	}
 
-		// 자리가 없음 : 같은 크기의 청크를 하나 더 만든다 (쓰는 중인 버퍼는 리사이즈할 수 없음)
-		if (!AddChunk())
+	bool RHIRingBuffer::Create(const size_t size)
+	{
+		if (size == 0)
 		{
+			LOGERROR() << "[RHI][RingBuffer] Invalid size to create buffer.";
 			return false;
 		}
 
-		return Find(alignedSize, size, slice);
-	}
+		RHIBufferCreateDesc desc;
+		desc.size = std::max(size, m_blockSize);
 
-	bool RHIRingBuffer::Write(const Slice& slice, const RefData& data)
-	{
-		if (!m_context || !slice.buffer || !data || data->Empty() || data->GetSize() < slice.size)
-		{
-			return false;
-		}
-
-		DataBlob blob;
-		blob.bulk = data;
-		blob.offset = 0;
-		blob.size = slice.size;
-
-		RHIBufferUpdateDesc update;
-		update.dataUsage = eDataUsage::eDynamic;
-		update.size = slice.size;
-		update.offset = slice.offset;
-		update.blobs.PushBack(blob);
-
-		m_context->UpdateBuffer(update, slice.buffer);
-
-		return true;
-	}
-
-	void RHIRingBuffer::Reset()
-	{
-		for (size_t index = 0; index < m_chunks.Size(); ++index)
-		{
-			m_chunks[index].cursor = 0;
-		}
-
-		m_current = 0;
-	}
-
-	wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> RHIRingBuffer::Release()
-	{
-		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> buffers;
-		for (size_t index = 0; index < m_chunks.Size(); ++index)
-		{
-			buffers.PushBack(m_chunks[index].buffer);
-		}
-
-		m_chunks.Clear();
-		m_current = 0;
-
-		return buffers;
-	}
-
-	uint32_t RHIRingBuffer::GetChunkSize() const
-	{
-		return m_chunkSize;
-	}
-
-	uint32_t RHIRingBuffer::GetAlignment() const
-	{
-		return m_alignment;
-	}
-
-	uint32_t RHIRingBuffer::GetChunkCount() const
-	{
-		return static_cast<uint32_t>(m_chunks.Size());
-	}
-
-	bool RHIRingBuffer::Find(const uint32_t alignedSize, const uint32_t size, Slice& slice)
-	{
-		// 자리가 없으면 다음 청크로 넘어가고 앞 청크의 남은 자리는 이번 프레임에는 버림
-		while (m_current < m_chunks.Size())
-		{
-			Chunk& chunk = m_chunks[m_current];
-			if (chunk.cursor + alignedSize <= m_chunkSize)
-			{
-				slice.buffer = chunk.buffer;
-				slice.offset = chunk.cursor;
-				slice.size = size;
-
-				chunk.cursor += alignedSize;
-
-				return true;
-			}
-
-			++m_current;
-		}
-
-		return false;
-	}
-
-	bool RHIRingBuffer::AddChunk()
-	{
-		RHIBufferDesc desc;
-		desc.dataUsage = eDataUsage::eDynamic;
-		desc.componentType = eDataType::eNone;
-		desc.size = m_chunkSize;
-		desc.componentCount = 1;
-		desc.stride = 0;
-
-		Memory::RefPtr<RHIBuffer> buffer = m_context->CreateBuffer(desc);
+		Memory::RefPtr<RHIBuffer> buffer = RHISystem::CreateBuffer(desc);
 		if (!buffer)
 		{
-			LOGERROR() << "[RHIRingBuffer] Failed to create the chunk buffer, size : " << m_chunkSize;
+			LOGERROR() << "[RHI][RingBuffer] Failed to create buffer of size " << desc.size << ".";
 			return false;
 		}
 
-		m_context->InitializeBuffer(RHIBufferCreateDesc(desc), buffer);
+		RHISystem::InitializeBuffer(buffer, desc);
+		if (buffer->GetState() == eResourceState::eError)
+		{
+			RHISystem::RemoveBuffer(buffer);
 
-		Chunk chunk;
-		chunk.buffer = buffer;
+			LOGERROR() << "[RHI][RingBuffer] Failed to initialize buffer of size " << desc.size << ".";
+			return false;
+		}
 
-		m_chunks.PushBack(chunk);
+		Block block;
+		block.buffer = buffer;
+		block.offset = 0;
+		block.frame = 0;
 
+		m_blocks.PushBack(block);
+		
 		return true;
 	}
 }
