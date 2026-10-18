@@ -32,7 +32,7 @@ namespace wtr
 
 		bool Empty() const
 		{
-			return GetSize() == 0 || GetPointer() == nullptr;
+			return (GetSize() == 0) || (GetPointer() == nullptr);
 		}
 	};
 

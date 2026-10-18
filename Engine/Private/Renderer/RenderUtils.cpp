@@ -327,4 +327,4 @@ namespace wtr
 			return UINT32_MAX;
 		}
 	}
-};
+};

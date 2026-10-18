@@ -23,8 +23,6 @@ namespace wtr
 
 		const std::string& GetSlotName(const eResourceSlot slot);
 
-		// 셰이더 리소스 이름 → 엔진 고정 binding 번호. 셰이더 소스에는 번호를 쓰지 않고 컴파일 직후 이 값으로 고쳐 씀
-		// 모르는 이름이면 UINT32_MAX
 		uint32_t GetResourceBinding(const std::string& name);
 	};
 
@@ -75,30 +73,30 @@ namespace wtr
 		struct ComponentInfo
 		{
 			constexpr static eDataType type = GetDataType<T>();
-			constexpr static uint32_t size = sizeof(T);
 			constexpr static uint32_t count = 1;
 			constexpr static uint32_t column = 1;
 			constexpr static uint32_t row = 1;
+			constexpr static uint32_t size = sizeof(T);
 		};
 
 		template<typename T, glm::length_t L, glm::qualifier Q>
 		struct ComponentInfo<glm::vec<L, T, Q>>
 		{
 			constexpr static eDataType type = GetDataType<T>();
-			constexpr static uint32_t size = sizeof(T);
 			constexpr static uint32_t count = L;
 			constexpr static uint32_t column = 1;
-			constexpr static uint32_t row = 1;
+			constexpr static uint32_t row = L;
+			constexpr static uint32_t size = sizeof(T);
 		};
 
 		template<typename T, glm::length_t C, glm::length_t R, glm::qualifier Q>
 		struct ComponentInfo<glm::mat<C, R, T, Q>>
 		{
 			constexpr static eDataType type = GetDataType<T>();
-			constexpr static uint32_t size = sizeof(T);
 			constexpr static uint32_t count = C * R;
 			constexpr static uint32_t column = C;
 			constexpr static uint32_t row = R;
+			constexpr static uint32_t size = sizeof(T);
 		};
 
 		template<typename T>
@@ -111,6 +109,12 @@ namespace wtr
 		constexpr uint32_t GetComponentSize()
 		{
 			return ComponentInfo<T>::size;
+		}
+
+		template<typename T>
+		constexpr uint32_t GetComponentAlign()
+		{
+			return ComponentInfo<T>::align;
 		}
 
 		template<typename T>
@@ -133,4 +137,4 @@ namespace wtr
 	};
 };
 
-#endif // __WTR_RENDERUTILS_H__
+#endif // __WTR_RENDERUTILS_H__
