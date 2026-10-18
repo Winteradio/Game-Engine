@@ -16,13 +16,6 @@ namespace wtr
 	class RHIShader;
 	class RHIPipeLine;
 	class RHIRenderPass;
-
-	struct RHIColorState;
-	struct RHIDepthState;
-	struct RHIStencilState;
-	struct RHIBlendState;
-	struct RHIRasterizerState;
-	struct RHIClearState;
 };
 
 namespace wtr
@@ -86,7 +79,7 @@ namespace wtr
 	class RHICommandInitializeBuffer : public RHICommand<RHICommandInitializeBuffer>
 	{
 	public :
-		RHICommandInitializeBuffer(const RHIBufferCreateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		RHICommandInitializeBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferCreateDesc info);
 		~RHICommandInitializeBuffer() = default;
 
 	public :
@@ -100,7 +93,7 @@ namespace wtr
 	class RHICommandInitializeVertexLayout : public RHICommand<RHICommandInitializeVertexLayout>
 	{
 	public :
-		RHICommandInitializeVertexLayout(const RHIVertexLayoutCreateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
+		RHICommandInitializeVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutCreateDesc info);
 		~RHICommandInitializeVertexLayout() = default;
 
 	public:
@@ -114,7 +107,7 @@ namespace wtr
 	class RHICommandInitializeTexture : public RHICommand<RHICommandInitializeTexture>
 	{
 	public :
-		RHICommandInitializeTexture(const RHITextureCreateDesc info, Memory::RefPtr<RHITexture> texture);
+		RHICommandInitializeTexture(Memory::RefPtr<RHITexture> texture, const RHITextureCreateDesc info);
 		~RHICommandInitializeTexture() = default;
 
 	public :
@@ -128,7 +121,7 @@ namespace wtr
 	class RHICommandInitializeSampler : public RHICommand<RHICommandInitializeSampler>
 	{
 	public :
-		RHICommandInitializeSampler(const RHISamplerCreateDesc info, Memory::RefPtr<RHISampler> sampler);
+		RHICommandInitializeSampler(Memory::RefPtr<RHISampler> sampler, const RHISamplerCreateDesc info);
 		~RHICommandInitializeSampler() = default;
 
 	public :
@@ -142,7 +135,7 @@ namespace wtr
 	class RHICommandInitializeVertexShader : public RHICommand<RHICommandInitializeVertexShader>
 	{
 	public :
-		RHICommandInitializeVertexShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializeVertexShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializeVertexShader() = default;
 
 	public :
@@ -156,7 +149,7 @@ namespace wtr
 	class RHICommandInitializeGeometryShader : public RHICommand<RHICommandInitializeGeometryShader>
 	{
 	public :
-		RHICommandInitializeGeometryShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializeGeometryShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializeGeometryShader() = default;
 
 	public :
@@ -170,7 +163,7 @@ namespace wtr
 	class RHICommandInitializeHullShader : public RHICommand<RHICommandInitializeHullShader>
 	{
 	public:
-		RHICommandInitializeHullShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializeHullShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializeHullShader() = default;
 
 	public:
@@ -184,7 +177,7 @@ namespace wtr
 	class RHICommandInitializeDomainShader : public RHICommand<RHICommandInitializeDomainShader>
 	{
 	public :
-		RHICommandInitializeDomainShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializeDomainShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializeDomainShader() = default;
 
 	public :
@@ -198,7 +191,7 @@ namespace wtr
 	class RHICommandInitializePixelShader : public RHICommand<RHICommandInitializePixelShader>
 	{
 	public :
-		RHICommandInitializePixelShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializePixelShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializePixelShader() = default;
 
 	public :
@@ -212,7 +205,7 @@ namespace wtr
 	class RHICommandInitializeComputeShader : public RHICommand<RHICommandInitializeComputeShader>
 	{
 	public :
-		RHICommandInitializeComputeShader(const RHIShaderCreateDesc info, Memory::RefPtr<RHIShader> shader);
+		RHICommandInitializeComputeShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc info);
 		~RHICommandInitializeComputeShader() = default;
 
 	public :
@@ -226,7 +219,7 @@ namespace wtr
 	class RHICommandInitializePipeLine : public RHICommand<RHICommandInitializePipeLine>
 	{
 	public :
-		RHICommandInitializePipeLine(const RHIPipeLineCreateDesc info, Memory::RefPtr<RHIPipeLine> pipeline);
+		RHICommandInitializePipeLine(Memory::RefPtr<RHIPipeLine> pipeline, const RHIPipeLineCreateDesc info);
 		~RHICommandInitializePipeLine() = default;
 
 	public :
@@ -240,7 +233,7 @@ namespace wtr
 	class RHICommandInitializeRenderPass : public RHICommand<RHICommandInitializeRenderPass>
 	{
 	public :
-		RHICommandInitializeRenderPass(const RHIRenderPassCreateDesc info, Memory::RefPtr<RHIRenderPass> pass);
+		RHICommandInitializeRenderPass(Memory::RefPtr<RHIRenderPass> pass, const RHIRenderPassCreateDesc info);
 		~RHICommandInitializeRenderPass() = default;
 
 	public :
@@ -342,10 +335,24 @@ namespace wtr
 		Memory::RefPtr<RHIRenderPass> m_pass;
 	};
 
+	class RHICommandUpdateVertexLayout : public RHICommand<RHICommandUpdateVertexLayout>
+	{
+	public:
+		RHICommandUpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc info);
+		~RHICommandUpdateVertexLayout() = default;
+
+	public:
+		void Execute();
+
+	private:
+		const RHIVertexLayoutUpdateDesc m_info;
+		Memory::RefPtr<RHIVertexLayout> m_layout;
+	};
+
 	class RHICommandUpdateBuffer : public RHICommand<RHICommandUpdateBuffer>
 	{
 	public :
-		RHICommandUpdateBuffer(const RHIBufferUpdateDesc info, Memory::RefPtr<RHIBuffer> buffer);
+		RHICommandUpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc info);
 		~RHICommandUpdateBuffer() = default;
 
 	public :
@@ -359,7 +366,7 @@ namespace wtr
 	class RHICommandUpdateTexture : public RHICommand<RHICommandUpdateTexture>
 	{
 	public :
-		RHICommandUpdateTexture(const RHITextureUpdateDesc info, Memory::RefPtr<RHITexture> texture);
+		RHICommandUpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc info);
 		~RHICommandUpdateTexture() = default;
 
 	public :
@@ -368,20 +375,6 @@ namespace wtr
 	private :
 		const RHITextureUpdateDesc m_info;
 		Memory::RefPtr<RHITexture> m_texture;
-	};
-
-	class RHICommandUpdateVertexLayout : public RHICommand<RHICommandUpdateVertexLayout>
-	{
-	public:
-		RHICommandUpdateVertexLayout(const RHIVertexLayoutUpdateDesc info, Memory::RefPtr<RHIVertexLayout> layout);
-		~RHICommandUpdateVertexLayout() = default;
-
-	public:
-		void Execute();
-
-	private:
-		const RHIVertexLayoutUpdateDesc m_info;
-		Memory::RefPtr<RHIVertexLayout> m_layout;
 	};
 
 	class RHICommandSetConstant : public RHICommand<RHICommandSetConstant>
@@ -414,7 +407,7 @@ namespace wtr
 	class RHICommandSetVertexBuffer : public RHICommand<RHICommandSetVertexBuffer>
 	{
 	public:
-		RHICommandSetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset);
+		RHICommandSetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const VertexKey& key, const uint32_t offset);
 		~RHICommandSetVertexBuffer() = default;
 
 	public:
@@ -422,7 +415,7 @@ namespace wtr
 
 	private:
 		Memory::RefPtr<const RHIBuffer> m_buffer;
-		const Name m_binding;
+		const VertexKey m_key;
 		const uint32_t m_offset;
 	};
 
@@ -607,28 +600,28 @@ namespace wtr
 	class RHICommandTransitionBuffer : public RHICommand<RHICommandTransitionBuffer>
 	{
 	public :
-		RHICommandTransitionBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferState& next);
+		RHICommandTransitionBuffer(Memory::RefPtr<const RHIBuffer> buffer, const RHIBufferState& next);
 		~RHICommandTransitionBuffer() = default;
 
 	public:
 		void Execute();
 
 	private:
-		Memory::RefPtr<RHIBuffer> m_buffer;
+		Memory::RefPtr<const RHIBuffer> m_buffer;
 		const RHIBufferState m_next;
 	};
 
 	class RHICommandTransitionTexture : public RHICommand<RHICommandTransitionTexture>
 	{
 	public :
-		RHICommandTransitionTexture(Memory::RefPtr<RHITexture> texture, const RHITextureState& next);
+		RHICommandTransitionTexture(Memory::RefPtr<const RHITexture> texture, const RHITextureState& next);
 		~RHICommandTransitionTexture() = default;
 
 	public :
 		void Execute();
 
 	private :
-		Memory::RefPtr<RHITexture> m_texture;
+		Memory::RefPtr<const RHITexture> m_texture;
 		const RHITextureState m_next;
 	};
 

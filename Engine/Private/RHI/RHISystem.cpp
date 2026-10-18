@@ -3,11 +3,11 @@
 #include <RHI/OpenGL/GLContext.h>
 #include <RHI/Vulkan/VulkanContext.h>
 
-#include <RHI/RHIResources.h>
+#include <RHI/RHIDescriptions.h>
 #include <RHI/RHIPendingPool.h>
-#include <RHI/RHIConstantPool.h>
+#include <RHI/RHIResources.h>
+#include <RHI/RHIRingBuffer.h>
 
-#include <Framework/Name.h>
 #include <Log/include/Log.h>
 #include <Memory/include/Core.h>
 
@@ -15,19 +15,91 @@ namespace wtr
 {
 	namespace RHISystem
 	{
-		namespace
+		struct RHITransitionCache
+		{
+			wtr::HashSet<RHIBufferTransition> buffers = {};
+			wtr::HashSet<RHITextureTransition> textures = {};
+		};
+
+		struct RHICache
+		{
+			struct ShaderBuffer
+			{
+				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
+				uint32_t offset = 0;
+				uint32_t range = 0;
+			};
+
+			struct VertexBuffer
+			{
+				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
+				uint32_t offset = 0;
+			};
+
+			struct IndexBuffer
+			{
+				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
+				uint32_t offset = 0;
+			};
+
+			wtr::HashMap<uint32_t, ShaderBuffer> shaderBuffers = {};
+			wtr::HashMap<uint32_t, VertexBuffer> vertexBuffers = {};
+			IndexBuffer indexBuffer = {};
+
+			wtr::HashMap<uint32_t, RHIConstDesc> consts = {};
+			wtr::HashMap<uint32_t, Memory::RefPtr<const RHITexture>> textures = {};
+			wtr::HashMap<uint32_t, Memory::RefPtr<const RHISampler>> samplers = {};
+
+			Memory::RefPtr<const RHIVertexLayout> vertexLayout = nullptr;
+			Memory::RefPtr<const RHIPipeLine> pipeline = nullptr;
+			Memory::RefPtr<const RHIRenderPass> renderPass = nullptr;
+		};
+
+		struct RHICore
 		{
 			using RHIContextPtr = Memory::RefPtr<RHIContext>;
-			using RHIPendingSet = wtr::HashSet<Memory::RefPtr<RHIResource>>;
+			using RHIResourceSet = wtr::HashSet<Memory::RefPtr<RHIResource>>;
 
-			RHIContextPtr s_context = nullptr;
-			RHIPendingSet s_pending = {};
+			RHIContextPtr context = nullptr;
+			RHIResourceSet pendings = {};
+			RHITransitionCache transition = {};
+			RHICache cache = {};
 
-			// SetConstant가 블록 이름으로 binding 번호를 찾는 데 쓰는 현재 파이프라인과, 상수 섀도 / 링
-			Memory::RefPtr<const RHIPipeLine> s_pipeline = nullptr;
-			RHIConstantPool s_constants = {};
-			eRenderType s_type = eRenderType::eNone;
+			eRenderType type = eRenderType::eNone;
+		};
 
+		RHICore& GetCore()
+		{
+			static RHICore core = {};
+			return core;
+		}
+
+		RHITransitionDesc GetTransitionDesc()
+		{
+			RHICore& core = GetCore();
+			
+			RHITransitionDesc desc;
+			desc.buffers.Reserve(core.transition.buffers.Size());
+			desc.textures.Reserve(core.transition.textures.Size());
+
+			for (const auto& transition : core.transition.buffers)
+			{
+				desc.buffers.PushBack(transition);
+			}
+
+			for (const auto& transition : core.transition.textures)
+			{
+				desc.textures.PushBack(transition);
+			}
+
+			return desc;
+		}
+
+		void ClearTransition()
+		{
+			RHICore& core = GetCore();
+			core.transition.buffers.Clear();
+			core.transition.textures.Clear();
 		}
 
 		bool Init(const eRenderType type, void* nativeHandle)
@@ -38,7 +110,8 @@ namespace wtr
 				return false;
 			}
 
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
 				LOGWARN() << "[RHISystem] RHIContext is already initialized.";
 				return true;
@@ -47,11 +120,13 @@ namespace wtr
 			switch (type)
 			{
 			case eRenderType::eOpenGL:
-				s_context = Memory::MakeRef<GLContext>();
+				core.context = Memory::MakeRef<GLContext>();
+				core.type = eRenderType::eOpenGL;
 				break;
 
 			case eRenderType::eVulkan:
-				s_context = Memory::MakeRef<VulkanContext>();
+				core.context = Memory::MakeRef<VulkanContext>();
+				core.type = eRenderType::eVulkan;
 				break;
 
 			default:
@@ -59,102 +134,108 @@ namespace wtr
 				return false;
 			}
 
-			if (!s_context->Init(nativeHandle))
+			if (!core.context->Init(nativeHandle))
 			{
 				LOGERROR() << "[RHISystem] Failed to initialize RHIContext.";
-				s_context.Reset();
+				core.context.Reset();
+				core.type = eRenderType::eNone;
 				return false;
 			}
 
-			if (!s_context->InitResources())
+			if (!core.context->InitResources())
 			{
 				LOGERROR() << "[RHISystem] Failed to initialize RHIContext resources.";
-				s_context.Reset();
+				core.context.Reset();
+				core.type = eRenderType::eNone;
 				return false;
 			}
-
-			// 컨텍스트가 초기화된 뒤에 연결 (정렬 한도는 첫 Flush 때 컨텍스트에서 읽음)
-			s_constants.Init(s_context.operator->());
-
-			s_type = type;
 			
 			return true;
 		}
 
 		void Release()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				// 링 청크도 지연 해제로 넘겨 컨텍스트가 파괴하게 한다
-				auto chunks = s_constants.Release();
-				for (size_t index = 0; index < chunks.Size(); ++index)
-				{
-					s_pending.Insert(chunks[index]);
-				}
-
-				FlushPending();
-
-				s_pipeline.Reset();
-				s_context.Reset();
+				LOGWARN() << "[RHISystem] Failed to release RHIContext : the context is not initialized.";
+				return;
 			}
+
+			// 캐시가 들고 있는 참조를 먼저 놓아야 Pending 리소스가 해제될 수 있음
+			core.cache = {};
+			FlushPending(false);
+
+			core.pendings.Clear();
+			core.context.Reset();
+			core.type = eRenderType::eNone;
+		}
+
+		bool Ready()
+		{
+			return GetCore().context != nullptr;
 		}
 
 		void BeginContext()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->BeginContext();
+				core.context->BeginContext();
 			}
 		}
 
 		void EndContext()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->EndContext();
+				core.context->EndContext();
 			}
 		}
 
 		void BeginFrame()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->BeginFrame();
-
-				// BeginFrame이 이전 프레임의 fence를 기다린 뒤이므로 상수 링 슬라이스를 되감아도 안전함
-				s_constants.Reset();
+				core.context->BeginFrame();
 			}
 		}
 
 		void EndFrame()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->EndFrame();
+				core.context->EndFrame();
 			}
 		}
 
 		void Resize(const uint32_t width, const uint32_t height)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->Resize(width, height);
+				core.context->Resize(width, height);
 			}
 		}
 
 		void Resize(const uint32_t posX, const uint32_t posY, const uint32_t width, const uint32_t height)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->Resize(posX, posY, width, height);
+				core.context->Resize(posX, posY, width, height);
 			}
 		}
 
 		Memory::RefPtr<RHIVertexLayout> CreateVertexLayout(const RHIVertexLayoutDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateVertexLayout(desc);
+				return core.context->CreateVertexLayout(desc);
 			}
 
 			return nullptr;
@@ -162,9 +243,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIBuffer> CreateBuffer(const RHIBufferDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateBuffer(desc);
+				return core.context->CreateBuffer(desc);
 			}
 
 			return nullptr;
@@ -172,9 +254,10 @@ namespace wtr
 
 		Memory::RefPtr<RHITexture> CreateTexture(const RHITextureDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateTexture(desc);
+				return core.context->CreateTexture(desc);
 			}
 
 			return nullptr;
@@ -182,9 +265,10 @@ namespace wtr
 
 		Memory::RefPtr<RHISampler> CreateSampler(const RHISamplerDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateSampler(desc);
+				return core.context->CreateSampler(desc);
 			}
 
 			return nullptr;
@@ -192,9 +276,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreateVertexShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateVertexShader(desc);
+				return core.context->CreateVertexShader(desc);
 			}
 
 			return nullptr;
@@ -202,9 +287,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreateGeometryShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateGeometryShader(desc);
+				return core.context->CreateGeometryShader(desc);
 			}
 
 			return nullptr;
@@ -212,9 +298,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreateHullShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateHullShader(desc);
+				return core.context->CreateHullShader(desc);
 			}
 
 			return nullptr;
@@ -222,9 +309,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreateDomainShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateDomainShader(desc);
+				return core.context->CreateDomainShader(desc);
 			}
 
 			return nullptr;
@@ -232,9 +320,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreatePixelShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreatePixelShader(desc);
+				return core.context->CreatePixelShader(desc);
 			}
 
 			return nullptr;
@@ -242,9 +331,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateComputeShader(desc);
+				return core.context->CreateComputeShader(desc);
 			}
 
 			return nullptr;
@@ -252,9 +342,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreatePipeLine(desc);
+				return core.context->CreatePipeLine(desc);
 			}
 
 			return nullptr;
@@ -262,9 +353,10 @@ namespace wtr
 
 		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				return s_context->CreateRenderPass(desc);
+				return core.context->CreateRenderPass(desc);
 			}
 
 			return nullptr;
@@ -272,353 +364,590 @@ namespace wtr
 
 		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
 		{
+			RHICore& core = GetCore();
 			if (layout)
 			{
-				s_pending.Insert(layout);
+				core.pendings.Insert(layout);
 			}
 		}
 
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer)
 		{
+			RHICore& core = GetCore();
 			if (buffer)
 			{
-				s_pending.Insert(buffer);
+				core.pendings.Insert(buffer);
 			}
 		}
 		
 		void RemoveTexture(Memory::RefPtr<RHITexture> texture)
 		{
+			RHICore& core = GetCore();
 			if (texture)
 			{
-				s_pending.Insert(texture);
+				core.pendings.Insert(texture);
 			}
 		}
 
 		void RemoveSampler(Memory::RefPtr<RHISampler> sampler)
 		{
+			RHICore& core = GetCore();
 			if (sampler)
 			{
-				s_pending.Insert(sampler);
+				core.pendings.Insert(sampler);
 			}
 		}
 
 		void RemoveShader(Memory::RefPtr<RHIShader> shader)
 		{
+			RHICore& core = GetCore();
 			if (shader)
 			{
-				s_pending.Insert(shader);
+				core.pendings.Insert(shader);
 			}
 		}
 
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline)
 		{
+			RHICore& core = GetCore();
 			if (pipeline)
 			{
-				s_pending.Insert(pipeline);
+				core.pendings.Insert(pipeline);
 			}
 		}
 
 		void RemoveRenderPass(Memory::RefPtr<RHIRenderPass> renderPass)
 		{
+			RHICore& core = GetCore();
 			if (renderPass)
 			{
-				s_pending.Insert(renderPass);
+				core.pendings.Insert(renderPass);
 			}
 		}
 
-		void FlushPending()
+		void FlushPending(const bool wait)
 		{
-			if (!s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
 				LOGWARN() << "[RHISystem] RHIContext is not valid. Pending resources will not be flushed.";
 				return;
 			}
 
-			auto itr = s_pending.begin();
-			while (itr != s_pending.end())
+			auto itr = core.pendings.begin();
+			while (itr != core.pendings.end())
 			{
 				Memory::RefPtr<RHIResource> resource = *itr;
 				if (!resource)
 				{
-					itr = s_pending.Erase(itr);
+					itr = core.pendings.Erase(itr);
 					continue;
 				}
 
-				Memory::RefCounted* refCounted = resource.GetRefData();
-				if (!refCounted)
+				if (wait)
 				{
-					itr = s_pending.Erase(itr);
-					continue;
-				}
-				else if (refCounted->GetRefCount() > 1)
-				{
-					++itr;
-					continue;
-				}
-				else
-				{
-					// nothing
+					Memory::RefCounted* refCounted = resource.GetRefData();
+					if (!refCounted)
+					{
+						itr = core.pendings.Erase(itr);
+						continue;
+					}
+					else if (refCounted->GetRefCount() > 2) // pendings와 로컬 resource가 각각 하나씩 잡고 있음
+					{
+						++itr;
+						continue;
+					}
+					else
+					{
+						// nothing
+					}
 				}
 
 				if (auto layout = Memory::Cast<RHIVertexLayout>(resource))
 				{
-					s_context->ReleaseVertexLayout(layout);
+					core.context->ReleaseVertexLayout(layout);
 				}
 				else if (auto buffer = Memory::Cast<RHIBuffer>(resource))
 				{
-					s_context->ReleaseBuffer(buffer);
+					core.context->ReleaseBuffer(buffer);
 				}
 				else if (auto texture = Memory::Cast<RHITexture>(resource))
 				{
-					s_context->ReleaseTexture(texture);
+					core.context->ReleaseTexture(texture);
 				}
 				else if (auto sampler = Memory::Cast<RHISampler>(resource))
 				{
-					s_context->ReleaseSampler(sampler);
+					core.context->ReleaseSampler(sampler);
 				}
 				else if (auto shader = Memory::Cast<RHIShader>(resource))
 				{
-					s_context->ReleaseShader(shader);
+					core.context->ReleaseShader(shader);
 				}
 				else if (auto pipeline = Memory::Cast<RHIPipeLine>(resource))
 				{
-					s_context->ReleasePipeLine(pipeline);
+					core.context->ReleasePipeLine(pipeline);
 				}
 				else if (auto renderPass = Memory::Cast<RHIRenderPass>(resource))
 				{
-					s_context->ReleaseRenderPass(renderPass);
+					core.context->ReleaseRenderPass(renderPass);
 				}
 				else
 				{
 					LOGWARN() << "[RHISystem] Unknown resource type. Resource will not be flushed.";
 				}
 
-				itr = s_pending.Erase(itr);
+				itr = core.pendings.Erase(itr);
 			}
 		}
 
-		void InitializeVertexLayout(const RHIVertexLayoutCreateDesc& info, Memory::RefPtr<RHIVertexLayout> layout)
+		void InitializeVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeVertexLayout(info, layout);
+				core.context->InitializeVertexLayout(info, layout);
 			}
 		}
 
-		void InitializeBuffer(const RHIBufferCreateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
+		void InitializeBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeBuffer(info, buffer);
+				core.context->InitializeBuffer(info, buffer);
 			}
 		}
 
-		void InitializeTexture(const RHITextureCreateDesc& info, Memory::RefPtr<RHITexture> texture)
+		void InitializeTexture(Memory::RefPtr<RHITexture> texture, const RHITextureCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeTexture(info, texture);
+				core.context->InitializeTexture(info, texture);
 			}
 		}
 
-		void InitializeSampler(const RHISamplerCreateDesc& info, Memory::RefPtr<RHISampler> sampler)
+		void InitializeSampler(Memory::RefPtr<RHISampler> sampler, const RHISamplerCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeSampler(info, sampler);
+				core.context->InitializeSampler(info, sampler);
 			}
 		}
 
-		void InitializeShader(const RHIShaderCreateDesc& info, Memory::RefPtr<RHIShader> shader)
+		void InitializeShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeShader(info, shader);
+				core.context->InitializeShader(info, shader);
 			}
 		}
 
-		void InitializePipeLine(const RHIPipeLineCreateDesc& info, Memory::RefPtr<RHIPipeLine> pipeline)
+		void InitializePipeLine(Memory::RefPtr<RHIPipeLine> pipeline, const RHIPipeLineCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializePipeLine(info, pipeline);
+				core.context->InitializePipeLine(info, pipeline);
 			}
 		}
 
-		void InitializeRenderPass(const RHIRenderPassCreateDesc& info, Memory::RefPtr<RHIRenderPass> pass)
+		void InitializeRenderPass(Memory::RefPtr<RHIRenderPass> pass, const RHIRenderPassCreateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->InitializeRenderPass(info, pass);
+				core.context->InitializeRenderPass(info, pass);
 			}
 		}
 
-		void UpdateBuffer(const RHIBufferUpdateDesc& info, Memory::RefPtr<RHIBuffer> buffer)
+		void UpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->UpdateBuffer(info, buffer);
+				core.context->UpdateVertexLayout(info, layout);
 			}
 		}
 
-		void UpdateTexture(const RHITextureUpdateDesc& info, Memory::RefPtr<RHITexture> texture)
+		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->UpdateTexture(info, texture);
+				core.context->UpdateBuffer(info, buffer);
 			}
 		}
 
-		void UpdateVertexLayout(const RHIVertexLayoutCreateDesc& info, Memory::RefPtr<RHIVertexLayout> layout)
+		void UpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc& info)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (core.context)
 			{
-				s_context->UpdateVertexLayout(info, layout);
+				core.context->UpdateTexture(info, texture);
 			}
 		}
 
 		void SetConstant(const RHIConstDesc& info, const Name& binding)
 		{
-			if (!s_pipeline)
-			{
-				LOGWARN() << "[RHISystem] Failed to set the constant, the pipeline is not set : " << binding;
-				return;
-			}
-
-			// 상수 블록은 블록 이름(uLightPass 등)으로 파이프라인 리플렉션에 등록되어 있음
-			const std::string& blockName = binding.str();
-			if (!s_pipeline->HasBuffer(blockName))
-			{
-				LOGWARN() << "[RHISystem] Failed to set the constant, the pipeline has no such block : " << binding;
-				return;
-			}
-
-			const RHIShaderBuffer& block = s_pipeline->GetBuffer(blockName);
-			if (block.binding == UINT32_MAX)
-			{
-				LOGWARN() << "[RHISystem] Failed to set the constant, the block has no binding : " << binding;
-				return;
-			}
-
-			s_constants.Set(info, static_cast<int32_t>(block.binding));
+			// TODO : RHIRingBuffer를 통해서, Uniform Buffer를 생성하고 사용할 수 있도록 수정 필요
 		}
 
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetVertexLayout(layout);
+				LOGWARN() << "[RHI] Failed to set the vertex layout, the context is invalid";
+				return;
+			}
+
+			auto& cache = core.cache.vertexLayout;
+			const bool alreadySet = (cache == layout);
+			if (!alreadySet)
+			{
+				core.context->SetVertexLayout(layout);
+				cache = layout;
 			}
 		}
 
-		void SetVertexBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t binding, const uint32_t offset)
+		void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const VertexKey& key, const uint32_t offset)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetVertexBuffer(buffer, binding, offset);
+				LOGWARN() << "[RHI] Failed to set the vertex buffer, the context is invalid";
+				return;
+			}
+
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to set the vertex buffer, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIShaderLayout& layout = pipeline->GetAttrib(key);
+			auto& cache = core.cache.vertexBuffers[layout.location];
+			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
+			if (!alreadySet)
+			{
+				core.context->SetVertexBuffer(buffer, bindingIndex, offset);
+				cache.buffer = buffer;
+				cache.offset = offset;
 			}
 		}
 
-		void SetIndexBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t offset)
+		void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetIndexBuffer(buffer, offset);
+				LOGWARN() << "[RHI] Failed to set the index buffer, the context is invalid";
+				return;
+			}
+
+			auto& cache = core.cache.indexBuffer;
+			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
+			if (!alreadySet)
+			{
+				core.context->SetIndexBuffer(buffer, offset);
+				cache.buffer = buffer;
+				cache.offset = offset;
 			}
 		}
 
-		void SetBuffer(Memory::RefPtr<RHIBuffer> buffer, const uint32_t binding, const uint32_t offset, const uint32_t range)
+		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset, const uint32_t range)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetBuffer(buffer, binding, offset, range);
+				LOGWARN() << "[RHI] Failed to set the shader buffer, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
+			auto& cache = core.cache.shaderBuffers[bindingIndex];
+			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset) && (cache.range == range);
+			if (!alreadySet)
+			{
+				core.context->SetBuffer(buffer, bindingIndex, offset, range);
+				cache.buffer = buffer;
+				cache.offset = offset;
+				cache.range = range;
 			}
 		}
 
-		void SetTexture(Memory::RefPtr<RHITexture> texture, const uint32_t binding)
+		void SetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetTexture(texture, binding);
+				LOGWARN() << "[RHI] Failed to set the texture, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline에서 추출
+			auto& cache = core.cache.textures[bindingIndex];
+			const bool alreadySet = (cache == texture);
+			if (!alreadySet)
+			{
+				core.context->SetTexture(texture, bindingIndex);
+				cache = texture;
 			}
 		}
 
-		void SetSampler(Memory::RefPtr<RHISampler> sampler, const uint32_t binding)
+		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetSampler(sampler, binding);
+				LOGWARN() << "[RHI] Failed to set the sampler, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline에서 추출
+			auto& cache = core.cache.samplers[bindingIndex];
+			const bool alreadySet = (cache == sampler);
+			if (!alreadySet)
+			{
+				core.context->SetSampler(sampler, bindingIndex);
+				cache = sampler;
 			}
 		}
 
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetPipeLine(pipeline);
-
-				s_pipeline = pipeline;
-
-				// 파이프라인 레이아웃이 바뀌면 이전 바인딩이 유효하지 않을 수 있어 슬라이스를 다시 바인딩하게 한다
-				s_constants.Invalidate();
+				LOGWARN() << "[RHI] Failed to set the pipeline, the context is invalid";
+				return;
 			}
-		}
 
-		void UnsetPipeLine()
-		{
-			if (s_context)
+			auto& cache = core.cache.pipeline;
+			const bool alreadySet = (cache == pipeline);
+			if (!alreadySet)
 			{
-				s_context->UnsetPipeLine();
-
-				s_pipeline.Reset();
+				core.context->SetPipeLine(pipeline);
+				cache = pipeline;
 			}
 		}
 
 		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> renderPass)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->SetRenderPass(renderPass);
+				LOGWARN() << "[RHI] Failed to set the render pass, the context is invalid";
+				return;
+			}
+
+			RHITransitionDesc desc = GetTransitionDesc();
+			ClearTransition();
+
+			core.context->Transition(desc);
+
+			auto& cache = core.cache.renderPass;
+			const bool alreadySet = (cache == renderPass);
+			if (!alreadySet)
+			{
+				core.context->SetRenderPass(renderPass);
+				cache = renderPass;
 			}
 		}
 
-		void Transition(const RHITransitionDesc& desc)
+		void UnsetVertexLayout()
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_context->Transition(desc);
+				LOGWARN() << "[RHI] Failed to unset the vertex layout, the context is invalid";
+				return;
 			}
+
+			core.context->UnsetVertexLayout();
+			core.cache.vertexLayout = nullptr;
+		}
+
+		void UnsetVertexBuffer(const Name& binding)
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the vertex buffer, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
+			core.context->UnsetVertexBuffer(bindingIndex);
+			core.cache.vertexBuffers.Erase(bindingIndex);
+		}
+
+		void UnsetIndexBuffer()
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the index buffer, the context is invalid";
+				return;
+			}
+
+			core.context->UnsetIndexBuffer();
+			core.cache.indexBuffer = {};
+		}
+
+		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding)
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the shader buffer, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
+			core.context->UnsetBuffer(buffer, bindingIndex);
+			core.cache.shaderBuffers.Erase(bindingIndex);
+		}
+
+		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding)
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the texture, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
+			core.context->UnsetTexture(texture, bindingIndex);
+			core.cache.textures.Erase(bindingIndex);
+		}
+
+		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding)
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the sampler, the context is invalid";
+				return;
+			}
+
+			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
+			core.context->UnsetSampler(sampler, bindingIndex);
+			core.cache.samplers.Erase(bindingIndex);
+		}
+
+		void UnsetPipeLine()
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the pipeline, the context is invalid";
+				return;
+			}
+
+			core.context->UnsetPipeLine();
+			core.cache.pipeline = nullptr;
+		}
+
+		void UnsetRenderPass()
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHI] Failed to unset the render pass, the context is invalid";
+				return;
+			}
+
+			core.context->UnsetRenderPass();
+			core.cache.renderPass = nullptr;
+		}
+
+		void Transition(Memory::RefPtr<const RHIBuffer> buffer, const RHIBufferState& after)
+		{
+			RHICore& core = GetCore();
+			if (!core.context || !buffer)
+			{
+				LOGWARN() << "[RHI] Failed to transition the buffer, the context or buffer is invalid";
+				return;
+			}
+
+			const RHIBufferState& before = buffer->GetBufferState();
+			if (before == after)
+			{
+				return;
+			}
+
+			RHIBufferTransition transition;
+			transition.buffer = buffer;
+			transition.before = buffer->GetBufferState();
+			transition.after = after;
+
+			core.transition.buffers.Insert(transition);
+		}
+
+		void Transition(Memory::RefPtr<const RHITexture> texture, const RHITextureState& after)
+		{
+			RHICore& core = GetCore();
+			if (!core.context || !texture)
+			{
+				LOGWARN() << "[RHI] Failed to transition the texture, the context or texture is invalid";
+				return;
+			}
+
+			const RHITextureState& before = texture->GetTextureState();
+			if (before == after)
+			{
+				return;
+			}
+
+			RHITextureTransition transition;
+			transition.texture = texture;
+			transition.before = before;
+			transition.after = after;
+
+			core.transition.textures.Insert(transition);
 		}
 
 		void DispatchCompute(const RHIDispatchDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				// 이번 dispatch가 읽을 상수 슬라이스를 올리고 바인딩
-				s_constants.Flush();
-
-				s_context->DispatchCompute(desc);
+				LOGWARN() << "[RHI] Failed to dispatch for compute, the context is invalid";
+				return;
 			}
+
+			core.context->DispatchCompute(desc);
 		}
 
 		void DrawDirect(const RHIDrawDirectDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_constants.Flush();
-
-				s_context->DrawDirect(desc);
+				LOGWARN() << "[RHI] Failed to draw the direct call, the context is invalid";
+				return;
 			}
+
+			core.context->DrawDirect(desc);
 		}
 
 		void DrawIndirect(const RHIDrawIndirectDesc& desc)
 		{
-			if (s_context)
+			RHICore& core = GetCore();
+			if (!core.context)
 			{
-				s_constants.Flush();
-
-				s_context->DrawIndirect(desc);
+				LOGWARN() << "[RHI] Failed to draw the indirect call, the context is invalid";
+				return;
 			}
+
+			core.context->DrawIndirect(desc);
 		}
 	}
 }
