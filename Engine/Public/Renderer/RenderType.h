@@ -457,10 +457,22 @@ namespace wtr
 	{
 		return static_cast<eDataState>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
-	
+
+	inline eDataState& operator|=(eDataState& a, eDataState b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eDataState operator&(eDataState a, eDataState b)
 	{
 		return static_cast<eDataState>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eDataState& operator&=(eDataState& a, eDataState b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eDataStage operator|(eDataStage a, eDataStage b)
@@ -468,9 +480,21 @@ namespace wtr
 		return static_cast<eDataStage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eDataStage& operator|=(eDataStage& a, eDataStage b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eDataStage operator&(eDataStage a, eDataStage b)
 	{
 		return static_cast<eDataStage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eDataStage& operator&=(eDataStage& a, eDataStage b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eBufferUsage operator|(eBufferUsage a, eBufferUsage b)
@@ -478,9 +502,21 @@ namespace wtr
 		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eBufferUsage& operator|=(eBufferUsage& a, eBufferUsage b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eBufferUsage operator&(eBufferUsage a, eBufferUsage b)
 	{
 		return static_cast<eBufferUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eBufferUsage& operator&=(eBufferUsage& a, eBufferUsage b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eTextureUsage operator|(eTextureUsage a, eTextureUsage b)
@@ -488,9 +524,21 @@ namespace wtr
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eTextureUsage& operator|=(eTextureUsage& a, eTextureUsage b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eTextureUsage operator&(eTextureUsage a, eTextureUsage b)
 	{
 		return static_cast<eTextureUsage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eTextureUsage& operator&=(eTextureUsage& a, eTextureUsage b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eClearBuffer operator|(eClearBuffer a, eClearBuffer b)
@@ -498,9 +546,21 @@ namespace wtr
 		return static_cast<eClearBuffer>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eClearBuffer& operator|=(eClearBuffer& a, eClearBuffer b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eClearBuffer operator&(eClearBuffer a, eClearBuffer b)
 	{
 		return static_cast<eClearBuffer>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eClearBuffer& operator&=(eClearBuffer& a, eClearBuffer b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eAttachmentType operator|(eAttachmentType a, eAttachmentType b)
@@ -508,9 +568,21 @@ namespace wtr
 		return static_cast<eAttachmentType>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eAttachmentType& operator|=(eAttachmentType& a, eAttachmentType b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eAttachmentType operator&(eAttachmentType a, eAttachmentType b)
 	{
 		return static_cast<eAttachmentType>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eAttachmentType& operator&=(eAttachmentType& a, eAttachmentType b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eRenderDirty operator|(eRenderDirty a, eRenderDirty b)
@@ -518,9 +590,21 @@ namespace wtr
 		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eRenderDirty& operator|=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eRenderDirty operator&(eRenderDirty a, eRenderDirty b)
 	{
 		return static_cast<eRenderDirty>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eRenderDirty& operator&=(eRenderDirty& a, eRenderDirty b)
+	{
+		a = a & b;
+		return a;
 	}
 
 	inline eRenderPass operator|(eRenderPass a, eRenderPass b)
@@ -528,9 +612,21 @@ namespace wtr
 		return static_cast<eRenderPass>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
 	}
 
+	inline eRenderPass& operator|=(eRenderPass& a, eRenderPass b)
+	{
+		a = a | b;
+		return a;
+	}
+
 	inline eRenderPass operator&(eRenderPass a, eRenderPass b)
 	{
 		return static_cast<eRenderPass>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+	}
+
+	inline eRenderPass& operator&=(eRenderPass& a, eRenderPass b)
+	{
+		a = a & b;
+		return a;
 	}
 };
 

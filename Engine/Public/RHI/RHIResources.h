@@ -46,6 +46,28 @@ namespace wtr
 			std::atomic<eResourceState> m_state = eResourceState::eNone;
 	};
 
+	class RHIVertexLayout : public RHIResource
+	{
+	public:
+		RHIVertexLayout(const RHIVertexLayoutDesc& desc);
+		virtual ~RHIVertexLayout() = default;
+
+	public:
+		size_t GetNumLayout() const;
+		const RHIVertexStream& GetStream(const VertexKey& key) const;
+		const RHIVertexAttribute& GetAttrib(const VertexKey& key) const;
+		const RHIVertexSlot& GetSlot(const VertexKey& key) const;
+		const RHIVertexLayoutDesc& GetDesc() const;
+
+		void SetDesc(const RHIVertexLayoutDesc& desc);
+		void SetStream(const VertexKey& key, const RHIVertexStream& stream);
+		void SetAttrib(const VertexKey& key, const RHIVertexAttribute& attribute);
+		void SetSlot(const VertexKey& key, const RHIVertexSlot& slot);
+
+	protected:
+		RHIVertexLayoutDesc m_desc;
+	};
+
 	class RHIBuffer : public RHIResource
 	{
 		public :
@@ -78,26 +100,6 @@ namespace wtr
 
 		private :
 			mutable RHIBufferState m_bufferState;
-	};
-
-	class RHIVertexLayout : public RHIResource
-	{
-		public :
-			RHIVertexLayout(const RHIVertexLayoutDesc& desc);
-			virtual ~RHIVertexLayout() = default;
-
-		public :
-			size_t GetNumLayout() const;
-			RHIVertexAttribute GetAttribute(const VertexKey& key) const;
-			RHIVertexBinding GetBinding(const VertexKey& key) const;
-			const RHIVertexLayoutDesc& GetDesc() const;
-
-			void SetDesc(const RHIVertexLayoutDesc& desc);
-			void SetAttribute(const VertexKey& key, const RHIVertexAttribute& attribute);
-			void SetBinding(const VertexKey& key, const RHIVertexBinding& binding);
-
-		protected :
-			RHIVertexLayoutDesc m_desc;
 	};
 
 	class RHITexture : public RHIResource
@@ -175,42 +177,31 @@ namespace wtr
 	public :
 		void Clear();
 
-		void AddAttrib(const VertexKey& key, const RHIShaderLayout& attrib);
-		void AddAttach(const Name& name, const RHIShaderLayout& attach);
+		bool AddConst(const Name& name, const RHIStageConst& constant);
+		bool AddBuffer(const Name& name, const RHIStageBuffer& buffer);
+		bool AddSampler(const Name& name, const RHIStageSampler& sampler);
+		bool AddTexture(const Name& name, const RHIStageTexture& texture);
 
-		void AddConst(const Name& name, const RHIShaderConst& constant);
-		void AddBuffer(const Name& name, const RHIShaderBuffer& buffer);
-		void AddSampler(const Name& name, const RHIShaderSampler& sampler);
-		void AddTexture(const Name& name, const RHIShaderTexture& texture);
-
-		bool HasAttrib(const VertexKey& key) const;
-		bool HasAttach(const Name& name) const;
 		bool HasConst(const Name& name) const;
 		bool HasBuffer(const Name& name) const;
 		bool HasSampler(const Name& name) const;
 		bool HasTexture(const Name& name) const;
 
-		const RHIShaderLayout& GetAttrib(const VertexKey& key) const;
-		const RHIShaderLayout& GetAttach(const Name& name) const;
-		const RHIShaderConst& GetConst(const Name& name) const;
-		const RHIShaderBuffer& GetBuffer(const Name& name) const;
-		const RHIShaderSampler& GetSampler(const Name& name) const;
-		const RHIShaderTexture& GetTexture(const Name& name) const;
+		const RHIStageConst& GetConst(const Name& name) const;
+		const RHIStageBuffer& GetBuffer(const Name& name) const;
+		const RHIStageSampler& GetSampler(const Name& name) const;
+		const RHIStageTexture& GetTexture(const Name& name) const;
 
-		const RHIShaderAttribs& GetAttribs() const;
-		const RHIShaderAttaches& GetAttaches() const;
-		const RHIShaderConsts& GetConsts() const;
-		const RHIShaderBuffers& GetBuffers() const;
-		const RHIShaderSamplers& GetSamplers() const;
-		const RHIShaderTextures& GetTextures() const;
+		const RHIStageConsts& GetConsts() const;
+		const RHIStageBuffers& GetBuffers() const;
+		const RHIStageSamplers& GetSamplers() const;
+		const RHIStageTextures& GetTextures() const;
 
 	protected :
-		RHIShaderAttribs m_attribs;
-		RHIShaderAttaches m_attaches;
-		RHIShaderConsts m_consts;
-		RHIShaderBuffers m_buffers;
-		RHIShaderSamplers m_samplers;
-		RHIShaderTextures m_textures;
+		RHIStageConsts m_consts;
+		RHIStageBuffers m_buffers;
+		RHIStageSamplers m_samplers;
+		RHIStageTextures m_textures;
 	};
 
 	class RHIShader : public RHIStage
@@ -223,8 +214,24 @@ namespace wtr
 		eShaderType GetShaderType() const;
 		const RHIShaderDesc& GetDesc() const;
 
+		void Clear();
+
+		bool AddInput(const VertexKey& key, const RHIStageLayout& input);
+		bool AddOutput(const Name& name, const RHIStageLayout& output);
+
+		bool HasInput(const VertexKey& key) const;
+		bool HasOutput(const Name& name) const;
+
+		const RHIStageLayout& GetInput(const VertexKey& key) const;
+		const RHIStageLayout& GetOutput(const Name& name) const;
+
+		const RHIStageInputs& GetInputs() const;
+		const RHIStageOutputs& GetOutputs() const;
+
 	private :
 		RHIShaderDesc m_desc;
+		RHIStageInputs m_inputs;
+		RHIStageOutputs m_outputs;
 	};
 
 	class RHIPipeLine : public RHIStage
@@ -242,11 +249,32 @@ namespace wtr
 		const RHIPipeLineDesc& GetDesc() const;
 
 		void Clear();
+		
 		bool AddShader(const Memory::RefPtr<const RHIShader>& shader);
+		bool AddLayout(Memory::RefPtr<const RHIVertexLayout>& layout);
+		bool AddPass(Memory::RefPtr<const RHIRenderPass>& pass);
+
+		bool AddAttrib(const VertexKey& key, const RHIStageAttrib& attrib);
+		bool AddColorAttach(const uint32_t location, const RHIStageAttach& attach);
+		bool AddDepthStencilAttach(const RHIStageAttach& attach);
+
+		bool HasAttrib(const VertexKey& key) const;
+		bool HasColorAttach(const uint32_t location) const;
+		bool HasDepthStencilAttach() const;
 		bool HasShader(const eShaderType shaderType) const;
+
+		const RHIStageAttrib& GetAttrib(const VertexKey& key) const;
+		const RHIStageAttach& GetColorAttach(const uint32_t location) const;
+		const RHIStageAttach& GetDepthStencilAttach() const;
+
+		const RHIStageAttribs& GetAttribs() const;
+		const RHIStageAttaches& GetColorAttaches() const;
 
 	private :
 		RHIPipeLineDesc m_desc;
+		RHIStageAttribs m_attribs;
+		RHIStageAttaches m_colorAttaches;
+		RHIStageAttach m_depthStencilAttach;
 	};
 
 	class RHIGraphicsPipeLine : public RHIPipeLine
@@ -274,7 +302,7 @@ namespace wtr
 	public :
 		const RHIRenderPassDesc& GetDesc() const;
 
-		bool HasColorAttach(const uint32_t slot) const;
+		bool HasColorAttach(const uint32_t location) const;
 		bool HasDepthStencilAttach() const;
 
 		size_t GetColorAttachCount() const;

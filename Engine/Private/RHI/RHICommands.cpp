@@ -303,19 +303,6 @@ namespace wtr
 		}
 	}
 
-	RHICommandUpdateVertexLayout::RHICommandUpdateVertexLayout(const Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc info)
-		: m_info(info)
-		, m_layout(layout)
-	{}
-
-	void RHICommandUpdateVertexLayout::Execute()
-	{
-		if (m_layout)
-		{
-			RHISystem::UpdateVertexLayout(m_layout, m_info);
-		}
-	}
-
 	RHICommandSetConstant::RHICommandSetConstant(const RHIConstDesc info, const Name& binding)
 		: m_info(info)
 		, m_binding(binding)

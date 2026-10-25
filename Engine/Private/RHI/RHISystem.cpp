@@ -102,7 +102,7 @@ namespace wtr
 			core.transition.textures.Clear();
 		}
 
-		bool Init(const eRenderType type, void* nativeHandle)
+		bool Init(const eRenderType type, const size_t frameDiff, void* nativeHandle)
 		{
 			if (!nativeHandle)
 			{
@@ -142,7 +142,7 @@ namespace wtr
 				return false;
 			}
 
-			if (!core.context->InitResources())
+			if (!core.context->InitResources(frameDiff))
 			{
 				LOGERROR() << "[RHISystem] Failed to initialize RHIContext resources.";
 				core.context.Reset();
@@ -563,15 +563,6 @@ namespace wtr
 			}
 		}
 
-		void UpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc& info)
-		{
-			RHICore& core = GetCore();
-			if (core.context)
-			{
-				core.context->UpdateVertexLayout(info, layout);
-			}
-		}
-
 		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info)
 		{
 			RHICore& core = GetCore();
@@ -635,7 +626,7 @@ namespace wtr
 			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
 			if (!alreadySet)
 			{
-				core.context->SetVertexBuffer(buffer, bindingIndex, offset);
+				core.context->SetVertexBuffer(buffer, layout., offset);
 				cache.buffer = buffer;
 				cache.offset = offset;
 			}

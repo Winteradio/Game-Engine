@@ -41,7 +41,6 @@ namespace wtr
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
-	struct RHIVertexLayoutUpdateDesc;
 
 	struct RHIBufferState;
 	struct RHITextureState;
@@ -97,7 +96,6 @@ namespace wtr
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
 		void RemoveRenderPass(Memory::RefPtr<RHIRenderPass> pass);
 
-		void UpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc& info);
 		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info);
 		void UpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc& info);
 

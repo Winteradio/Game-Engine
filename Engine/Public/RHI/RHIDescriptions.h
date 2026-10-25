@@ -33,112 +33,163 @@ namespace wtr
 		bool			normalized		= false;
 	};
 
-	struct RHIVertexBinding
+	struct RHIVertexSlot
 	{
 		uint32_t		stride	= 0;
+		uint32_t 		binding = UINT32_MAX;
 		eDataDivisor	divisor	= eDataDivisor::eNone;
 	};
 
 	struct RHIVertexStream
 	{
 		RHIVertexAttribute	attribute;
-		RHIVertexBinding	binding;
-
-		uint32_t			bindingIndex	= UINT32_MAX;
+		RHIVertexSlot		slot;
 	};
 
-	struct RHIShaderLayout
+	struct RHIStageLayout
 	{
 		uint32_t	location		= UINT32_MAX;
 
 		uint32_t	componentCount	= 0;
 		eDataType	componentType	= eDataType::eNone;
 
-		bool operator==(const RHIShaderLayout& other) const noexcept
+		bool operator==(const RHIStageLayout& other) const noexcept
 		{
 			return (location == other.location) &&
 				(componentCount == other.componentCount) &&
 				(componentType == other.componentType);
 		}
 
-		bool operator!=(const RHIShaderLayout& other) const noexcept
+		bool operator!=(const RHIStageLayout& other) const noexcept
 		{
 			return !(*this == other);
 		}
 	};
 
-	struct RHIShaderConst
+	struct RHIStageAttrib : RHIStageLayout
 	{
-		uint32_t	binding			= UINT32_MAX;
+		uint32_t binding			= UINT32_MAX;
+		uint32_t componentOffset	= 0;
+		bool normalized				= false;
 
-		eDataStage	stage			= eDataStage::eNone;
-
-		bool operator==(const RHIShaderConst& other) const noexcept
+		RHIStageAttrib& operator=(const RHIStageLayout& other)
 		{
-			return (binding == other.binding) &&
+			RHIStageLayout::operator=(other);
+			return *this;
+		}
+
+		bool operator==(const RHIStageAttrib& other) const noexcept
+		{
+			return RHIStageAttrib::operator==(other) &&
+				(binding == other.binding) &&
+				(componentOffset == other.componentOffset) &&
+				(normalized == other.normalized);
+		}
+
+		bool operator!=(const RHIStageAttrib& other) const noexcept
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct RHIStageAttach
+	{
+		ePixelFormat format = ePixelFormat::eNone;
+
+		bool operator==(const RHIStageAttach& other) const noexcept
+		{
+			return format == other.format;
+		}
+
+		bool operator!=(const RHIStageAttach& other) const noexcept
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct RHIStageConst
+	{
+		uint32_t	binding				= UINT32_MAX;
+
+		uint32_t	componentOffset		= 0;
+		uint32_t	componentRange		= 0;
+		uint32_t	componentCount		= 0;
+		eDataType	componentType		= eDataType::eNone;
+
+		eDataStage stage				= eDataStage::eNone;
+
+		bool operator==(const RHIStageConst& other) const noexcept
+		{
+			return  (binding == other.binding) &&
+				(componentOffset == other.componentOffset) &&
+				(componentRange == other.componentRange) &&
+				(componentCount == other.componentCount) &&
+				(componentType == other.componentType) &&
 				(stage == other.stage);
 		}
 
-		bool operator!=(const RHIShaderConst& other) const noexcept
+		bool operator!=(const RHIStageConst& other) const noexcept
 		{
 			return !(*this == other);
 		}
 	};
 
-	struct RHIShaderBuffer : RHIBufferState
+	struct RHIStageBuffer : RHIBufferState
 	{
-		uint32_t	binding			= UINT32_MAX;
+		uint32_t binding = UINT32_MAX;
 
-		bool operator==(const RHIShaderBuffer& other) const noexcept
+		bool operator==(const RHIStageBuffer& other) const noexcept
 		{
 			return RHIBufferState::operator==(other) &&
 				(binding == other.binding);
 		}
 
-		bool operator!=(const RHIShaderBuffer& other) const noexcept
+		bool operator!=(const RHIStageBuffer& other) const noexcept
 		{
 			return !(*this == other);
 		}
 	};
 
-	struct RHIShaderSampler : RHITextureState
+	struct RHIStageSampler : RHITextureState
 	{
-		uint32_t	binding			= UINT32_MAX;
+		uint32_t binding = UINT32_MAX;
 
-		bool operator==(const RHIShaderSampler& other) const noexcept
+		bool operator==(const RHIStageSampler& other) const noexcept
 		{
 			return RHITextureState::operator==(other) &&
 				(binding == other.binding);
 		}
 		
-		bool operator!=(const RHIShaderSampler& other) const noexcept
+		bool operator!=(const RHIStageSampler& other) const noexcept
 		{
 			return !(*this == other);
 		}
 	};
 
-	struct RHIShaderTexture : RHITextureState
+	struct RHIStageTexture : RHITextureState
 	{
 		uint32_t	location		= UINT32_MAX;
 
-		bool operator==(const RHIShaderTexture& other) const noexcept
+		bool operator==(const RHIStageTexture& other) const noexcept
 		{
 			return RHITextureState::operator==(other) &&
 				(location == other.location);
 		}
 
-		bool operator!=(const RHIShaderTexture& other) const noexcept
+		bool operator!=(const RHIStageTexture& other) const noexcept
 		{
 			return !(*this == other);
 		}
 	};
 
-	using RHIShaderAttribs	= wtr::HashMap<VertexKey, RHIShaderLayout>;
-	using RHIShaderAttaches = wtr::HashMap<Name, RHIShaderLayout>;
-	using RHIShaderConsts	= wtr::HashMap<Name, RHIShaderConst>;
-	using RHIShaderBuffers	= wtr::HashMap<Name, RHIShaderBuffer>;
-	using RHIShaderSamplers	= wtr::HashMap<Name, RHIShaderSampler>;
-	using RHIShaderTextures	= wtr::HashMap<Name, RHIShaderTexture>;
+	using RHIStageInputs	= wtr::HashMap<VertexKey, RHIStageLayout>;
+	using RHIStageOutputs	= wtr::HashMap<Name, RHIStageLayout>;
+	using RHIStageAttribs	= wtr::HashMap<VertexKey, RHIStageAttrib>;
+	using RHIStageAttaches 	= wtr::HashMap<uint32_t, RHIStageAttach>;
+	using RHIStageConsts	= wtr::HashMap<Name, RHIStageConst>;
+	using RHIStageBuffers	= wtr::HashMap<Name, RHIStageBuffer>;
+	using RHIStageSamplers	= wtr::HashMap<Name, RHIStageSampler>;
+	using RHIStageTextures	= wtr::HashMap<Name, RHIStageTexture>;
 
 	struct RHIConstDesc
 	{
@@ -441,8 +492,6 @@ namespace wtr
 		Memory::RefPtr<const RHIShader>	pixelShader;
 		Memory::RefPtr<const RHIShader>	computeShader;
 
-		Memory::RefPtr<const RHIVertexLayout> layout;
-
 		bool operator==(const RHIPipeLineDesc& other) const noexcept
 		{
 			if (color != other.color ||
@@ -455,8 +504,7 @@ namespace wtr
 				hullShader != other.hullShader ||
 				domainShader != other.domainShader ||
 				pixelShader != other.pixelShader ||
-				computeShader != other.computeShader ||
-				layout != other.layout)
+				computeShader != other.computeShader)
 			{
 				return false;
 			}
@@ -472,6 +520,7 @@ namespace wtr
 
 	struct RHIPipeLineCreateDesc : RHIPipeLineDesc
 	{
+		Memory::RefPtr<const RHIVertexLayout> layout;
 		Memory::RefPtr<const RHIRenderPass> target;
 
 		RHIPipeLineCreateDesc() = default;
@@ -492,7 +541,7 @@ namespace wtr
 				return false;
 			}
 
-			if (layout != other.layout || target != other.target)
+			if ((layout != other.layout) || (target != other.target))
 			{
 				return false;
 			}
@@ -550,7 +599,7 @@ namespace wtr
 
 	struct RHIColorAttachment : RHIAttachment
 	{
-		uint32_t slot = UINT32_MAX;
+		uint32_t location = UINT32_MAX;
 
 		RHIColorAttachment() = default;
 		RHIColorAttachment(const RHIAttachment& desc)

@@ -335,20 +335,6 @@ namespace wtr
 		Memory::RefPtr<RHIRenderPass> m_pass;
 	};
 
-	class RHICommandUpdateVertexLayout : public RHICommand<RHICommandUpdateVertexLayout>
-	{
-	public:
-		RHICommandUpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc info);
-		~RHICommandUpdateVertexLayout() = default;
-
-	public:
-		void Execute();
-
-	private:
-		const RHIVertexLayoutUpdateDesc m_info;
-		Memory::RefPtr<RHIVertexLayout> m_layout;
-	};
-
 	class RHICommandUpdateBuffer : public RHICommand<RHICommandUpdateBuffer>
 	{
 	public :

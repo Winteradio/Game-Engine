@@ -279,11 +279,6 @@ namespace wtr
 		}
 	}
 
-	void RHICommandList::UpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc& info)
-	{
-		Enqueue<RHICommandUpdateVertexLayout>(layout, info);
-	}
-
 	void RHICommandList::UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info)
 	{
 		if (!buffer)

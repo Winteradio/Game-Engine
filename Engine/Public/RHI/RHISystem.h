@@ -39,7 +39,6 @@ namespace wtr
 
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
-	struct RHIVertexLayoutUpdateDesc;
 
 	struct RHITransitionDesc;
 	struct RHIBufferState;
@@ -59,7 +58,7 @@ namespace wtr
 {
 	namespace RHISystem
 	{
-		bool Init(const eRenderType type, void* nativeHandle);
+		bool Init(const eRenderType type, const size_t frameDiff, void* nativeHandle);
 		bool Ready();
 		void Release();
 		void FlushPending(const bool wait = true);
@@ -101,7 +100,6 @@ namespace wtr
 		void InitializePipeLine(Memory::RefPtr<RHIPipeLine> pipeline, const RHIPipeLineCreateDesc& info);
 		void InitializeRenderPass(Memory::RefPtr<RHIRenderPass> pass, const RHIRenderPassCreateDesc& info);
 
-		void UpdateVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutUpdateDesc& info);
 		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info);
 		void UpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc& info);
 

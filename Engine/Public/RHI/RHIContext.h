@@ -32,7 +32,6 @@ namespace wtr
 	struct RHIPipeLineCreateDesc;
 	struct RHIRenderPassCreateDesc;
 
-	struct RHIVertexLayoutUpdateDesc;
 	struct RHIBufferUpdateDesc;
 	struct RHITextureUpdateDesc;
 
@@ -100,7 +99,6 @@ namespace wtr
 		virtual void InitializePipeLine(const RHIPipeLineCreateDesc& info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 		virtual void InitializeRenderPass(const RHIRenderPassCreateDesc& info, Memory::RefPtr<RHIRenderPass> pass) = 0;
 
-		virtual void UpdateVertexLayout(const RHIVertexLayoutUpdateDesc& info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
 		virtual void UpdateBuffer(const RHIBufferUpdateDesc& info, Memory::RefPtr<RHIBuffer> buffer) = 0;
 		virtual void UpdateTexture(const RHITextureUpdateDesc& info, Memory::RefPtr<RHITexture> texture) = 0;
 
