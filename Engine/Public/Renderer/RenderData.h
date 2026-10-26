@@ -134,37 +134,54 @@ namespace wtr
 
 	using RefData = Memory::RefPtr<RawData>;
 
-	struct DataBlob
+	struct DataRegion
 	{
-		RefData		bulk;
+		RefData data;
 
-		uint32_t	offset	= 0;
-		uint32_t	size	= 0;
+		uint32_t dataOffset = 0;
+		uint32_t dataSize = 0;
+
+		bool operator==(const DataRegion& other) const
+		{
+			return data == other.data && dataOffset == other.dataOffset && dataSize == other.dataSize;
+		}
+
+		bool operator!=(const DataRegion& other) const
+		{
+			return !(*this == other);
+		}
 	};
 
-	struct TextureBlob : DataBlob
+	struct BufferRegigon : DataRegion
+	{
+		uint32_t bufferOffset = 0;
+
+		bool operator==(const BufferRegigon& other) const
+		{
+			return DataRegion::operator==(other) && bufferOffset == other.bufferOffset;
+		}
+
+		bool operator!=(const BufferRegigon& other) const
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct TextureRegion : DataRegion
 	{
 		uint32_t	level	= 0;
 		uint32_t	layer	= 0;
 		uint32_t	face	= 0;
-	};
 
-	struct BufferData
-	{
-		wtr::DynamicArray<DataBlob>	blobs;
-	};
+		bool operator==(const TextureRegion& other) const
+		{
+			return DataRegion::operator==(other) && level == other.level && layer == other.layer && face == other.face;
+		}
 
-	struct TextureData
-	{
-		wtr::DynamicArray<TextureBlob>	blobs;
-
-		uint32_t	width	= 1;
-		uint32_t	height	= 1;
-		uint32_t	depth	= 1;
-
-		uint32_t	level	= 1;
-		uint32_t	layer	= 1;
-		uint32_t	face	= 1;
+		bool operator!=(const TextureRegion& other) const
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct VertexKey

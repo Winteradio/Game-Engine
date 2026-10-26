@@ -42,17 +42,19 @@ namespace wtr
 				uint32_t offset = 0;
 			};
 
+			Memory::RefPtr<const RHIVertexLayout> vertexLayout = nullptr;
+			Memory::RefPtr<const RHIPipeLine> pipeline = nullptr;
+			Memory::RefPtr<const RHIRenderPass> renderPass = nullptr;
+
+			wtr::HashMap<uint32_t, Memory::RefPtr<const RHITexture>> textures = {};
+			wtr::HashMap<uint32_t, Memory::RefPtr<const RHISampler>> samplers = {};
+
 			wtr::HashMap<uint32_t, ShaderBuffer> shaderBuffers = {};
 			wtr::HashMap<uint32_t, VertexBuffer> vertexBuffers = {};
 			IndexBuffer indexBuffer = {};
 
-			wtr::HashMap<uint32_t, RHIConstDesc> consts = {};
-			wtr::HashMap<uint32_t, Memory::RefPtr<const RHITexture>> textures = {};
-			wtr::HashMap<uint32_t, Memory::RefPtr<const RHISampler>> samplers = {};
-
-			Memory::RefPtr<const RHIVertexLayout> vertexLayout = nullptr;
-			Memory::RefPtr<const RHIPipeLine> pipeline = nullptr;
-			Memory::RefPtr<const RHIRenderPass> renderPass = nullptr;
+			wtr::HashMap<Name, RHIConstDesc> consts = {};
+			bool constChanged = false;
 		};
 
 		struct RHICore
@@ -65,6 +67,7 @@ namespace wtr
 			RHITransitionCache transition = {};
 			RHICache cache = {};
 
+			size_t frame;
 			eRenderType type = eRenderType::eNone;
 		};
 
@@ -100,6 +103,47 @@ namespace wtr
 			RHICore& core = GetCore();
 			core.transition.buffers.Clear();
 			core.transition.textures.Clear();
+		}
+
+		void FlushTransition()
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHISystem] Failed to flush transition : the context is not initialized.";
+			}
+
+			RHITransitionDesc desc = GetTransitionDesc();
+			if (!desc.buffers.Empty() || !desc.textures.Empty())
+			{
+				core.context->Transition(desc);
+				ClearTransition();
+			}
+		}
+
+		void FlushConst()
+		{
+			RHICore& core = GetCore();
+			if (!core.context)
+			{
+				LOGWARN() << "[RHISystem] Failed to flush const : the context is not initialized.";
+			}
+
+			if (!core.cache.constChanged)
+			{
+				return;
+			}
+
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHISystem] Failed to flush const : the pipeline is not set.";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+			RHIBufferUpdateDesc desc;
+			desc.dataUsage = eDataUsage::eStream;
+		
 		}
 
 		bool Init(const eRenderType type, const size_t frameDiff, void* nativeHandle)
@@ -162,7 +206,6 @@ namespace wtr
 				return;
 			}
 
-			// 캐시가 들고 있는 참조를 먼저 놓아야 Pending 리소스가 해제될 수 있음
 			core.cache = {};
 			FlushPending(false);
 
@@ -200,6 +243,7 @@ namespace wtr
 			if (core.context)
 			{
 				core.context->BeginFrame();
+				core.context->ResetRingBuffer(core.frame++);
 			}
 		}
 
@@ -452,7 +496,7 @@ namespace wtr
 						itr = core.pendings.Erase(itr);
 						continue;
 					}
-					else if (refCounted->GetRefCount() > 2) // pendings와 로컬 resource가 각각 하나씩 잡고 있음
+					else if (refCounted->GetRefCount() > 2)
 					{
 						++itr;
 						continue;
@@ -583,7 +627,28 @@ namespace wtr
 
 		void SetConstant(const RHIConstDesc& info, const Name& binding)
 		{
-			// TODO : RHIRingBuffer를 통해서, Uniform Buffer를 생성하고 사용할 수 있도록 수정 필요
+			RHICore& core = GetCore();
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to set the constant, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+			const RHIStageConst& stage = pipeline->GetConst(binding);
+			if (stage.binding == 0)
+			{
+				LOGWARN() << "[RHI] Failed to set the constant, the binding is not found in the pipeline";
+				return;
+			}
+
+			auto& cache = core.cache.consts[binding];
+			const bool alreadySet = (cache == info);
+			if (!alreadySet)
+			{
+				cache = info;
+				core.cache.constChanged = true;
+			}
 		}
 
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout)
@@ -621,12 +686,12 @@ namespace wtr
 
 			auto& pipeline = core.cache.pipeline;
 
-			const RHIShaderLayout& layout = pipeline->GetAttrib(key);
-			auto& cache = core.cache.vertexBuffers[layout.location];
+			const RHIStageAttrib& stage = pipeline->GetAttrib(key);
+			auto& cache = core.cache.vertexBuffers[stage.binding];
 			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
 			if (!alreadySet)
 			{
-				core.context->SetVertexBuffer(buffer, layout., offset);
+				core.context->SetVertexBuffer(buffer, stage.binding, offset);
 				cache.buffer = buffer;
 				cache.offset = offset;
 			}
@@ -660,12 +725,20 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
-			auto& cache = core.cache.shaderBuffers[bindingIndex];
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to set the buffer, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageBuffer& stage = pipeline->GetBuffer(binding);
+			auto& cache = core.cache.shaderBuffers[stage.binding];
 			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset) && (cache.range == range);
 			if (!alreadySet)
 			{
-				core.context->SetBuffer(buffer, bindingIndex, offset, range);
+				core.context->SetBuffer(buffer, stage.binding, offset, range);
 				cache.buffer = buffer;
 				cache.offset = offset;
 				cache.range = range;
@@ -681,12 +754,20 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline에서 추출
-			auto& cache = core.cache.textures[bindingIndex];
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to set the buffer, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageTexture& stage = pipeline->GetTexture(binding);
+			auto& cache = core.cache.textures[stage.binding];
 			const bool alreadySet = (cache == texture);
 			if (!alreadySet)
 			{
-				core.context->SetTexture(texture, bindingIndex);
+				core.context->SetTexture(texture, stage.binding);
 				cache = texture;
 			}
 		}
@@ -700,12 +781,20 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline에서 추출
-			auto& cache = core.cache.samplers[bindingIndex];
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to set the sampler, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageSampler& stage = pipeline->GetSampler(binding);
+			auto& cache = core.cache.samplers[stage.binding];
 			const bool alreadySet = (cache == sampler);
 			if (!alreadySet)
 			{
-				core.context->SetSampler(sampler, bindingIndex);
+				core.context->SetSampler(sampler, stage.binding);
 				cache = sampler;
 			}
 		}
@@ -737,10 +826,7 @@ namespace wtr
 				return;
 			}
 
-			RHITransitionDesc desc = GetTransitionDesc();
-			ClearTransition();
-
-			core.context->Transition(desc);
+			FlushTransition();
 
 			auto& cache = core.cache.renderPass;
 			const bool alreadySet = (cache == renderPass);
@@ -764,7 +850,7 @@ namespace wtr
 			core.cache.vertexLayout = nullptr;
 		}
 
-		void UnsetVertexBuffer(const Name& binding)
+		void UnsetVertexBuffer(const VertexKey& key)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -773,9 +859,17 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
-			core.context->UnsetVertexBuffer(bindingIndex);
-			core.cache.vertexBuffers.Erase(bindingIndex);
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to unset the vertex buffer, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageAttrib& stage = pipeline->GetAttrib(key);
+			core.context->UnsetVertexBuffer(stage.binding);
+			core.cache.vertexBuffers.Erase(stage.binding);
 		}
 
 		void UnsetIndexBuffer()
@@ -800,9 +894,17 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
-			core.context->UnsetBuffer(buffer, bindingIndex);
-			core.cache.shaderBuffers.Erase(bindingIndex);
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to unset the shader buffer, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageBuffer& stage = pipeline->GetBuffer(binding);
+			core.context->UnsetBuffer(buffer, stage.binding);
+			core.cache.shaderBuffers.Erase(stage.binding);
 		}
 
 		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding)
@@ -814,9 +916,17 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
-			core.context->UnsetTexture(texture, bindingIndex);
-			core.cache.textures.Erase(bindingIndex);
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to unset the texture, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageTexture& stage = pipeline->GetTexture(binding);
+			core.context->UnsetTexture(texture, stage.binding);
+			core.cache.textures.Erase(stage.binding);
 		}
 
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding)
@@ -828,9 +938,17 @@ namespace wtr
 				return;
 			}
 
-			const uint32_t bindingIndex = ; // TODO : RHIPipeline으로부터 추출
-			core.context->UnsetSampler(sampler, bindingIndex);
-			core.cache.samplers.Erase(bindingIndex);
+			if (!core.cache.pipeline)
+			{
+				LOGWARN() << "[RHI] Failed to unset the sampler, the pipeline is not set";
+				return;
+			}
+
+			auto& pipeline = core.cache.pipeline;
+
+			const RHIStageSampler& stage = pipeline->GetSampler(binding);
+			core.context->UnsetSampler(sampler, stage.binding);
+			core.cache.samplers.Erase(stage.binding);
 		}
 
 		void UnsetPipeLine()
@@ -914,6 +1032,8 @@ namespace wtr
 				return;
 			}
 
+			FlushConst();
+
 			core.context->DispatchCompute(desc);
 		}
 
@@ -926,6 +1046,8 @@ namespace wtr
 				return;
 			}
 
+			FlushConst();
+
 			core.context->DrawDirect(desc);
 		}
 
@@ -937,6 +1059,8 @@ namespace wtr
 				LOGWARN() << "[RHI] Failed to draw the indirect call, the context is invalid";
 				return;
 			}
+
+			FlushConst();
 
 			core.context->DrawIndirect(desc);
 		}

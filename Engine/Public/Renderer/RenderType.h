@@ -28,6 +28,8 @@ namespace wtr
 		ePipeLine	= 0x06,
 		eLayout		= 0x07,
 		ePass		= 0x08,
+		eBufferView = 0x09,
+		eTextureView = 0x0A
 	};
 
 	enum class eBindingType : uint8_t
@@ -121,7 +123,7 @@ namespace wtr
 		ePresent			= 0x01 << 4
 	};
 
-	enum class eTextureDimension : uint8_t
+	enum class eTextureType : uint8_t
 	{
 		eNone						= 0x00,
 		eTexture1D					= 0x01,
@@ -135,7 +137,7 @@ namespace wtr
 		eTextureMultisampleArray	= 0x09
 	};
 
-	enum class ePixelFormat : uint8_t
+	enum class eTextureFormat : uint8_t
 	{
 		eNone				= 0x00,
 
@@ -182,14 +184,25 @@ namespace wtr
 		// TODO : Not yet the compressed pixel format
 	};
 
-	enum class eFilterMode : uint8_t
+	enum class eTextureSwizzle : uint8_t
+	{
+		eNone	= 0x00,
+		eRed	= 0x01,
+		eGreen	= 0x02,
+		eBlue	= 0x03,
+		eAlpha	= 0x04,
+		eZero	= 0x05,
+		eOne	= 0x06
+	};
+
+	enum class eSamplerFilter : uint8_t
 	{
 		eNone		= 0x00,
 		eNearest	= 0x01,
 		eLinear		= 0x02,
 	};
 
-	enum class eWrapMode : uint8_t
+	enum class eSamplerWrap : uint8_t
 	{
 		eNone			= 0x00,
 		eRepeat			= 0x01,
@@ -198,7 +211,7 @@ namespace wtr
 		eClampToBorder	= 0x04,
 	};
 
-	enum class eWrapBorderColor : uint8_t
+	enum class eSamplerBorderColor : uint8_t
 	{
 		eNone				= 0x00,
 		eTransparentBlack	= 0x01,

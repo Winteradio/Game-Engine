@@ -75,31 +75,58 @@ namespace wtr
 			virtual ~RHIBuffer() = default;
 
 		public :
-			eDataUsage GetDataUsage() const;
-			eDataType GetDataType() const;
-			uint32_t GetNumComponents() const;
-			uint32_t GetStride() const;
+			eDataUsage GetUsage() const;
 			uint32_t GetSize() const;
-			const RHIBufferDesc& GetDesc() const;
-			const RHIBufferState& GetBufferState() const;
 
-			void SetDataUsage(const eDataUsage dataUsage);
-			void SetDataType(const eDataType dataType);
-			void SetNumComponents(const uint32_t numComponents);
-			void SetStride(const uint32_t stride);
-			void SetSize(const uint32_t size);
+			const RHIBufferDesc& GetDesc() const;
 
 			void SetDesc(const RHIBufferDesc& desc);
 
-		private :
-			friend class RHICommandList;
-			void SetBufferState(const RHIBufferState& state) const;
-
 		protected :
 			RHIBufferDesc m_desc;
+	};
 
-		private :
-			mutable RHIBufferState m_bufferState;
+	class RHIBufferView : public RHIResource
+	{
+	public :
+		RHIBufferView();
+		virtual ~RHIBufferView() = default;
+
+	public :
+		Memory::RefPtr<RHIBuffer> GetBuffer();
+
+		uint32_t GetSize() const;
+		uint32_t GetOffset() const;
+		uint32_t GetStride() const;
+
+		uint32_t GetComponentCount() const;
+		uint32_t GetComponentSize() const;
+		eDataType GetComponentType() const;
+
+		const RHIBufferState& GetBufferState() const;
+
+		void SetSize(const uint32_t size);
+		void SetOffset(const uint32_t offset);
+		void SetStride(const uint32_t stride);
+
+		void SetComponentSize(const uint32_t componentSize);
+		void SetComponentCount(const uint32_t componentCount);
+		void SetComponentType(const eDataType componentType);
+
+		void SetBufferState(const RHIBufferState& state) const;
+
+	private:
+		Memory::RefPtr<RHIBuffer> m_buffer;
+
+		uint32_t m_size;
+		uint32_t m_offset;
+		uint32_t m_stride;
+		uint32_t m_componentCount;
+		uint32_t m_componentSize;
+
+		eDataType m_componentType;
+
+		mutable RHIBufferState m_state;
 	};
 
 	class RHITexture : public RHIResource
@@ -114,8 +141,8 @@ namespace wtr
 			uint32_t GetDepth() const;
 			uint32_t GetMipLevels() const;
 			uint32_t GetSampleCount() const;
-			ePixelFormat GetPixelFormat() const;
-			eTextureDimension GetTextureDimension() const;
+			eTextureFormat GetTextureFormat() const;
+			eTextureType GetTextureType() const;
 			eDataType GetDataType() const;
 			const RHITextureDesc& GetDesc() const;
 			const RHITextureState& GetTextureState() const;
@@ -125,8 +152,8 @@ namespace wtr
 			void SetDepth(const uint32_t depth);
 			void SetMipLevels(const uint32_t mipLevels);
 			void SetSampleCount(const uint32_t sampleCount);
-			void SetPixelFormat(const ePixelFormat pixelFormat);
-			void SetTextureDimension(const eTextureDimension textureDimension);
+			void SetTextureFormat(const eTextureFormat textureFormat);
+			void SetTextureType(const eTextureType textureType);
 			void SetDataType(const eDataType dataType);
 
 			void SetDesc(const RHITextureDesc& desc);
@@ -142,6 +169,64 @@ namespace wtr
 			mutable RHITextureState m_textureState;
 	};
 
+	class RHITextureView : public RHIResource
+	{
+	public:
+		RHITextureView();
+		virtual ~RHITextureView() = default;
+
+	public :
+		Memory::RefPtr<RHITexture> GetTexture();
+
+		uint32_t GetBaseMip() const;
+		uint32_t GetMipCount() const;
+		uint32_t GetBaseLayer() const;
+		uint32_t GEtLayerCount() const;
+
+		eTextureFormat GetTextureFormat() const;
+		eTextureType GetTextureType() const;
+
+		eTextureSwizzle GetSwizzleR() const;
+		eTextureSwizzle GetSwizzleG() const;
+		eTextureSwizzle GetSwizzleB() const;
+		eTextureSwizzle GetSwizzleA() const;
+
+		const RHITextureState& GetTextureState() const;
+
+		void SetBaseMip(const uint32_t baseMip);
+		void SetMipCount(const uint32_t mipCount);
+		void SetBaseLayer(const uint32_t baseLayer);
+		void SetLayerCount(const uint32_t layerCount);
+
+		void SetTextureFormat(const eTextureFormat textureFormat);
+		void SetTextureType(const eTextureType textureType);
+
+		void SetSwizzleR(const eTextureSwizzle swizzleR);
+		void SetSwizzleG(const eTextureSwizzle swizzleG);
+		void SetSwizzleB(const eTextureSwizzle swizzleB);
+		void SetSwizzleA(const eTextureSwizzle swizzleA);
+
+		void SetTextureState(const RHITextureState& state) const;
+
+	private :
+		Memory::RefPtr<RHITexture> m_texture;
+
+		uint32_t m_baseMipLevel;
+		uint32_t m_MipCount;
+		uint32_t m_baseLayer;
+		uint32_t m_layerCount;
+
+		eTextureFormat m_textureFormat;
+		eTextureType m_textureType;
+
+		eTextureSwizzle m_SwizzleR;
+		eTextureSwizzle m_SwizzleG;
+		eTextureSwizzle m_SwizzleB;
+		eTextureSwizzle m_SwizzleA;
+
+		mutable RHITextureState m_state;
+	};
+
 	class RHISampler : public RHIResource
 	{
 		public :
@@ -149,18 +234,12 @@ namespace wtr
 			virtual ~RHISampler() = default;
 
 		public :
-			eFilterMode GetMinFilter() const;
-			eFilterMode GetMagFilter() const;
-			eWrapMode GetWrapS() const;
-			eWrapMode GetWrapT() const;
-			eWrapMode GetWrapR() const;
+			eSamplerFilter GetMinFilter() const;
+			eSamplerFilter GetMagFilter() const;
+			eSamplerWrap GetWrapS() const;
+			eSamplerWrap GetWrapT() const;
+			eSamplerWrap GetWrapR() const;
 			const RHISamplerDesc& GetDesc() const;
-
-			void SetMinFilter(const eFilterMode minFilter);
-			void SetMagFilter(const eFilterMode magFilter);
-			void SetWrapS(const eWrapMode wrapS);
-			void SetWrapT(const eWrapMode wrapT);
-			void SetWrapR(const eWrapMode wrapR);
 
 			void SetDesc(const RHISamplerDesc& desc);
 

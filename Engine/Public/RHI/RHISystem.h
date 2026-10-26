@@ -17,6 +17,7 @@ namespace wtr
 	class RHIPipeLine;
 	class RHIRenderPass;
 
+	struct VertexKey;
 	struct RHIConstDesc;
 	struct RHIBufferDesc;
 	struct RHIVertexLayoutDesc;
@@ -114,7 +115,7 @@ namespace wtr
 		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass);
 
 		void UnsetVertexLayout();
-		void UnsetVertexBuffer(const Name& binding);
+		void UnsetVertexBuffer(const VertexKey& key);
 		void UnsetIndexBuffer();
 		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding);
 		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding);

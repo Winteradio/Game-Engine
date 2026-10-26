@@ -168,12 +168,12 @@ namespace wtr
 
 	struct RHIStageTexture : RHITextureState
 	{
-		uint32_t	location		= UINT32_MAX;
+		uint32_t binding = UINT32_MAX;
 
 		bool operator==(const RHIStageTexture& other) const noexcept
 		{
 			return RHITextureState::operator==(other) &&
-				(location == other.location);
+				(binding == other.binding);
 		}
 
 		bool operator!=(const RHIStageTexture& other) const noexcept
@@ -191,29 +191,29 @@ namespace wtr
 	using RHIStageSamplers	= wtr::HashMap<Name, RHIStageSampler>;
 	using RHIStageTextures	= wtr::HashMap<Name, RHIStageTexture>;
 
-	struct RHIConstDesc
+	struct RHIConstDesc : DataBlob
 	{
-		DataBlob blob;
-
-		uint32_t offset		= 0;
-		uint32_t blockSize	= 0;
-
 		bool transpose = false;
+
+		bool operator==(const RHIConstDesc& other) const noexcept
+		{
+			return DataBlob::operator==(other) && transpose == other.transpose;
+		}
+
+		bool operator!=(const RHIConstDesc& other) const noexcept
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct RHIDataDesc
 	{
-		eDataUsage	dataUsage		= eDataUsage::eNone;
-		eDataType	componentType	= eDataType::eNone;
-
-		uint32_t	size			= 0;
+		eDataUsage	usage	= eDataUsage::eNone;
+		uint32_t	size	= 0;
 	};
 
 	struct RHIBufferDesc : RHIDataDesc
 	{
-		uint32_t componentCount		= 0;
-		uint32_t stride				= 0;
-
 		RHIBufferDesc() = default;
 		RHIBufferDesc(const RHIDataDesc& desc)
 			: RHIDataDesc(desc)
@@ -228,6 +228,10 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
+		eDataType componentType = eDataType::eNone;
+		uint32_t componentCount = 0;
+		uint32_t stride = 0;
+
 		wtr::DynamicArray<DataBlob> blobs;
 
 		RHIBufferCreateDesc() = default;
@@ -299,8 +303,8 @@ namespace wtr
 		uint32_t			face			= 1;
 		uint32_t			sample			= 1;
 		
-		ePixelFormat		pixelFormat		= ePixelFormat::eNone;
-		eTextureDimension	textureDimension= eTextureDimension::eNone;
+		eTextureFormat		textureFormat	= eTextureFormat::eNone;
+		eTextureType		textureType		= eTextureType::eNone;
 
 		bool				generateMips	= false;
 		bool				compressed		= false;
@@ -319,7 +323,7 @@ namespace wtr
 
 	struct RHITextureCreateDesc : RHITextureDesc
 	{
-		wtr::DynamicArray<TextureBlob> blobs;
+		wtr::DynamicArray<TextureRegion> blobs;
 
 		eTextureUsage textureUsage = eTextureUsage::eNone;
 

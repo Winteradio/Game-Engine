@@ -64,84 +64,10 @@ namespace wtr
 		return m_state;
 	}
 
-	RHIBuffer::RHIBuffer(const RHIBufferDesc& desc)
-		: m_desc(desc)
-		, m_bufferState()
-	{}
-
-	eDataUsage RHIBuffer::GetDataUsage() const
-	{
-		return m_desc.dataUsage;
-	}
-
-	eDataType RHIBuffer::GetDataType() const
-	{
-		return m_desc.componentType;
-	}
-
-	uint32_t RHIBuffer::GetNumComponents() const
-	{
-		return m_desc.componentCount;
-	}
-
-	uint32_t RHIBuffer::GetStride() const
-	{
-		return m_desc.stride;
-	}
-
-	uint32_t RHIBuffer::GetSize() const
-	{
-		return m_desc.size;
-	}
-
-	const RHIBufferDesc& RHIBuffer::GetDesc() const
-	{
-		return m_desc;
-	}
-
-	const RHIBufferState& RHIBuffer::GetBufferState() const
-	{
-		return m_bufferState;
-	}
-
-	void RHIBuffer::SetDataUsage(const eDataUsage dataUsage)
-	{
-		m_desc.dataUsage = dataUsage;
-	}
-
-	void RHIBuffer::SetDataType(const eDataType dataType)
-	{
-		m_desc.componentType = dataType;
-	}
-
-	void RHIBuffer::SetNumComponents(const uint32_t numComponents)
-	{
-		m_desc.componentCount = numComponents;
-	}
-
-	void RHIBuffer::SetStride(const uint32_t stride)
-	{
-		m_desc.stride = stride;
-	}
-
-	void RHIBuffer::SetSize(const uint32_t size)
-	{
-		m_desc.size = size;
-	}
-
-	void RHIBuffer::SetDesc(const RHIBufferDesc& desc)
-	{
-		m_desc = desc;
-	}
-
-	void RHIBuffer::SetBufferState(const RHIBufferState& state) const
-	{
-		m_bufferState = state;
-	}
-
 	RHIVertexLayout::RHIVertexLayout(const RHIVertexLayoutDesc& desc)
 		: m_desc(desc)
-	{}
+	{
+	}
 
 	size_t RHIVertexLayout::GetNumLayout() const
 	{
@@ -215,6 +141,117 @@ namespace wtr
 		m_desc.streams[key].slot = slot;
 	}
 
+	RHIBuffer::RHIBuffer(const RHIBufferDesc& desc)
+		: m_desc(desc)
+	{}
+
+	eDataUsage RHIBuffer::GetUsage() const
+	{
+		return m_desc.usage;
+	}
+
+	uint32_t RHIBuffer::GetSize() const
+	{
+		return m_desc.size;
+	}
+
+	const RHIBufferDesc& RHIBuffer::GetDesc() const
+	{
+		return m_desc;
+	}
+
+	void RHIBuffer::SetDesc(const RHIBufferDesc& desc)
+	{
+		m_desc = desc;
+	}
+
+	RHIBufferView::RHIBufferView()
+		: m_buffer(nullptr)
+		, m_size(0)
+		, m_offset(0)
+		, m_stride(0)
+		, m_componentCount(0)
+		, m_componentSize(0)
+		, m_componentType(eDataType::eNone)
+		, m_state()
+	{
+	}
+
+	Memory::RefPtr<RHIBuffer> RHIBufferView::GetBuffer()
+	{
+		return m_buffer;
+	}
+
+	uint32_t RHIBufferView::GetSize() const
+	{
+		return m_size;
+	}
+
+	uint32_t RHIBufferView::GetOffset() const
+	{
+		return m_offset;
+	}
+
+	uint32_t RHIBufferView::GetStride() const
+	{
+		return m_stride;
+	}
+
+	uint32_t RHIBufferView::GetComponentCount() const
+	{
+		return m_componentCount;
+	}
+
+	uint32_t RHIBufferView::GetComponentSize() const
+	{
+		return m_componentSize;
+	}
+
+	eDataType RHIBufferView::GetComponentType() const
+	{
+		return m_componentType;
+	}
+
+	const RHIBufferState& RHIBufferView::GetBufferState() const
+	{
+		return m_state;
+	}
+
+	void RHIBufferView::SetSize(const uint32_t size)
+	{
+		m_size = size;
+	}
+
+	void RHIBufferView::SetOffset(const uint32_t offset)
+	{
+		m_offset = offset;
+	}
+
+	void RHIBufferView::SetStride(const uint32_t stride)
+	{
+		m_stride = stride;
+	}
+
+	void RHIBufferView::SetComponentSize(const uint32_t componentSize)
+	{
+		m_componentSize = componentSize;
+	}
+
+	void RHIBufferView::SetComponentCount(const uint32_t componentCount)
+	{
+		m_componentCount = componentCount;
+	}
+
+	void RHIBufferView::SetComponentType(const eDataType componentType)
+	{
+		m_componentType = componentType;
+	}
+
+	void RHIBufferView::SetBufferState(const RHIBufferState& state) const
+	{
+		m_state = state;
+	}
+
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
 		, m_textureState()
@@ -245,19 +282,14 @@ namespace wtr
 		return m_desc.sample;
 	}
 
-	ePixelFormat RHITexture::GetPixelFormat() const
+	eTextureFormat RHITexture::GetTextureFormat() const
 	{
-		return m_desc.pixelFormat;
+		return m_desc.textureFormat;
 	}
 
-	eTextureDimension RHITexture::GetTextureDimension() const
+	eTextureType RHITexture::GetTextureType() const
 	{
-		return m_desc.textureDimension;
-	}
-
-	eDataType RHITexture::GetDataType() const
-	{
-		return m_desc.componentType;
+		return m_desc.textureType;
 	}
 
 	const RHITextureDesc& RHITexture::GetDesc() const
@@ -295,19 +327,14 @@ namespace wtr
 		m_desc.sample = sampleCount;
 	}
 
-	void RHITexture::SetPixelFormat(const ePixelFormat pixelFormat)
+	void RHITexture::SetTextureFormat(const eTextureFormat textureFormat)
 	{
-		m_desc.pixelFormat = pixelFormat;
+		m_desc.textureFormat = textureFormat;
 	}
 
-	void RHITexture::SetTextureDimension(const eTextureDimension textureDimension)
+	void RHITexture::SetTextureType(const eTextureType textureType)
 	{
-		m_desc.textureDimension = textureDimension;
-	}
-
-	void RHITexture::SetDataType(const eDataType dataType)
-	{
-		m_desc.componentType = dataType;
+		m_desc.textureType = textureType;
 	}
 
 	void RHITexture::SetDesc(const RHITextureDesc& desc)
@@ -324,27 +351,27 @@ namespace wtr
 		: m_desc(desc)
 	{}
 
-	eFilterMode RHISampler::GetMinFilter() const
+	eSamplerFilter RHISampler::GetMinFilter() const
 	{
 		return m_desc.minFilter;
 	}
 
-	eFilterMode RHISampler::GetMagFilter() const
+	eSamplerFilter RHISampler::GetMagFilter() const
 	{
 		return m_desc.magFilter;
 	}
 
-	eWrapMode RHISampler::GetWrapS() const
+	eSamplerWrap RHISampler::GetWrapS() const
 	{
 		return m_desc.wrapS;
 	}
 
-	eWrapMode RHISampler::GetWrapT() const
+	eSamplerWrap RHISampler::GetWrapT() const
 	{
 		return m_desc.wrapT;
 	}
 
-	eWrapMode RHISampler::GetWrapR() const
+	eSamplerWrap RHISampler::GetWrapR() const
 	{
 		return m_desc.wrapR;
 	}
@@ -352,31 +379,6 @@ namespace wtr
 	const RHISamplerDesc& RHISampler::GetDesc() const
 	{
 		return m_desc;
-	}
-
-	void RHISampler::SetMinFilter(const eFilterMode minFilter)
-	{
-		m_desc.minFilter = minFilter;
-	}
-
-	void RHISampler::SetMagFilter(const eFilterMode magFilter)
-	{
-		m_desc.magFilter = magFilter;
-	}
-
-	void RHISampler::SetWrapS(const eWrapMode wrapS)
-	{
-		m_desc.wrapS = wrapS;
-	}
-
-	void RHISampler::SetWrapT(const eWrapMode wrapT)
-	{
-		m_desc.wrapT = wrapT;
-	}
-
-	void RHISampler::SetWrapR(const eWrapMode wrapR)
-	{
-		m_desc.wrapR = wrapR;
 	}
 
 	void RHISampler::SetDesc(const RHISamplerDesc& desc)
@@ -968,7 +970,7 @@ namespace wtr
 
 	bool RHIPipeLine::HasDepthStencilAttach() const
 	{
-		return m_depthStencilAttach.format != ePixelFormat::eNone;
+		return m_depthStencilAttach.format != eTextureFormat::eNone;
 	}
 
 	bool RHIPipeLine::HasShader(const eShaderType shaderType) const

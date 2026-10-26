@@ -120,6 +120,7 @@ namespace wtr
 
 		RHIBufferCreateDesc desc;
 		desc.size = std::max(size, m_blockSize);
+		desc.dataUsage = eDataUsage::eStream;
 
 		Memory::RefPtr<RHIBuffer> buffer = RHISystem::CreateBuffer(desc);
 		if (!buffer)
