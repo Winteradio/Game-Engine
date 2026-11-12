@@ -15,8 +15,8 @@ namespace wtr
 	namespace RenderUtils
 	{
 		uint32_t GetComponentSize(const eDataType dataType);
-		uint32_t GetPixelSize(const ePixelFormat pixelFormat);
-		uint32_t GetPixelDimension(const ePixelFormat pixelFormat);
+		uint32_t GetPixelSize(const eTextureFormat textureFormat);
+		uint32_t GetPixelDimension(const eTextureFormat textureFormat);
 
 		int32_t GetVertexLocation(const VertexKey& vertexKey);
 		VertexKey GetVertexKey(const std::string& attributeName);

@@ -125,28 +125,6 @@ namespace wtr
 		}
 	};
 
-	struct RHIClearState
-	{
-		eClearBuffer	clearBuffer	= eClearBuffer::eNone;
-
-		fvec4 color = {0.f, 0.f, 0.f, 1.f};
-		float depth = 1.0f;
-		uint32_t stencil = 0;
-
-		bool operator==(const RHIClearState& other) const noexcept
-		{
-			return clearBuffer == other.clearBuffer &&
-				color == other.color &&
-				depth == other.depth &&
-				stencil == other.stencil;
-		}
-
-		bool operator!=(const RHIClearState& other) const noexcept
-		{
-			return !(*this == other);
-		}
-	};
-
 	struct RHIResourceState
 	{
 		eDataState state	= eDataState::eNone;

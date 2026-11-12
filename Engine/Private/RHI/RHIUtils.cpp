@@ -8,20 +8,6 @@
 
 #include <spirv_reflect.h>
 
-// dxcapi.h는 Windows에서 IUnknown / HRESULT 정의를 직접 include하지 않음
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#ifndef NOGDI
-#define NOGDI
-#endif
-#include <windows.h>
-#include <unknwn.h>
-#include <dxc/dxcapi.h>
-
 namespace wtr
 {
 	namespace RHIUtils

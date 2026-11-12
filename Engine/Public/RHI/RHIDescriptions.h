@@ -19,9 +19,12 @@ namespace wtr
 
 namespace wtr
 {
+	constexpr uint32_t INVALID_LOCATION = UINT32_MAX;
+	constexpr uint32_t INVALID_BINDING = UINT32_MAX;
+
 	struct RHIVertexAttribute
 	{
-		uint32_t		location		= UINT32_MAX;
+		uint32_t		location		= INVALID_LOCATION;
 
 		uint32_t		componentOffset = 0;
 		uint32_t		componentCount	= 0;
@@ -36,7 +39,7 @@ namespace wtr
 	struct RHIVertexSlot
 	{
 		uint32_t		stride	= 0;
-		uint32_t 		binding = UINT32_MAX;
+		uint32_t 		binding = INVALID_BINDING;
 		eDataDivisor	divisor	= eDataDivisor::eNone;
 	};
 
@@ -48,7 +51,7 @@ namespace wtr
 
 	struct RHIStageLayout
 	{
-		uint32_t	location		= UINT32_MAX;
+		uint32_t	location		= INVALID_LOCATION;
 
 		uint32_t	componentCount	= 0;
 		eDataType	componentType	= eDataType::eNone;
@@ -68,7 +71,7 @@ namespace wtr
 
 	struct RHIStageAttrib : RHIStageLayout
 	{
-		uint32_t binding			= UINT32_MAX;
+		uint32_t binding			= INVALID_BINDING;
 		uint32_t componentOffset	= 0;
 		bool normalized				= false;
 
@@ -94,7 +97,7 @@ namespace wtr
 
 	struct RHIStageAttach
 	{
-		ePixelFormat format = ePixelFormat::eNone;
+		eTextureFormat format = eTextureFormat::eNone;
 
 		bool operator==(const RHIStageAttach& other) const noexcept
 		{
@@ -109,7 +112,7 @@ namespace wtr
 
 	struct RHIStageConst
 	{
-		uint32_t	binding				= UINT32_MAX;
+		uint32_t	binding				= INVALID_BINDING;
 
 		uint32_t	componentOffset		= 0;
 		uint32_t	componentRange		= 0;
@@ -136,7 +139,7 @@ namespace wtr
 
 	struct RHIStageBuffer : RHIBufferState
 	{
-		uint32_t binding = UINT32_MAX;
+		uint32_t binding = INVALID_BINDING;
 
 		bool operator==(const RHIStageBuffer& other) const noexcept
 		{
@@ -152,7 +155,7 @@ namespace wtr
 
 	struct RHIStageSampler : RHITextureState
 	{
-		uint32_t binding = UINT32_MAX;
+		uint32_t binding = INVALID_BINDING;
 
 		bool operator==(const RHIStageSampler& other) const noexcept
 		{
@@ -168,7 +171,7 @@ namespace wtr
 
 	struct RHIStageTexture : RHITextureState
 	{
-		uint32_t binding = UINT32_MAX;
+		uint32_t binding = INVALID_BINDING;
 
 		bool operator==(const RHIStageTexture& other) const noexcept
 		{
@@ -184,20 +187,22 @@ namespace wtr
 
 	using RHIStageInputs	= wtr::HashMap<VertexKey, RHIStageLayout>;
 	using RHIStageOutputs	= wtr::HashMap<Name, RHIStageLayout>;
-	using RHIStageAttribs	= wtr::HashMap<VertexKey, RHIStageAttrib>;
-	using RHIStageAttaches 	= wtr::HashMap<uint32_t, RHIStageAttach>;
+
+	using RHIStageAttribs = wtr::HashMap<VertexKey, RHIStageAttrib>;
+	using RHIStageAttaches = wtr::HashMap<uint32_t, RHIStageAttach>;
+
 	using RHIStageConsts	= wtr::HashMap<Name, RHIStageConst>;
 	using RHIStageBuffers	= wtr::HashMap<Name, RHIStageBuffer>;
 	using RHIStageSamplers	= wtr::HashMap<Name, RHIStageSampler>;
 	using RHIStageTextures	= wtr::HashMap<Name, RHIStageTexture>;
 
-	struct RHIConstDesc : DataBlob
+	struct RHIConstDesc : DataRegion
 	{
 		bool transpose = false;
 
 		bool operator==(const RHIConstDesc& other) const noexcept
 		{
-			return DataBlob::operator==(other) && transpose == other.transpose;
+			return DataRegion::operator==(other) && transpose == other.transpose;
 		}
 
 		bool operator!=(const RHIConstDesc& other) const noexcept
@@ -208,7 +213,7 @@ namespace wtr
 
 	struct RHIDataDesc
 	{
-		eDataUsage	usage	= eDataUsage::eNone;
+		eDataUsage	dataUsage	= eDataUsage::eNone;
 		uint32_t	size	= 0;
 	};
 
@@ -228,11 +233,12 @@ namespace wtr
 
 	struct RHIBufferCreateDesc : RHIBufferDesc
 	{
+		eBufferUsage bufferUsage = eBufferUsage::eNone;
 		eDataType componentType = eDataType::eNone;
 		uint32_t componentCount = 0;
 		uint32_t stride = 0;
 
-		wtr::DynamicArray<DataBlob> blobs;
+		wtr::DynamicArray<DataRegion> regions;
 
 		RHIBufferCreateDesc() = default;
 		RHIBufferCreateDesc(const RHIDataDesc& desc)
@@ -323,7 +329,7 @@ namespace wtr
 
 	struct RHITextureCreateDesc : RHITextureDesc
 	{
-		wtr::DynamicArray<TextureRegion> blobs;
+		wtr::DynamicArray<TextureRegion> regions;
 
 		eTextureUsage textureUsage = eTextureUsage::eNone;
 
@@ -418,12 +424,12 @@ namespace wtr
 
 	struct RHISamplerDesc
 	{
-		eFilterMode			minFilter		= eFilterMode::eNone;
-		eFilterMode			magFilter		= eFilterMode::eNone;
-		eWrapMode			wrapS			= eWrapMode::eNone;
-		eWrapMode			wrapT			= eWrapMode::eNone;
-		eWrapMode			wrapR			= eWrapMode::eNone;
-		eWrapBorderColor	wrapBorderColor	= eWrapBorderColor::eNone;
+		eSamplerFilter		minFilter = eSamplerFilter::eNone;
+		eSamplerFilter		magFilter = eSamplerFilter::eNone;
+		eSamplerWrap		wrapS = eSamplerWrap::eNone;
+		eSamplerWrap		wrapT = eSamplerWrap::eNone;
+		eSamplerWrap		wrapR = eSamplerWrap::eNone;
+		eSamplerBorderColor	wrapBorderColor = eSamplerBorderColor::eNone;
 
 		bool operator==(const RHISamplerDesc& other) const noexcept
 		{
@@ -465,13 +471,12 @@ namespace wtr
 		eShaderType	shaderType	= eShaderType::eNone;
 	};
 
-	struct RHIShaderCreateDesc : RHIShaderDesc
+	struct RHIShaderCreateDesc : RHIShaderDesc, DataRegion
 	{
-		DataBlob blob;
-
 		RHIShaderCreateDesc() = default;
 		RHIShaderCreateDesc(const RHIShaderDesc& desc)
 			: RHIShaderDesc(desc)
+			, DataRegion()
 		{}
 
 		RHIShaderCreateDesc& operator=(const RHIShaderDesc& desc)
@@ -605,6 +610,8 @@ namespace wtr
 	{
 		uint32_t location = UINT32_MAX;
 
+		fvec4 clearColor = { 0.f, 0.f, 0.f, 1.f };
+
 		RHIColorAttachment() = default;
 		RHIColorAttachment(const RHIAttachment& desc)
 			: RHIAttachment(desc)
@@ -619,6 +626,9 @@ namespace wtr
 
 	struct RHIDepthStencilAttachment : RHIAttachment
 	{
+		float clearDepth = 1.f;
+		uint32_t clearStencil = 0;
+
 		RHIDepthStencilAttachment() = default;
 		RHIDepthStencilAttachment(const RHIAttachment& desc)
 			: RHIAttachment(desc)
@@ -653,36 +663,24 @@ namespace wtr
 
 	struct RHIBufferTransition
 	{
-		Memory::RefPtr<const RHIBuffer>		buffer;
+		Memory::RefPtr<const RHIBufferView>	buffer;
 
-		RHIBufferState						before;
-		RHIBufferState						after;
+		RHIBufferState before;
+		RHIBufferState after;
 	};
 
 	struct RHITextureTransition
 	{
-		Memory::RefPtr<const RHITexture>	texture;
+		Memory::RefPtr<const RHITextureView> texture;
 
-		RHITextureState						before;
-		RHITextureState						after;
+		RHITextureState	before;
+		RHITextureState	after;
 	};
 
 	struct RHITransitionDesc
 	{
 		wtr::DynamicArray<RHIBufferTransition>	buffers;
 		wtr::DynamicArray<RHITextureTransition>	textures;
-	};
-
-	struct RHIBufferView
-	{
-		Memory::RefPtr<const RHIBuffer>		buffer;
-		size_t offset = 0;
-		size_t range = 0;
-	};
-
-	struct RHITextureView
-	{
-		// TODO
 	};
 };
 

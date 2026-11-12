@@ -16,6 +16,8 @@ namespace wtr
 	class RHIShader;
 	class RHIPipeLine;
 	class RHIRenderPass;
+	class RHIBufferView;
+	class RHITextureView;
 
 	struct VertexKey;
 	struct RHIConstDesc;
@@ -84,6 +86,8 @@ namespace wtr
 		Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc& desc);
 		Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc& desc);
 		Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc& desc);
+		Memory::RefPtr<RHIBufferView> CreateBufferView(Memory::RefPtr<RHIBuffer> buffer);
+		Memory::RefPtr<RHITextureView> CreateTextureView(Memory::RefPtr<RHITexture> texture);
 
 		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout);
 		void RemoveBuffer(Memory::RefPtr<RHIBuffer> buffer);
@@ -92,24 +96,28 @@ namespace wtr
 		void RemoveShader(Memory::RefPtr<RHIShader> shader);
 		void RemovePipeLine(Memory::RefPtr<RHIPipeLine> pipeline);
 		void RemoveRenderPass(Memory::RefPtr<RHIRenderPass> pass);
+		void RemoveBufferView(Memory::RefPtr<RHIBufferView> bufferView);
+		void RemoveTextureView(Memory::RefPtr<RHITextureView> textureView);
 
 		void InitializeVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutCreateDesc& info);
-		void InitializeBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferCreateDesc& info);
-		void InitializeTexture(Memory::RefPtr<RHITexture> texture, const RHITextureCreateDesc& info);
+		void InitializeBuffer(Memory::RefPtr<RHIBufferView> buffer, const RHIBufferCreateDesc& info);
+		void InitializeTexture(Memory::RefPtr<RHITextureView> texture, const RHITextureCreateDesc& info);
 		void InitializeSampler(Memory::RefPtr<RHISampler> sampler, const RHISamplerCreateDesc& info);
 		void InitializeShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc& info);
 		void InitializePipeLine(Memory::RefPtr<RHIPipeLine> pipeline, const RHIPipeLineCreateDesc& info);
 		void InitializeRenderPass(Memory::RefPtr<RHIRenderPass> pass, const RHIRenderPassCreateDesc& info);
+		void InitializeBufferView(Memory::RefPtr<RHIBufferView> bufferView, Memory::RefPtr<RHIBuffer> buffer);
+		void InitializeTextureView(Memory::RefPtr<RHITextureView> textureView, Memory::RefPtr<RHITexture> texture);
 
-		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info);
-		void UpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc& info);
+		void UpdateBuffer(Memory::RefPtr<RHIBufferView> bufferView, const RHIBufferUpdateDesc& info);
+		void UpdateTexture(Memory::RefPtr<RHITextureView> textureView, const RHITextureUpdateDesc& info);
 
 		void SetConstant(const RHIConstDesc& info, const Name& binding);
 		void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout);
-		void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const VertexKey& key, const uint32_t offset);
-		void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset);
-		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset, const uint32_t range);
-		void SetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding);
+		void SetVertexBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const VertexKey& key);
+		void SetIndexBuffer(Memory::RefPtr<const RHIBufferView> bufferView);
+		void SetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const Name& binding);
+		void SetTexture(Memory::RefPtr<const RHITextureView> textureView, const Name& binding);
 		void SetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding);
 		void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline);
 		void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass);
@@ -117,14 +125,14 @@ namespace wtr
 		void UnsetVertexLayout();
 		void UnsetVertexBuffer(const VertexKey& key);
 		void UnsetIndexBuffer();
-		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding);
-		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding);
+		void UnsetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const Name& binding);
+		void UnsetTexture(Memory::RefPtr<const RHITextureView> textureView, const Name& binding);
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding);
 		void UnsetPipeLine();
 		void UnsetRenderPass();
 
-		void Transition(Memory::RefPtr<const RHIBuffer> buffer, const RHIBufferState& after);
-		void Transition(Memory::RefPtr<const RHITexture> texture, const RHITextureState& after);
+		void Transition(Memory::RefPtr<const RHIBufferView> bufferView, const RHIBufferState& after);
+		void Transition(Memory::RefPtr<const RHITextureView> textureView, const RHITextureState& after);
 		
 		void DispatchCompute(const RHIDispatchDesc& info);
 		

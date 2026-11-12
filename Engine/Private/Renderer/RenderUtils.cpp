@@ -34,55 +34,55 @@ namespace wtr
 			};
 		};
 
-		uint32_t GetPixelSize(const ePixelFormat pixelFormat)
+		uint32_t GetPixelSize(const eTextureFormat textureFormat)
 		{
-			switch (pixelFormat)
+			switch (textureFormat)
 			{
-			case ePixelFormat::eR8_UNorm:
-			case ePixelFormat::eR8_UInt:
+			case eTextureFormat::eR8_UNorm:
+			case eTextureFormat::eR8_UInt:
 				return 1;
 
-			case ePixelFormat::eR8G8_UNorm:
-			case ePixelFormat::eR8G8_UInt:
-			case ePixelFormat::eR16_UNorm:
-			case ePixelFormat::eR16_UInt:
-			case ePixelFormat::eR16_Float:
+			case eTextureFormat::eR8G8_UNorm:
+			case eTextureFormat::eR8G8_UInt:
+			case eTextureFormat::eR16_UNorm:
+			case eTextureFormat::eR16_UInt:
+			case eTextureFormat::eR16_Float:
 				return 2;
 
-			case ePixelFormat::eR8G8B8_UNorm:
-			case ePixelFormat::eR8G8B8_UInt:
+			case eTextureFormat::eR8G8B8_UNorm:
+			case eTextureFormat::eR8G8B8_UInt:
 				return 3;
 
-			case ePixelFormat::eR8G8B8A8_UNorm:
-			case ePixelFormat::eR8G8B8A8_sRGB:
-			case ePixelFormat::eR8G8B8A8_UInt:
-			case ePixelFormat::eR16G16_UNorm:
-			case ePixelFormat::eR16G16_UInt:
-			case ePixelFormat::eR16G16_Float:
-			case ePixelFormat::eR32_UInt:
-			case ePixelFormat::eR32_Float:
-			case ePixelFormat::eD24_S8:
-			case ePixelFormat::eD32:
+			case eTextureFormat::eR8G8B8A8_UNorm:
+			case eTextureFormat::eR8G8B8A8_sRGB:
+			case eTextureFormat::eR8G8B8A8_UInt:
+			case eTextureFormat::eR16G16_UNorm:
+			case eTextureFormat::eR16G16_UInt:
+			case eTextureFormat::eR16G16_Float:
+			case eTextureFormat::eR32_UInt:
+			case eTextureFormat::eR32_Float:
+			case eTextureFormat::eD24_S8:
+			case eTextureFormat::eD32:
 				return 4;
 
-			case ePixelFormat::eR16G16B16_UNorm:
-			case ePixelFormat::eR16G16B16_UInt:
-			case ePixelFormat::eR16G16B16_Float:
+			case eTextureFormat::eR16G16B16_UNorm:
+			case eTextureFormat::eR16G16B16_UInt:
+			case eTextureFormat::eR16G16B16_Float:
 				return 6;
 
-			case ePixelFormat::eR16G16B16A16_UNorm:
-			case ePixelFormat::eR16G16B16A16_UInt:
-			case ePixelFormat::eR16G16B16A16_Float:
-			case ePixelFormat::eR32G32_UInt:
-			case ePixelFormat::eR32G32_Float:
+			case eTextureFormat::eR16G16B16A16_UNorm:
+			case eTextureFormat::eR16G16B16A16_UInt:
+			case eTextureFormat::eR16G16B16A16_Float:
+			case eTextureFormat::eR32G32_UInt:
+			case eTextureFormat::eR32G32_Float:
 				return 8;
 
-			case ePixelFormat::eR32G32B32_UInt:
-			case ePixelFormat::eR32G32B32_Float:
+			case eTextureFormat::eR32G32B32_UInt:
+			case eTextureFormat::eR32G32B32_Float:
 				return 12;
 
-			case ePixelFormat::eR32G32B32A32_UInt:
-			case ePixelFormat::eR32G32B32A32_Float:
+			case eTextureFormat::eR32G32B32A32_UInt:
+			case eTextureFormat::eR32G32B32A32_Float:
 				return 16;
 
 			default:
@@ -90,47 +90,47 @@ namespace wtr
 			}
 		}
 
-		uint32_t GetPixelDimension(const ePixelFormat pixelFormat)
+		uint32_t GetPixelDimension(const eTextureFormat textureFormat)
 		{
-			switch (pixelFormat)
+			switch (textureFormat)
 			{
-			case ePixelFormat::eR8_UNorm:
-			case ePixelFormat::eR8_UInt:
-			case ePixelFormat::eR16_UNorm:
-			case ePixelFormat::eR16_UInt:
-			case ePixelFormat::eR16_Float:
-			case ePixelFormat::eR32_UInt:
-			case ePixelFormat::eR32_Float:
-			case ePixelFormat::eD32:
+			case eTextureFormat::eR8_UNorm:
+			case eTextureFormat::eR8_UInt:
+			case eTextureFormat::eR16_UNorm:
+			case eTextureFormat::eR16_UInt:
+			case eTextureFormat::eR16_Float:
+			case eTextureFormat::eR32_UInt:
+			case eTextureFormat::eR32_Float:
+			case eTextureFormat::eD32:
 				return 1;
 
-			case ePixelFormat::eR8G8_UNorm:
-			case ePixelFormat::eR8G8_UInt:
-			case ePixelFormat::eR16G16_UNorm:
-			case ePixelFormat::eR16G16_UInt:
-			case ePixelFormat::eR16G16_Float:
-			case ePixelFormat::eR32G32_UInt:
-			case ePixelFormat::eR32G32_Float:
-			case ePixelFormat::eD24_S8:
+			case eTextureFormat::eR8G8_UNorm:
+			case eTextureFormat::eR8G8_UInt:
+			case eTextureFormat::eR16G16_UNorm:
+			case eTextureFormat::eR16G16_UInt:
+			case eTextureFormat::eR16G16_Float:
+			case eTextureFormat::eR32G32_UInt:
+			case eTextureFormat::eR32G32_Float:
+			case eTextureFormat::eD24_S8:
 				return 2;
 
-			case ePixelFormat::eR8G8B8_UNorm:
-			case ePixelFormat::eR8G8B8_UInt:
-			case ePixelFormat::eR16G16B16_UNorm:
-			case ePixelFormat::eR16G16B16_UInt:
-			case ePixelFormat::eR16G16B16_Float:
-			case ePixelFormat::eR32G32B32_UInt:
-			case ePixelFormat::eR32G32B32_Float:
+			case eTextureFormat::eR8G8B8_UNorm:
+			case eTextureFormat::eR8G8B8_UInt:
+			case eTextureFormat::eR16G16B16_UNorm:
+			case eTextureFormat::eR16G16B16_UInt:
+			case eTextureFormat::eR16G16B16_Float:
+			case eTextureFormat::eR32G32B32_UInt:
+			case eTextureFormat::eR32G32B32_Float:
 				return 3;
 
-			case ePixelFormat::eR8G8B8A8_UNorm:
-			case ePixelFormat::eR8G8B8A8_sRGB:
-			case ePixelFormat::eR8G8B8A8_UInt:
-			case ePixelFormat::eR16G16B16A16_UNorm:
-			case ePixelFormat::eR16G16B16A16_UInt:
-			case ePixelFormat::eR16G16B16A16_Float:
-			case ePixelFormat::eR32G32B32A32_UInt:
-			case ePixelFormat::eR32G32B32A32_Float:
+			case eTextureFormat::eR8G8B8A8_UNorm:
+			case eTextureFormat::eR8G8B8A8_sRGB:
+			case eTextureFormat::eR8G8B8A8_UInt:
+			case eTextureFormat::eR16G16B16A16_UNorm:
+			case eTextureFormat::eR16G16B16A16_UInt:
+			case eTextureFormat::eR16G16B16A16_Float:
+			case eTextureFormat::eR32G32B32A32_UInt:
+			case eTextureFormat::eR32G32B32A32_Float:
 				return 4;
 
 			default:

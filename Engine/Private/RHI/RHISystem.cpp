@@ -23,35 +23,16 @@ namespace wtr
 
 		struct RHICache
 		{
-			struct ShaderBuffer
-			{
-				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
-				uint32_t offset = 0;
-				uint32_t range = 0;
-			};
-
-			struct VertexBuffer
-			{
-				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
-				uint32_t offset = 0;
-			};
-
-			struct IndexBuffer
-			{
-				Memory::RefPtr<const RHIBuffer> buffer = nullptr;
-				uint32_t offset = 0;
-			};
-
 			Memory::RefPtr<const RHIVertexLayout> vertexLayout = nullptr;
 			Memory::RefPtr<const RHIPipeLine> pipeline = nullptr;
 			Memory::RefPtr<const RHIRenderPass> renderPass = nullptr;
 
-			wtr::HashMap<uint32_t, Memory::RefPtr<const RHITexture>> textures = {};
-			wtr::HashMap<uint32_t, Memory::RefPtr<const RHISampler>> samplers = {};
+			wtr::HashMap<Name, Memory::RefPtr<const RHITextureView>> textures = {};
+			wtr::HashMap<Name, Memory::RefPtr<const RHISampler>> samplers = {};
 
-			wtr::HashMap<uint32_t, ShaderBuffer> shaderBuffers = {};
-			wtr::HashMap<uint32_t, VertexBuffer> vertexBuffers = {};
-			IndexBuffer indexBuffer = {};
+			wtr::HashMap<Name, Memory::RefPtr<const RHIBufferView>> shaderBuffers = {};
+			wtr::HashMap<VertexKey, Memory::RefPtr<const RHIBufferView>> vertexBuffers = {};
+			Memory::RefPtr<const RHIBufferView> indexBuffer = nullptr;
 
 			wtr::HashMap<Name, RHIConstDesc> consts = {};
 			bool constChanged = false;
@@ -140,10 +121,7 @@ namespace wtr
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-			RHIBufferUpdateDesc desc;
-			desc.dataUsage = eDataUsage::eStream;
-		
+			// TODO : Implement const flush logic here		
 		}
 
 		bool Init(const eRenderType type, const size_t frameDiff, void* nativeHandle)
@@ -406,6 +384,28 @@ namespace wtr
 			return nullptr;
 		}
 
+		Memory::RefPtr<RHIBufferView> CreateBufferView(Memory::RefPtr<RHIBuffer> buffer)
+		{
+			RHICore& core = GetCore();
+			if (core.context)
+			{
+				return core.context->CreateBufferView(buffer);
+			}
+
+			return nullptr;
+		}
+
+		Memory::RefPtr<RHITextureView> CreateTextureView(Memory::RefPtr<RHITexture> texture)
+		{
+			RHICore& core = GetCore();
+			if (core.context)
+			{
+				return core.context->CreateTextureView(texture);
+			}
+
+			return nullptr;
+		}
+
 		void RemoveVertexLayout(Memory::RefPtr<RHIVertexLayout> layout)
 		{
 			RHICore& core = GetCore();
@@ -466,6 +466,24 @@ namespace wtr
 			if (renderPass)
 			{
 				core.pendings.Insert(renderPass);
+			}
+		}
+
+		void RemoveBufferView(Memory::RefPtr<RHIBufferView> bufferView)
+		{
+			RHICore& core = GetCore();
+			if (bufferView)
+			{
+				core.pendings.Insert(bufferView);
+			}
+		}
+
+		void RemoveTextureView(Memory::RefPtr<RHITextureView> textureView)
+		{
+			RHICore& core = GetCore();
+			if (textureView)
+			{
+				core.pendings.Insert(textureView);
 			}
 		}
 
@@ -535,6 +553,14 @@ namespace wtr
 				{
 					core.context->ReleaseRenderPass(renderPass);
 				}
+				else if (auto bufferView = Memory::Cast<RHIBufferView>(resource))
+				{
+					core.context->ReleaseBufferView(bufferView);
+				}
+				else if (auto textureView = Memory::Cast<RHITextureView>(resource))
+				{
+					core.context->ReleaseTextureView(textureView);
+				}
 				else
 				{
 					LOGWARN() << "[RHISystem] Unknown resource type. Resource will not be flushed.";
@@ -549,7 +575,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeVertexLayout(info, layout);
+				core.context->InitializeVertexLayout(layout, info);
 			}
 		}
 
@@ -558,7 +584,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeBuffer(info, buffer);
+				core.context->InitializeBuffer(buffer, info);
 			}
 		}
 
@@ -567,7 +593,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeTexture(info, texture);
+				core.context->InitializeTexture(texture, info);
 			}
 		}
 
@@ -576,7 +602,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeSampler(info, sampler);
+				core.context->InitializeSampler(sampler, info);
 			}
 		}
 
@@ -585,7 +611,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeShader(info, shader);
+				core.context->InitializeShader(shader, info);
 			}
 		}
 
@@ -594,7 +620,7 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializePipeLine(info, pipeline);
+				core.context->InitializePipeLine(pipeline, info);
 			}
 		}
 
@@ -603,25 +629,43 @@ namespace wtr
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->InitializeRenderPass(info, pass);
+				core.context->InitializeRenderPass(pass, info);
 			}
 		}
 
-		void UpdateBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferUpdateDesc& info)
+		void InitializeBufferView(Memory::RefPtr<RHIBufferView> bufferView, Memory::RefPtr<RHIBuffer> buffer)
 		{
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->UpdateBuffer(info, buffer);
+				core.context->InitializeBufferView(bufferView, buffer);
 			}
 		}
 
-		void UpdateTexture(Memory::RefPtr<RHITexture> texture, const RHITextureUpdateDesc& info)
+		void InitializeTextureView(Memory::RefPtr<RHITextureView> textureView, Memory::RefPtr<RHITexture> texture)
 		{
 			RHICore& core = GetCore();
 			if (core.context)
 			{
-				core.context->UpdateTexture(info, texture);
+				core.context->InitializeTextureView(textureView, texture);
+			}
+		}
+
+		void UpdateBuffer(Memory::RefPtr<RHIBufferView> bufferView, const RHIBufferUpdateDesc& info)
+		{
+			RHICore& core = GetCore();
+			if (core.context)
+			{
+				core.context->UpdateBuffer(bufferView, info);
+			}
+		}
+
+		void UpdateTexture(Memory::RefPtr<RHITextureView> textureView, const RHITextureUpdateDesc& info)
+		{
+			RHICore& core = GetCore();
+			if (core.context)
+			{
+				core.context->UpdateTexture(textureView, info);
 			}
 		}
 
@@ -636,17 +680,17 @@ namespace wtr
 
 			auto& pipeline = core.cache.pipeline;
 			const RHIStageConst& stage = pipeline->GetConst(binding);
-			if (stage.binding == 0)
+			if (stage.binding == INVALID_BINDING)
 			{
 				LOGWARN() << "[RHI] Failed to set the constant, the binding is not found in the pipeline";
 				return;
 			}
 
-			auto& cache = core.cache.consts[binding];
-			const bool alreadySet = (cache == info);
+			auto& cacheConst = core.cache.consts[binding];
+			const bool alreadySet = (cacheConst == info);
 			if (!alreadySet)
 			{
-				cache = info;
+				cacheConst = info;
 				core.cache.constChanged = true;
 			}
 		}
@@ -660,16 +704,16 @@ namespace wtr
 				return;
 			}
 
-			auto& cache = core.cache.vertexLayout;
-			const bool alreadySet = (cache == layout);
+			auto& cacheVertexLayout = core.cache.vertexLayout;
+			const bool alreadySet = (cacheVertexLayout == layout);
 			if (!alreadySet)
 			{
 				core.context->SetVertexLayout(layout);
-				cache = layout;
+				cacheVertexLayout = layout;
 			}
 		}
 
-		void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const VertexKey& key, const uint32_t offset)
+		void SetVertexBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const VertexKey& key)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -678,26 +722,30 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to set the vertex buffer, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageAttrib& stage = pipeline->GetAttrib(key);
-			auto& cache = core.cache.vertexBuffers[stage.binding];
-			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to set the vertex buffer, the binding is not found in the pipeline";
+				return;
+			}
+
+			auto& cache = core.cache.vertexBuffers[key];
+			const bool alreadySet = (cache == bufferView);
 			if (!alreadySet)
 			{
-				core.context->SetVertexBuffer(buffer, stage.binding, offset);
-				cache.buffer = buffer;
-				cache.offset = offset;
+				core.context->SetVertexBuffer(bufferView, stage.binding);
+				cache = bufferView;
 			}
 		}
 
-		void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset)
+		void SetIndexBuffer(Memory::RefPtr<const RHIBufferView> bufferView)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -707,16 +755,15 @@ namespace wtr
 			}
 
 			auto& cache = core.cache.indexBuffer;
-			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset);
+			const bool alreadySet = (cache == bufferView);
 			if (!alreadySet)
 			{
-				core.context->SetIndexBuffer(buffer, offset);
-				cache.buffer = buffer;
-				cache.offset = offset;
+				core.context->SetIndexBuffer(bufferView);
+				cache = bufferView;
 			}
 		}
 
-		void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding, const uint32_t offset, const uint32_t range)
+		void SetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const Name& binding)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -725,27 +772,30 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to set the buffer, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageBuffer& stage = pipeline->GetBuffer(binding);
-			auto& cache = core.cache.shaderBuffers[stage.binding];
-			const bool alreadySet = (cache.buffer == buffer) && (cache.offset == offset) && (cache.range == range);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to set the shader buffer, the binding is not found in the pipeline";
+				return;
+			}
+
+			auto& cacheBuffer = core.cache.shaderBuffers[binding];
+			const bool alreadySet = (cacheBuffer == bufferView);
 			if (!alreadySet)
 			{
-				core.context->SetBuffer(buffer, stage.binding, offset, range);
-				cache.buffer = buffer;
-				cache.offset = offset;
-				cache.range = range;
+				core.context->SetBuffer(bufferView, stage.binding);
+				cacheBuffer = bufferView;
 			}
 		}
 
-		void SetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding)
+		void SetTexture(Memory::RefPtr<const RHITextureView> textureView, const Name& binding)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -754,21 +804,26 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to set the buffer, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageTexture& stage = pipeline->GetTexture(binding);
-			auto& cache = core.cache.textures[stage.binding];
-			const bool alreadySet = (cache == texture);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to set the texture, the binding is not found in the pipeline";
+				return;
+			}
+
+			auto& cacheTexture = core.cache.textures[binding];
+			const bool alreadySet = (cacheTexture == textureView);
 			if (!alreadySet)
 			{
-				core.context->SetTexture(texture, stage.binding);
-				cache = texture;
+				core.context->SetTexture(textureView, stage.binding);
+				cacheTexture = textureView;
 			}
 		}
 
@@ -781,16 +836,21 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to set the sampler, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageSampler& stage = pipeline->GetSampler(binding);
-			auto& cache = core.cache.samplers[stage.binding];
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to set the sampler, the binding is not found in the pipeline";
+				return;
+			}
+
+			auto& cache = core.cache.samplers[binding];
 			const bool alreadySet = (cache == sampler);
 			if (!alreadySet)
 			{
@@ -859,17 +919,22 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to unset the vertex buffer, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageAttrib& stage = pipeline->GetAttrib(key);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to unset the vertex buffer, the binding is not found in the pipeline";
+				return;
+			}
+
 			core.context->UnsetVertexBuffer(stage.binding);
-			core.cache.vertexBuffers.Erase(stage.binding);
+			core.cache.vertexBuffers.Erase(key);
 		}
 
 		void UnsetIndexBuffer()
@@ -885,7 +950,7 @@ namespace wtr
 			core.cache.indexBuffer = {};
 		}
 
-		void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const Name& binding)
+		void UnsetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const Name& binding)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -894,20 +959,25 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to unset the shader buffer, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageBuffer& stage = pipeline->GetBuffer(binding);
-			core.context->UnsetBuffer(buffer, stage.binding);
-			core.cache.shaderBuffers.Erase(stage.binding);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to unset the shader buffer, the binding is not found in the pipeline";
+				return;
+			}
+
+			core.context->UnsetBuffer(bufferView, stage.binding);
+			core.cache.shaderBuffers.Erase(binding);
 		}
 
-		void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const Name& binding)
+		void UnsetTexture(Memory::RefPtr<const RHITextureView> textureView, const Name& binding)
 		{
 			RHICore& core = GetCore();
 			if (!core.context)
@@ -916,17 +986,22 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to unset the texture, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageTexture& stage = pipeline->GetTexture(binding);
-			core.context->UnsetTexture(texture, stage.binding);
-			core.cache.textures.Erase(stage.binding);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to unset the texture, the binding is not found in the pipeline";
+				return;
+			}
+
+			core.context->UnsetTexture(textureView, stage.binding);
+			core.cache.textures.Erase(binding);
 		}
 
 		void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const Name& binding)
@@ -938,17 +1013,22 @@ namespace wtr
 				return;
 			}
 
-			if (!core.cache.pipeline)
+			auto& pipeline = core.cache.pipeline;
+			if (!pipeline)
 			{
 				LOGWARN() << "[RHI] Failed to unset the sampler, the pipeline is not set";
 				return;
 			}
 
-			auto& pipeline = core.cache.pipeline;
-
 			const RHIStageSampler& stage = pipeline->GetSampler(binding);
+			if (stage.binding == INVALID_BINDING)
+			{
+				LOGWARN() << "[RHI] Failed to unset the sampler, the binding is not found in the pipeline";
+				return;
+			}
+
 			core.context->UnsetSampler(sampler, stage.binding);
-			core.cache.samplers.Erase(stage.binding);
+			core.cache.samplers.Erase(binding);
 		}
 
 		void UnsetPipeLine()
@@ -977,46 +1057,46 @@ namespace wtr
 			core.cache.renderPass = nullptr;
 		}
 
-		void Transition(Memory::RefPtr<const RHIBuffer> buffer, const RHIBufferState& after)
+		void Transition(Memory::RefPtr<const RHIBufferView> bufferView, const RHIBufferState& after)
 		{
 			RHICore& core = GetCore();
-			if (!core.context || !buffer)
+			if (!core.context || !bufferView)
 			{
 				LOGWARN() << "[RHI] Failed to transition the buffer, the context or buffer is invalid";
 				return;
 			}
 
-			const RHIBufferState& before = buffer->GetBufferState();
+			const RHIBufferState& before = bufferView->GetBufferState();
 			if (before == after)
 			{
 				return;
 			}
 
 			RHIBufferTransition transition;
-			transition.buffer = buffer;
-			transition.before = buffer->GetBufferState();
+			transition.buffer = bufferView;
+			transition.before = bufferView->GetBufferState();
 			transition.after = after;
 
 			core.transition.buffers.Insert(transition);
 		}
 
-		void Transition(Memory::RefPtr<const RHITexture> texture, const RHITextureState& after)
+		void Transition(Memory::RefPtr<const RHITextureView> textureView, const RHITextureState& after)
 		{
 			RHICore& core = GetCore();
-			if (!core.context || !texture)
+			if (!core.context || !textureView)
 			{
 				LOGWARN() << "[RHI] Failed to transition the texture, the context or texture is invalid";
 				return;
 			}
 
-			const RHITextureState& before = texture->GetTextureState();
+			const RHITextureState& before = textureView->GetTextureState();
 			if (before == after)
 			{
 				return;
 			}
 
 			RHITextureTransition transition;
-			transition.texture = texture;
+			transition.texture = textureView;
 			transition.before = before;
 			transition.after = after;
 

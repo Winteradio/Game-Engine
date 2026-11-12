@@ -17,7 +17,7 @@ namespace wtr
 		void Init(const size_t blockSize, const size_t frameDiff);
 		void Reset(const size_t frame);
 
-		RHIBufferView GetBuffer(const size_t size, const size_t align = 256);
+		Memory::RefPtr<RHIBufferView> GetBuffer(const size_t size, const size_t align = 256);
 
 	private :
 		bool IsValid(const size_t blockIndex, const size_t size, const size_t align) const;
@@ -30,6 +30,8 @@ namespace wtr
 			size_t offset	= 0;
 			size_t frame	= 0;
 		};
+
+		wtr::DynamicArray<Memory::RefPtr<RHIBuffer>> m_buffers;
 
 		wtr::DynamicArray<Block> m_blocks;
 		

@@ -28,22 +28,22 @@ namespace wtr
 
 	class RHIResource
 	{
-		public :
-			RHIResource() = default;
-			virtual ~RHIResource() = default;
+	public :
+		RHIResource() = default;
+		virtual ~RHIResource() = default;
 
-		public :
-			virtual eResourceType GetResourceType() const = 0;
+	public :
+		virtual eResourceType GetResourceType() const = 0;
 
-		public :
-			void* GetRawBuffer();
-			const void* GetRawBuffer() const;
+	public :
+		void* GetRawBuffer();
+		const void* GetRawBuffer() const;
 
-			void SetState(const eResourceState eState);
-			eResourceState GetState() const;
+		void SetState(const eResourceState eState);
+		eResourceState GetState() const;
 
-		private :
-			std::atomic<eResourceState> m_state = eResourceState::eNone;
+	private :
+		std::atomic<eResourceState> m_state = eResourceState::eNone;
 	};
 
 	class RHIVertexLayout : public RHIResource
@@ -70,30 +70,31 @@ namespace wtr
 
 	class RHIBuffer : public RHIResource
 	{
-		public :
-			RHIBuffer(const RHIBufferDesc& desc);
-			virtual ~RHIBuffer() = default;
+	public :
+		RHIBuffer(const RHIBufferDesc& desc);
+		virtual ~RHIBuffer() = default;
 
-		public :
-			eDataUsage GetUsage() const;
-			uint32_t GetSize() const;
+	public :
+		eDataUsage GetUsage() const;
+		uint32_t GetSize() const;
 
-			const RHIBufferDesc& GetDesc() const;
+		const RHIBufferDesc& GetDesc() const;
 
-			void SetDesc(const RHIBufferDesc& desc);
+		void SetDesc(const RHIBufferDesc& desc);
 
-		protected :
-			RHIBufferDesc m_desc;
+	protected :
+		RHIBufferDesc m_desc;
 	};
 
 	class RHIBufferView : public RHIResource
 	{
 	public :
-		RHIBufferView();
+		RHIBufferView(Memory::RefPtr<RHIBuffer> buffer);
 		virtual ~RHIBufferView() = default;
 
 	public :
 		Memory::RefPtr<RHIBuffer> GetBuffer();
+		Memory::RefPtr<const RHIBuffer> GetBuffer() const;
 
 		uint32_t GetSize() const;
 		uint32_t GetOffset() const;
@@ -131,58 +132,43 @@ namespace wtr
 
 	class RHITexture : public RHIResource
 	{
-		public :
-			RHITexture(const RHITextureDesc& desc);
-			virtual ~RHITexture() = default;
+	public :
+		RHITexture(const RHITextureDesc& desc);
+		virtual ~RHITexture() = default;
 
-		public :
-			uint32_t GetWidth() const;
-			uint32_t GetHeight() const;
-			uint32_t GetDepth() const;
-			uint32_t GetMipLevels() const;
-			uint32_t GetSampleCount() const;
-			eTextureFormat GetTextureFormat() const;
-			eTextureType GetTextureType() const;
-			eDataType GetDataType() const;
-			const RHITextureDesc& GetDesc() const;
-			const RHITextureState& GetTextureState() const;
+	public :
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
+		uint32_t GetDepth() const;
+		uint32_t GetMipLevels() const;
+		uint32_t GetSampleCount() const;
+		eTextureFormat GetTextureFormat() const;
+		eTextureType GetTextureType() const;
+		eDataType GetDataType() const;
+		const RHITextureDesc& GetDesc() const;
 
-			void SetWidth(const uint32_t width);
-			void SetHeight(const uint32_t height);
-			void SetDepth(const uint32_t depth);
-			void SetMipLevels(const uint32_t mipLevels);
-			void SetSampleCount(const uint32_t sampleCount);
-			void SetTextureFormat(const eTextureFormat textureFormat);
-			void SetTextureType(const eTextureType textureType);
-			void SetDataType(const eDataType dataType);
+		void SetDesc(const RHITextureDesc& desc);
 
-			void SetDesc(const RHITextureDesc& desc);
-
-		private :
-			friend class RHICommandList;
-			void SetTextureState(const RHITextureState& state) const;
-
-		protected :
-			RHITextureDesc m_desc;
-
-		private :
-			mutable RHITextureState m_textureState;
+	protected :
+		RHITextureDesc m_desc;
 	};
 
 	class RHITextureView : public RHIResource
 	{
 	public:
-		RHITextureView();
+		RHITextureView(Memory::RefPtr<RHITexture> texture);
 		virtual ~RHITextureView() = default;
 
 	public :
 		Memory::RefPtr<RHITexture> GetTexture();
+		Memory::RefPtr<const RHITexture> GetTexture() const;
 
 		uint32_t GetBaseMip() const;
 		uint32_t GetMipCount() const;
 		uint32_t GetBaseLayer() const;
-		uint32_t GEtLayerCount() const;
+		uint32_t GetLayerCount() const;
 
+		eAttachmentType GetAttachmentType() const;
 		eTextureFormat GetTextureFormat() const;
 		eTextureType GetTextureType() const;
 
@@ -198,6 +184,7 @@ namespace wtr
 		void SetBaseLayer(const uint32_t baseLayer);
 		void SetLayerCount(const uint32_t layerCount);
 
+		void SetAttachmentType(const eAttachmentType attachmentType);
 		void SetTextureFormat(const eTextureFormat textureFormat);
 		void SetTextureType(const eTextureType textureType);
 
@@ -216,35 +203,36 @@ namespace wtr
 		uint32_t m_baseLayer;
 		uint32_t m_layerCount;
 
+		eAttachmentType m_attachmentType;
 		eTextureFormat m_textureFormat;
 		eTextureType m_textureType;
 
-		eTextureSwizzle m_SwizzleR;
-		eTextureSwizzle m_SwizzleG;
-		eTextureSwizzle m_SwizzleB;
-		eTextureSwizzle m_SwizzleA;
+		eTextureSwizzle m_swizzleR;
+		eTextureSwizzle m_swizzleG;
+		eTextureSwizzle m_swizzleB;
+		eTextureSwizzle m_swizzleA;
 
 		mutable RHITextureState m_state;
 	};
 
 	class RHISampler : public RHIResource
 	{
-		public :
-			RHISampler(const RHISamplerDesc& desc);
-			virtual ~RHISampler() = default;
+	public :
+		RHISampler(const RHISamplerDesc& desc);
+		virtual ~RHISampler() = default;
 
-		public :
-			eSamplerFilter GetMinFilter() const;
-			eSamplerFilter GetMagFilter() const;
-			eSamplerWrap GetWrapS() const;
-			eSamplerWrap GetWrapT() const;
-			eSamplerWrap GetWrapR() const;
-			const RHISamplerDesc& GetDesc() const;
+	public :
+		eSamplerFilter GetMinFilter() const;
+		eSamplerFilter GetMagFilter() const;
+		eSamplerWrap GetWrapS() const;
+		eSamplerWrap GetWrapT() const;
+		eSamplerWrap GetWrapR() const;
+		const RHISamplerDesc& GetDesc() const;
 
-			void SetDesc(const RHISamplerDesc& desc);
+		void SetDesc(const RHISamplerDesc& desc);
 
-		protected :
-			RHISamplerDesc m_desc;
+	protected :
+		RHISamplerDesc m_desc;
 	};
 
 	class RHIStage : public RHIResource

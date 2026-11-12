@@ -54,7 +54,7 @@ namespace wtr
 		virtual ~RHIContext() = default;
 
 	public :
-		RHIBufferView GetRingBuffer(const size_t size, const size_t align);
+		Memory::RefPtr<RHIBufferView> GetRingBuffer(const size_t size, const size_t align);
 		void ResetRingBuffer(const size_t frame);
 
 	public :
@@ -82,6 +82,8 @@ namespace wtr
 		virtual Memory::RefPtr<RHIShader> CreateComputeShader(const RHIShaderDesc& desc) = 0;
 		virtual Memory::RefPtr<RHIPipeLine> CreatePipeLine(const RHIPipeLineDesc& desc) = 0;
 		virtual Memory::RefPtr<RHIRenderPass> CreateRenderPass(const RHIRenderPassDesc& desc) = 0;
+		virtual Memory::RefPtr<RHIBufferView> CreateBufferView(Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual Memory::RefPtr<RHITextureView> CreateTextureView(Memory::RefPtr<RHITexture> texture) = 0;
 
 		virtual bool ReleaseVertexLayout(Memory::RefPtr<RHIVertexLayout> layout) = 0;
 		virtual bool ReleaseBuffer(Memory::RefPtr<RHIBuffer> buffer) = 0;
@@ -91,32 +93,37 @@ namespace wtr
 		virtual bool ReleasePipeLine(Memory::RefPtr<RHIPipeLine> pipeline) = 0;
 		virtual bool ReleaseRenderPass(Memory::RefPtr<RHIRenderPass> pass) = 0;
 
-		virtual void InitializeVertexLayout(const RHIVertexLayoutCreateDesc& info, Memory::RefPtr<RHIVertexLayout> layout) = 0;
-		virtual void InitializeBuffer(const RHIBufferCreateDesc& info, Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void InitializeTexture(const RHITextureCreateDesc& info, Memory::RefPtr<RHITexture> texture) = 0;
-		virtual void InitializeSampler(const RHISamplerCreateDesc& info, Memory::RefPtr<RHISampler> sampler) = 0;
-		virtual void InitializeShader(const RHIShaderCreateDesc& info, Memory::RefPtr<RHIShader> shader) = 0;
-		virtual void InitializePipeLine(const RHIPipeLineCreateDesc& info, Memory::RefPtr<RHIPipeLine> pipeline) = 0;
-		virtual void InitializeRenderPass(const RHIRenderPassCreateDesc& info, Memory::RefPtr<RHIRenderPass> pass) = 0;
+		virtual bool ReleaseBufferView(Memory::RefPtr<RHIBufferView> bufferView);
+		virtual bool ReleaseTextureView(Memory::RefPtr<RHITextureView> textureView);
 
-		virtual void UpdateBuffer(const RHIBufferUpdateDesc& info, Memory::RefPtr<RHIBuffer> buffer) = 0;
-		virtual void UpdateTexture(const RHITextureUpdateDesc& info, Memory::RefPtr<RHITexture> texture) = 0;
+		virtual void InitializeVertexLayout(Memory::RefPtr<RHIVertexLayout> layout, const RHIVertexLayoutCreateDesc& info) = 0;
+		virtual void InitializeBuffer(Memory::RefPtr<RHIBuffer> buffer, const RHIBufferCreateDesc& info) = 0;
+		virtual void InitializeTexture(Memory::RefPtr<RHITexture> texture, const RHITextureCreateDesc& info) = 0;
+		virtual void InitializeSampler(Memory::RefPtr<RHISampler> sampler, const RHISamplerCreateDesc& info) = 0;
+		virtual void InitializeShader(Memory::RefPtr<RHIShader> shader, const RHIShaderCreateDesc& info) = 0;
+		virtual void InitializePipeLine(Memory::RefPtr<RHIPipeLine> pipeline, const	RHIPipeLineCreateDesc& info) = 0;
+		virtual void InitializeRenderPass(Memory::RefPtr<RHIRenderPass> pass, const RHIRenderPassCreateDesc& info) = 0;
+		virtual void InitializeBufferView(Memory::RefPtr<RHIBufferView> bufferView, Memory::RefPtr<RHIBuffer> buffer) = 0;
+		virtual void InitializeTextureView(Memory::RefPtr<RHITextureView> textureView, Memory::RefPtr<RHITexture> texture) = 0;
+
+		virtual void UpdateBuffer(Memory::RefPtr<RHIBufferView> bufferView, const RHIBufferUpdateDesc& info) = 0;
+		virtual void UpdateTexture(Memory::RefPtr<RHITextureView> textureView, const RHITextureUpdateDesc& info) = 0;
 
 		virtual void SetVertexLayout(Memory::RefPtr<const RHIVertexLayout> layout) = 0;
-		virtual void SetVertexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t binding, const uint32_t offset) = 0;
-		virtual void SetIndexBuffer(Memory::RefPtr<const RHIBuffer> buffer, const uint32_t offset) = 0;
-		virtual void SetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding, const uint32_t offset, const uint32_t range) = 0;
-		virtual void SetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) = 0;
-		virtual void SetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) = 0;
+		virtual void SetVertexBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const uint32_t binding) = 0;
+		virtual void SetIndexBuffer(Memory::RefPtr<const RHIBufferView> bufferView) = 0;
+		virtual void SetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const uint32_t binding) = 0;
+		virtual void SetTexture(Memory::RefPtr<const RHITextureView> textureView, const uint32_t binding) = 0;
+		virtual void SetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t binding) = 0;
 		virtual void SetPipeLine(Memory::RefPtr<const RHIPipeLine> pipeline) = 0;
 		virtual void SetRenderPass(Memory::RefPtr<const RHIRenderPass> pass) = 0;
 
 		virtual void UnsetVertexLayout() = 0;
 		virtual void UnsetVertexBuffer(const uint32_t binding) = 0;
 		virtual void UnsetIndexBuffer() = 0;
-		virtual void UnsetBuffer(Memory::RefPtr<const RHIBuffer> buffer, const int32_t binding) = 0;
-		virtual void UnsetTexture(Memory::RefPtr<const RHITexture> texture, const int32_t binding) = 0;
-		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const int32_t binding) = 0;
+		virtual void UnsetBuffer(Memory::RefPtr<const RHIBufferView> bufferView, const uint32_t binding) = 0;
+		virtual void UnsetTexture(Memory::RefPtr<const RHITextureView> textureView, const uint32_t binding) = 0;
+		virtual void UnsetSampler(Memory::RefPtr<const RHISampler> sampler, const uint32_t binding) = 0;
 		virtual void UnsetPipeLine() = 0;
 		virtual void UnsetRenderPass() = 0;
 

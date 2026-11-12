@@ -147,7 +147,7 @@ namespace wtr
 
 	eDataUsage RHIBuffer::GetUsage() const
 	{
-		return m_desc.usage;
+		return m_desc.dataUsage;
 	}
 
 	uint32_t RHIBuffer::GetSize() const
@@ -165,8 +165,8 @@ namespace wtr
 		m_desc = desc;
 	}
 
-	RHIBufferView::RHIBufferView()
-		: m_buffer(nullptr)
+	RHIBufferView::RHIBufferView(Memory::RefPtr<RHIBuffer> buffer)
+		: m_buffer(buffer)
 		, m_size(0)
 		, m_offset(0)
 		, m_stride(0)
@@ -254,7 +254,6 @@ namespace wtr
 
 	RHITexture::RHITexture(const RHITextureDesc& desc)
 		: m_desc(desc)
-		, m_textureState()
 	{}
 
 	uint32_t RHITexture::GetWidth() const
@@ -297,54 +296,151 @@ namespace wtr
 		return m_desc;
 	}
 
-	const RHITextureState& RHITexture::GetTextureState() const
-	{
-		return m_textureState;
-	}
-
-	void RHITexture::SetWidth(const uint32_t width)
-	{
-		m_desc.width = width;
-	}
-
-	void RHITexture::SetHeight(const uint32_t height)
-	{
-		m_desc.height = height;
-	}
-
-	void RHITexture::SetDepth(const uint32_t depth)
-	{
-		m_desc.depth = depth;
-	}
-
-	void RHITexture::SetMipLevels(const uint32_t mipLevels)
-	{
-		m_desc.level = mipLevels;
-	}
-
-	void RHITexture::SetSampleCount(const uint32_t sampleCount)
-	{
-		m_desc.sample = sampleCount;
-	}
-
-	void RHITexture::SetTextureFormat(const eTextureFormat textureFormat)
-	{
-		m_desc.textureFormat = textureFormat;
-	}
-
-	void RHITexture::SetTextureType(const eTextureType textureType)
-	{
-		m_desc.textureType = textureType;
-	}
-
 	void RHITexture::SetDesc(const RHITextureDesc& desc)
 	{
 		m_desc = desc;
 	}
 
-	void RHITexture::SetTextureState(const RHITextureState& state) const
+	RHITextureView::RHITextureView(Memory::RefPtr<RHITexture> texture)
+		: m_texture(texture)
+		, m_baseMipLevel(0)
+		, m_MipCount(0)
+		, m_baseLayer(0)
+		, m_layerCount(0)
+		, m_attachmentType(eAttachmentType::eNone)
+		, m_textureFormat(eTextureFormat::eNone)
+		, m_textureType(eTextureType::eNone)
+		, m_swizzleR(eTextureSwizzle::eRed)
+		, m_swizzleG(eTextureSwizzle::eGreen)
+		, m_swizzleB(eTextureSwizzle::eBlue)
+		, m_swizzleA(eTextureSwizzle::eAlpha)
+		, m_state()
 	{
-		m_textureState = state;
+	}
+
+	Memory::RefPtr<RHITexture> RHITextureView::GetTexture()
+	{
+		return m_texture;
+	}
+
+	uint32_t RHITextureView::GetBaseMip() const
+	{
+		return m_baseMipLevel;
+	}
+
+	uint32_t RHITextureView::GetMipCount() const
+	{
+		return m_MipCount;
+	}
+
+	uint32_t RHITextureView::GetBaseLayer() const
+	{
+		return m_baseLayer;
+	}
+
+	uint32_t RHITextureView::GetLayerCount() const
+	{
+		return m_layerCount;
+	}
+
+	eAttachmentType RHITextureView::GetAttachmentType() const
+	{
+		return m_attachmentType;
+	}
+
+	eTextureFormat RHITextureView::GetTextureFormat() const
+	{
+		return m_textureFormat;
+	}
+
+	eTextureType RHITextureView::GetTextureType() const
+	{
+		return m_textureType;
+	}
+
+	eTextureSwizzle RHITextureView::GetSwizzleR() const
+	{
+		return m_swizzleR;
+	}
+
+	eTextureSwizzle RHITextureView::GetSwizzleG() const
+	{
+		return m_swizzleG;
+	}
+
+	eTextureSwizzle RHITextureView::GetSwizzleB() const
+	{
+		return m_swizzleB;
+	}
+
+	eTextureSwizzle RHITextureView::GetSwizzleA() const
+	{
+		return m_swizzleA;
+	}
+
+	const RHITextureState& RHITextureView::GetTextureState() const
+	{
+		return m_state;
+	}
+
+	void RHITextureView::SetBaseMip(const uint32_t baseMip)
+	{
+		m_baseMipLevel = baseMip;
+	}
+
+	void RHITextureView::SetMipCount(const uint32_t mipCount)
+	{
+		m_MipCount = mipCount;
+	}
+
+	void RHITextureView::SetBaseLayer(const uint32_t baseLayer)
+	{
+		m_baseLayer = baseLayer;
+	}
+
+	void RHITextureView::SetLayerCount(const uint32_t layerCount)
+	{
+		m_layerCount = layerCount;
+	}
+
+	void RHITextureView::SetAttachmentType(const eAttachmentType attachmentType)
+	{
+		m_attachmentType = attachmentType;
+	}
+
+	void RHITextureView::SetTextureFormat(const eTextureFormat textureFormat)
+	{
+		m_textureFormat = textureFormat;
+	}
+
+	void RHITextureView::SetTextureType(const eTextureType textureType)
+	{
+		m_textureType = textureType;
+	}
+
+	void RHITextureView::SetSwizzleR(const eTextureSwizzle swizzleR)
+	{
+		m_swizzleR = swizzleR;
+	}
+
+	void RHITextureView::SetSwizzleG(const eTextureSwizzle swizzleG)
+	{
+		m_swizzleG = swizzleG;
+	}
+
+	void RHITextureView::SetSwizzleB(const eTextureSwizzle swizzleB)
+	{
+		m_swizzleB = swizzleB;
+	}
+
+	void RHITextureView::SetSwizzleA(const eTextureSwizzle swizzleA)
+	{
+		m_swizzleA = swizzleA;
+	}
+
+	void RHITextureView::SetTextureState(const RHITextureState& state) const
+	{
+		m_state = state;
 	}
 
 	RHISampler::RHISampler(const RHISamplerDesc& desc)
@@ -886,7 +982,7 @@ namespace wtr
 			}
 
 			RHIStageAttach attach = {};
-			attach.format = color.texture->GetPixelFormat();
+			attach.format = color.texture->GetTextureFormat();
 
 			if (!AddColorAttach(color.location, attach))
 			{
@@ -904,7 +1000,7 @@ namespace wtr
 			}
 
 			RHIStageAttach attach = {};
-			attach.format = passDesc.depthStencil.texture->GetPixelFormat();
+			attach.format = passDesc.depthStencil.texture->GetTextureFormat();
 			if (!AddDepthStencilAttach(attach))
 			{
 				LOGWARN() << "[RHI] Failed to add depth stencil attach";
@@ -917,13 +1013,13 @@ namespace wtr
 
 	bool RHIPipeLine::AddDepthStencilAttach(const RHIStageAttach& attach)
 	{
-		if (attach.format == ePixelFormat::eNone)
+		if (attach.format == eTextureFormat::eNone)
 		{
 			LOGWARN() << "[RHI] Invalid depth stencil attach format : " << static_cast<int>(attach.format);
 			return false;
 		}
 
-		if (m_depthStencilAttach.format != ePixelFormat::eNone && m_depthStencilAttach != attach)
+		if (m_depthStencilAttach.format != eTextureFormat::eNone && m_depthStencilAttach != attach)
 		{
 			LOGWARN() << "[RHI] Depth stencil attach already exists with a different format : " << static_cast<int>(m_depthStencilAttach.format) << ", new: " << static_cast<int>(attach.format);
 		}

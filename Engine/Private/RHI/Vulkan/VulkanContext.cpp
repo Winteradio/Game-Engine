@@ -1561,6 +1561,8 @@ namespace wtr
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
+		VkImageMemoryBarrier imageBarrier{};
+
 		VkCommandBuffer commandBuffer = m_primary->GetCommandBuffer();
 		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 

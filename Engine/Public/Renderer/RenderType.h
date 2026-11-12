@@ -10,11 +10,11 @@ namespace wtr
 	{
 		eNone = 0x00,
 		eOpenGL = 0x01,
+		eVulkan = 0x02,
 
 		// Not Implemented
-		eDirectX11 = 0x02,
-		eDirectX12 = 0x03,
-		eVulkan = 0x04
+		eDirectX11 = 0x03,
+		eDirectX12 = 0x04
 	};
 
 	enum class eResourceType : uint8_t
@@ -38,7 +38,8 @@ namespace wtr
 		eConst		= 0x01,
 		eUniform	= 0x02,
 		eStorage	= 0x03,
-		eSampler	= 0x04
+		eSampler	= 0x04,
+		eTexture	= 0x05
 	};
 
 	enum class eDataUsage : uint8_t
