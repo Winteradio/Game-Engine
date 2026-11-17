@@ -29,6 +29,10 @@ namespace wtr
 		void Start();
 		void Stop();
 
+		// Inline: run on the caller's thread, driven by Tick(). Set it before Start().
+		void SetInline(const bool isInline);
+		void Tick();
+
 	protected :
 		virtual bool onStart();
 		virtual void onUpdate();
@@ -40,6 +44,7 @@ namespace wtr
 
 	protected :
 		std::atomic<bool> m_isRunning;
+		bool m_isInline = false;
 		std::thread m_thread;
 	};
 };

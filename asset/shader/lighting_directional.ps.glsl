@@ -32,7 +32,7 @@ uniform mat4 uLightProj;
 in vec2 outTexCoord;
 
 const float PI = 3.14159265359;
-const float EPISLON = 1e-6;
+const float EPSILON = 1e-6;
 const float GRAZING_ANGLE = PI * (90.0 - 1.0) / 180;
 const float GRAZING_COS = cos(GRAZING_ANGLE);
 const float GRAZING_SIN = sqrt(max(0.0, 1.0 - GRAZING_COS * GRAZING_COS));
@@ -43,63 +43,28 @@ float GetShadowFactor(vec3 worldPos, vec3 worldNor)
     vec2 textureRect = vec2(textureSize(tGShadow, 0));
     vec2 texelRect = 1.0 / textureRect;
 
+    vec4 clipPos = uLightProj * uLightView * vec4(worldPos, 1.0);
+    vec3 ndcPos = clipPos.xyz / (sign(clipPos.w) * max(clipPos.w, EPSILON));
+    vec2 screenPos = clamp(ndcPos.xy * 0.5 + 0.5, vec2(0.0), vec2(1.0));
+    float posDepth = clamp(ndcPos.z * 0.5 + 0.5, 0.0, 1.0);
+    float shadowDepth = texture(tGShadow, screenPos).r;
+
     float cosTheta = dot(worldNor, -normalize(light.direction));
     float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+    float tanTheta = sinTheta / max(cosTheta, EPSILON);
+    tanTheta = min(tanTheta, GRAZING_TAN);
 
-	float validFactor = step(GRAZING_COS, cosTheta);
-
-    // --- Normal offset in the world space
-    float orthoWidth  = 2.0 / uLightProj[0][0];
+    float orthoWidth = 2.0 / uLightProj[0][0];
     float orthoHeight = 2.0 / uLightProj[1][1];
-    float worldTexel  = max(orthoWidth * texelRect.x, orthoHeight * texelRect.y);
-    vec3 offsetPos = worldPos + worldNor * worldTexel * sinTheta;
+    float worldTexel = max(orthoWidth * texelRect.x, orthoHeight * texelRect.y);
 
-    vec4 clipPos = uLightProj * uLightView * vec4(offsetPos, 1.0);
-    vec3 projCoords = clipPos.xyz / clipPos.w * 0.5 + 0.5;
-    projCoords.z = clamp(projCoords.z, 0.0, 1.0);
+    float depthRange = abs(2.0 / uLightProj[2][2]);
+    float bias = max(worldTexel * tanTheta / depthRange, EPSILON);
 
-    // --- Receiver plane depth biased on the light space
-    vec3 dx = dFdx(projCoords);   // (dudx, dvdx, dzdx)
-    vec3 dy = dFdy(projCoords);   // (dudy, dvdy, dzdy)
-    float det = dx.x * dy.y - dx.y * dy.x;
-	det = mix(EPISLON, det, step(EPISLON, abs(det)));
 
-    vec2 dzduv = vec2(
-		(dx.z * dy.y - dy.z * dx.y) / det,  // dz/du
-        (dy.z * dx.x - dx.z * dy.x) / det   // dz/dv
-    );
-
-	dzduv = clamp(dzduv, -GRAZING_TAN, GRAZING_TAN);
-
-    vec2 shadowUV = projCoords.xy;
-    float currentDepth = projCoords.z;
-    float constBias = 0.0005;
-
-    float shadowFactor = 0.0;
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            vec2 offset = vec2(x, y) * texelRect;
-            vec2 pcfUV = shadowUV + offset;
-
-            float biasedDepth = currentDepth + dot(offset, dzduv);
-            float pcfDepth = texture(tGShadow, pcfUV).r;
-
-            shadowFactor += step(pcfDepth, biasedDepth - constBias);
-        }
-    }
-
-    shadowFactor /= 9.0;
-
-    float fadeMargin = 0.1;
-
-    float distToEdgeX = min(projCoords.x, 1.0 - projCoords.x);
-    float distToEdgeY = min(projCoords.y, 1.0 - projCoords.y);
-    float distToEdgeZ = abs(1.0 - projCoords.z);
-
-    float minFade = min(min(distToEdgeX, distToEdgeY), distToEdgeZ);
-    float fadeFactor = mix(1.0, smoothstep(0.0, fadeMargin, minFade), step(EPISLON, fadeMargin - minFade));
-
-    return shadowFactor * fadeFactor * validFactor;
+    float shadowFactor = step(bias, abs(posDepth - shadowDepth)) * step(shadowDepth, posDepth);
+    shadowFactor *= step(0.0, clipPos.w);
+    return shadowFactor;
 }
 
 vec3 GetWorldPosition(vec2 uv)

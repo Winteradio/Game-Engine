@@ -149,10 +149,11 @@ namespace wtr
 		core.manager.Release(cmdList);
 	}
 
-	AssetSystem::TaskQueue AssetSystem::GetTask()
+	AssetSystem::TaskQueue AssetSystem::GetTask(const bool block)
 	{
 		AssetCore& core = GetCore();
 
+		if (block)
 		{
 			std::unique_lock<std::mutex> lock(core.mutexTask);
 			core.cvTask.wait(lock, [&core] { return !core.taskQueue.empty() || !core.running; });

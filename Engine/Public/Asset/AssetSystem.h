@@ -32,7 +32,7 @@ namespace wtr
 		static void Shutdown();
 
 	private :
-		static TaskQueue GetTask();
+		static TaskQueue GetTask(const bool block);
 		static void AddTask(Memory::RefPtr<Asset> asset);
 		static void Release(Memory::RefPtr<RHICommandList> cmdList);
 

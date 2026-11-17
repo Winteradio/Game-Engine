@@ -21,6 +21,7 @@ namespace wtr
 	{
 		eRenderType Type = eRenderType::eNone;
 		size_t FrameCount = 3;
+		bool SingleThread = false;
 	};
 
 	class Renderer

@@ -58,6 +58,8 @@ namespace wtr
 		Log::Init(1024, Log::Enum::eMode_Print, Log::Enum::eLevel_Type);
 		Memory::Init(4096, 100);
 
+		m_singleThread = renderDesc.SingleThread;
+
 		m_inputStorage = Memory::MakeRef<InputStorage>();
 
 		m_updateGate = Memory::MakeRef<FrameGate>(UPDATE_FRAME_GAP);
@@ -309,12 +311,17 @@ namespace wtr
 				return false;
 			}
 
-			assetWorker->SetTaskThread(4);
+			assetWorker->SetTaskThread(m_singleThread ? 0 : 4);
 			assetWorker->SetTaskExecutor(m_rhiTaskExecutor);
 
 			m_assetWorker = assetWorker;
 		}
 		
+		for (auto* worker : { &m_worldWorker, &m_renderWorker, &m_rhiWorker, &m_assetWorker })
+		{
+			(*worker)->SetInline(m_singleThread);
+		}
+
 		LOGINFO() << "[Engine] Succeed to initialize the worker";
 
 		return true;
@@ -405,6 +412,12 @@ namespace wtr
 			m_window->PollEvents();
 
 			UpdateInput();
+
+			// No-op unless single thread. The order keeps the gates balanced: world -> render -> rhi.
+			if (m_worldWorker)  { m_worldWorker->Tick(); }
+			if (m_assetWorker)  { m_assetWorker->Tick(); }
+			if (m_renderWorker) { m_renderWorker->Tick(); }
+			if (m_rhiWorker)    { m_rhiWorker->Tick(); }
 		}
 
 		LOGINFO() << "[Engine] Engine run completed";

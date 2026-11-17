@@ -39,6 +39,12 @@ namespace wtr
 			return;
 		}
 
+		if (m_isInline)
+		{
+			m_isRunning = onStart();
+			return;
+		}
+
 		m_thread = std::thread(&Worker::Run, this);
 
 		m_isRunning = true;
@@ -46,13 +52,38 @@ namespace wtr
 
 	void Worker::Stop()
 	{
+		const bool wasRunning = m_isRunning;
+
 		m_isRunning = false;
 
 		onNotify();
 
+		if (m_isInline)
+		{
+			if (wasRunning)
+			{
+				onDestroy();
+			}
+
+			return;
+		}
+
 		if (m_thread.joinable())
 		{
 			m_thread.join();
+		}
+	}
+
+	void Worker::SetInline(const bool isInline)
+	{
+		m_isInline = isInline;
+	}
+
+	void Worker::Tick()
+	{
+		if (m_isInline && m_isRunning)
+		{
+			onUpdate();
 		}
 	}
 

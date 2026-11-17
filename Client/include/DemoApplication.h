@@ -14,6 +14,9 @@ namespace demo
 		public :
 			void onSetup() override;
 
+		protected :
+			wtr::RenderDesc GetRenderDesc() const override;
+
 		private :
 			bool InitEntity();
 			bool InitBase();

@@ -69,6 +69,8 @@ namespace wtr
 			Memory::RefPtr<Worker>			m_renderWorker;
 			Memory::RefPtr<Worker>			m_rhiWorker;
 			Memory::RefPtr<Worker>			m_assetWorker;
+
+			bool							m_singleThread = false;
 	};
 };
 

@@ -12,6 +12,7 @@
 
 #include <Framework/ViewController.h>
 #include <Framework/Window.h>
+#include <Renderer/Renderer.h>
 
 #include <Log/include/Log.h>
 
@@ -26,6 +27,13 @@ namespace demo
 
 	Game::~Game()
 	{}
+
+	wtr::RenderDesc Game::GetRenderDesc() const
+	{
+		wtr::RenderDesc desc = Application::GetRenderDesc();
+		desc.SingleThread = false; // false: world / render / rhi / asset run on their own threads
+		return desc;
+	}
 
 	void Game::onSetup()
 	{
@@ -60,11 +68,11 @@ namespace demo
 			return false;
 		}
 
-		if (!InitCube())
-		{
-			LOGERROR() << "[Game] Failed to initialize the cube entities";
-			return false;
-		}
+		// if (!InitCube())
+		// {
+		// 	LOGERROR() << "[Game] Failed to initialize the cube entities";
+		// 	return false;
+		// }
 
 		//if (!InitPointLight())
 		//{

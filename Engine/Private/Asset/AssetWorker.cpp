@@ -51,7 +51,7 @@ namespace wtr
 
 		Memory::RefPtr<RHICommandList> cmdList = m_refTaskExecutor->Acquire();
 
-		AssetSystem::TaskQueue taskQueue = AssetSystem::GetTask();
+		AssetSystem::TaskQueue taskQueue = AssetSystem::GetTask(!m_isInline);
 		while (!taskQueue.empty())
 		{
 			Memory::RefPtr<Asset> asset = taskQueue.front();
@@ -152,6 +152,22 @@ namespace wtr
 	{
 		if (!asset)
 		{
+			return;
+		}
+
+		// No task threads: parse right here.
+		if (m_threads.Empty())
+		{
+			Memory::RefPtr<AssetParser> parser = AssetSystem::GetParser(asset->path);
+			if (!parser || !parser->Parse(asset))
+			{
+				LOGERROR() << "[AssetWorker] Failed to parse the asset : " << asset->path;
+				return;
+			}
+
+			asset->SetState(eAssetState::eLoaded);
+
+			AssetSystem::AddTask(asset);
 			return;
 		}
 
